@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   MapPin, 
   Activity, 
@@ -20,11 +20,26 @@ import {
   AlertTriangle,
   Locate,
   CheckCircle2,
-  Trash2
+  Trash2,
+  Building2,
+  Plus,
+  Pencil,
+  UserPlus
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import TableSkeleton from '@/components/TableSkeleton';
+import { useOffices } from '@/hooks/useOffices';
+import { useOfficeDetail } from '@/hooks/useOfficeDetail';
+import {
+  getMapBoundsForOffice,
+  metersToDegreeRadius,
+} from '@/services/officeService';
+import CreateOfficeModal from '@/features/location/components/CreateOfficeModal';
+import EditOfficeModal from '@/features/location/components/EditOfficeModal';
+import AssignEmployeeModal from '@/features/location/components/AssignEmployeeModal';
+import { deleteOffice, type Office } from '@/services/officeService';
+import { unassignEmployeeFromOffice } from '@/services/employeeService';
 
 import { 
   mockLiveLocations as initialLocations, 
@@ -75,34 +90,181 @@ const itemVariants: Variants = {
   }
 };
 
-// Map Bounds Configuration (Mumbai region equivalent coordinates to center around 19.0760, 72.8777)
-const MAP_BOUNDS = {
+// Default map bounds (Mumbai) — used until offices load
+const DEFAULT_MAP_BOUNDS = {
   minLat: 19.0500,
   maxLat: 19.1020,
   minLng: 72.8400,
   maxLng: 72.9150
 };
 
-const OFFICE_CENTER = {
+const DEFAULT_OFFICE_CENTER = {
   lat: 19.0760,
   lng: 72.8777
 };
 
 export default function LocationPage() {
+  const { offices, isLoading: isOfficesLoading, error: officesError, refetch } = useOffices();
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
+  const {
+    office: officeDetail,
+    isLoading: isOfficeDetailLoading,
+    error: officeDetailError,
+    refetch: refetchOfficeDetail,
+  } = useOfficeDetail(selectedOfficeId);
   const [locations, setLocations] = useState<EmployeeLocation[]>(initialLocations);
   const [logs, setLogs] = useState<LocationLog[]>(initialLogs);
   const [selectedEmpId, setSelectedEmpId] = useState<number | null>(null);
   
   // Controls
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
-  const [geofenceRadius, setGeofenceRadius] = useState(0.015); // in degrees (~1.6km)
+  const [geofenceRadius, setGeofenceRadius] = useState(0.015);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [radarSpeed, setRadarSpeed] = useState(1); // 1 = normal, 2 = fast, 0.5 = slow
+  const [radarSpeed, setRadarSpeed] = useState(1);
+  const [isCreateOfficeOpen, setIsCreateOfficeOpen] = useState(false);
+  const [editingOffice, setEditingOffice] = useState<Office | null>(null);
+  const [isAssignEmployeeOpen, setIsAssignEmployeeOpen] = useState(false);
+  const [unassigningEmployeeId, setUnassigningEmployeeId] = useState<number | null>(null);
+  const [isDeletingOfficeId, setIsDeletingOfficeId] = useState<number | null>(null);
+  const [officeActionMessage, setOfficeActionMessage] = useState('');
+  const [officeActionError, setOfficeActionError] = useState('');
+
+  const handleOfficeCreated = async (officeId: number, message: string) => {
+    setOfficeActionMessage(message);
+    setOfficeActionError('');
+    setSelectedOfficeId(officeId);
+    await refetch();
+    await refetchOfficeDetail(officeId);
+  };
+
+  const handleOfficeUpdated = async (officeId: number, message: string) => {
+    setOfficeActionMessage(message);
+    setOfficeActionError('');
+    setSelectedOfficeId(officeId);
+    await refetch();
+    await refetchOfficeDetail(officeId);
+  };
+
+  const handleDeleteOffice = async (office: Office) => {
+    const confirmed = window.confirm(
+      `Delete ${office.name}? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setOfficeActionError('');
+    setOfficeActionMessage('');
+    setIsDeletingOfficeId(office.id);
+
+    try {
+      const result = await deleteOffice(office.id);
+      setOfficeActionMessage(result.message);
+
+      if (selectedOfficeId === office.id) {
+        setSelectedOfficeId(null);
+      }
+
+      await refetch();
+    } catch (err) {
+      setOfficeActionError(
+        err instanceof Error ? err.message : 'Failed to delete office.'
+      );
+    } finally {
+      setIsDeletingOfficeId(null);
+    }
+  };
+
+  const handleEmployeeAssigned = async (message: string, officeId: number) => {
+    setOfficeActionMessage(message);
+    setOfficeActionError('');
+    await refetch();
+    await refetchOfficeDetail(officeId);
+  };
+
+  const handleUnassignEmployee = async (employeeId: number, employeeName: string) => {
+    const confirmed = window.confirm(`Unassign ${employeeName} from this office?`);
+    if (!confirmed) return;
+
+    setOfficeActionError('');
+    setOfficeActionMessage('');
+    setUnassigningEmployeeId(employeeId);
+
+    try {
+      const result = await unassignEmployeeFromOffice(employeeId);
+      setOfficeActionMessage(result.message);
+      await refetch();
+      if (selectedOfficeId) {
+        await refetchOfficeDetail(selectedOfficeId);
+      }
+    } catch (err) {
+      setOfficeActionError(
+        err instanceof Error ? err.message : 'Failed to unassign employee.'
+      );
+    } finally {
+      setUnassigningEmployeeId(null);
+    }
+  };
+
+  const selectedOfficeSummary = useMemo(
+    () => offices.find((office) => office.id === selectedOfficeId) ?? null,
+    [offices, selectedOfficeId]
+  );
+
+  const assignedEmployees = officeDetail?.employees ?? [];
+  const assignedCount =
+    officeDetail?.employees?.length ??
+    selectedOfficeSummary?._count.employees ??
+    0;
+
+  const selectedOffice = useMemo(
+    () =>
+      officeDetail ??
+      selectedOfficeSummary ??
+      offices[0] ??
+      null,
+    [officeDetail, selectedOfficeSummary, offices]
+  );
+
+  const officeCenter = useMemo(
+    () =>
+      selectedOffice
+        ? { lat: selectedOffice.latitude, lng: selectedOffice.longitude }
+        : DEFAULT_OFFICE_CENTER,
+    [selectedOffice]
+  );
+
+  const mapBounds = useMemo(
+    () =>
+      selectedOffice
+        ? getMapBoundsForOffice(
+            selectedOffice.latitude,
+            selectedOffice.longitude,
+            selectedOffice.maxPunchRadiusMeters
+          )
+        : DEFAULT_MAP_BOUNDS,
+    [selectedOffice]
+  );
 
   // Timing helper for simulated movements
   const prevLocationsRef = useRef<EmployeeLocation[]>(initialLocations);
+
+  useEffect(() => {
+    if (offices.length > 0 && selectedOfficeId === null) {
+      setSelectedOfficeId(offices[0].id);
+    }
+  }, [offices, selectedOfficeId]);
+
+  useEffect(() => {
+    if (selectedOffice) {
+      setGeofenceRadius(
+        metersToDegreeRadius(
+          selectedOffice.maxPunchRadiusMeters,
+          selectedOffice.latitude
+        )
+      );
+    }
+  }, [selectedOffice]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800);
@@ -111,21 +273,17 @@ export default function LocationPage() {
 
   // Map lat/lng coordinates to 0-500 SVG coordinate grid
   const getMapCoords = (lat: number, lng: number) => {
-    const xSpan = MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng;
-    const ySpan = MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat;
+    const xSpan = mapBounds.maxLng - mapBounds.minLng;
+    const ySpan = mapBounds.maxLat - mapBounds.minLat;
 
-    // x coordinate: 0 to 500
-    const x = ((lng - MAP_BOUNDS.minLng) / xSpan) * 500;
-    
-    // y coordinate: 500 to 0 (SVG y is top-to-bottom)
-    const y = 500 - ((lat - MAP_BOUNDS.minLat) / ySpan) * 500;
+    const x = ((lng - mapBounds.minLng) / xSpan) * 500;
+    const y = 500 - ((lat - mapBounds.minLat) / ySpan) * 500;
 
     return { x, y };
   };
 
-  // Convert geofence radius in degrees to SVG pixel radius
   const getPixelRadius = (radiusDegrees: number) => {
-    const ySpan = MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat;
+    const ySpan = mapBounds.maxLat - mapBounds.minLat;
     return (radiusDegrees / ySpan) * 500;
   };
 
@@ -157,11 +315,10 @@ export default function LocationPage() {
           const lngJitter = (Math.random() - 0.5) * 0.0025 * radarSpeed;
 
           // Constrain movement to map boundaries
-          let nextLat = Math.max(MAP_BOUNDS.minLat + 0.005, Math.min(MAP_BOUNDS.maxLat - 0.005, emp.lat + latJitter));
-          let nextLng = Math.max(MAP_BOUNDS.minLng + 0.005, Math.min(MAP_BOUNDS.maxLng - 0.005, emp.lng + lngJitter));
+          let nextLat = Math.max(mapBounds.minLat + 0.005, Math.min(mapBounds.maxLat - 0.005, emp.lat + latJitter));
+          let nextLng = Math.max(mapBounds.minLng + 0.005, Math.min(mapBounds.maxLng - 0.005, emp.lng + lngJitter));
 
-          // Calculate Euclidean distance from Office Geofence center
-          const dist = Math.sqrt(Math.pow(nextLat - OFFICE_CENTER.lat, 2) + Math.pow(nextLng - OFFICE_CENTER.lng, 2));
+          const dist = Math.sqrt(Math.pow(nextLat - officeCenter.lat, 2) + Math.pow(nextLng - officeCenter.lng, 2));
           
           let nextStatus = emp.status;
           if (dist > geofenceRadius) {
@@ -217,15 +374,15 @@ export default function LocationPage() {
     }, 4000);
 
     return () => clearInterval(intervalId);
-  }, [isAutoRefreshing, geofenceRadius, radarSpeed]);
+  }, [isAutoRefreshing, geofenceRadius, radarSpeed, officeCenter, mapBounds]);
 
   const handleManualBreachTrigger = (employeeId: number) => {
     setLocations(prev => prev.map(emp => {
       if (emp.employeeId !== employeeId) return emp;
       
       // Push way out north-east to force an immediate geofence breach
-      const breachLat = OFFICE_CENTER.lat + geofenceRadius + 0.015;
-      const breachLng = OFFICE_CENTER.lng + geofenceRadius + 0.015;
+      const breachLat = officeCenter.lat + geofenceRadius + 0.015;
+      const breachLng = officeCenter.lng + geofenceRadius + 0.015;
 
       const logId = `LOG-${Math.floor(100 + Math.random() * 900)}`;
       const breachLog: LocationLog = {
@@ -254,8 +411,8 @@ export default function LocationPage() {
       if (emp.employeeId !== employeeId) return emp;
       
       // Teleport exactly into the main office
-      const officeLat = OFFICE_CENTER.lat + (Math.random() - 0.5) * 0.002;
-      const officeLng = OFFICE_CENTER.lng + (Math.random() - 0.5) * 0.002;
+      const officeLat = officeCenter.lat + (Math.random() - 0.5) * 0.002;
+      const officeLng = officeCenter.lng + (Math.random() - 0.5) * 0.002;
 
       const logId = `LOG-${Math.floor(100 + Math.random() * 900)}`;
       const entryLog: LocationLog = {
@@ -295,7 +452,7 @@ export default function LocationPage() {
   });
 
   const selectedEmployee = locations.find(e => e.employeeId === selectedEmpId);
-  const officeCoords = getMapCoords(OFFICE_CENTER.lat, OFFICE_CENTER.lng);
+  const officeCoords = getMapCoords(officeCenter.lat, officeCenter.lng);
   const pixelRadius = getPixelRadius(geofenceRadius);
 
   return (
@@ -353,15 +510,279 @@ export default function LocationPage() {
           <button 
             onClick={() => {
               setIsLoading(true);
-              setTimeout(() => setIsLoading(false), 500);
+              Promise.all([
+                refetch(),
+                selectedOfficeId
+                  ? refetchOfficeDetail(selectedOfficeId)
+                  : Promise.resolve(),
+              ]).finally(() =>
+                setTimeout(() => setIsLoading(false), 500)
+              );
             }}
             className="p-3 bg-surface-variant hover:bg-border text-text-primary rounded-2xl transition-all shadow-sm active:scale-95"
-            title="Refresh GPS Links"
+            title="Refresh offices & GPS links"
           >
-            <RefreshCw size={18} className={cn(isLoading && "animate-spin")} />
+            <RefreshCw size={18} className={cn((isLoading || isOfficesLoading) && "animate-spin")} />
           </button>
         </div>
       </motion.div>
+
+      {officesError && (
+        <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+          {officesError}
+        </div>
+      )}
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-black text-text-primary uppercase tracking-tight">Registered Offices</h2>
+            <p className="text-sm text-text-secondary mt-1">
+              Select an office to center the geofence map and telemetry grid.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-muted uppercase tracking-widest">
+              {offices.length} locations
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsCreateOfficeOpen(true)}
+              className="btn-primary shadow-lg shadow-primary/20 py-2.5 px-4 text-sm"
+            >
+              <Plus size={18} />
+              Add Office
+            </button>
+          </div>
+        </div>
+
+        {officeActionMessage && (
+          <div className="rounded-2xl bg-success/10 border border-success/20 px-4 py-3 text-sm font-medium text-success">
+            {officeActionMessage}
+          </div>
+        )}
+
+        {officeActionError && (
+          <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+            {officeActionError}
+          </div>
+        )}
+
+        {isOfficesLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2].map((item) => (
+              <div key={item} className="glass-card p-6 animate-pulse h-36" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {offices.map((office) => (
+              <div
+                key={office.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedOfficeId(office.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedOfficeId(office.id);
+                  }
+                }}
+                className={cn(
+                  'glass-card p-6 text-left transition-all border-2 cursor-pointer',
+                  selectedOffice?.id === office.id
+                    ? 'border-primary/40 bg-primary/5 shadow-lg shadow-primary/10'
+                    : 'border-transparent hover:border-primary/20'
+                )}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4 min-w-0">
+                    <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0">
+                      <Building2 size={22} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-lg font-black text-text-primary">{office.name}</p>
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
+                        {office.code}
+                      </p>
+                      <p className="text-sm text-text-secondary mt-2">{office.address}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <span
+                      className={cn(
+                        'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border',
+                        office.isActive
+                          ? 'bg-success/10 text-success border-success/20'
+                          : 'bg-muted/10 text-muted border-border'
+                      )}
+                    >
+                      {office.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingOffice(office);
+                        }}
+                        className="p-2 rounded-xl text-text-secondary hover:text-primary hover:bg-primary/10 transition-all"
+                        title="Edit office"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteOffice(office);
+                        }}
+                        disabled={isDeletingOfficeId === office.id}
+                        className="p-2 rounded-xl text-text-secondary hover:text-error hover:bg-error/10 transition-all disabled:opacity-60"
+                        title="Delete office"
+                      >
+                        {isDeletingOfficeId === office.id ? (
+                          <RefreshCw size={16} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-border/50">
+                  <div>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Employees</p>
+                    <p className="text-sm font-bold text-text-primary mt-1">{office._count.employees}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Ideal Radius</p>
+                    <p className="text-sm font-bold text-text-primary mt-1">{office.idealRadiusMeters}m</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Max Punch</p>
+                    <p className="text-sm font-bold text-text-primary mt-1">{office.maxPunchRadiusMeters}m</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      {selectedOfficeId && (
+        <motion.div variants={itemVariants} className="glass-card p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-text-primary uppercase tracking-tight">
+                Office Personnel
+              </h2>
+              <p className="text-sm text-text-secondary mt-1">
+                Employees registered at {selectedOffice?.name ?? 'selected office'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">
+                {assignedCount} assigned
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsAssignEmployeeOpen(true)}
+                className="btn-primary shadow-lg shadow-primary/20 py-2 px-4 text-sm"
+              >
+                <UserPlus size={16} />
+                Assign Employee
+              </button>
+            </div>
+          </div>
+
+          {officeDetailError && (
+            <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <span>{officeDetailError}</span>
+              <button
+                type="button"
+                onClick={() => selectedOfficeId && refetchOfficeDetail(selectedOfficeId)}
+                className="text-xs font-bold uppercase tracking-widest text-error hover:underline shrink-0"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {isOfficeDetailLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="h-24 rounded-2xl bg-surface-variant animate-pulse" />
+              ))}
+            </div>
+          ) : assignedEmployees.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {assignedEmployees.map((employee) => (
+                <div
+                  key={employee.id}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-surface-variant/50 border border-border/50"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0">
+                    {employee.firstName[0]}
+                    {employee.lastName[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-text-primary truncate">
+                      {employee.firstName} {employee.lastName}
+                    </p>
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">
+                      {employee.employeeCode}
+                    </p>
+                    <p className="text-xs text-text-secondary mt-1 truncate">
+                      {employee.designation}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleUnassignEmployee(
+                        employee.id,
+                        `${employee.firstName} ${employee.lastName}`
+                      )
+                    }
+                    disabled={unassigningEmployeeId === employee.id}
+                    className="p-2 rounded-xl text-text-secondary hover:text-error hover:bg-error/10 transition-all disabled:opacity-60 shrink-0"
+                    title="Unassign from office"
+                  >
+                    {unassigningEmployeeId === employee.id ? (
+                      <RefreshCw size={16} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : assignedCount > 0 ? (
+            <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center space-y-3">
+              <User size={28} className="mx-auto text-muted" />
+              <p className="text-sm font-bold text-text-secondary">
+                {assignedCount} employee{assignedCount === 1 ? '' : 's'} assigned, but details could not be loaded.
+              </p>
+              <button
+                type="button"
+                onClick={() => selectedOfficeId && refetchOfficeDetail(selectedOfficeId)}
+                className="btn-secondary py-2 px-4 text-xs"
+              >
+                Reload personnel
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center">
+              <User size={28} className="mx-auto text-muted mb-3" />
+              <p className="text-sm font-bold text-text-secondary">
+                No employees assigned to this office yet.
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Spatial KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -550,7 +971,10 @@ export default function LocationPage() {
             {/* Radar Coordinates Corner Display Overlay */}
             <div className="absolute bottom-4 left-4 p-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl pointer-events-none flex flex-col font-mono text-[9px] text-slate-400 gap-0.5 shadow-lg">
               <span className="text-primary font-bold">RADAR FEED SYSTEM v4.11</span>
-              <span>LOCKED CENTER: {OFFICE_CENTER.lat.toFixed(4)}N, {OFFICE_CENTER.lng.toFixed(4)}E</span>
+              <span>LOCKED CENTER: {officeCenter.lat.toFixed(4)}N, {officeCenter.lng.toFixed(4)}E</span>
+              {selectedOffice && (
+                <span className="ml-4 text-primary font-bold">{selectedOffice.name}</span>
+              )}
               <span>GRID GEOFENCE: {(geofenceRadius * 111).toFixed(2)} km radius</span>
               <span>SYS ACTIVE: GLONASS/GPS MATRIX</span>
             </div>
@@ -941,6 +1365,27 @@ export default function LocationPage() {
         </div>
 
       </motion.div>
+
+      <CreateOfficeModal
+        isOpen={isCreateOfficeOpen}
+        onClose={() => setIsCreateOfficeOpen(false)}
+        onCreated={handleOfficeCreated}
+      />
+
+      <EditOfficeModal
+        isOpen={Boolean(editingOffice)}
+        office={editingOffice}
+        onClose={() => setEditingOffice(null)}
+        onUpdated={handleOfficeUpdated}
+      />
+
+      <AssignEmployeeModal
+        isOpen={isAssignEmployeeOpen}
+        officeId={selectedOfficeId}
+        officeName={selectedOffice?.name ?? 'Selected office'}
+        onClose={() => setIsAssignEmployeeOpen(false)}
+        onAssigned={handleEmployeeAssigned}
+      />
 
     </motion.div>
   );

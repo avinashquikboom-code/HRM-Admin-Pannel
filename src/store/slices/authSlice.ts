@@ -1,13 +1,43 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  clearAuthSession,
+  getAuthSession,
+  setAuthSession,
+} from '@/lib/authStorage';
 
-interface User {
+export interface UserProfileSecurity {
+  twoFactorEnabled: boolean;
+  twoFactorStatus: string;
+  lastLoginAt: string;
+  lastLoginLocation: string;
+  clearanceLevel: number;
+  clearanceLabel: string;
+}
+
+export interface UserProfile {
+  id: number;
+  userId: number;
+  email: string;
+  fullName: string;
+  phone: string;
+  avatarUrl: string | null;
+  timezone: string;
+  timezoneLabel: string;
+  bio: string;
+  security: UserProfileSecurity;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'SUPER_ADMIN';
+  role: string;
   avatar?: string;
   phone?: string;
   bio?: string;
+  profile?: UserProfile;
 }
 
 interface AuthState {
@@ -23,28 +53,16 @@ const initialState: AuthState = {
 };
 
 export const loadAuthFromStorage = (): AuthState => {
-  if (typeof window === 'undefined') {
+  const session = getAuthSession();
+  if (!session) {
     return initialState;
   }
 
-  const storedUser = localStorage.getItem('user');
-  const token = localStorage.getItem('token');
-
-  if (!storedUser || !token) {
-    return initialState;
-  }
-
-  try {
-    const user = JSON.parse(storedUser) as User;
-    if (user.avatar?.includes('dicebear.com')) {
-      user.avatar = '/assets/admin-avatar.png';
-      localStorage.setItem('user', JSON.stringify(user));
-    }
-    return { user, token, isAuthenticated: true };
-  } catch (e) {
-    console.error('Failed to parse user from localStorage', e);
-    return initialState;
-  }
+  return {
+    user: session.user,
+    token: session.token,
+    isAuthenticated: true,
+  };
 };
 
 const authSlice = createSlice({
@@ -61,20 +79,24 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
-      localStorage.setItem('token', action.payload.token);
+      setAuthSession({
+        token: action.payload.token,
+        user: action.payload.user,
+      });
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      clearAuthSession();
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
-      if (state.user) {
+      if (state.user && state.token) {
         state.user = { ...state.user, ...action.payload };
-        localStorage.setItem('user', JSON.stringify(state.user));
+        setAuthSession({
+          token: state.token,
+          user: state.user,
+        });
       }
     },
   },
@@ -82,5 +104,3 @@ const authSlice = createSlice({
 
 export const { hydrateAuth, login, logout, updateUser } = authSlice.actions;
 export const authReducer = authSlice.reducer;
-export type { User };
-

@@ -3,28 +3,31 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { login } from '@/store/slices/authSlice';
+import { loginRequest } from '@/services/authService';
 import { motion } from 'framer-motion';
-import { Mail, Lock, LogIn, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, LogIn, ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('admin@hrm.ai');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('admin@quickboom.com');
+  const [password, setPassword] = useState('Password@123');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login
-    dispatch(login({
-      user: {
-        id: '1',
-        name: 'Avinash Magar',
-        email: 'admin@hrm.ai',
-        role: 'SUPER_ADMIN',
-        avatar: '/assets/admin-avatar.png'
-      },
-      token: 'mock-jwt-token'
-    }));
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await loginRequest({ email, password });
+      dispatch(login(response));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,6 +51,12 @@ const LoginPage = () => {
 
         <div className="glass-card p-10 bg-surface/40 border-surface/50">
           <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+                {error}
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-bold text-text-primary mb-2 ml-1">Work Email</label>
               <div className="relative">
@@ -56,7 +65,9 @@ const LoginPage = () => {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary"
+                  disabled={isLoading}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
                   placeholder="name@company.com"
                 />
               </div>
@@ -70,7 +81,9 @@ const LoginPage = () => {
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary"
+                  disabled={isLoading}
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
                   placeholder="••••••••"
                 />
               </div>
@@ -86,10 +99,20 @@ const LoginPage = () => {
 
             <button 
               type="submit"
-              className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg mt-8"
+              disabled={isLoading}
+              className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg mt-8 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <LogIn size={22} />
-              Enter Dashboard
+              {isLoading ? (
+                <>
+                  <Loader2 size={22} className="animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <LogIn size={22} />
+                  Enter Dashboard
+                </>
+              )}
             </button>
           </form>
 

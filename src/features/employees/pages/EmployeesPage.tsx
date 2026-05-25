@@ -9,9 +9,11 @@ import {
   Building2,
   Calendar,
   Download,
-  Users
+  Users,
+  UserPlus
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
+import Link from 'next/link';
 import { cn } from '@/utils/cn';
 import TableSkeleton from '@/components/TableSkeleton';
 
@@ -71,6 +73,10 @@ const EmployeesPage = () => {
             <Users size={20} />
             Employee Analytics
           </button>
+          <Link href="/users/register" className="btn-primary shadow-lg shadow-primary/20">
+            <UserPlus size={20} />
+            Register User
+          </Link>
         </div>
       </motion.div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { 
   Settings as SettingsIcon, 
   Shield, 
@@ -140,10 +141,10 @@ const SettingsPage = () => {
                     <p className="text-sm text-text-secondary font-medium">Grant high-level access to senior personnel</p>
                   </div>
                 </div>
-                <button className="btn-primary shadow-xl shadow-primary/20 px-8 py-4">
+                <Link href="/users/register" className="btn-primary shadow-xl shadow-primary/20 px-8 py-4">
                   <UserPlus size={18} />
-                  Invite Administrator
-                </button>
+                  Register User
+                </Link>
               </div>
 
               <div className="space-y-4">

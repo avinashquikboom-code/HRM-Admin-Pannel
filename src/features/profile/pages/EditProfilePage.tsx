@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -19,6 +20,8 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { updateUser } from '@/store/slices/authSlice';
+import { useAdminProfile } from '@/hooks/useAdminProfile';
+import { updateAdminProfile, uploadAdminAvatar, removeAdminAvatar, fileToDataUrl } from '@/services/profileService';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -33,6 +36,14 @@ const EditProfilePage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { profile, isLoading } = useAdminProfile();
+  const [submitError, setSubmitError] = useState('');
+  const [avatarError, setAvatarError] = useState('');
+  const [avatarMessage, setAvatarMessage] = useState('');
+  const [isAvatarLoading, setIsAvatarLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasCustomAvatar = Boolean(profile?.avatarUrl ?? user?.profile?.avatarUrl);
+  const avatarSrc = hasCustomAvatar ? user?.avatar : null;
   
   const {
     register,
@@ -40,19 +51,94 @@ const EditProfilePage = () => {
     formState: { errors, isSubmitting }
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: user?.name || 'Avinash Magar',
-      email: user?.email || 'avinash@hrm.ai',
-      phone: user?.phone || '+91 98765 43210',
-      bio: user?.bio || 'Super Administrator managing the HRM ecosystem. Expertise in scalable cloud architectures.',
-    }
+    values: {
+      name: user?.name || profile?.fullName || '',
+      email: user?.email || profile?.email || '',
+      phone: user?.phone || profile?.phone || '',
+      bio: user?.bio || profile?.bio || '',
+    },
   });
 
   const onSubmit = async (data: ProfileFormData) => {
-    // Simulate API Call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    dispatch(updateUser(data));
-    router.push('/profile');
+    if (!user) {
+      setSubmitError('Not authenticated. Please sign in again.');
+      return;
+    }
+
+    setSubmitError('');
+
+    try {
+      const result = await updateAdminProfile(
+        {
+          fullName: data.name,
+          phone: data.phone,
+          bio: data.bio,
+          email: data.email,
+        },
+        user
+      );
+
+      dispatch(updateUser(result.user));
+      router.push('/profile');
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : 'Failed to update profile.'
+      );
+    }
+  };
+
+  const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file || !user) return;
+
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please select a valid image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Image must be smaller than 5MB.');
+      return;
+    }
+
+    setAvatarError('');
+    setAvatarMessage('');
+    setIsAvatarLoading(true);
+
+    try {
+      const imageBase64 = await fileToDataUrl(file);
+      const result = await uploadAdminAvatar({ imageBase64 }, user);
+      dispatch(updateUser(result.user));
+      setAvatarMessage(result.message);
+    } catch (err) {
+      setAvatarError(
+        err instanceof Error ? err.message : 'Failed to upload avatar.'
+      );
+    } finally {
+      setIsAvatarLoading(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!user) return;
+
+    setAvatarError('');
+    setAvatarMessage('');
+    setIsAvatarLoading(true);
+
+    try {
+      const result = await removeAdminAvatar(user);
+      dispatch(updateUser(result.user));
+      setAvatarMessage(result.message);
+    } catch (err) {
+      setAvatarError(
+        err instanceof Error ? err.message : 'Failed to remove avatar.'
+      );
+    } finally {
+      setIsAvatarLoading(false);
+    }
   };
 
   const containerVariants: Variants = {
@@ -70,6 +156,23 @@ const EditProfilePage = () => {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const security = profile?.security;
+
+  if (isLoading && !user?.profile) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+          className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full"
+        />
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
+          Loading profile...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -97,6 +200,12 @@ const EditProfilePage = () => {
       </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {submitError && (
+          <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+            {submitError}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Avatar & Quick Info */}
           <motion.div variants={itemVariants} className="space-y-8">
@@ -104,24 +213,41 @@ const EditProfilePage = () => {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
               
               <div className="relative group mb-6">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarSelect}
+                />
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
                   className="w-48 h-48 rounded-full bg-surface-variant border-4 border-surface shadow-2xl flex items-center justify-center overflow-hidden relative"
                 >
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                  {avatarSrc ? (
+                    <img src={avatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover" />
                   ) : (
                     <User size={100} className="text-muted" />
                   )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera size={32} className="text-white" />
+                    {isAvatarLoading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                        className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                    ) : (
+                      <Camera size={32} className="text-white" />
+                    )}
                   </div>
                 </motion.div>
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   type="button"
-                  className="absolute bottom-2 right-2 p-4 bg-primary text-white rounded-2xl shadow-xl border-4 border-surface active:scale-95"
+                  disabled={isAvatarLoading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 right-2 p-4 bg-primary text-white rounded-2xl shadow-xl border-4 border-surface active:scale-95 disabled:opacity-60"
                 >
                   <Camera size={20} />
                 </motion.button>
@@ -131,10 +257,31 @@ const EditProfilePage = () => {
               <p className="text-xs text-text-secondary font-medium px-4">
                 This image will be visible across the system for all verified entities.
               </p>
+
+              {avatarError && (
+                <p className="mt-4 text-xs font-bold text-error">{avatarError}</p>
+              )}
+              {avatarMessage && (
+                <p className="mt-4 text-xs font-bold text-success">{avatarMessage}</p>
+              )}
               
               <div className="flex gap-4 mt-8 w-full">
-                <button type="button" className="flex-1 py-3 text-xs font-black text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/10 uppercase tracking-widest">Upload</button>
-                <button type="button" className="flex-1 py-3 text-xs font-black text-error bg-error/5 hover:bg-error/10 rounded-xl transition-all border border-error/10 uppercase tracking-widest">Remove</button>
+                <button
+                  type="button"
+                  disabled={isAvatarLoading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 py-3 text-xs font-black text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/10 uppercase tracking-widest disabled:opacity-60"
+                >
+                  {isAvatarLoading ? 'Processing...' : 'Upload'}
+                </button>
+                <button
+                  type="button"
+                  disabled={isAvatarLoading || !hasCustomAvatar}
+                  onClick={handleAvatarRemove}
+                  className="flex-1 py-3 text-xs font-black text-error bg-error/5 hover:bg-error/10 rounded-xl transition-all border border-error/10 uppercase tracking-widest disabled:opacity-60"
+                >
+                  Remove
+                </button>
               </div>
             </div>
 
@@ -148,15 +295,15 @@ const EditProfilePage = () => {
               <ul className="space-y-3">
                 <li className="flex items-center justify-between text-xs font-bold">
                   <span className="text-text-secondary">2FA Authentication</span>
-                  <span className="text-success uppercase">Active</span>
+                  <span className="text-success uppercase">{security?.twoFactorStatus || 'Active'}</span>
                 </li>
                 <li className="flex items-center justify-between text-xs font-bold">
                   <span className="text-text-secondary">Last Login</span>
-                  <span className="text-text-primary">Mumbai, IN</span>
+                  <span className="text-text-primary">{security?.lastLoginLocation || '—'}</span>
                 </li>
                 <li className="flex items-center justify-between text-xs font-bold">
                   <span className="text-text-secondary">Clearance Level</span>
-                  <span className="text-primary uppercase">Level 5</span>
+                  <span className="text-primary uppercase">{security?.clearanceLabel || 'Level 5'}</span>
                 </li>
               </ul>
             </div>
@@ -237,7 +384,7 @@ const EditProfilePage = () => {
                   </label>
                   <div className="w-full px-6 py-4.5 bg-surface-variant/30 border-2 border-border/50 rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
                     <Globe size={20} className="text-primary" />
-                    Asia/Kolkata (IST)
+                    {profile?.timezoneLabel || 'Asia/Kolkata (IST)'}
                   </div>
                 </div>
               </div>

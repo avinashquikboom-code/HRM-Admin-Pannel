@@ -15,13 +15,13 @@ import {
   Globe,
   Activity,
   History,
-  Plus
+  Loader2
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useAppSelector } from '@/store/hooks';
 import SignOutModal from '@/components/SignOutModal';
-import { cn } from '@/utils/cn';
+import { useAdminProfile } from '@/hooks/useAdminProfile';
+import { formatLastLogin } from '@/lib/profileMapper';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -49,13 +49,33 @@ const itemVariants: Variants = {
 
 const ProfilePage = () => {
   const router = useRouter();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, profile, isLoading, error } = useAdminProfile();
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
-    // Logout logic handled in Sidebar/Header or via dispatch
   };
+
+  if (isLoading && !user?.profile) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 size={40} className="animate-spin text-primary" />
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
+          Loading profile...
+        </p>
+      </div>
+    );
+  }
+
+  if (error && !user) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <p className="text-sm font-bold text-error">{error}</p>
+      </div>
+    );
+  }
+
+  const security = profile?.security;
 
   return (
     <motion.div 
@@ -97,18 +117,20 @@ const ProfilePage = () => {
             
             <div className="flex-grow pt-4 md:pt-0 text-center md:text-left">
               <h1 className="text-4xl font-black text-text-primary tracking-tight">
-                {user?.name || 'Avinash Magar'}
+                {user?.name || profile?.fullName || 'Admin'}
               </h1>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3">
                 <div className="px-4 py-1.5 bg-surface-variant border border-border rounded-full flex items-center gap-2">
                   <ShieldCheck size={16} className="text-primary" />
                   <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">
-                    {user?.role?.replace('_', ' ') || 'Super Administrator'}
+                    {user?.role?.replace('_', ' ') || 'Administrator'}
                   </span>
                 </div>
                 <div className="px-4 py-1.5 bg-surface-variant border border-border rounded-full flex items-center gap-2">
                   <Globe size={14} className="text-text-secondary" />
-                  <span className="text-[10px] font-bold text-text-primary uppercase tracking-widest">Global Ops</span>
+                  <span className="text-[10px] font-bold text-text-primary uppercase tracking-widest">
+                    {profile?.timezoneLabel || 'Global Ops'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -151,19 +173,19 @@ const ProfilePage = () => {
                 <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <UserIcon size={12} /> Full Name
                 </label>
-                <p className="text-lg font-bold text-text-primary">{user?.name || 'Avinash Magar'}</p>
+                <p className="text-lg font-bold text-text-primary">{user?.name || profile?.fullName}</p>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Mail size={12} /> Email Address
                 </label>
-                <p className="text-lg font-bold text-text-primary">{user?.email || 'avinash@hrm.ai'}</p>
+                <p className="text-lg font-bold text-text-primary">{user?.email || profile?.email}</p>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Phone size={12} /> Contact Number
                 </label>
-                <p className="text-lg font-bold text-text-primary">{user?.phone || '+91 98765 43210'}</p>
+                <p className="text-lg font-bold text-text-primary">{user?.phone || profile?.phone}</p>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
@@ -171,7 +193,7 @@ const ProfilePage = () => {
                 </label>
                 <div className="flex items-center gap-2 text-success font-black text-sm">
                   <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                  L5 ACCESS • VERIFIED
+                  {security?.clearanceLabel || 'L5 ACCESS'} • VERIFIED
                 </div>
               </div>
             </div>
@@ -180,7 +202,7 @@ const ProfilePage = () => {
           <motion.div variants={itemVariants} className="glass-card p-10">
             <h3 className="text-xl font-black text-text-primary uppercase tracking-tight mb-6">Strategic Profile</h3>
             <p className="text-base text-text-secondary leading-relaxed font-medium">
-              {user?.bio || 'High-level administrator overseeing the entire HRM enterprise ecosystem. Expertise in scalable cloud architectures, automated payroll systems, and advanced HR analytics. Currently focused on optimizing platform throughput and security protocols.'}
+              {user?.bio || profile?.bio}
             </p>
           </motion.div>
 
@@ -188,9 +210,29 @@ const ProfilePage = () => {
             <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">Security Protocols</h3>
             <div className="grid grid-cols-1 gap-4">
               {[
-                { label: 'Master Password', desc: 'Last rotated 42 days ago • Highly Secure', icon: Lock, action: 'Rotate' },
-                { label: 'Biometric 2FA', desc: 'Hardware-level authentication active', icon: Shield, status: 'Active', action: 'Configure' },
-                { label: 'Active Terminal Sessions', desc: '3 authorized devices currently connected', icon: Smartphone, action: 'Review' },
+                {
+                  label: 'Master Password',
+                  desc: 'Secure credential configured for admin access',
+                  icon: Lock,
+                  action: 'Rotate',
+                },
+                {
+                  label: 'Biometric 2FA',
+                  desc: security?.twoFactorEnabled
+                    ? 'Hardware-level authentication active'
+                    : 'Two-factor authentication disabled',
+                  icon: Shield,
+                  status: security?.twoFactorStatus,
+                  action: 'Configure',
+                },
+                {
+                  label: 'Last Login',
+                  desc: security?.lastLoginAt
+                    ? `${formatLastLogin(security.lastLoginAt)} • ${security.lastLoginLocation}`
+                    : 'No recent login recorded',
+                  icon: Smartphone,
+                  action: 'Review',
+                },
               ].map((item) => (
                 <motion.button 
                   key={item.label} 
@@ -234,25 +276,26 @@ const ProfilePage = () => {
             </div>
             <div className="space-y-8 relative">
               <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border/50" />
-              {[
-                { browser: 'Brave on macOS', time: 'Just now', ip: '192.168.1.1', location: 'Mumbai, IN' },
-                { browser: 'Safari on iPad', time: '4h ago', ip: '102.16.8.22', location: 'London, UK' },
-                { browser: 'Chrome on Windows', time: '1d ago', ip: '84.120.1.4', location: 'New York, US' },
-                { browser: 'Firefox on Linux', time: '3d ago', ip: '172.16.0.8', location: 'Tokyo, JP' },
-              ].map((login, i) => (
-                <div key={i} className="flex gap-6 relative group cursor-default">
-                  <div className="w-6 h-6 rounded-full border-4 border-surface bg-primary z-10 flex-shrink-0 flex items-center justify-center shadow-sm group-hover:scale-125 transition-transform">
+              {security?.lastLoginAt ? (
+                <div className="flex gap-6 relative group cursor-default">
+                  <div className="w-6 h-6 rounded-full border-4 border-surface bg-primary z-10 flex-shrink-0 flex items-center justify-center shadow-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-white" />
                   </div>
                   <div className="flex-grow">
-                    <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">{login.browser}</p>
+                    <p className="text-sm font-bold text-text-primary">Latest session</p>
                     <div className="flex flex-col gap-0.5 mt-1">
-                      <p className="text-[10px] text-text-secondary font-medium">{login.time} • {login.ip}</p>
-                      <p className="text-[9px] text-muted font-bold uppercase tracking-wider">{login.location}</p>
+                      <p className="text-[10px] text-text-secondary font-medium">
+                        {formatLastLogin(security.lastLoginAt)}
+                      </p>
+                      <p className="text-[9px] text-muted font-bold uppercase tracking-wider">
+                        {security.lastLoginLocation}
+                      </p>
                     </div>
                   </div>
                 </div>
-              ))}
+              ) : (
+                <p className="text-sm text-text-secondary">No access logs available.</p>
+              )}
             </div>
           </motion.div>
 
