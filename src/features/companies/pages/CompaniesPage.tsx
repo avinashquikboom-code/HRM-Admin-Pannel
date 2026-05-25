@@ -1,0 +1,456 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  Calendar,
+  Building2,
+  Users as UsersIcon,
+  Globe,
+  Mail,
+  TrendingUp,
+  Download,
+  MoreHorizontal,
+  ShieldAlert,
+  ShieldCheck
+} from 'lucide-react';
+import { motion, Variants } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { cn } from '@/utils/cn';
+import Modal from '@/components/Modal';
+import TableSkeleton from '@/components/TableSkeleton';
+
+import { mockCompanies as companies } from '@/data/mockData';
+
+const companySchema = z.object({
+  name: z.string().min(2, 'Company name must be at least 2 characters'),
+  website: z.string().url('Invalid website URL').or(z.string().length(0)),
+  adminEmail: z.string().email('Invalid email address'),
+  plan: z.string().min(1, 'Please select a plan'),
+  employeeCount: z.number().min(1, 'Count must be greater than 0'),
+});
+
+type CompanyFormData = z.infer<typeof companySchema>;
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  }
+};
+
+const CompaniesPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isSubmitting }
+  } = useForm<CompanyFormData>({
+    resolver: zodResolver(companySchema),
+    defaultValues: {
+      name: '',
+      website: '',
+      adminEmail: '',
+      plan: '',
+      employeeCount: 0,
+    }
+  });
+
+  useEffect(() => {
+    if (editingCompany) {
+      setValue('name', editingCompany.name);
+      setValue('plan', editingCompany.plan.toLowerCase());
+      setValue('employeeCount', editingCompany.employees);
+    } else {
+      reset();
+    }
+  }, [editingCompany, setValue, reset]);
+
+  const onSubmit = async (data: CompanyFormData) => {
+    console.log('Form Submitted:', data);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsModalOpen(false);
+    reset();
+  };
+
+  return (
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 pb-10"
+    >
+      {/* Header Section */}
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
+        <div>
+          <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-primary to-primary-light">
+            Company Ecosystem
+          </h1>
+          <p className="text-text-secondary mt-1 max-w-2xl text-sm font-medium">
+            Strategic oversight of all registered entities, their operational scale, and service utilization.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-md active:scale-95">
+            <Download size={18} />
+            Bulk Export
+          </button>
+          <button 
+            onClick={() => {
+              setEditingCompany(null);
+              setIsModalOpen(true);
+            }}
+            className="btn-primary group shadow-xl shadow-primary/20"
+          >
+            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+            Provision Company
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Top Level Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: 'Total Entities', value: '1,284', icon: Building2, color: 'primary', trend: '+12' },
+          { label: 'Global Seats', value: '45,920', icon: UsersIcon, color: 'secondary', trend: '+1.2k' },
+          { label: 'Pending Verification', value: '18', icon: ShieldAlert, color: 'warning', trend: 'High' },
+          { label: 'System Growth', value: '18.7%', icon: TrendingUp, color: 'success', trend: '+2.4%' },
+        ].map((stat) => (
+          <motion.div
+            key={stat.label}
+            variants={itemVariants}
+            className="glass-card p-6 group hover:border-primary/50 transition-all cursor-default relative overflow-hidden"
+          >
+            <div className={cn(
+              "absolute -right-6 -top-6 w-20 h-20 rounded-full blur-2xl opacity-10 transition-transform group-hover:scale-150 duration-700",
+              `bg-${stat.color}`
+            )} />
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className={cn(
+                "p-3 rounded-2xl transition-all duration-300 group-hover:scale-110",
+                `bg-${stat.color}/10 text-${stat.color}`
+              )}>
+                <stat.icon size={22} />
+              </div>
+              <span className={cn(
+                "text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider",
+                stat.trend.startsWith('+') ? "bg-success/10 text-success" : "bg-warning/20 text-warning"
+              )}>
+                {stat.trend}
+              </span>
+            </div>
+            <p className="text-xs font-bold text-text-secondary uppercase tracking-widest">{stat.label}</p>
+            <h3 className="text-2xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</h3>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Filter & Action Bar */}
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col xl:flex-row gap-4 items-center justify-between glass-card p-4 rounded-3xl"
+      >
+        <div className="relative w-full xl:w-[450px] group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-5 h-5" />
+          <input 
+            type="text" 
+            placeholder="Search by name, ID, or admin email..." 
+            className="w-full pl-12 pr-4 py-3 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm text-text-primary"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <button className="flex items-center gap-2 px-4 py-3 bg-surface-variant rounded-2xl text-xs font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-all flex-grow sm:flex-grow-0 justify-center">
+            <Filter size={16} />
+            Filters
+          </button>
+          <select className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+            <option>Status: All</option>
+            <option>Active</option>
+            <option>Suspended</option>
+          </select>
+          <select className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+            <option>Plan: All</option>
+            <option>Enterprise</option>
+            <option>Professional</option>
+          </select>
+        </div>
+      </motion.div>
+
+      {/* Table Section */}
+      <motion.div variants={itemVariants} className="glass-card overflow-hidden">
+        {isLoading ? (
+          <div className="p-8">
+            <TableSkeleton rows={6} columns={6} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-variant/50">
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Entity Details</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Operational Scale</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Subscription Tier</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Status</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Engagement</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border text-right">Controls</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {companies.map((company) => (
+                  <motion.tr 
+                    key={company.id}
+                    variants={itemVariants}
+                    className="hover:bg-surface-variant transition-colors group cursor-pointer"
+                  >
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-all duration-300 shadow-sm border border-primary/10">
+                          {company.name.substring(0, 1)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{company.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold text-muted bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                              ID: #{company.id}042
+                            </span>
+                            <span className="text-[10px] font-medium text-text-secondary">• admin@techvibe.com</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-text-primary">{company.employees.toLocaleString()}</span>
+                        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">Active Seats</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={cn(
+                        "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                        company.plan === 'Enterprise' ? "bg-secondary text-white shadow-lg shadow-secondary/20" : 
+                        company.plan === 'Pro' ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
+                      )}>
+                        {company.plan}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          company.status === 'Active' ? "bg-success" : "bg-error"
+                        )} />
+                        <span className={cn(
+                          "text-xs font-bold",
+                          company.status === 'Active' ? "text-success" : "text-error"
+                        )}>
+                          {company.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
+                        <Calendar size={14} className="text-muted" />
+                        {company.joiningDate}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                        <button className="p-2.5 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-xl transition-all shadow-sm">
+                          <Globe size={18} />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCompany(company);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2.5 bg-surface border border-border text-muted hover:text-text-primary rounded-xl transition-all shadow-sm"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {!isLoading && (
+          <div className="p-6 bg-surface-variant border-t border-border flex items-center justify-between">
+            <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Showing 5 of 1,284 Managed Entities</p>
+            <div className="flex items-center gap-2">
+              <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-sm transition-all" disabled>Previous</button>
+              <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary hover:shadow-sm hover:text-primary transition-all">Next</button>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Add Company Modal */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCompany(null);
+          reset();
+        }}
+        title={editingCompany ? "Adjust Entity Parameters" : "Provision New Entity"}
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Company Identity</label>
+              <div className="relative group">
+                <Building2 className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.name ? "text-error" : "text-muted group-focus-within:text-primary")} />
+                <input 
+                  {...register('name')}
+                  type="text" 
+                  placeholder="e.g. Cyberdyne Systems" 
+                  className={cn(
+                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                    errors.name ? "ring-2 ring-error/20" : "focus:ring-primary/20"
+                  )}
+                />
+              </div>
+              {errors.name && <p className="text-[10px] text-error font-bold uppercase tracking-wide ml-1">{errors.name.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Digital Domain</label>
+              <div className="relative group">
+                <Globe className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.website ? "text-error" : "text-muted group-focus-within:text-primary")} />
+                <input 
+                  {...register('website')}
+                  type="text" 
+                  placeholder="https://domain.com" 
+                  className={cn(
+                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                    errors.website ? "ring-2 ring-error/20" : "focus:ring-primary/20"
+                  )}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Primary Liaison</label>
+              <div className="relative group">
+                <Mail className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.adminEmail ? "text-error" : "text-muted group-focus-within:text-primary")} />
+                <input 
+                  {...register('adminEmail')}
+                  type="email" 
+                  placeholder="admin@entity.com" 
+                  className={cn(
+                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                    errors.adminEmail ? "ring-2 ring-error/20" : "focus:ring-primary/20"
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Subscription Tier</label>
+              <select 
+                {...register('plan')}
+                className={cn(
+                  "w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all text-sm font-bold uppercase tracking-wider text-text-primary",
+                  errors.plan ? "ring-2 ring-error/20" : "focus:ring-primary/20"
+                )}
+              >
+                <option value="">Select Tier</option>
+                <option value="basic">Standard (₹49/mo)</option>
+                <option value="pro">Pro (₹149/mo)</option>
+                <option value="enterprise">Enterprise (Custom)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Workforce Allocation</label>
+            <div className="relative group">
+              <UsersIcon className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.employeeCount ? "text-error" : "text-muted group-focus-within:text-primary")} />
+              <input 
+                {...register('employeeCount', { valueAsNumber: true })}
+                type="number" 
+                placeholder="Initial seat count" 
+                className={cn(
+                  "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                  errors.employeeCount ? "ring-2 ring-error/20" : "focus:ring-primary/20"
+                )}
+              />
+            </div>
+          </div>
+          
+          <div className="pt-8 flex gap-4">
+            <button 
+              type="button"
+              onClick={() => {
+                setIsModalOpen(false);
+                reset();
+              }}
+              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-surface transition-all border border-border"
+            >
+              Discard
+            </button>
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
+            >
+              {isSubmitting ? (
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                />
+              ) : (
+                <>
+                  <ShieldCheck size={20} />
+                  {editingCompany ? 'Confirm Adjustments' : 'Initiate Provisioning'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </motion.div>
+  );
+};
+
+export default CompaniesPage;
