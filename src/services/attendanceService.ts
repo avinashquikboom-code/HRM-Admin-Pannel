@@ -1,4 +1,5 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 export interface AttendanceEmployee {
   id: number;
@@ -40,6 +41,10 @@ interface AttendanceHistoryResponse {
 }
 
 export async function fetchTodayAttendance(): Promise<AttendanceRecord[]> {
+  if (isDevAuthSession()) {
+    return [];
+  }
+
   try {
     const { data } = await api.get<TodayAttendanceResponse>(
       '/api/admin/attendance/today'

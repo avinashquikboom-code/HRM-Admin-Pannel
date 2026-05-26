@@ -1,4 +1,5 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 export interface CommentAuthor {
   id: number;
@@ -37,6 +38,10 @@ export async function fetchComments(
   entityType: string,
   entityId: string
 ): Promise<Comment[]> {
+  if (isDevAuthSession()) {
+    return [];
+  }
+
   try {
     const { data } = await api.get<CommentsResponse>('/api/admin/comments', {
       params: { entityType, entityId },
@@ -52,6 +57,10 @@ export async function fetchComments(
 export async function createComment(
   payload: CreateCommentRequest
 ): Promise<{ message: string; comment: Comment }> {
+  if (isDevAuthSession()) {
+    throw new Error('Comments are unavailable in offline demo mode.');
+  }
+
   try {
     const { data } = await api.post<CreateCommentResponse>(
       '/api/admin/comments',

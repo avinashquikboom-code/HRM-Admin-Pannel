@@ -1,4 +1,9 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import {
+  createDevAuthSession,
+  isDevAuthSession,
+  matchesDevCredentials,
+} from '@/lib/devAuth';
 import { mapApiProfileResponse } from '@/lib/profileMapper';
 import type { User } from '@/store/slices/authSlice';
 
@@ -39,6 +44,10 @@ function mapLoginUser(apiUser: LoginApiUser): User {
 }
 
 export async function loginRequest(credentials: LoginRequest) {
+  if (matchesDevCredentials(credentials.email, credentials.password)) {
+    return createDevAuthSession();
+  }
+
   try {
     const { data } = await api.post<LoginApiResponse>(
       '/api/auth/login',
@@ -73,6 +82,10 @@ export interface RegisterResponse {
 }
 
 export async function registerUser(payload: RegisterRequest) {
+  if (isDevAuthSession()) {
+    throw new Error('User registration requires a connected backend server.');
+  }
+
   try {
     const { data } = await api.post<RegisterResponse>(
       '/api/auth/register',

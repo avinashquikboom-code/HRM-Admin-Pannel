@@ -1,4 +1,5 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 export interface OfficeEmployee {
   id: number;
@@ -85,6 +86,10 @@ export function metersToDegreeRadius(meters: number, latitude: number) {
 }
 
 export async function fetchOffices(): Promise<Office[]> {
+  if (isDevAuthSession()) {
+    return [];
+  }
+
   try {
     const { data } = await api.get<OfficesResponse>('/api/admin/offices');
     return data.offices;
@@ -96,6 +101,10 @@ export async function fetchOffices(): Promise<Office[]> {
 }
 
 export async function fetchOfficeById(id: number): Promise<OfficeDetail> {
+  if (isDevAuthSession()) {
+    throw new Error('Office details are unavailable in offline demo mode.');
+  }
+
   try {
     const { data } = await api.get<OfficeDetailResponse>(
       `/api/admin/offices/${id}`

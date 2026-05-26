@@ -1,4 +1,6 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import { getAuthSession } from '@/lib/authStorage';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 export interface AdminEmployeeOffice {
   id: number;
@@ -55,6 +57,10 @@ interface AssignEmployeeResponse {
 }
 
 export async function fetchEmployees(): Promise<AdminEmployee[]> {
+  if (isDevAuthSession()) {
+    return [];
+  }
+
   try {
     const { data } = await api.get<EmployeesResponse>('/api/admin/employees');
     return data.employees;

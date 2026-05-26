@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, UserPlus, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
+import { Mail, UserPlus, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import PasswordInput from '@/components/PasswordInput';
 import { useRouter } from 'next/navigation';
 import { registerUser } from '@/services/authService';
 
@@ -89,26 +90,23 @@ const RegisterUserPage = () => {
                 disabled={isLoading}
                 required
                 className="w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                placeholder="newuser@quickboom.com"
+                placeholder="user@company.com"
               />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-text-primary mb-2 ml-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                required
-                minLength={8}
-                className="w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                placeholder="••••••••"
-              />
-            </div>
+            <PasswordInput
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+              required
+              minLength={8}
+              inputClassName="bg-surface-variant shadow-none"
+              placeholder="Enter your password"
+              autoComplete="new-password"
+            />
           </div>
 
           <div>

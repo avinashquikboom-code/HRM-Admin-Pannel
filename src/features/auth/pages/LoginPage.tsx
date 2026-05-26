@@ -1,19 +1,19 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
 import { loginRequest } from '@/services/authService';
 import { motion } from 'framer-motion';
-import { Mail, Lock, LogIn, ShieldCheck, Loader2 } from 'lucide-react';
+import { Mail, LogIn, ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import PasswordInput from '@/components/PasswordInput';
+import { DEFAULT_DEV_EMAIL, DEFAULT_DEV_PASSWORD } from '@/lib/devAuth';
 
 const LoginPage = () => {
-  const dispatch = useDispatch();
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const dispatch = useAppDispatch();
+  const [email, setEmail] = useState(DEFAULT_DEV_EMAIL);
+  const [password, setPassword] = useState(DEFAULT_DEV_PASSWORD);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,7 +25,6 @@ const LoginPage = () => {
     try {
       const response = await loginRequest({ email, password });
       dispatch(login(response));
-      router.replace('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
@@ -71,7 +70,7 @@ const LoginPage = () => {
                   disabled={isLoading}
                   required
                   className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                  placeholder="admin@quickboom.com"
+                  placeholder="admin@hrm.com"
                   autoComplete="email"
                 />
               </div>
@@ -79,24 +78,18 @@ const LoginPage = () => {
 
             <div>
               <label className="block text-sm font-bold text-text-primary mb-2 ml-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  required
-                  className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                />
-              </div>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+                placeholder="Enter your password"
+                autoComplete="current-password"
+              />
             </div>
 
             <p className="text-xs text-text-secondary ml-1">
-              Demo admin: <span className="font-semibold">admin@quickboom.com</span> /{' '}
-              <span className="font-semibold">Password@123</span>
+              Offline demo — no backend required. Default: {DEFAULT_DEV_EMAIL} / {DEFAULT_DEV_PASSWORD}
             </p>
 
             <div className="flex items-center justify-between ml-1">

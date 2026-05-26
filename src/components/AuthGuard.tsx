@@ -2,8 +2,9 @@
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { hydrateAuth } from '@/store/slices/authSlice';
+import { getAuthToken } from '@/lib/authStorage';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 const PUBLIC_PATHS = ['/login', '/forgot-password'];
 
@@ -23,7 +24,7 @@ function AuthLoader() {
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, token } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
   const [isReady, setIsReady] = useState(false);
@@ -34,29 +35,33 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [dispatch]);
 
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
+  const isLoggedIn = useMemo(
+    () => isAuthenticated || Boolean(token) || Boolean(getAuthToken()),
+    [isAuthenticated, token]
+  );
 
   useEffect(() => {
     if (!isReady) return;
 
-    if (!isAuthenticated && !isPublicPath) {
+    if (!isLoggedIn && !isPublicPath) {
       router.replace('/login');
       return;
     }
 
-    if (isAuthenticated && isPublicPath) {
+    if (isLoggedIn && isPublicPath) {
       router.replace('/');
     }
-  }, [isAuthenticated, isPublicPath, isReady, router]);
+  }, [isLoggedIn, isPublicPath, isReady, router]);
 
   if (!isReady) {
     return <AuthLoader />;
   }
 
-  if (!isAuthenticated && !isPublicPath) {
+  if (!isLoggedIn && !isPublicPath) {
     return <AuthLoader />;
   }
 
-  if (isAuthenticated && isPublicPath) {
+  if (isLoggedIn && isPublicPath) {
     return <AuthLoader />;
   }
 

@@ -1,4 +1,6 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import { getAuthSession } from '@/lib/authStorage';
+import { isDevAuthSession } from '@/lib/devAuth';
 import {
   ApiProfile,
   ApiProfileUser,
@@ -25,6 +27,13 @@ interface UpdateProfileResponse {
 }
 
 export async function fetchAdminProfile(): Promise<User> {
+  if (isDevAuthSession()) {
+    const session = getAuthSession();
+    if (session?.user) {
+      return session.user;
+    }
+  }
+
   try {
     const { data } = await api.get<AdminProfileResponse>('/api/admin/profile');
     return mapApiProfileResponse(data.profile, data.user);
