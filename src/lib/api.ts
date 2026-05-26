@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAuthToken } from '@/lib/authStorage';
+import { clearAuthSession, getAuthToken } from '@/lib/authStorage';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5002';
@@ -18,6 +18,24 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearAuthSession();
+
+      if (
+        typeof window !== 'undefined' &&
+        !window.location.pathname.startsWith('/login')
+      ) {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export function getApiErrorMessage(error: unknown, fallback = 'Something went wrong') {
   if (axios.isAxiosError(error)) {

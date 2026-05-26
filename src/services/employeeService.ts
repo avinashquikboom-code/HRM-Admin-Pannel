@@ -9,14 +9,30 @@ export interface AdminEmployeeOffice {
   maxPunchRadiusMeters: number;
 }
 
+export interface AdminEmployeeUser {
+  id: number;
+  email: string;
+  role: string;
+  isActive: boolean;
+}
+
+export interface AdminEmployeeDepartment {
+  id: number;
+  name: string;
+  code: string | null;
+}
+
 export interface AdminEmployee {
   id: number;
   employeeCode: string;
   firstName: string;
   lastName: string;
-  designation: string;
+  designation: string | null;
+  status: string;
   officeId: number | null;
   office: AdminEmployeeOffice | null;
+  user: AdminEmployeeUser | null;
+  department: AdminEmployeeDepartment | null;
 }
 
 interface EmployeesResponse {

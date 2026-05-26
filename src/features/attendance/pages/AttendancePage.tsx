@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -34,6 +34,7 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
+import { useTodayAttendance } from '@/hooks/useTodayAttendance';
 
 const attendanceStats = [
   { name: 'On-time', value: 38500 },
@@ -43,13 +44,31 @@ const attendanceStats = [
 
 const COLORS = ['#3BA38B', '#F4B860', '#EF4444'];
 
-const recentLogs = [
-  { id: 1, employee: 'Sarah Johnson', company: 'TechVibe Inc.', time: '09:02 AM', status: 'On-time', location: 'Remote', avatar: 'SJ' },
-  { id: 2, employee: 'Michael Chen', company: 'Global Logistics', time: '09:45 AM', status: 'Late', location: 'Office', avatar: 'MC' },
-  { id: 3, employee: 'Emma Wilson', company: 'EcoWare Solutions', time: '10:15 AM', status: 'Late', location: 'Remote', avatar: 'EW' },
-  { id: 4, employee: 'David Miller', company: 'Innovate Digital', time: '08:55 AM', status: 'On-time', location: 'Office', avatar: 'DM' },
-  { id: 5, employee: 'Jessica Lee', company: 'Creative Pulse', time: '09:10 AM', status: 'On-time', location: 'Remote', avatar: 'JL' },
-];
+function formatCheckInTime(value: string | null) {
+  if (!value) return '—';
+  return new Date(value).toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+function formatAttendanceStatus(status: string) {
+  switch (status) {
+    case 'PRESENT':
+      return 'On-time';
+    case 'LATE':
+      return 'Late';
+    case 'ABSENT':
+      return 'Absent';
+    case 'HALF_DAY':
+      return 'Half Day';
+    case 'REMOTE':
+      return 'Remote';
+    default:
+      return status;
+  }
+}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -108,13 +127,8 @@ const MiniCalendar = () => {
 };
 
 const AttendancePage = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const { records, isLoading, error, refetch } = useTodayAttendance();
   const [isHolidaysOpen, setIsHolidaysOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <motion.div 
@@ -303,6 +317,19 @@ const AttendancePage = () => {
         </motion.div>
       </div>
 
+      {error && (
+        <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="text-xs font-bold uppercase tracking-widest hover:underline shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Real-time Feed */}
       <motion.div variants={itemVariants} className="glass-card overflow-hidden">
         <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -347,49 +374,63 @@ const AttendancePage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {recentLogs.map((log) => (
+                {records.length > 0 ? (
+                  records.map((record) => {
+                    const employeeName = `${record.employee.firstName} ${record.employee.lastName}`;
+                    const avatar = `${record.employee.firstName[0] ?? ''}${record.employee.lastName[0] ?? ''}`.toUpperCase();
+                    const statusLabel = formatAttendanceStatus(record.status);
+
+                    return (
                   <motion.tr 
-                    key={log.id}
+                    key={record.id}
                     variants={itemVariants}
                     className="hover:bg-surface-variant/30 transition-all group cursor-pointer"
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-surface-variant border border-border flex items-center justify-center font-bold text-xs text-text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
-                          {log.avatar}
+                          {avatar}
                         </div>
                         <div>
-                          <span className="block font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{log.employee}</span>
-                          <span className="text-[10px] font-black text-muted tracking-wider">EMP-{1000 + log.id}</span>
+                          <span className="block font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{employeeName}</span>
+                          <span className="text-[10px] font-black text-muted tracking-wider">{record.employee.employeeCode}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <span className="text-sm font-bold text-text-secondary uppercase tracking-tight">{log.company}</span>
+                      <span className="text-sm font-bold text-text-secondary uppercase tracking-tight">{record.office?.name ?? 'Unassigned'}</span>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-2 text-sm text-text-primary font-black tabular-nums">
                         <Clock size={16} className="text-primary" />
-                        {log.time}
+                        {formatCheckInTime(record.checkIn)}
                       </div>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-2 text-xs font-bold text-text-secondary uppercase tracking-widest">
                         <MapPin size={14} className="text-muted" />
-                        {log.location}
+                        {record.status === 'REMOTE' ? 'Remote' : 'Office'}
                       </div>
                     </td>
                     <td className="px-8 py-6 text-right">
                       <span className={cn(
                         "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
-                        log.status === 'On-time' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
+                        statusLabel === 'On-time' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
                       )}>
-                        {log.status === 'On-time' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                        {log.status}
+                        {statusLabel === 'On-time' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                        {statusLabel}
                       </span>
                     </td>
                   </motion.tr>
-                ))}
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-10 text-center text-sm font-medium text-text-secondary">
+                      No attendance records for today yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

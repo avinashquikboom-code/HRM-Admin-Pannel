@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useRouter } from 'next/navigation';
 import { login } from '@/store/slices/authSlice';
 import { loginRequest } from '@/services/authService';
 import { motion } from 'framer-motion';
@@ -10,8 +11,9 @@ import Link from 'next/link';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('admin@quickboom.com');
-  const [password, setPassword] = useState('Password@123');
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,6 +25,7 @@ const LoginPage = () => {
     try {
       const response = await loginRequest({ email, password });
       dispatch(login(response));
+      router.replace('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
@@ -68,7 +71,8 @@ const LoginPage = () => {
                   disabled={isLoading}
                   required
                   className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                  placeholder="name@company.com"
+                  placeholder="admin@quickboom.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -84,10 +88,16 @@ const LoginPage = () => {
                   disabled={isLoading}
                   required
                   className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
                 />
               </div>
             </div>
+
+            <p className="text-xs text-text-secondary ml-1">
+              Demo admin: <span className="font-semibold">admin@quickboom.com</span> /{' '}
+              <span className="font-semibold">Password@123</span>
+            </p>
 
             <div className="flex items-center justify-between ml-1">
               <label className="flex items-center gap-2 cursor-pointer">

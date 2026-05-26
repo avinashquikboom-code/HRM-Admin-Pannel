@@ -735,7 +735,7 @@ export default function LocationPage() {
                       {employee.employeeCode}
                     </p>
                     <p className="text-xs text-text-secondary mt-1 truncate">
-                      {employee.designation}
+                      {employee.designation ?? 'Employee'}
                     </p>
                   </div>
                   <button

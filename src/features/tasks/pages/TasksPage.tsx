@@ -21,7 +21,8 @@ import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 
-import { mockTasks as initialTasks, mockEmployees } from '@/data/mockData';
+import { mockTasks as initialTasks } from '@/data/mockData';
+import { useEmployees } from '@/hooks/useEmployees';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -63,6 +64,7 @@ const TasksPage = () => {
   const [priority, setPriority] = useState('High');
   const [deadline, setDeadline] = useState('');
   const [description, setDescription] = useState('');
+  const { employees } = useEmployees();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800);
@@ -353,8 +355,10 @@ const TasksPage = () => {
               onChange={(e) => setAssignee(e.target.value)}
               className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
             >
-              {mockEmployees.map(emp => (
-                <option key={emp.id} value={emp.name}>{emp.name}</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={`${emp.firstName} ${emp.lastName}`}>
+                  {emp.firstName} {emp.lastName} ({emp.employeeCode})
+                </option>
               ))}
             </select>
           </div>
