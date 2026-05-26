@@ -39,7 +39,7 @@ function mapLoginUser(apiUser: LoginApiUser): User {
     email: apiUser.email,
     role: apiUser.role,
     name: fallbackName,
-    avatar: '/assets/admin-avatar.png',
+    avatar: '/favicon.svg',
   };
 }
 

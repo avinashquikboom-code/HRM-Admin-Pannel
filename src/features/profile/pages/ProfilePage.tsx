@@ -56,7 +56,7 @@ const ProfilePage = () => {
     setIsSignOutModalOpen(false);
   };
 
-  if (isLoading && !user?.profile) {
+  if (isLoading && !user) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <Loader2 size={40} className="animate-spin text-primary" />
@@ -67,10 +67,10 @@ const ProfilePage = () => {
     );
   }
 
-  if (error && !user) {
+  if (!user) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <p className="text-sm font-bold text-error">{error}</p>
+        <p className="text-sm font-bold text-error">{error || 'Profile unavailable.'}</p>
       </div>
     );
   }
@@ -79,11 +79,16 @@ const ProfilePage = () => {
 
   return (
     <motion.div 
-      initial="hidden"
+      initial={false}
       animate="visible"
       variants={containerVariants}
       className="max-w-5xl mx-auto space-y-8 pb-10"
     >
+      {error && (
+        <div className="rounded-2xl bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-medium text-warning">
+          {error}
+        </div>
+      )}
       {/* Profile Header */}
       <motion.div variants={itemVariants} className="glass-card overflow-hidden border-none shadow-2xl">
         <div className="h-48 bg-gradient-to-br from-primary via-primary-dark to-secondary relative">

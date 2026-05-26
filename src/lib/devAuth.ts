@@ -34,7 +34,7 @@ export function createDevAuthSession(): { token: string; user: User } {
       name: 'Admin',
       email: DEFAULT_DEV_EMAIL,
       role: 'ADMIN',
-      avatar: '/assets/admin-avatar.png',
+      avatar: '/favicon.svg',
       phone: '',
       bio: 'Offline demo administrator',
       profile: {

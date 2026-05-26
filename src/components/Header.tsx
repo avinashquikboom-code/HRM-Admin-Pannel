@@ -12,6 +12,7 @@ import {
   Search, 
   Bell, 
   ChevronDown,
+  Settings,
   User,
   ArrowRight,
   Menu,
@@ -235,7 +236,7 @@ const Header = () => {
               <div className="relative">
                 <div className="p-0.5 rounded-full bg-gradient-to-tr from-primary to-secondary group-hover:scale-105 transition-transform duration-300">
                   <img 
-                    src={user?.avatar || `/assets/admin-avatar.png`} 
+                    src={user?.avatar || '/favicon.svg'} 
                     alt="Avatar" 
                     className="w-10 h-10 rounded-full bg-surface object-cover border-2 border-surface shadow-sm"
                   />
@@ -267,6 +268,22 @@ const Header = () => {
                 </div>
                 
                 <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      router.push('/settings');
+                      setIsProfileOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-2xl transition-all group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+                      <Settings size={18} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">Settings</p>
+                      <p className="text-[10px] text-text-secondary">Platform configuration</p>
+                    </div>
+                  </button>
+
                   <button
                     onClick={() => {
                       router.push('/profile');

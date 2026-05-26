@@ -2,7 +2,6 @@
 
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
 export default function AdminRouteLayout({ children }: { children: React.ReactNode }) {
@@ -20,17 +19,9 @@ export default function AdminRouteLayout({ children }: { children: React.ReactNo
 
         {/* Page Content */}
         <main className="flex-grow p-4 md:p-6 lg:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <div key={pathname}>
+            {children}
+          </div>
         </main>
       </div>
     </div>

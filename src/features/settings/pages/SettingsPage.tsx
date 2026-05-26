@@ -380,7 +380,7 @@ const SettingsPage = () => {
 
   return (
     <motion.div 
-      initial="hidden"
+      initial={false}
       animate="visible"
       variants={containerVariants}
       className="space-y-8 pb-10"
@@ -429,7 +429,7 @@ const SettingsPage = () => {
                 {activeTab === item.name && (
                   <motion.div 
                     layoutId="active-tab-indicator"
-                    className="absolute inset-0 bg-primary shadow-inner"
+                    className="absolute inset-0 bg-primary shadow-inner -z-0"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}

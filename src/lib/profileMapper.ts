@@ -26,7 +26,7 @@ const API_BASE_URL =
 
 export function resolveAvatarUrl(avatarUrl: string | null | undefined): string {
   if (!avatarUrl) {
-    return '/assets/admin-avatar.png';
+    return '/favicon.svg';
   }
 
   if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://') || avatarUrl.startsWith('data:')) {

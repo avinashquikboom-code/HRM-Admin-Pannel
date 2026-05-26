@@ -57,7 +57,7 @@ const Sidebar = () => {
     router.push('/login');
   };
 
-  const menuItems = [
+  const mainMenuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Companies', icon: Building2, path: '/companies' },
     { name: 'Subscriptions', icon: CreditCard, path: '/subscriptions' },
@@ -71,6 +71,9 @@ const Sidebar = () => {
     { name: 'Analytics', icon: BarChart3, path: '/analytics' },
     { name: 'Reports', icon: FileText, path: '/reports' },
     { name: 'Notifications', icon: Bell, path: '/notifications' },
+  ];
+
+  const accountMenuItems = [
     { name: 'Settings', icon: Settings, path: '/settings' },
     { name: 'Profile', icon: User, path: '/profile' },
   ];
@@ -113,8 +116,8 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-grow px-4 space-y-2 overflow-y-auto no-scrollbar">
-        {menuItems.map((item) => {
+      <nav className="flex-grow px-4 space-y-2 overflow-y-auto no-scrollbar min-h-0">
+        {mainMenuItems.map((item) => {
           const isActive = pathname === item.path;
           return (
             <Link
@@ -147,8 +150,42 @@ const Sidebar = () => {
         })}
       </nav>
 
+      <div className="px-4 pb-2 space-y-2 border-t border-border pt-4 shrink-0">
+        {accountMenuItems.map((item) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              href={item.path}
+              className={cn(
+                "flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 group",
+                isActive
+                  ? "bg-primary text-white shadow-lg shadow-primary/20"
+                  : "text-text-secondary hover:bg-surface-variant text-muted"
+              )}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {isOpen && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="font-medium whitespace-nowrap"
+                >
+                  {item.name}
+                </motion.span>
+              )}
+              {!isOpen && (
+                <div className="absolute left-full ml-6 px-3 py-2 bg-text-primary text-surface text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                  {item.name}
+                </div>
+              )}
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Sidebar Toggle & Logout */}
-      <div className="p-4 space-y-2 border-t border-border">
+      <div className="p-4 space-y-2 border-t border-border shrink-0">
         <button
           onClick={() => dispatch(toggleSidebar())}
           className="flex items-center gap-4 w-full px-4 py-3.5 text-text-secondary hover:bg-surface-variant rounded-2xl transition-all"

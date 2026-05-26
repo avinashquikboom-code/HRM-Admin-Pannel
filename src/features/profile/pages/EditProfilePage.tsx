@@ -176,7 +176,7 @@ const EditProfilePage = () => {
 
   return (
     <motion.div 
-      initial="hidden"
+      initial={false}
       animate="visible"
       variants={containerVariants}
       className="max-w-5xl mx-auto space-y-8 pb-10"
