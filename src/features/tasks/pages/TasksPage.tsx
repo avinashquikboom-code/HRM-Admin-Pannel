@@ -19,6 +19,7 @@ import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
+import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 
 import { mockTasks as initialTasks, mockEmployees } from '@/data/mockData';
 
@@ -53,6 +54,7 @@ const TasksPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState(initialTasks);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Form State
@@ -108,7 +110,9 @@ const TasksPage = () => {
   const activeSprintCount = inProgressCount + underReviewCount;
   const completionRate = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
-  const filteredTasks = tasks.filter(t => 
+  const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
+
+  const filteredTasks = tasks.filter(t =>
     t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
     t.assignee.toLowerCase().includes(searchTerm.toLowerCase())
@@ -225,7 +229,8 @@ const TasksPage = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         key={task.id}
-                        className="glass-card p-5 border border-border/60 hover:border-primary/30 transition-all duration-300 group cursor-default relative overflow-hidden bg-surface"
+                        onClick={() => setSelectedTaskId(task.id)}
+                        className="glass-card p-5 border border-border/60 hover:border-primary/30 transition-all duration-300 group cursor-pointer relative overflow-hidden bg-surface"
                       >
                         {/* Background Overlay */}
                         <div className={cn(
@@ -291,7 +296,8 @@ const TasksPage = () => {
                         <div className="mt-4 pt-3 border-t border-border/40 flex justify-end gap-1.5">
                           {colName !== 'To Do' && (
                             <button 
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 const prevIdx = columnNames.indexOf(colName) - 1;
                                 handleStatusChange(task.id, columnNames[prevIdx]);
                               }}
@@ -303,7 +309,8 @@ const TasksPage = () => {
                           )}
                           {colName !== 'Completed' && (
                             <button 
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 const nextIdx = columnNames.indexOf(colName) + 1;
                                 handleStatusChange(task.id, columnNames[nextIdx]);
                               }}
@@ -405,6 +412,19 @@ const TasksPage = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(selectedTask)}
+        onClose={() => setSelectedTaskId(null)}
+        title={selectedTask ? `${selectedTask.id} · Comments` : 'Task Comments'}
+      >
+        {selectedTask && (
+          <TaskCommentsPanel
+            taskId={selectedTask.id}
+            taskTitle={selectedTask.title}
+          />
+        )}
       </Modal>
     </motion.div>
   );
