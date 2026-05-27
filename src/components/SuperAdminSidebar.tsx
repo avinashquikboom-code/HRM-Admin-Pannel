@@ -58,7 +58,7 @@ function NavItem({
         'sidebar-nav-item group',
         !isOpen && 'sidebar-nav-item-collapsed',
         isActive
-          ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
+          ? 'bg-primary text-white shadow-lg shadow-primary/20'
           : 'text-text-secondary hover:bg-surface-variant text-muted'
       )}
     >
@@ -125,13 +125,13 @@ const SuperAdminSidebar = () => {
         )}
       >
         <div className="sidebar-brand-wrap">
-          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-secondary/30">
-            <ShieldCheck className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/30">
+            <span className="text-white font-semibold text-sm">HRM</span>
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
               <p className="sidebar-brand leading-tight">Super Admin</p>
-              <p className="text-micro font-medium text-secondary uppercase tracking-wide mt-0.5">
+              <p className="text-micro font-medium text-primary uppercase tracking-wide mt-0.5">
                 Ecosystem Control
               </p>
             </motion.div>
@@ -156,7 +156,7 @@ const SuperAdminSidebar = () => {
               'sidebar-nav-item group',
               !isOpen && 'sidebar-nav-item-collapsed',
               pathname === `${SUPER_ADMIN_PREFIX}/profile`
-                ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
                 : 'text-text-secondary hover:bg-surface-variant text-muted'
             )}
           >

@@ -6,9 +6,7 @@ import { motion } from 'framer-motion';
 import {
   Mail,
   LogIn,
-  ShieldCheck,
   Loader2,
-  LayoutDashboard,
 } from 'lucide-react';
 import { useAppDispatch } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
@@ -40,7 +38,7 @@ const PORTAL_DEMO: Record<
     email: SUPER_ADMIN_DEV_EMAIL,
     password: SUPER_ADMIN_DEV_PASSWORD,
     placeholder: 'superadmin@hrm.com',
-    buttonLabel: 'Enter Super Admin',
+    buttonLabel: 'Enter Super Admin Panel',
   },
   platform_admin: {
     email: DEFAULT_PLATFORM_DEV_EMAIL,
@@ -50,28 +48,17 @@ const PORTAL_DEMO: Record<
   },
 };
 
-const PORTAL_ICONS: Record<LoginPortalType, typeof ShieldCheck> = {
-  super_admin: ShieldCheck,
-  platform_admin: LayoutDashboard,
+const LOGIN_TAB_LABELS: Record<LoginPortalType, string> = {
+  super_admin: 'Super Admin',
+  platform_admin: 'Admin Panel',
 };
 
-const ACCENT_STYLES = {
-  secondary: {
-    blob: 'bg-secondary/10',
-    icon: 'bg-secondary shadow-secondary/30',
-    tab: 'bg-secondary text-white shadow-md',
-    demo: 'bg-secondary/5 border-secondary/15',
-    button: 'bg-secondary hover:opacity-90 shadow-xl shadow-secondary/20',
-    ring: 'focus:ring-secondary/50',
-  },
-  primary: {
-    blob: 'bg-primary/10',
-    icon: 'bg-primary shadow-primary/40',
-    tab: 'bg-primary text-white shadow-md',
-    demo: 'bg-primary/5 border-primary/15',
-    button: 'bg-primary hover:bg-primary-dark shadow-xl shadow-primary/30',
-    ring: 'focus:ring-primary/50',
-  },
+const LOGIN_ACCENT = {
+  blob: 'bg-primary/10',
+  icon: 'bg-primary shadow-primary/40',
+  tab: 'bg-primary text-white shadow-md',
+  button: 'bg-primary hover:bg-primary-dark shadow-xl shadow-primary/30',
+  ring: 'focus:ring-primary/50',
 };
 
 function toLoginPortal(portal: PortalType): LoginPortalType {
@@ -87,8 +74,7 @@ export default function AuthLoginView({
   );
   const access = ROLE_ACCESS[portal];
   const demo = PORTAL_DEMO[portal];
-  const styles = ACCENT_STYLES[access.accent as 'primary' | 'secondary'];
-  const PortalIcon = PORTAL_ICONS[portal];
+  const styles = LOGIN_ACCENT;
 
   const [email, setEmail] = useState(demo.email);
   const [password, setPassword] = useState(demo.password);
@@ -139,13 +125,9 @@ export default function AuthLoginView({
               styles.icon
             )}
           >
-            {portal === 'platform_admin' ? (
-              <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">
-                HRM
-              </span>
-            ) : (
-              <PortalIcon className="w-8 h-8 sm:w-9 sm:h-9 text-white" />
-            )}
+            <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">
+              HRM
+            </span>
           </div>
           <h1 className="heading-1">{access.title}</h1>
           <p className="text-page-desc mt-2">{access.description}</p>
@@ -153,25 +135,21 @@ export default function AuthLoginView({
 
         <div className="glass-card p-6 sm:p-8 lg:p-10 bg-surface/40 border-surface/50">
           <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-surface-variant mb-6">
-            {LOGIN_PORTAL_ORDER.map((optionId) => {
-              const option = ROLE_ACCESS[optionId];
-              const optionStyles = ACCENT_STYLES[option.accent as 'primary' | 'secondary'];
-              return (
-                <button
-                  key={optionId}
-                  type="button"
-                  onClick={() => switchPortal(optionId)}
-                  className={cn(
-                    'py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all',
-                    portal === optionId
-                      ? optionStyles.tab
-                      : 'text-text-secondary hover:text-text-primary'
-                  )}
-                >
-                  {option.label === 'Admin' ? 'Admin Panel' : option.label}
-                </button>
-              );
-            })}
+            {LOGIN_PORTAL_ORDER.map((optionId) => (
+              <button
+                key={optionId}
+                type="button"
+                onClick={() => switchPortal(optionId)}
+                className={cn(
+                  'py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all',
+                  portal === optionId
+                    ? styles.tab
+                    : 'text-text-secondary hover:text-text-primary'
+                )}
+              >
+                {LOGIN_TAB_LABELS[optionId]}
+              </button>
+            ))}
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -183,7 +161,7 @@ export default function AuthLoginView({
 
             <div>
               <label className="block text-sm font-bold text-text-primary mb-2 ml-1">
-                {portal === 'super_admin' ? 'Super Admin Email' : 'Work Email'}
+                Work Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
@@ -217,25 +195,23 @@ export default function AuthLoginView({
               />
             </div>
 
-            {portal === 'platform_admin' && (
-              <div className="flex items-center justify-between ml-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-text-secondary font-medium">
-                    Keep me signed in
-                  </span>
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-bold text-primary hover:text-primary-dark transition-colors"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-            )}
+            <div className="flex items-center justify-between ml-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="text-sm text-text-secondary font-medium">
+                  Keep me signed in
+                </span>
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-sm font-bold text-primary hover:text-primary-dark transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </div>
 
             <button
               type="submit"
