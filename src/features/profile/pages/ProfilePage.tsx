@@ -18,10 +18,11 @@ import {
   Loader2
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import SignOutModal from '@/components/SignOutModal';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { formatLastLogin } from '@/lib/profileMapper';
+import { getProfileBasePath } from '@/lib/portals';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -49,6 +50,8 @@ const itemVariants: Variants = {
 
 const ProfilePage = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const profileBasePath = getProfileBasePath(pathname);
   const { user, profile, isLoading, error } = useAdminProfile();
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
@@ -113,7 +116,7 @@ const ProfilePage = () => {
               <motion.button 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => router.push('/profile/edit')}
+                onClick={() => router.push(`${profileBasePath}/edit`)}
                 className="absolute bottom-2 right-2 p-3.5 bg-primary text-white rounded-2xl shadow-xl hover:bg-primary-dark transition-all border-4 border-surface"
               >
                 <Camera size={20} />
@@ -121,19 +124,19 @@ const ProfilePage = () => {
             </div>
             
             <div className="flex-grow pt-4 md:pt-0 text-center md:text-left">
-              <h1 className="text-4xl font-black text-text-primary tracking-tight">
+              <h1 className="text-stat-value">
                 {user?.name || profile?.fullName || 'Admin'}
               </h1>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3">
                 <div className="px-4 py-1.5 bg-surface-variant border border-border rounded-full flex items-center gap-2">
                   <ShieldCheck size={16} className="text-primary" />
-                  <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">
+                  <span className="text-micro font-black text-text-primary uppercase tracking-[0.2em]">
                     {user?.role?.replace('_', ' ') || 'Administrator'}
                   </span>
                 </div>
                 <div className="px-4 py-1.5 bg-surface-variant border border-border rounded-full flex items-center gap-2">
                   <Globe size={14} className="text-text-secondary" />
-                  <span className="text-[10px] font-bold text-text-primary uppercase tracking-widest">
+                  <span className="text-micro font-bold text-text-primary uppercase tracking-widest">
                     {profile?.timezoneLabel || 'Global Ops'}
                   </span>
                 </div>
@@ -142,7 +145,7 @@ const ProfilePage = () => {
 
             <div className="flex gap-3 mt-6 md:mt-0">
               <button 
-                onClick={() => router.push('/profile/edit')}
+                onClick={() => router.push(`${profileBasePath}/edit`)}
                 className="px-6 py-2.5 bg-surface border border-border text-text-primary font-bold rounded-xl hover:bg-surface-variant transition-all shadow-sm text-sm"
               >
                 Edit
@@ -175,25 +178,25 @@ const ProfilePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <label className="text-micro font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <UserIcon size={12} /> Full Name
                 </label>
                 <p className="text-lg font-bold text-text-primary">{user?.name || profile?.fullName}</p>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <label className="text-micro font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Mail size={12} /> Email Address
                 </label>
                 <p className="text-lg font-bold text-text-primary">{user?.email || profile?.email}</p>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <label className="text-micro font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Phone size={12} /> Contact Number
                 </label>
                 <p className="text-lg font-bold text-text-primary">{user?.phone || profile?.phone}</p>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <label className="text-micro font-black text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Shield size={12} /> Authorization
                 </label>
                 <div className="flex items-center gap-2 text-success font-black text-sm">
@@ -255,7 +258,7 @@ const ProfilePage = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     {item.status && (
-                      <span className="text-[10px] font-black bg-success/10 text-success px-3 py-1 rounded-full uppercase tracking-widest border border-success/20 shadow-sm">
+                      <span className="text-micro font-black bg-success/10 text-success px-3 py-1 rounded-full uppercase tracking-widest border border-success/20 shadow-sm">
                         {item.status}
                       </span>
                     )}
@@ -277,7 +280,7 @@ const ProfilePage = () => {
                 <History size={16} className="text-primary" />
                 Access Logs
               </h3>
-              <button className="text-[10px] font-black text-primary uppercase hover:underline">View All</button>
+              <button className="text-micro font-black text-primary uppercase hover:underline">View All</button>
             </div>
             <div className="space-y-8 relative">
               <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border/50" />
@@ -289,10 +292,10 @@ const ProfilePage = () => {
                   <div className="flex-grow">
                     <p className="text-sm font-bold text-text-primary">Latest session</p>
                     <div className="flex flex-col gap-0.5 mt-1">
-                      <p className="text-[10px] text-text-secondary font-medium">
+                      <p className="text-micro text-text-secondary font-medium">
                         {formatLastLogin(security.lastLoginAt)}
                       </p>
-                      <p className="text-[9px] text-muted font-bold uppercase tracking-wider">
+                      <p className="text-micro text-muted font-bold uppercase tracking-wider">
                         {security.lastLoginLocation}
                       </p>
                     </div>
@@ -329,7 +332,7 @@ const ProfilePage = () => {
               <UserIcon size={32} className="text-muted" />
             </div>
             <p className="text-xs font-bold text-text-secondary mb-2">Secondary Admin</p>
-            <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Add Delegate</button>
+            <button className="text-label text-primary hover:underline">Add Delegate</button>
           </motion.div>
         </div>
       </div>

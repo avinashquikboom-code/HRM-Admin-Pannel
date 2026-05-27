@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { fetchOfficeById, type OfficeDetail } from '@/services/officeService';
 
-export function useOfficeDetail(officeId: number | null) {
+export function useOfficeDetail(officeId: string | null) {
   const token = useAppSelector((state) => state.auth.token);
   const [office, setOffice] = useState<OfficeDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const loadOffice = useCallback(
-    async (targetOfficeId?: number) => {
+    async (targetOfficeId?: string) => {
       const id = targetOfficeId ?? officeId;
 
       if (!token || !id) {

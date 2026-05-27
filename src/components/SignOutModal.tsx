@@ -42,7 +42,7 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                 </button>
               </div>
 
-              <h2 className="text-2xl font-bold text-text-primary mb-2">Sign Out?</h2>
+              <h2 className="text-lg font-semibold text-text-primary mb-2">Sign Out?</h2>
               <p className="text-text-secondary leading-relaxed mb-8">
                 Are you sure you want to sign out of your account? You'll need to log back in to access your dashboard.
               </p>

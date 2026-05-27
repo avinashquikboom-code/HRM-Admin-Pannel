@@ -112,7 +112,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <p className="text-lg font-black text-primary">
             {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(payload[0].value)}
           </p>
-          <p className="text-[10px] font-bold text-text-secondary flex items-center gap-1 uppercase">
+          <p className="text-micro font-bold text-text-secondary flex items-center gap-1 uppercase">
             <TrendingUp size={10} className="text-success" />
             +14% vs last month
           </p>
@@ -144,7 +144,7 @@ const SubscriptionsPage = () => {
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-muted">
             Subscriptions & Revenue
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl text-sm font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Strategic oversight of platform MRR, churn dynamics, and company-level billing cycles.
           </p>
         </div>
@@ -192,7 +192,7 @@ const SubscriptionsPage = () => {
                 <stat.icon size={24} />
               </div>
               <div className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase",
+                "flex items-center gap-1 px-2.5 py-1 rounded-lg text-micro font-black tracking-wider uppercase",
                 stat.trend.startsWith('+') ? "bg-success/10 text-success" : "bg-error/10 text-error"
               )}>
                 <TrendingUp size={12} className={cn(!stat.trend.startsWith('+') && "rotate-180")} />
@@ -201,7 +201,7 @@ const SubscriptionsPage = () => {
             </div>
             <div className="relative z-10">
               <p className="text-xs font-bold text-muted uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-2xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</h3>
+              <h3 className="text-stat-value mt-1">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -216,7 +216,7 @@ const SubscriptionsPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
             <div>
               <h3 className="heading-2">Revenue Growth Engine</h3>
-              <p className="text-sm text-text-secondary mt-1 font-medium">Monthly Recurring Revenue (MRR) performance analysis</p>
+              <p className="text-sm text-page-desc mt-1">Monthly Recurring Revenue (MRR) performance analysis</p>
             </div>
             <select className="bg-surface-variant border-none rounded-xl px-4 py-2 text-sm outline-none font-semibold text-text-secondary focus:ring-2 focus:ring-primary/20 self-start sm:self-center cursor-pointer">
               <option>Last 6 Months</option>
@@ -301,8 +301,8 @@ const SubscriptionsPage = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-black text-text-primary tracking-tighter">100%</span>
-              <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Revenue</span>
+              <span className="text-stat-valueer">100%</span>
+              <span className="text-label text-text-secondary">Revenue</span>
             </div>
           </div>
 
@@ -327,7 +327,7 @@ const SubscriptionsPage = () => {
         <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <h3 className="heading-2">Recent Subscriptions</h3>
-            <p className="text-sm text-text-secondary mt-1 font-medium">Real-time billing activity across the platform</p>
+            <p className="text-sm text-page-desc mt-1">Real-time billing activity across the platform</p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-grow sm:flex-grow-0">
@@ -353,12 +353,12 @@ const SubscriptionsPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Invoice ID</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Company</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Plan</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Amount</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border text-right">Actions</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Invoice ID</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Company</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Plan</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Amount</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Status</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -369,7 +369,7 @@ const SubscriptionsPage = () => {
                     className="hover:bg-surface-variant/30 transition-colors group cursor-pointer"
                   >
                     <td className="px-8 py-6">
-                      <span className="font-mono text-[10px] font-black text-muted bg-surface-variant px-2.5 py-1.5 rounded-xl border border-border shadow-sm">
+                      <span className="font-mono text-micro font-black text-muted bg-surface-variant px-2.5 py-1.5 rounded-xl border border-border shadow-sm">
                         {invoice.id}
                       </span>
                     </td>
@@ -383,7 +383,7 @@ const SubscriptionsPage = () => {
                     </td>
                     <td className="px-8 py-6">
                       <span className={cn(
-                        "text-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-widest border",
+                        "text-micro font-black px-3 py-1 rounded-xl uppercase tracking-widest border",
                         invoice.plan === 'Enterprise' ? "bg-secondary text-white border-secondary" :
                         invoice.plan === 'Pro' ? "bg-accent/10 text-accent border-accent/10" : "bg-primary/10 text-primary border-primary/10"
                       )}>
@@ -393,7 +393,7 @@ const SubscriptionsPage = () => {
                     <td className="px-8 py-6 font-black text-text-primary tracking-tight tabular-nums">{invoice.amount}</td>
                     <td className="px-8 py-6">
                       <span className={cn(
-                        "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 border shadow-sm",
+                        "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 border shadow-sm",
                         invoice.status === 'Paid' ? "bg-success/10 text-success border-success/10" : 
                         invoice.status === 'Overdue' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
                       )}>

@@ -93,7 +93,7 @@ const HRManagementPage = () => {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1">HR Management</h1>
-          <p className="text-text-secondary mt-1">Monitor HR administrative activity and platform-wide hiring trends.</p>
+          <p className="text-page-desc mt-1">Monitor HR administrative activity and platform-wide hiring trends.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-medium text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-lg">
@@ -128,7 +128,7 @@ const HRManagementPage = () => {
               </div>
               <div>
                 <p className="text-sm text-text-secondary font-medium uppercase tracking-wider">{stat.label}</p>
-                <p className="text-3xl font-bold text-text-primary mt-1">{stat.value}</p>
+                <p className="text-stat-value mt-1">{stat.value}</p>
               </div>
             </div>
           </motion.div>
@@ -233,7 +233,7 @@ const HRManagementPage = () => {
         <div className="p-6 sm:p-8 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="heading-2">Recent Administrative Activity</h3>
-            <p className="text-sm text-text-secondary mt-1">Real-time log of HR admin interactions</p>
+            <p className="text-page-desc mt-1">Real-time log of HR admin interactions</p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-grow sm:flex-grow-0">
@@ -300,7 +300,7 @@ const HRManagementPage = () => {
                     </td>
                     <td className="px-8 py-5">
                       <span className={cn(
-                        "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest inline-flex items-center gap-2",
+                        "px-4 py-1.5 rounded-full text-micro font-bold uppercase tracking-widest inline-flex items-center gap-2",
                         hr.status === 'Online' ? "bg-success/10 text-success" : "bg-surface-variant text-text-secondary"
                       )}>
                         <div className={cn("w-2 h-2 rounded-full", hr.status === 'Online' ? "bg-success animate-pulse" : "bg-muted")} />

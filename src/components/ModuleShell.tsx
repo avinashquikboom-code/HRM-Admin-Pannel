@@ -13,7 +13,7 @@ const ModuleShell: React.FC<ModuleShellProps> = ({ title, description, icon: Ico
     <div className="space-y-8">
       <div>
         <h1 className="heading-1">{title}</h1>
-        <p className="text-text-secondary mt-1">{description}</p>
+        <p className="text-page-desc mt-1">{description}</p>
       </div>
 
       <motion.div 
@@ -24,8 +24,8 @@ const ModuleShell: React.FC<ModuleShellProps> = ({ title, description, icon: Ico
         <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mb-6">
           <Icon size={40} />
         </div>
-        <h2 className="text-2xl font-bold text-text-primary mb-2">{title} Module</h2>
-        <p className="text-text-secondary max-w-md mx-auto mb-8">
+        <h2 className="text-xl sm:text-lg font-semibold text-text-primary mb-2">{title} Module</h2>
+        <p className="text-page-desc max-w-md mx-auto mb-8">
           This module is part of the premium Super Admin ecosystem. We are currently finalizing the advanced analytics and deep-level reporting features for this section.
         </p>
         <div className="flex gap-4">

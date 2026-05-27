@@ -23,6 +23,7 @@ import * as z from 'zod';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
+import { useCompanyStats } from '@/hooks/useCompanyStats';
 
 import { mockCompanies as companies } from '@/data/mockData';
 
@@ -61,9 +62,42 @@ const itemVariants: Variants = {
 };
 
 const CompaniesPage = () => {
+  const { stats, isLoading: isStatsLoading, error: statsError } = useCompanyStats();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const summaryStats = [
+    {
+      label: 'Total Entities',
+      value: stats ? stats.totalEntities.toLocaleString() : '—',
+      icon: Building2,
+      color: 'primary',
+    },
+    {
+      label: 'Global Seats',
+      value: stats ? stats.globalSeats.toLocaleString() : '—',
+      icon: UsersIcon,
+      color: 'secondary',
+    },
+    {
+      label: 'Pending Verification',
+      value: stats ? stats.pendingVerification.toLocaleString() : '—',
+      icon: ShieldAlert,
+      color: 'warning',
+      trend: stats
+        ? stats.pendingVerification > 0
+          ? 'Attention'
+          : 'Clear'
+        : null,
+    },
+    {
+      label: 'System Growth',
+      value: stats?.systemGrowth ?? '—',
+      icon: TrendingUp,
+      color: 'success',
+    },
+  ];
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800);
@@ -120,7 +154,7 @@ const CompaniesPage = () => {
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-primary to-primary-light">
             Company Ecosystem
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl text-sm font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Strategic oversight of all registered entities, their operational scale, and service utilization.
           </p>
         </div>
@@ -142,18 +176,25 @@ const CompaniesPage = () => {
         </div>
       </motion.div>
 
+      {statsError ? (
+        <motion.div
+          variants={itemVariants}
+          className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning"
+        >
+          {statsError}
+        </motion.div>
+      ) : null}
+
       {/* Top Level Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Total Entities', value: '1,284', icon: Building2, color: 'primary', trend: '+12' },
-          { label: 'Global Seats', value: '45,920', icon: UsersIcon, color: 'secondary', trend: '+1.2k' },
-          { label: 'Pending Verification', value: '18', icon: ShieldAlert, color: 'warning', trend: 'High' },
-          { label: 'System Growth', value: '18.7%', icon: TrendingUp, color: 'success', trend: '+2.4%' },
-        ].map((stat) => (
+        {summaryStats.map((stat) => (
           <motion.div
             key={stat.label}
             variants={itemVariants}
-            className="glass-card p-6 group hover:border-primary/50 transition-all cursor-default relative overflow-hidden"
+            className={cn(
+              'glass-card p-4 sm:p-6 group hover:border-primary/50 transition-all cursor-default relative overflow-hidden',
+              isStatsLoading && 'animate-pulse'
+            )}
           >
             <div className={cn(
               "absolute -right-6 -top-6 w-20 h-20 rounded-full blur-2xl opacity-10 transition-transform group-hover:scale-150 duration-700",
@@ -166,15 +207,19 @@ const CompaniesPage = () => {
               )}>
                 <stat.icon size={22} />
               </div>
-              <span className={cn(
-                "text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider",
-                stat.trend.startsWith('+') ? "bg-success/10 text-success" : "bg-warning/20 text-warning"
-              )}>
-                {stat.trend}
-              </span>
+              {stat.trend ? (
+                <span className={cn(
+                  "text-micro font-black px-2 py-1 rounded-lg uppercase tracking-wider",
+                  stat.trend === 'Attention'
+                    ? 'bg-warning/20 text-warning'
+                    : 'bg-success/10 text-success'
+                )}>
+                  {stat.trend}
+                </span>
+              ) : null}
             </div>
-            <p className="text-xs font-bold text-text-secondary uppercase tracking-widest">{stat.label}</p>
-            <h3 className="text-2xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</h3>
+            <p className="text-stat-label">{stat.label}</p>
+            <h3 className="text-stat-value mt-1">{stat.value}</h3>
           </motion.div>
         ))}
       </div>
@@ -221,12 +266,12 @@ const CompaniesPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Entity Details</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Operational Scale</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Subscription Tier</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Engagement</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border text-right">Controls</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Entity Details</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Operational Scale</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Subscription Tier</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Status</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Engagement</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border text-right">Controls</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -244,10 +289,10 @@ const CompaniesPage = () => {
                         <div>
                           <p className="font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{company.name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-bold text-muted bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                            <span className="text-micro font-bold text-muted bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-tighter">
                               ID: #{company.id}042
                             </span>
-                            <span className="text-[10px] font-medium text-text-secondary">• admin@techvibe.com</span>
+                            <span className="text-micro font-medium text-text-secondary">• admin@techvibe.com</span>
                           </div>
                         </div>
                       </div>
@@ -255,12 +300,12 @@ const CompaniesPage = () => {
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-text-primary">{company.employees.toLocaleString()}</span>
-                        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">Active Seats</span>
+                        <span className="text-micro font-bold text-text-secondary uppercase tracking-tight">Active Seats</span>
                       </div>
                     </td>
                     <td className="px-8 py-6">
                       <span className={cn(
-                        "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                        "px-4 py-1.5 rounded-xl text-label transition-all",
                         company.plan === 'Enterprise' ? "bg-secondary text-white shadow-lg shadow-secondary/20" : 
                         company.plan === 'Pro' ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
                       )}>
@@ -312,7 +357,7 @@ const CompaniesPage = () => {
         )}
         {!isLoading && (
           <div className="p-6 bg-surface-variant border-t border-border flex items-center justify-between">
-            <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Showing 5 of 1,284 Managed Entities</p>
+            <p className="text-label text-text-secondary">Showing 5 of 1,284 Managed Entities</p>
             <div className="flex items-center gap-2">
               <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-sm transition-all" disabled>Previous</button>
               <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary hover:shadow-sm hover:text-primary transition-all">Next</button>
@@ -334,7 +379,7 @@ const CompaniesPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Company Identity</label>
+              <label className="text-label text-text-secondary ml-1">Company Identity</label>
               <div className="relative group">
                 <Building2 className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.name ? "text-error" : "text-muted group-focus-within:text-primary")} />
                 <input 
@@ -347,11 +392,11 @@ const CompaniesPage = () => {
                   )}
                 />
               </div>
-              {errors.name && <p className="text-[10px] text-error font-bold uppercase tracking-wide ml-1">{errors.name.message}</p>}
+              {errors.name && <p className="text-micro text-error font-bold uppercase tracking-wide ml-1">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Digital Domain</label>
+              <label className="text-label text-text-secondary ml-1">Digital Domain</label>
               <div className="relative group">
                 <Globe className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.website ? "text-error" : "text-muted group-focus-within:text-primary")} />
                 <input 
@@ -369,7 +414,7 @@ const CompaniesPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Primary Liaison</label>
+              <label className="text-label text-text-secondary ml-1">Primary Liaison</label>
               <div className="relative group">
                 <Mail className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.adminEmail ? "text-error" : "text-muted group-focus-within:text-primary")} />
                 <input 
@@ -385,7 +430,7 @@ const CompaniesPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Subscription Tier</label>
+              <label className="text-label text-text-secondary ml-1">Subscription Tier</label>
               <select 
                 {...register('plan')}
                 className={cn(
@@ -402,7 +447,7 @@ const CompaniesPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Workforce Allocation</label>
+            <label className="text-label text-text-secondary ml-1">Workforce Allocation</label>
             <div className="relative group">
               <UsersIcon className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", errors.employeeCount ? "text-error" : "text-muted group-focus-within:text-primary")} />
               <input 

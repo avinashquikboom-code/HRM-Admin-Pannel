@@ -16,12 +16,13 @@ import {
   Info
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { updateUser } from '@/store/slices/authSlice';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { updateAdminProfile, uploadAdminAvatar, removeAdminAvatar, fileToDataUrl } from '@/services/profileService';
+import { getProfileBasePath } from '@/lib/portals';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -34,6 +35,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 const EditProfilePage = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const profileBasePath = getProfileBasePath(pathname);
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { profile, isLoading } = useAdminProfile();
@@ -79,7 +82,7 @@ const EditProfilePage = () => {
       );
 
       dispatch(updateUser(result.user));
-      router.push('/profile');
+      router.push(profileBasePath);
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : 'Failed to update profile.'
@@ -187,13 +190,13 @@ const EditProfilePage = () => {
           <motion.button 
             whileHover={{ scale: 1.05, x: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/profile')}
+            onClick={() => router.push(profileBasePath)}
             className="p-3.5 bg-surface border border-border rounded-2xl text-text-secondary hover:text-primary transition-all shadow-sm group"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
           </motion.button>
           <div>
-            <h1 className="text-2xl font-black text-text-primary tracking-tight">System Identity Configuration</h1>
+            <h1 className="heading-2">System Identity Configuration</h1>
             <p className="text-sm text-text-secondary font-medium">Update your administrative credentials and public profile.</p>
           </div>
         </div>
@@ -324,7 +327,7 @@ const EditProfilePage = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
                 <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                  <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                     <User size={12} /> Full Name
                   </label>
                   <div className="relative group">
@@ -341,11 +344,11 @@ const EditProfilePage = () => {
                       className="absolute inset-0 rounded-[24px] pointer-events-none group-focus-within:shadow-[0_0_20px_rgba(59,163,139,0.1)] transition-shadow" 
                     />
                   </div>
-                  {errors.name && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-1">{errors.name.message}</p>}
+                  {errors.name && <p className="text-micro text-error font-black uppercase tracking-wider ml-1">{errors.name.message}</p>}
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                  <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                     <Mail size={12} /> Email Protocol
                   </label>
                   <div className="relative group">
@@ -358,11 +361,11 @@ const EditProfilePage = () => {
                       )}
                     />
                   </div>
-                  {errors.email && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-1">{errors.email.message}</p>}
+                  {errors.email && <p className="text-micro text-error font-black uppercase tracking-wider ml-1">{errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                  <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                     <Phone size={12} /> Secure Phone
                   </label>
                   <div className="relative group">
@@ -375,11 +378,11 @@ const EditProfilePage = () => {
                       )}
                     />
                   </div>
-                  {errors.phone && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-1">{errors.phone.message}</p>}
+                  {errors.phone && <p className="text-micro text-error font-black uppercase tracking-wider ml-1">{errors.phone.message}</p>}
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                  <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                     <Globe size={12} /> System Region
                   </label>
                   <div className="w-full px-6 py-4.5 bg-surface-variant/30 border-2 border-border/50 rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
@@ -390,7 +393,7 @@ const EditProfilePage = () => {
               </div>
 
               <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Administrative Bio</label>
+                <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1">Administrative Bio</label>
                 <textarea 
                   {...register('bio')}
                   rows={5}
@@ -400,7 +403,7 @@ const EditProfilePage = () => {
                     errors.bio && "border-error/50 bg-error/5 focus:ring-error/5"
                   )}
                 />
-                {errors.bio && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-1">{errors.bio.message}</p>}
+                {errors.bio && <p className="text-micro text-error font-black uppercase tracking-wider ml-1">{errors.bio.message}</p>}
               </div>
             </div>
 
@@ -410,8 +413,8 @@ const EditProfilePage = () => {
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 type="button"
-                onClick={() => router.push('/profile')}
-                className="flex-1 py-5 bg-surface border-2 border-border text-text-secondary font-black uppercase tracking-[0.2em] text-[10px] rounded-[28px] hover:bg-surface-variant transition-all shadow-sm"
+                onClick={() => router.push(profileBasePath)}
+                className="flex-1 py-5 bg-surface border-2 border-border text-text-secondary text-label tracking-[0.2em] rounded-[28px] hover:bg-surface-variant transition-all shadow-sm"
               >
                 Discard Changes
               </motion.button>
@@ -420,7 +423,7 @@ const EditProfilePage = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-[2] py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-[28px] shadow-2xl shadow-primary/30 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-4"
+                className="flex-[2] py-5 bg-primary text-white text-label tracking-[0.2em] rounded-[28px] shadow-2xl shadow-primary/30 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-4"
               >
                 {isSubmitting ? (
                   <motion.div 

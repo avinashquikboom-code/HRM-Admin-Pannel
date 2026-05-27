@@ -1,18 +1,36 @@
 import { api, getApiErrorMessage } from '@/lib/api';
+import { getAuthToken } from '@/lib/authStorage';
 import { isDevAuthSession } from '@/lib/devAuth';
 
+interface ApiOffice {
+  id: string;
+  name: string | null;
+  code: string | null;
+  address: string | null;
+  latitude: string | number;
+  longitude: string | number;
+  idealRadiusMeters: number | null;
+  maxPunchRadiusMeters: number | null;
+  isActive: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    employees: number;
+  };
+}
+
 export interface OfficeEmployee {
-  id: number;
+  id: string;
   employeeCode: string;
   firstName: string;
   lastName: string;
-  designation: string;
+  designation: string | null;
 }
 
 export interface Office {
-  id: number;
+  id: string;
   name: string;
-  code: string;
+  code: string | null;
   address: string;
   latitude: number;
   longitude: number;
@@ -31,34 +49,79 @@ export interface OfficeDetail extends Office {
 }
 
 interface OfficesResponse {
-  offices: Office[];
+  offices: ApiOffice[];
 }
 
 interface OfficeDetailResponse {
-  office: OfficeDetail;
+  office: ApiOffice & { employees?: OfficeEmployee[] };
 }
 
 interface CreateOfficeResponse {
   message: string;
-  office: Office;
+  office: ApiOffice;
 }
 
-export interface CreateOfficeRequest {
+export interface UpdateOfficeRequest {
   name: string;
-  code: string;
+  code?: string;
   address: string;
   latitude: number;
   longitude: number;
   idealRadiusMeters: number;
   maxPunchRadiusMeters: number;
-  isActive?: boolean;
+  isActive: boolean;
 }
 
-export type UpdateOfficeRequest = CreateOfficeRequest;
+export type CreateOfficeRequest = Omit<UpdateOfficeRequest, 'isActive'> & {
+  isActive?: boolean;
+};
 
 interface MutateOfficeResponse {
   message: string;
-  office: Office;
+  office: ApiOffice;
+}
+
+function toNumber(value: string | number | null | undefined, fallback = 0): number {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+function mapOffice(api: ApiOffice): Office {
+  return {
+    id: api.id,
+    name: api.name?.trim() || 'Unnamed Office',
+    code: api.code,
+    address: api.address?.trim() || '',
+    latitude: toNumber(api.latitude),
+    longitude: toNumber(api.longitude),
+    idealRadiusMeters: api.idealRadiusMeters ?? 25,
+    maxPunchRadiusMeters: api.maxPunchRadiusMeters ?? 50,
+    isActive: api.isActive ?? true,
+    createdAt: api.createdAt,
+    updatedAt: api.updatedAt,
+    _count: api._count ?? { employees: 0 },
+  };
+}
+
+function mapOfficeDetail(api: OfficeDetailResponse['office']): OfficeDetail {
+  return {
+    ...mapOffice(api),
+    employees: api.employees ?? [],
+  };
+}
+
+function assertOfficeAuthToken() {
+  if (isDevAuthSession()) {
+    throw new Error(
+      'Office data requires a real backend login. Sign in with the API (not offline demo mode).'
+    );
+  }
+
+  if (!getAuthToken()) {
+    throw new Error(
+      'Admin token not found. Sign in first — token is stored in hrm_auth and hrm_token cookie.'
+    );
+  }
 }
 
 export function getMapBoundsForOffice(
@@ -86,13 +149,11 @@ export function metersToDegreeRadius(meters: number, latitude: number) {
 }
 
 export async function fetchOffices(): Promise<Office[]> {
-  if (isDevAuthSession()) {
-    return [];
-  }
+  assertOfficeAuthToken();
 
   try {
     const { data } = await api.get<OfficesResponse>('/api/admin/offices');
-    return data.offices;
+    return data.offices.map(mapOffice);
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load offices. Please try again.')
@@ -100,16 +161,14 @@ export async function fetchOffices(): Promise<Office[]> {
   }
 }
 
-export async function fetchOfficeById(id: number): Promise<OfficeDetail> {
-  if (isDevAuthSession()) {
-    throw new Error('Office details are unavailable in offline demo mode.');
-  }
+export async function fetchOfficeById(id: string): Promise<OfficeDetail> {
+  assertOfficeAuthToken();
 
   try {
     const { data } = await api.get<OfficeDetailResponse>(
       `/api/admin/offices/${id}`
     );
-    return data.office;
+    return mapOfficeDetail(data.office);
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load office details. Please try again.')
@@ -120,18 +179,33 @@ export async function fetchOfficeById(id: number): Promise<OfficeDetail> {
 export async function createOffice(
   payload: CreateOfficeRequest
 ): Promise<{ message: string; office: Office }> {
+  assertOfficeAuthToken();
+
+  const body = {
+    name: payload.name.trim(),
+    code: payload.code?.trim() || undefined,
+    address: payload.address.trim(),
+    latitude: payload.latitude,
+    longitude: payload.longitude,
+    idealRadiusMeters: payload.idealRadiusMeters,
+    maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
+    isActive: payload.isActive ?? true,
+  };
+
   try {
     const { data } = await api.post<CreateOfficeResponse>(
       '/api/admin/offices',
+      body,
       {
-        ...payload,
-        isActive: payload.isActive ?? true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
     );
 
     return {
       message: data.message,
-      office: data.office,
+      office: mapOffice(data.office),
     };
   } catch (error) {
     throw new Error(
@@ -141,21 +215,36 @@ export async function createOffice(
 }
 
 export async function updateOffice(
-  id: number,
+  id: string,
   payload: UpdateOfficeRequest
 ): Promise<{ message: string; office: Office }> {
+  assertOfficeAuthToken();
+
+  const body: UpdateOfficeRequest = {
+    name: payload.name.trim(),
+    code: payload.code?.trim() || undefined,
+    address: payload.address.trim(),
+    latitude: payload.latitude,
+    longitude: payload.longitude,
+    idealRadiusMeters: payload.idealRadiusMeters,
+    maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
+    isActive: payload.isActive,
+  };
+
   try {
     const { data } = await api.put<MutateOfficeResponse>(
       `/api/admin/offices/${id}`,
+      body,
       {
-        ...payload,
-        isActive: payload.isActive ?? true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
     );
 
     return {
       message: data.message,
-      office: data.office,
+      office: mapOffice(data.office),
     };
   } catch (error) {
     throw new Error(
@@ -164,7 +253,9 @@ export async function updateOffice(
   }
 }
 
-export async function deleteOffice(id: number): Promise<{ message: string }> {
+export async function deleteOffice(id: string): Promise<{ message: string }> {
+  assertOfficeAuthToken();
+
   try {
     const { data } = await api.delete<{ message: string }>(
       `/api/admin/offices/${id}`

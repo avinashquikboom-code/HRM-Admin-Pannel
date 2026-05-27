@@ -1,5 +1,5 @@
-import CompaniesPage from '@/features/companies/pages/CompaniesPage';
+import { redirect } from 'next/navigation';
 
-export default function CompaniesPageWrapper() {
-  return <CompaniesPage />;
+export default function LegacyCompaniesRedirect() {
+  redirect('/super-admin/companies');
 }

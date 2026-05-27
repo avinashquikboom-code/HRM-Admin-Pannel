@@ -6,15 +6,18 @@ import { Mail, UserPlus, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
 import { useRouter } from 'next/navigation';
-import { registerUser } from '@/services/authService';
+import { registerUser, type RegisterRole } from '@/services/authService';
+import { getAuthSession } from '@/lib/authStorage';
+import { isDevAuthSession } from '@/lib/devAuth';
 
-const ROLES = ['EMPLOYEE', 'ADMIN', 'HR', 'MANAGER'] as const;
+const ROLES: RegisterRole[] = ['EMPLOYEE', 'HR'];
 
 const RegisterUserPage = () => {
   const router = useRouter();
+  const adminSession = getAuthSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<string>('EMPLOYEE');
+  const [role, setRole] = useState<RegisterRole>('EMPLOYEE');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -27,7 +30,7 @@ const RegisterUserPage = () => {
 
     try {
       const result = await registerUser({ email, password, role });
-      setSuccess(result.message);
+      setSuccess(`${result.message} — ${result.user.email} (${result.user.role})`);
       setEmail('');
       setPassword('');
       setRole('EMPLOYEE');
@@ -53,9 +56,9 @@ const RegisterUserPage = () => {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-3xl font-black text-text-primary tracking-tight">Register User</h1>
-          <p className="text-text-secondary mt-1">
-            Create a new account in the HRM ecosystem using your admin credentials.
+          <h1 className="heading-1 tracking-tight">Register User</h1>
+          <p className="text-page-desc mt-1">
+            Create a new account using your admin token from shared auth storage.
           </p>
         </div>
       </motion.div>
@@ -64,8 +67,37 @@ const RegisterUserPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-card p-10"
+        className="glass-card p-6 sm:p-8 lg:p-10"
       >
+        <div className="mb-6 rounded-2xl border border-border bg-surface-variant/40 px-4 py-3 text-xs font-mono text-text-secondary space-y-1">
+          <p>
+            <span className="font-bold text-primary">POST</span>{' '}
+            /api/auth/register
+          </p>
+          <p>{'{ email, password, role: "EMPLOYEE" | "HR" }'}</p>
+          <p>Authorization: Bearer &lt;admin-token-from-hrm_auth&gt;</p>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+          {isDevAuthSession() ? (
+            <p className="font-medium text-warning">
+              Offline demo mode is active. Sign in with the real backend to register users.
+            </p>
+          ) : adminSession ? (
+            <p className="font-medium text-text-primary">
+              Using admin token for{' '}
+              <span className="font-bold text-primary">{adminSession.user.email}</span>
+            </p>
+          ) : (
+            <p className="font-medium text-error">
+              No admin token found.{' '}
+              <Link href="/login" className="font-bold underline">
+                Sign in first
+              </Link>
+            </p>
+          )}
+        </div>
+
         <form onSubmit={handleRegister} className="space-y-6">
           {error && (
             <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
@@ -90,7 +122,7 @@ const RegisterUserPage = () => {
                 disabled={isLoading}
                 required
                 className="w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                placeholder="user@company.com"
+                placeholder="newuser@company.com"
               />
             </div>
           </div>
@@ -104,7 +136,7 @@ const RegisterUserPage = () => {
               required
               minLength={8}
               inputClassName="bg-surface-variant shadow-none"
-              placeholder="Enter your password"
+              placeholder="Password@123"
               autoComplete="new-password"
             />
           </div>
@@ -113,7 +145,7 @@ const RegisterUserPage = () => {
             <label className="block text-sm font-bold text-text-primary mb-2 ml-1">Role</label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => setRole(e.target.value as RegisterRole)}
               disabled={isLoading}
               className="w-full px-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary font-medium disabled:opacity-60"
             >
@@ -127,7 +159,7 @@ const RegisterUserPage = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isDevAuthSession() || !adminSession}
             className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
@@ -153,7 +185,7 @@ const RegisterUserPage = () => {
         <div className="mt-6 flex justify-center">
           <div className="flex items-center gap-2 text-success">
             <ShieldCheck size={16} />
-            <span className="text-[10px] font-bold">Uses shared admin token</span>
+            <span className="text-micro font-bold">Bearer token from hrm_auth + cookie</span>
           </div>
         </div>
       </motion.div>

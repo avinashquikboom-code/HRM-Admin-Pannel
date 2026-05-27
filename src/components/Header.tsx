@@ -16,17 +16,32 @@ import {
   User,
   ArrowRight,
   Menu,
-  LogOut
+  LogOut,
+  MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockCompanies, mockEmployees } from '../data/mockData';
 import { toggleSidebar } from '../store/slices/sidebarSlice';
+import type { PortalType } from '@/lib/portals';
+import { getLoginPathForPortal, SUPER_ADMIN_PREFIX } from '@/lib/portals';
 
-const Header = () => {
+interface HeaderProps {
+  portal?: PortalType;
+}
+
+const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
   const { darkMode } = useAppSelector((state) => state.theme);
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
+
+  const isSuperAdmin = portal === 'super_admin';
+  const profilePath = isSuperAdmin ? `${SUPER_ADMIN_PREFIX}/profile` : '/profile';
+  const settingsPath = `${SUPER_ADMIN_PREFIX}/settings`;
+  const notificationsPath = isSuperAdmin
+    ? `${SUPER_ADMIN_PREFIX}`
+    : '/notifications';
+  const roleLabel = isSuperAdmin ? 'Super Admin' : 'Platform Admin';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -37,7 +52,9 @@ const Header = () => {
 
   // ... (keep search logic)
 
-  const filteredCompanies = searchQuery 
+  const loginLocation = user?.profile?.security?.lastLoginLocation;
+
+  const filteredCompanies = searchQuery
     ? mockCompanies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3)
     : [];
   
@@ -63,7 +80,7 @@ const Header = () => {
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
     dispatch(logout());
-    router.push('/login');
+    router.push(getLoginPathForPortal(portal));
   };
 
   // Keyboard shortcut for search
@@ -80,7 +97,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-20 px-6 bg-surface/80 backdrop-blur-xl border-b border-border transition-colors">
+    <header className="sticky top-0 z-40 flex items-center justify-between h-16 md:h-20 px-4 sm:px-6 bg-surface/80 backdrop-blur-xl border-b border-border transition-colors">
       <div className="flex items-center gap-4">
         {/* Mobile Menu Toggle */}
         <button 
@@ -104,8 +121,8 @@ const Header = () => {
             className="bg-transparent border-none outline-none text-sm text-text-primary w-full placeholder:text-muted"
           />
           <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-surface border border-border rounded-lg shadow-sm">
-            <span className="text-[10px] font-bold text-muted">⌘</span>
-            <span className="text-[10px] font-bold text-muted">K</span>
+            <span className="text-micro font-bold text-muted">⌘</span>
+            <span className="text-micro font-bold text-muted">K</span>
           </div>
         </div>
 
@@ -123,12 +140,12 @@ const Header = () => {
                   <>
                     {filteredCompanies.length > 0 && (
                       <div className="mb-2">
-                        <p className="px-4 py-2 text-[10px] font-bold text-muted uppercase tracking-widest">Companies</p>
+                        <p className="px-4 py-2 text-label font-bold text-muted">Companies</p>
                         {filteredCompanies.map(company => (
                           <button
                             key={company.id}
                             onClick={() => {
-                              router.push('/companies');
+                              router.push(`${SUPER_ADMIN_PREFIX}/companies`);
                               setIsSearchFocused(false);
                               setSearchQuery('');
                             }}
@@ -149,7 +166,7 @@ const Header = () => {
 
                     {filteredEmployees.length > 0 && (
                       <div>
-                        <p className="px-4 py-2 text-[10px] font-bold text-muted uppercase tracking-widest">Employees</p>
+                        <p className="px-4 py-2 text-label font-bold text-muted">Employees</p>
                         {filteredEmployees.map(employee => (
                           <button
                             key={employee.id}
@@ -212,7 +229,7 @@ const Header = () => {
 
         {/* Notifications */}
         <button 
-          onClick={() => router.push('/notifications')}
+          onClick={() => router.push(notificationsPath)}
           className="relative p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary transition-colors"
         >
           <Bell className="w-5 h-5" />
@@ -226,12 +243,12 @@ const Header = () => {
         <div ref={profileRef} className="relative">
           <div className="flex items-center gap-1">
             <div 
-              onClick={() => router.push('/profile')}
+              onClick={() => router.push(profilePath)}
               className="flex items-center gap-3 pl-2 cursor-pointer group"
             >
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors leading-tight">{user?.name || 'Super Admin'}</p>
-                <p className="text-[9px] font-black text-primary uppercase tracking-[0.15em] opacity-80">System Controller</p>
+                <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors leading-tight">{user?.name || roleLabel}</p>
+                <p className="text-micro font-black text-primary uppercase tracking-[0.15em] opacity-80">{roleLabel}</p>
               </div>
               <div className="relative">
                 <div className="p-0.5 rounded-full bg-gradient-to-tr from-primary to-secondary group-hover:scale-105 transition-transform duration-300">
@@ -262,31 +279,39 @@ const Header = () => {
                 className="absolute right-0 mt-3 w-72 bg-surface/95 backdrop-blur-xl border border-border rounded-[28px] shadow-2xl shadow-primary/10 overflow-hidden z-50 p-2"
               >
                 <div className="p-5 border-b border-border/50 mb-2 bg-surface-variant/30 rounded-t-[20px]">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Authenticated As</p>
+                  <p className="text-label text-primary mb-1">Authenticated As</p>
                   <p className="text-sm font-bold text-text-primary truncate">{user?.name || 'Super Admin'}</p>
                   <p className="text-xs text-text-secondary truncate mt-0.5 font-medium">{user?.email || 'admin@hrm.ai'}</p>
+                  {loginLocation && (
+                    <p className="text-micro text-primary truncate mt-1 font-bold flex items-center gap-1">
+                      <MapPin size={10} className="shrink-0" />
+                      Logged in from {loginLocation}
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      router.push('/settings');
-                      setIsProfileOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-2xl transition-all group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
-                      <Settings size={18} />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">Settings</p>
-                      <p className="text-[10px] text-text-secondary">Platform configuration</p>
-                    </div>
-                  </button>
+                  {isSuperAdmin && (
+                    <button
+                      onClick={() => {
+                        router.push(settingsPath);
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-2xl transition-all group"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+                        <Settings size={18} />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">Settings</p>
+                        <p className="text-micro text-text-secondary">Super Admin configuration</p>
+                      </div>
+                    </button>
+                  )}
 
                   <button
                     onClick={() => {
-                      router.push('/profile');
+                      router.push(profilePath);
                       setIsProfileOpen(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-2xl transition-all group"
@@ -296,7 +321,7 @@ const Header = () => {
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">My Profile</p>
-                      <p className="text-[10px] text-text-secondary">View and edit personal info</p>
+                      <p className="text-micro text-text-secondary">View and edit personal info</p>
                     </div>
                   </button>
 
@@ -312,7 +337,7 @@ const Header = () => {
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold text-error">Sign Out</p>
-                      <p className="text-[10px] text-error/60">Securely end your session</p>
+                      <p className="text-micro text-error/60">Securely end your session</p>
                     </div>
                   </button>
                 </div>

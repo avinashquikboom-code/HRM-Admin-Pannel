@@ -138,7 +138,7 @@ export default function TaskCommentsPanel({
                     <p className="text-sm font-bold text-text-primary truncate">
                       {comment.author.fullName}
                     </p>
-                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest shrink-0">
+                    <span className="text-label font-bold text-muted shrink-0">
                       {formatCommentTime(comment.createdAt)}
                     </span>
                   </div>

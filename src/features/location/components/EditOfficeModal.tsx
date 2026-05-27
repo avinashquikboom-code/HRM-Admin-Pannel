@@ -5,22 +5,23 @@ import { Loader2, Save } from 'lucide-react';
 import Modal from '@/components/Modal';
 import {
   updateOffice,
-  type CreateOfficeRequest,
+  type UpdateOfficeRequest,
   type Office,
 } from '@/services/officeService';
+import { getAuthToken } from '@/lib/authStorage';
 import { cn } from '@/utils/cn';
 
 interface EditOfficeModalProps {
   isOpen: boolean;
   office: Office | null;
   onClose: () => void;
-  onUpdated: (officeId: number, message: string) => void;
+  onUpdated: (officeId: string, message: string) => void;
 }
 
-function officeToForm(office: Office): CreateOfficeRequest {
+function officeToForm(office: Office): UpdateOfficeRequest {
   return {
     name: office.name,
-    code: office.code,
+    code: office.code ?? '',
     address: office.address,
     latitude: office.latitude,
     longitude: office.longitude,
@@ -36,7 +37,7 @@ export default function EditOfficeModal({
   onClose,
   onUpdated,
 }: EditOfficeModalProps) {
-  const [form, setForm] = useState<CreateOfficeRequest | null>(null);
+  const [form, setForm] = useState<UpdateOfficeRequest | null>(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,6 +58,16 @@ export default function EditOfficeModal({
     e.preventDefault();
     if (!office || !form) return;
 
+    if (!getAuthToken()) {
+      setError('Admin token not found. Sign in first so hrm_token cookie is set.');
+      return;
+    }
+
+    if (!form.latitude || !form.longitude) {
+      setError('Valid latitude and longitude are required.');
+      return;
+    }
+
     setError('');
     setIsSubmitting(true);
 
@@ -71,9 +82,9 @@ export default function EditOfficeModal({
     }
   };
 
-  const updateField = <K extends keyof CreateOfficeRequest>(
+  const updateField = <K extends keyof UpdateOfficeRequest>(
     key: K,
-    value: CreateOfficeRequest[K]
+    value: UpdateOfficeRequest[K]
   ) => {
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
@@ -83,6 +94,17 @@ export default function EditOfficeModal({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Update Office">
       <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="rounded-2xl border border-border bg-surface-variant/40 px-4 py-3 text-xs font-mono text-text-secondary space-y-1">
+          <p>
+            <span className="font-bold text-primary">PUT</span>{' '}
+            /api/admin/offices/{office?.id ?? ':id'}
+          </p>
+          <p>
+            {'{ name, code, address, latitude, longitude, idealRadiusMeters, maxPunchRadiusMeters, isActive }'}
+          </p>
+          <p>Authorization: Bearer &lt;token-from-hrm_token-cookie&gt;</p>
+        </div>
+
         {error && (
           <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
             {error}
@@ -109,9 +131,8 @@ export default function EditOfficeModal({
             </label>
             <input
               type="text"
-              value={form.code}
+              value={form.code ?? ''}
               onChange={(e) => updateField('code', e.target.value.toUpperCase())}
-              required
               className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
             />
           </div>

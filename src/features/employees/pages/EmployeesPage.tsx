@@ -95,7 +95,7 @@ const EmployeesPage = () => {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1">Global Employee Directory</h1>
-          <p className="text-text-secondary mt-1">Monitor and manage all employees across the platform ecosystem.</p>
+          <p className="text-page-desc mt-1">Monitor and manage all employees across the platform ecosystem.</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -140,7 +140,7 @@ const EmployeesPage = () => {
           >
             <div className="relative z-10">
               <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">{stat.label}</p>
-              <h3 className="text-3xl font-bold text-text-primary mt-1 tracking-tight">{stat.value}</h3>
+              <h3 className="text-stat-value mt-1">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -226,7 +226,7 @@ const EmployeesPage = () => {
                         </td>
                         <td className="px-8 py-5">
                           <span className={cn(
-                            "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest inline-flex items-center gap-2",
+                            "px-4 py-1.5 rounded-full text-micro font-bold uppercase tracking-widest inline-flex items-center gap-2",
                             statusLabel === 'Active' ? 'bg-success/10 text-success' : 
                             statusLabel === 'On Leave' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'
                           )}>

@@ -106,7 +106,7 @@ const DEFAULT_OFFICE_CENTER = {
 export default function LocationPage() {
   const { offices, isLoading: isOfficesLoading, error: officesError, refetch } = useOffices();
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(null);
   const {
     office: officeDetail,
     isLoading: isOfficeDetailLoading,
@@ -126,12 +126,12 @@ export default function LocationPage() {
   const [isCreateOfficeOpen, setIsCreateOfficeOpen] = useState(false);
   const [editingOffice, setEditingOffice] = useState<Office | null>(null);
   const [isAssignEmployeeOpen, setIsAssignEmployeeOpen] = useState(false);
-  const [unassigningEmployeeId, setUnassigningEmployeeId] = useState<number | null>(null);
-  const [isDeletingOfficeId, setIsDeletingOfficeId] = useState<number | null>(null);
+  const [unassigningEmployeeId, setUnassigningEmployeeId] = useState<string | null>(null);
+  const [isDeletingOfficeId, setIsDeletingOfficeId] = useState<string | null>(null);
   const [officeActionMessage, setOfficeActionMessage] = useState('');
   const [officeActionError, setOfficeActionError] = useState('');
 
-  const handleOfficeCreated = async (officeId: number, message: string) => {
+  const handleOfficeCreated = async (officeId: string, message: string) => {
     setOfficeActionMessage(message);
     setOfficeActionError('');
     setSelectedOfficeId(officeId);
@@ -139,7 +139,7 @@ export default function LocationPage() {
     await refetchOfficeDetail(officeId);
   };
 
-  const handleOfficeUpdated = async (officeId: number, message: string) => {
+  const handleOfficeUpdated = async (officeId: string, message: string) => {
     setOfficeActionMessage(message);
     setOfficeActionError('');
     setSelectedOfficeId(officeId);
@@ -175,14 +175,14 @@ export default function LocationPage() {
     }
   };
 
-  const handleEmployeeAssigned = async (message: string, officeId: number) => {
+  const handleEmployeeAssigned = async (message: string, officeId: string) => {
     setOfficeActionMessage(message);
     setOfficeActionError('');
     await refetch();
     await refetchOfficeDetail(officeId);
   };
 
-  const handleUnassignEmployee = async (employeeId: number, employeeName: string) => {
+  const handleUnassignEmployee = async (employeeId: string, employeeName: string) => {
     const confirmed = window.confirm(`Unassign ${employeeName} from this office?`);
     if (!confirmed) return;
 
@@ -485,7 +485,7 @@ export default function LocationPage() {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1">Live Spatial Telemetry</h1>
-          <p className="text-text-secondary mt-1">Real-time geofenced tracking, movement vectors, and boundary access audits.</p>
+          <p className="text-page-desc mt-1">Real-time geofenced tracking, movement vectors, and boundary access audits.</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -536,8 +536,8 @@ export default function LocationPage() {
       <motion.div variants={itemVariants} className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black text-text-primary uppercase tracking-tight">Registered Offices</h2>
-            <p className="text-sm text-text-secondary mt-1">
+            <h2 className="text-section-title">Registered Offices</h2>
+            <p className="text-page-desc mt-1">
               Select an office to center the geofence map and telemetry grid.
             </p>
           </div>
@@ -603,7 +603,7 @@ export default function LocationPage() {
                     <div className="min-w-0">
                       <p className="text-lg font-black text-text-primary">{office.name}</p>
                       <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
-                        {office.code}
+                        {office.code || '—'}
                       </p>
                       <p className="text-sm text-text-secondary mt-2">{office.address}</p>
                     </div>
@@ -611,7 +611,7 @@ export default function LocationPage() {
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <span
                       className={cn(
-                        'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border',
+                        'px-3 py-1 rounded-full text-label border',
                         office.isActive
                           ? 'bg-success/10 text-success border-success/20'
                           : 'bg-muted/10 text-muted border-border'
@@ -653,15 +653,15 @@ export default function LocationPage() {
 
                 <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-border/50">
                   <div>
-                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Employees</p>
+                    <p className="text-label text-muted">Employees</p>
                     <p className="text-sm font-bold text-text-primary mt-1">{office._count.employees}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Ideal Radius</p>
+                    <p className="text-label text-muted">Ideal Radius</p>
                     <p className="text-sm font-bold text-text-primary mt-1">{office.idealRadiusMeters}m</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Max Punch</p>
+                    <p className="text-label text-muted">Max Punch</p>
                     <p className="text-sm font-bold text-text-primary mt-1">{office.maxPunchRadiusMeters}m</p>
                   </div>
                 </div>
@@ -675,10 +675,10 @@ export default function LocationPage() {
         <motion.div variants={itemVariants} className="glass-card p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-black text-text-primary uppercase tracking-tight">
+              <h2 className="text-section-title">
                 Office Personnel
               </h2>
-              <p className="text-sm text-text-secondary mt-1">
+              <p className="text-page-desc mt-1">
                 Employees registered at {selectedOffice?.name ?? 'selected office'}
               </p>
             </div>
@@ -731,7 +731,7 @@ export default function LocationPage() {
                     <p className="font-bold text-text-primary truncate">
                       {employee.firstName} {employee.lastName}
                     </p>
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">
+                    <p className="text-label text-primary mt-0.5">
                       {employee.employeeCode}
                     </p>
                     <p className="text-xs text-text-secondary mt-1 truncate">
@@ -805,8 +805,8 @@ export default function LocationPage() {
               </div>
               <div>
                 <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">{stat.label}</p>
-                <p className="text-2xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</p>
-                <p className="text-[10px] text-muted font-medium mt-0.5">{stat.sub}</p>
+                <p className="text-stat-value mt-1">{stat.value}</p>
+                <p className="text-micro text-muted font-medium mt-0.5">{stat.sub}</p>
               </div>
             </div>
           </motion.div>
@@ -826,7 +826,7 @@ export default function LocationPage() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-ping" />
-                <span className="text-[10px] font-black uppercase text-muted tracking-widest">Active Scan</span>
+                <span className="text-micro font-black uppercase text-muted tracking-widest">Active Scan</span>
               </div>
             </div>
           </div>
@@ -969,7 +969,7 @@ export default function LocationPage() {
             </svg>
 
             {/* Radar Coordinates Corner Display Overlay */}
-            <div className="absolute bottom-4 left-4 p-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl pointer-events-none flex flex-col font-mono text-[9px] text-slate-400 gap-0.5 shadow-lg">
+            <div className="absolute bottom-4 left-4 p-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl pointer-events-none flex flex-col font-mono text-micro text-slate-400 gap-0.5 shadow-lg">
               <span className="text-primary font-bold">RADAR FEED SYSTEM v4.11</span>
               <span>LOCKED CENTER: {officeCenter.lat.toFixed(4)}N, {officeCenter.lng.toFixed(4)}E</span>
               {selectedOffice && (
@@ -980,7 +980,7 @@ export default function LocationPage() {
             </div>
 
             {/* Map Legend */}
-            <div className="absolute top-4 right-4 p-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl pointer-events-none flex flex-col gap-1.5 shadow-lg text-[9px] font-bold text-slate-300">
+            <div className="absolute top-4 right-4 p-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl pointer-events-none flex flex-col gap-1.5 shadow-lg text-micro font-bold text-slate-300">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-cyan-500" />
                 <span>Geofence Zone</span>
@@ -1030,26 +1030,26 @@ export default function LocationPage() {
                     onClick={() => setSelectedEmpId(null)}
                     className="p-1 bg-surface-variant hover:bg-border rounded-lg text-text-secondary transition-colors"
                   >
-                    <span className="text-[10px] uppercase font-bold tracking-widest px-1">Close</span>
+                    <span className="text-label font-bold px-1">Close</span>
                   </button>
                 </div>
 
                 {/* Inspect Grid */}
                 <div className="grid grid-cols-2 gap-4 relative z-10">
                   <div className="bg-surface-variant p-3.5 rounded-2xl space-y-1">
-                    <span className="text-[9px] font-black text-muted uppercase tracking-wider block">Latitude</span>
+                    <span className="text-micro font-black text-muted uppercase tracking-wider block">Latitude</span>
                     <span className="font-mono text-xs font-bold text-text-primary">{selectedEmployee.lat.toFixed(5)}N</span>
                   </div>
                   <div className="bg-surface-variant p-3.5 rounded-2xl space-y-1">
-                    <span className="text-[9px] font-black text-muted uppercase tracking-wider block">Longitude</span>
+                    <span className="text-micro font-black text-muted uppercase tracking-wider block">Longitude</span>
                     <span className="font-mono text-xs font-bold text-text-primary">{selectedEmployee.lng.toFixed(5)}E</span>
                   </div>
                   <div className="bg-surface-variant p-3.5 rounded-2xl space-y-1">
-                    <span className="text-[9px] font-black text-muted uppercase tracking-wider block">Velocity (Speed)</span>
+                    <span className="text-micro font-black text-muted uppercase tracking-wider block">Velocity (Speed)</span>
                     <span className="font-mono text-xs font-black text-primary">{selectedEmployee.speed}</span>
                   </div>
                   <div className="bg-surface-variant p-3.5 rounded-2xl space-y-1">
-                    <span className="text-[9px] font-black text-muted uppercase tracking-wider block flex items-center gap-1">
+                    <span className="text-micro font-black text-muted uppercase tracking-wider block flex items-center gap-1">
                       <Battery size={10} className="text-emerald-500" /> Battery
                     </span>
                     <span className="font-mono text-xs font-bold text-text-primary">{selectedEmployee.battery}</span>
@@ -1074,7 +1074,7 @@ export default function LocationPage() {
                   </div>
                   <div className="flex-1">
                     <span className="text-xs font-black uppercase tracking-wider block">Boundary Matrix</span>
-                    <span className="text-[10px] text-text-secondary font-medium">
+                    <span className="text-micro text-text-secondary font-medium">
                       {selectedEmployee.status === 'In Office' ? 'Within corporate designated working parameters.' :
                        selectedEmployee.status === 'Outside Geofence' ? 'CAUTION: Geofence violation reported outside office gates.' : 'Currently inactive due to corporate leave clearance.'}
                     </span>
@@ -1084,19 +1084,19 @@ export default function LocationPage() {
                 {/* Simulation Override Actions */}
                 {selectedEmployee.status !== 'On Leave' && (
                   <div className="space-y-2 pt-2">
-                    <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Simulation Controls Override</span>
+                    <span className="text-label text-text-secondary tracking-[0.2em] ml-1">Simulation Controls Override</span>
                     <div className="grid grid-cols-2 gap-3">
                       <button 
                         onClick={() => handleManualBreachTrigger(selectedEmployee.employeeId)}
                         disabled={selectedEmployee.status === 'Outside Geofence'}
-                        className="btn-danger py-3 text-[10px] font-black uppercase tracking-wider rounded-xl disabled:opacity-40 disabled:pointer-events-none shadow-sm active:scale-95"
+                        className="btn-danger py-3 text-label tracking-wider rounded-xl disabled:opacity-40 disabled:pointer-events-none shadow-sm active:scale-95"
                       >
                         Force Breach
                       </button>
                       <button 
                         onClick={() => handleManualOfficeTrigger(selectedEmployee.employeeId)}
                         disabled={selectedEmployee.status === 'In Office'}
-                        className="btn-primary py-3 text-[10px] font-black uppercase tracking-wider rounded-xl disabled:opacity-40 disabled:pointer-events-none shadow-sm active:scale-95"
+                        className="btn-primary py-3 text-label tracking-wider rounded-xl disabled:opacity-40 disabled:pointer-events-none shadow-sm active:scale-95"
                       >
                         Recall to HQ
                       </button>
@@ -1137,7 +1137,7 @@ export default function LocationPage() {
               {/* Geofence Perimeter Slider */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
-                  <span className="font-bold text-text-secondary uppercase tracking-wider text-[10px]">Geofence Perimeter Limit</span>
+                  <span className="text-label font-bold text-text-secondary tracking-wider">Geofence Perimeter Limit</span>
                   <span className="font-mono font-black text-primary">{(geofenceRadius * 111).toFixed(2)} km</span>
                 </div>
                 <input 
@@ -1158,7 +1158,7 @@ export default function LocationPage() {
               {/* Simulation Refresh Clock Speed */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
-                  <span className="font-bold text-text-secondary uppercase tracking-wider text-[10px]">Simulation Walk Speed multiplier</span>
+                  <span className="text-label font-bold text-text-secondary tracking-wider">Simulation Walk Speed multiplier</span>
                   <span className="font-mono font-black text-accent">{radarSpeed}x Speed</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -1171,7 +1171,7 @@ export default function LocationPage() {
                       key={spd.value}
                       onClick={() => setRadarSpeed(spd.value)}
                       className={cn(
-                        "py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border",
+                        "py-2 rounded-xl text-micro font-black uppercase tracking-wider transition-all border",
                         radarSpeed === spd.value 
                           ? "bg-accent/10 border-accent/20 text-accent font-bold shadow-sm"
                           : "bg-surface-variant hover:bg-border text-text-secondary border-transparent"
@@ -1224,7 +1224,7 @@ export default function LocationPage() {
           <div className="lg:col-span-7 glass-card overflow-hidden">
             <div className="px-6 py-5 border-b border-border flex items-center justify-between">
               <h3 className="heading-2">Active Coordinates Roster</h3>
-              <span className="text-[10px] font-black text-primary bg-primary/10 px-2.5 py-1 rounded-lg uppercase tracking-wider">
+              <span className="text-micro font-black text-primary bg-primary/10 px-2.5 py-1 rounded-lg uppercase tracking-wider">
                 {filteredLocations.length} Registered
               </span>
             </div>
@@ -1256,13 +1256,13 @@ export default function LocationPage() {
                           </div>
                           <div>
                             <span className="font-bold text-text-primary block group-hover:text-primary transition-colors">{emp.name}</span>
-                            <span className="text-[10px] text-text-secondary block mt-0.5">{emp.role}</span>
+                            <span className="text-micro text-text-secondary block mt-0.5">{emp.role}</span>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className={cn(
-                          "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border",
+                          "px-2.5 py-1 rounded-lg text-micro font-black uppercase tracking-wider border",
                           emp.status === 'In Office' ? 'bg-success/10 text-success border-success/10' :
                           emp.status === 'Outside Geofence' ? 'bg-error/10 text-error border-error/10 animate-pulse' : 'bg-slate-500/10 text-slate-400 border-slate-500/10'
                         )}>
@@ -1275,7 +1275,7 @@ export default function LocationPage() {
                       <td className="px-6 py-4 text-right font-mono text-xs text-text-primary">
                         <div className="flex flex-col items-end">
                           <span className="font-black text-primary">{emp.speed}</span>
-                          <span className="text-[10px] text-text-secondary flex items-center gap-1 mt-0.5">
+                          <span className="text-micro text-text-secondary flex items-center gap-1 mt-0.5">
                             <Battery size={10} className="text-emerald-500" /> {emp.battery}
                           </span>
                         </div>
@@ -1296,7 +1296,7 @@ export default function LocationPage() {
               </div>
               <button 
                 onClick={() => setLogs([])}
-                className="text-[10px] font-black uppercase tracking-widest text-error/70 hover:text-error hover:bg-error/10 px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1 active:scale-95"
+                className="text-label text-error/70 hover:text-error hover:bg-error/10 px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1 active:scale-95"
               >
                 <Trash2 size={12} /> Clear Logs
               </button>
@@ -1314,7 +1314,7 @@ export default function LocationPage() {
                     <CheckCircle2 size={32} className="text-success" />
                     <div>
                       <p className="text-xs font-bold text-text-primary">All parameters normal</p>
-                      <p className="text-[10px] mt-0.5">No geofence breaches or GPS signal losses registered.</p>
+                      <p className="text-micro mt-0.5">No geofence breaches or GPS signal losses registered.</p>
                     </div>
                   </motion.div>
                 ) : (
@@ -1340,16 +1340,16 @@ export default function LocationPage() {
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex justify-between items-start">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-text-primary">
+                            <span className="text-label tracking-wider text-text-primary">
                               {log.employeeName}
                             </span>
-                            <span className="font-mono text-[9px] text-muted">
+                            <span className="font-mono text-micro text-muted">
                               {log.timestamp.split(' ').slice(3).join(' ')} {/* only display time part */}
                             </span>
                           </div>
                           <p className="text-xs font-bold text-text-primary leading-snug">{log.event}</p>
-                          <p className="text-[10px] text-text-secondary leading-relaxed">{log.description}</p>
-                          <div className="flex items-center gap-1 text-[9px] font-mono text-muted pt-1">
+                          <p className="text-micro text-text-secondary leading-relaxed">{log.description}</p>
+                          <div className="flex items-center gap-1 text-micro font-mono text-muted pt-1">
                             <MapPin size={10} />
                             <span>GPS: {log.coordinates}</span>
                           </div>

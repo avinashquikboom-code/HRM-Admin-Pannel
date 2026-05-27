@@ -1,5 +1,6 @@
-import DashboardPage from '@/features/dashboard/pages/DashboardPage';
+import { redirect } from 'next/navigation';
+import { PLATFORM_HOME } from '@/lib/portals';
 
-export default function DashboardPageWrapper() {
-  return <DashboardPage />;
+export default function AdminHomePage() {
+  redirect(PLATFORM_HOME);
 }

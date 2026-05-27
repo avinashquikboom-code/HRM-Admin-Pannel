@@ -128,7 +128,7 @@ const LeavePage = () => {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1">Leave Governance</h1>
-          <p className="text-text-secondary mt-1">Orchestrate time-off allocations, leave balance records, and holiday cycles.</p>
+          <p className="text-page-desc mt-1">Orchestrate time-off allocations, leave balance records, and holiday cycles.</p>
         </div>
         <button 
           onClick={() => setIsApplyModalOpen(true)}
@@ -160,7 +160,7 @@ const LeavePage = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">{stat.label}</p>
-                <p className="text-3xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</p>
+                <p className="text-stat-value mt-1">{stat.value}</p>
               </div>
             </div>
           </motion.div>
@@ -174,7 +174,7 @@ const LeavePage = () => {
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
           <div>
             <h3 className="heading-2">Leave Balance Ledger</h3>
-            <p className="text-sm text-text-secondary mt-1">Summary of active allowances per employee</p>
+            <p className="text-page-desc mt-1">Summary of active allowances per employee</p>
           </div>
           
           <div className="overflow-x-auto">
@@ -214,7 +214,7 @@ const LeavePage = () => {
         <motion.div variants={itemVariants} className="glass-card p-8 space-y-6">
           <div>
             <h3 className="heading-2">Holiday Calendar</h3>
-            <p className="text-sm text-text-secondary mt-1">Official scheduled corporate holidays</p>
+            <p className="text-page-desc mt-1">Official scheduled corporate holidays</p>
           </div>
           
           <div className="space-y-4">
@@ -229,11 +229,11 @@ const LeavePage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">{hol.name}</p>
-                    <p className="text-[10px] text-text-secondary uppercase font-bold tracking-widest">{hol.date}</p>
+                    <p className="text-micro text-text-secondary uppercase font-bold tracking-widest">{hol.date}</p>
                   </div>
                 </div>
                 <span className={cn(
-                  "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border",
+                  "px-2.5 py-1 rounded-lg text-micro font-black uppercase tracking-wider border",
                   hol.type === 'National' ? 'bg-success/10 text-success border-success/10' :
                   hol.type === 'Gazetted' ? 'bg-primary/10 text-primary border-primary/10' : 'bg-accent/10 text-accent border-accent/10'
                 )}>
@@ -318,7 +318,7 @@ const LeavePage = () => {
                         <td className="px-8 py-6 font-medium text-text-secondary max-w-xs truncate">{req.reason}</td>
                         <td className="px-8 py-6">
                           <span className={cn(
-                            "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 border shadow-sm",
+                            "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 border shadow-sm",
                             req.status === 'Approved' ? "bg-success/10 text-success border-success/10" : 
                             req.status === 'Rejected' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
                           )}>
@@ -366,7 +366,7 @@ const LeavePage = () => {
       <Modal isOpen={isApplyModalOpen} onClose={() => setIsApplyModalOpen(false)} title="Apply Time-Off Allocation">
         <form onSubmit={handleApplyLeave} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Employee Profile</label>
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Employee Profile</label>
             <select 
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
@@ -379,7 +379,7 @@ const LeavePage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Time-Off Tier</label>
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Time-Off Tier</label>
             <select 
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value)}
@@ -394,7 +394,7 @@ const LeavePage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Start Date</label>
+              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Start Date</label>
               <input 
                 type="date" 
                 value={startDate}
@@ -404,7 +404,7 @@ const LeavePage = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">End Date</label>
+              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">End Date</label>
               <input 
                 type="date" 
                 value={endDate}
@@ -416,7 +416,7 @@ const LeavePage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Reason for Request</label>
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Reason for Request</label>
             <textarea 
               rows={3}
               value={reason}

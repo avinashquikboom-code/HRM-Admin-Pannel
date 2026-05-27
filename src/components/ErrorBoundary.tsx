@@ -43,13 +43,13 @@ class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle size={40} />
             </div>
             
-            <h1 className="text-2xl font-bold text-text-primary mb-2">Something went wrong</h1>
+            <h1 className="text-lg font-semibold text-text-primary mb-2">Something went wrong</h1>
             <p className="text-text-secondary mb-8">
               An unexpected error occurred. Don't worry, our team has been notified.
             </p>
 
             <div className="bg-surface-variant/50 rounded-2xl p-4 mb-8 text-left overflow-hidden">
-              <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Error Details</p>
+              <p className="text-label font-bold text-muted mb-2">Error Details</p>
               <p className="text-xs font-mono text-error break-words">
                 {this.state.error?.message || 'Unknown runtime error'}
               </p>

@@ -102,7 +102,7 @@ const KPICard = ({ title, value, icon: Icon, change, isPositive, color = 'primar
         <Icon size={24} />
       </div>
       <div className={cn(
-        "flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider",
+        "flex items-center gap-1 text-micro font-black px-2 py-1 rounded-lg uppercase tracking-wider",
         isPositive ? "bg-success/10 text-success" : "bg-error/10 text-error"
       )}>
         {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
@@ -111,8 +111,8 @@ const KPICard = ({ title, value, icon: Icon, change, isPositive, color = 'primar
     </div>
     
     <div className="relative z-10 mt-2">
-      <p className="text-xs font-bold text-text-secondary uppercase tracking-widest">{title}</p>
-      <h3 className="text-3xl font-black text-text-primary mt-1 tracking-tight">{value}</h3>
+      <p className="text-stat-label">{title}</p>
+      <h3 className="text-stat-value mt-1">{value}</h3>
     </div>
   </motion.div>
 );
@@ -131,7 +131,7 @@ const MiniCalendar = () => {
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
-        {days.map(d => <span key={d} className="text-[10px] font-black text-muted">{d}</span>)}
+        {days.map(d => <span key={d} className="text-micro font-black text-muted">{d}</span>)}
         {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
           <div 
             key={d} 
@@ -175,7 +175,7 @@ const DashboardPage = () => {
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-muted">
             Platform Intelligence
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl text-sm font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Global ecosystem overview: Real-time monitoring of companies, workforce, and financial health.
           </p>
         </div>
@@ -249,7 +249,7 @@ const DashboardPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
             <div>
               <h3 className="heading-2">System Growth Trajectory</h3>
-              <p className="text-sm text-text-secondary mt-1 font-medium">Comparative analysis of projected vs actual platform revenue</p>
+              <p className="text-sm text-page-desc mt-1">Comparative analysis of projected vs actual platform revenue</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -343,8 +343,8 @@ const DashboardPage = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-4xl font-black text-text-primary tracking-tight">1,050</span>
-              <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Active Plans</span>
+              <span className="text-stat-value">1,050</span>
+              <span className="text-label text-text-secondary">Active Plans</span>
             </div>
           </div>
 
@@ -357,7 +357,7 @@ const DashboardPage = () => {
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-black text-text-primary">{item.value}</span>
-                  <p className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">Accounts</p>
+                  <p className="text-micro font-bold text-text-secondary uppercase tracking-tight">Accounts</p>
                 </div>
               </div>
             ))}
@@ -371,9 +371,9 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between mb-10">
             <div>
               <h3 className="heading-2 tracking-tight">System Vitality Feed</h3>
-              <p className="text-xs text-text-secondary mt-1 font-medium">Real-time infrastructure & onboarding events</p>
+              <p className="text-xs text-page-desc mt-1">Real-time infrastructure & onboarding events</p>
             </div>
-            <div className="px-3 py-1.5 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest flex items-center gap-2">
+            <div className="px-3 py-1.5 bg-primary/10 text-primary text-micro font-black rounded-full uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
               Live Now
             </div>
@@ -398,7 +398,7 @@ const DashboardPage = () => {
                   <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors leading-snug">
                     {event.text}
                   </p>
-                  <p className="text-[10px] font-bold text-text-secondary mt-1 tracking-wide uppercase">
+                  <p className="text-micro font-bold text-text-secondary mt-1 tracking-wide uppercase">
                     {event.time} • System Intelligence
                   </p>
                 </div>
@@ -426,7 +426,7 @@ const DashboardPage = () => {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-xl font-black text-white tracking-tighter">System Health</h3>
-                <p className="text-[10px] text-white/50 font-black uppercase tracking-widest mt-1">Platform Integrity Status</p>
+                <p className="text-label text-white/50 mt-1">Platform Integrity Status</p>
               </div>
               <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-sm">
                 <Activity size={24} className="text-primary-light animate-pulse" />
@@ -440,7 +440,7 @@ const DashboardPage = () => {
                 { label: 'Cloud Latency', value: 12, icon: Globe, color: 'accent' },
               ].map((metric) => (
                 <div key={metric.label} className="space-y-2">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/60">
+                  <div className="flex justify-between items-center text-label text-white/60">
                     <div className="flex items-center gap-2">
                       <metric.icon size={14} className="text-white/40" />
                       <span>{metric.label}</span>
@@ -465,8 +465,8 @@ const DashboardPage = () => {
 
             <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Global Status</span>
-                <span className="text-[9px] font-black text-success uppercase">Optimal</span>
+                <span className="text-micro font-black text-white/40 uppercase tracking-widest">Global Status</span>
+                <span className="text-micro font-black text-success uppercase">Optimal</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-success rounded-full shadow-[0_0_8px_#22C55E]" />
@@ -483,7 +483,7 @@ const DashboardPage = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
             <div>
               <h3 className="heading-2">Platform Calendar</h3>
-              <p className="text-sm text-text-secondary mt-1 font-medium">Upcoming disbursements & audits</p>
+              <p className="text-sm text-page-desc mt-1">Upcoming disbursements & audits</p>
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
@@ -501,7 +501,7 @@ const DashboardPage = () => {
             <div className="xl:col-span-3">
               <div className="grid grid-cols-7 gap-4 mb-6">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                  <span key={d} className="text-[10px] font-black text-muted text-center uppercase tracking-[0.2em]">{d}</span>
+                  <span key={d} className="text-micro font-black text-muted text-center uppercase tracking-[0.2em]">{d}</span>
                 ))}
               </div>
               <div className="grid grid-cols-7 gap-4">
@@ -533,12 +533,12 @@ const DashboardPage = () => {
                     </div>
                     <div>
                       <p className="text-sm font-black text-text-primary group-hover:text-primary transition-colors">{event.title}</p>
-                      <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1">{event.time} • {event.amount}</p>
+                      <p className="text-label font-bold text-text-secondary mt-1">{event.time} • {event.amount}</p>
                     </div>
                   </div>
                 </div>
               ))}
-              <button className="w-full py-4 text-[10px] font-black text-text-secondary uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-2 border border-dashed border-border rounded-2xl mt-4">
+              <button className="w-full py-4 text-label text-text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2 border border-dashed border-border rounded-2xl mt-4">
                 <Plus size={14} />
                 Add Platform Event
               </button>
@@ -573,7 +573,7 @@ const DashboardPage = () => {
               </div>
               <div>
                 <p className="text-sm font-black text-text-primary uppercase tracking-tight">{action.name}</p>
-                <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1">{action.desc}</p>
+                <p className="text-label font-bold text-text-secondary mt-1">{action.desc}</p>
               </div>
               <ArrowRight size={16} className="ml-auto text-muted group-hover:text-primary transition-all group-hover:translate-x-1" />
             </motion.button>

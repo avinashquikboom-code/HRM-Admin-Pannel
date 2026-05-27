@@ -3,7 +3,7 @@ import { getAuthSession } from '@/lib/authStorage';
 import { isDevAuthSession } from '@/lib/devAuth';
 
 export interface AdminEmployeeOffice {
-  id: number;
+  id: string;
   name: string;
   latitude: number;
   longitude: number;
@@ -19,19 +19,19 @@ export interface AdminEmployeeUser {
 }
 
 export interface AdminEmployeeDepartment {
-  id: number;
+  id: string;
   name: string;
   code: string | null;
 }
 
 export interface AdminEmployee {
-  id: number;
+  id: string;
   employeeCode: string;
   firstName: string;
   lastName: string;
   designation: string | null;
   status: string;
-  officeId: number | null;
+  officeId: string | null;
   office: AdminEmployeeOffice | null;
   user: AdminEmployeeUser | null;
   department: AdminEmployeeDepartment | null;
@@ -43,11 +43,11 @@ interface EmployeesResponse {
 }
 
 export interface AssignedEmployeeResult {
-  id: number;
+  id: string;
   employeeCode: string;
   firstName: string;
   lastName: string;
-  officeId: number | null;
+  officeId: string | null;
   office: AdminEmployeeOffice | null;
 }
 
@@ -72,8 +72,8 @@ export async function fetchEmployees(): Promise<AdminEmployee[]> {
 }
 
 export async function assignEmployeeToOffice(
-  employeeId: number,
-  officeId: number
+  employeeId: string,
+  officeId: string
 ): Promise<{ message: string; employee: AssignedEmployeeResult }> {
   try {
     const { data } = await api.put<AssignEmployeeResponse>(
@@ -93,7 +93,7 @@ export async function assignEmployeeToOffice(
 }
 
 export async function unassignEmployeeFromOffice(
-  employeeId: number
+  employeeId: string
 ): Promise<{ message: string; employee: AssignedEmployeeResult }> {
   try {
     const { data } = await api.put<AssignEmployeeResponse>(

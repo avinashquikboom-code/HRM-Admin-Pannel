@@ -108,7 +108,7 @@ const MiniCalendar = () => {
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
-        {days.map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-black text-muted">{d}</span>)}
+        {days.map((d, idx) => <span key={`${d}-${idx}`} className="text-micro font-black text-muted">{d}</span>)}
         {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
           <div 
             key={d} 
@@ -146,7 +146,7 @@ const AttendancePage = () => {
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-muted">
             Attendance Monitoring
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl text-sm font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Real-time workforce presence tracking and platform-wide engagement analytics.
           </p>
         </div>
@@ -186,14 +186,14 @@ const AttendancePage = () => {
                 <stat.icon size={24} />
               </div>
               <span className={cn(
-                "text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-sm",
+                "text-micro font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-sm",
                 stat.trend.startsWith('+') ? "bg-success/10 text-success" : "bg-error/10 text-error"
               )}>
                 {stat.trend}
               </span>
             </div>
             <p className="text-xs font-bold text-text-secondary uppercase tracking-widest">{stat.label}</p>
-            <h3 className="text-2xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</h3>
+            <h3 className="text-stat-value mt-1">{stat.value}</h3>
           </motion.div>
         ))}
       </div>
@@ -204,7 +204,7 @@ const AttendancePage = () => {
           <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
           
           <h3 className="heading-2 relative z-10">Presence Breakdown</h3>
-          <p className="text-sm text-text-secondary mt-1 mb-8 relative z-10 font-medium">System-wide daily status distribution</p>
+          <p className="text-page-desc mt-1 mb-8 relative z-10 font-medium">System-wide daily status distribution</p>
           
           <div className="h-[250px] relative z-10">
             <ResponsiveContainer width="100%" height="100%">
@@ -236,8 +236,8 @@ const AttendancePage = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <span className="text-3xl font-black text-text-primary tracking-tighter">92%</span>
-              <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Active</p>
+              <span className="text-stat-valueer">92%</span>
+              <p className="text-label text-text-secondary">Active</p>
             </div>
           </div>
           
@@ -265,9 +265,9 @@ const AttendancePage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
             <div>
               <h3 className="heading-2">Peak Check-in Activity</h3>
-              <p className="text-sm text-text-secondary mt-1 font-medium">Hourly density of employee arrivals across the platform</p>
+              <p className="text-sm text-page-desc mt-1">Hourly density of employee arrivals across the platform</p>
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest bg-surface-variant p-2.5 rounded-xl border border-border/50 shadow-sm">
+            <div className="flex items-center gap-4 text-label bg-surface-variant p-2.5 rounded-xl border border-border/50 shadow-sm">
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /> On-time</span>
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-accent" /> Late</span>
             </div>
@@ -339,7 +339,7 @@ const AttendancePage = () => {
             </div>
             <div>
               <h3 className="heading-2">Live Activity Feed</h3>
-              <p className="text-sm text-text-secondary mt-1 font-medium">Real-time check-in stream from across all client companies</p>
+              <p className="text-sm text-page-desc mt-1">Real-time check-in stream from across all client companies</p>
             </div>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -366,11 +366,11 @@ const AttendancePage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Employee</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Company</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Log Time</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border">Method</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-muted border-b border-border text-right">Status</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Employee</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Company</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Log Time</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border">Method</th>
+                  <th className="px-8 py-5 text-label text-muted border-b border-border text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -393,7 +393,7 @@ const AttendancePage = () => {
                         </div>
                         <div>
                           <span className="block font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{employeeName}</span>
-                          <span className="text-[10px] font-black text-muted tracking-wider">{record.employee.employeeCode}</span>
+                          <span className="text-micro font-black text-muted tracking-wider">{record.employee.employeeCode}</span>
                         </div>
                       </div>
                     </td>
@@ -414,7 +414,7 @@ const AttendancePage = () => {
                     </td>
                     <td className="px-8 py-6 text-right">
                       <span className={cn(
-                        "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
+                        "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
                         statusLabel === 'On-time' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
                       )}>
                         {statusLabel === 'On-time' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
@@ -463,7 +463,7 @@ const AttendancePage = () => {
                     <div className={cn("w-2 h-10 rounded-full", `bg-${holiday.color}`)} />
                     <div>
                       <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">{holiday.name}</p>
-                      <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mt-0.5">{holiday.date}</p>
+                      <p className="text-label text-text-secondary mt-0.5">{holiday.date}</p>
                     </div>
                   </div>
                   <button className="text-muted hover:text-error transition-colors"><X size={16} /></button>

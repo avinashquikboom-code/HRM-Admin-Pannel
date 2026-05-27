@@ -4,6 +4,7 @@ import {
   getAuthSession,
   setAuthSession,
 } from '@/lib/authStorage';
+import type { PortalType } from '@/lib/portals';
 
 export interface UserProfileSecurity {
   twoFactorEnabled: boolean;
@@ -30,7 +31,7 @@ export interface UserProfile {
 }
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: string;
@@ -44,12 +45,14 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   token: string | null;
+  portal: PortalType | null;
 }
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   token: null,
+  portal: null,
 };
 
 export const loadAuthFromStorage = (): AuthState => {
@@ -62,6 +65,7 @@ export const loadAuthFromStorage = (): AuthState => {
     user: session.user,
     token: session.token,
     isAuthenticated: true,
+    portal: session.portal,
   };
 };
 
@@ -74,28 +78,36 @@ const authSlice = createSlice({
       state.user = hydrated.user;
       state.token = hydrated.token;
       state.isAuthenticated = hydrated.isAuthenticated;
+      state.portal = hydrated.portal;
     },
-    login: (state, action: PayloadAction<{ user: User; token: string }>) => {
+    login: (
+      state,
+      action: PayloadAction<{ user: User; token: string; portal: PortalType }>
+    ) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
+      state.portal = action.payload.portal;
       setAuthSession({
         token: action.payload.token,
         user: action.payload.user,
+        portal: action.payload.portal,
       });
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.portal = null;
       clearAuthSession();
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
-      if (state.user && state.token) {
+      if (state.user && state.token && state.portal) {
         state.user = { ...state.user, ...action.payload };
         setAuthSession({
           token: state.token,
           user: state.user,
+          portal: state.portal,
         });
       }
     },

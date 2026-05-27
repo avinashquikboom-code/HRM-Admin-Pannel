@@ -1,5 +1,5 @@
-import SettingsPage from '@/features/settings/pages/SettingsPage';
+import { redirect } from 'next/navigation';
 
-export default function SettingsPageWrapper() {
-  return <SettingsPage />;
+export default function LegacySettingsRedirect() {
+  redirect('/super-admin/settings');
 }

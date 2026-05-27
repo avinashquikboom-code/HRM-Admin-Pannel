@@ -84,14 +84,14 @@ const SettingsPage = () => {
                   <Globe size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-text-primary tracking-tight">Ecosystem Identity</h3>
+                  <h3 className="heading-2">Ecosystem Identity</h3>
                   <p className="text-sm text-text-secondary font-medium">Global metadata and platform orchestration parameters</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Platform Brand Name</label>
+                  <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Platform Brand Name</label>
                   <input 
                     type="text" 
                     defaultValue="HRM Enterprise"
@@ -99,7 +99,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Master Support Gateway</label>
+                  <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Master Support Gateway</label>
                   <input 
                     type="email" 
                     defaultValue="admin@hrm.ai"
@@ -107,7 +107,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Settlement Currency</label>
+                  <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Settlement Currency</label>
                   <select className="w-full px-6 py-4.5 bg-surface-variant/50 border-2 border-transparent hover:border-primary/10 rounded-[24px] outline-none focus:ring-4 focus:ring-primary/5 transition-all text-sm font-black text-text-primary cursor-pointer">
                     <option>INR - Indian Rupee (₹)</option>
                     <option>USD - United States Dollar ($)</option>
@@ -115,7 +115,7 @@ const SettingsPage = () => {
                   </select>
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Regional Localization</label>
+                  <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Regional Localization</label>
                   <select className="w-full px-6 py-4.5 bg-surface-variant/50 border-2 border-transparent hover:border-primary/10 rounded-[24px] outline-none focus:ring-4 focus:ring-primary/5 transition-all text-sm font-black text-text-primary cursor-pointer">
                     <option>English (International)</option>
                     <option>Spanish (ES)</option>
@@ -137,7 +137,7 @@ const SettingsPage = () => {
                     <UserPlus size={24} />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-text-primary tracking-tight">Administrative Invitations</h3>
+                    <h3 className="heading-2">Administrative Invitations</h3>
                     <p className="text-sm text-text-secondary font-medium">Grant high-level access to senior personnel</p>
                   </div>
                 </div>
@@ -160,16 +160,16 @@ const SettingsPage = () => {
                       </div>
                       <div>
                         <p className="text-base font-black text-text-primary group-hover:text-primary transition-colors">{admin.name}</p>
-                        <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">{admin.email}</p>
+                        <p className="text-label font-bold text-text-secondary">{admin.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-8">
                       <div className="text-center md:text-left hidden sm:block">
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest">Role Authority</p>
+                        <p className="text-label text-muted">Role Authority</p>
                         <p className="text-xs font-bold text-text-primary mt-0.5">{admin.role}</p>
                       </div>
                       <span className={cn(
-                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                        "px-4 py-1.5 rounded-full text-label border",
                         admin.status === 'Active' ? "bg-success/10 text-success border-success/10" : "bg-warning/10 text-warning border-warning/10"
                       )}>
                         {admin.status}
@@ -184,7 +184,7 @@ const SettingsPage = () => {
             </div>
 
             <div className="glass-card p-10 space-y-8">
-              <h4 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.3em]">Access Granularity Policies</h4>
+              <h4 className="text-micro font-black text-text-secondary uppercase tracking-[0.3em]">Access Granularity Policies</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
                   { title: 'ReadOnly Auditor', desc: 'Can view all modules but cannot modify any system state.', icon: Eye },
@@ -198,7 +198,7 @@ const SettingsPage = () => {
                       <h5 className="text-sm font-black text-text-primary uppercase tracking-tight">{policy.title}</h5>
                     </div>
                     <p className="text-xs text-text-secondary leading-relaxed font-medium">{policy.desc}</p>
-                    <button className="mt-6 text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-all">
+                    <button className="mt-6 text-label text-primary flex items-center gap-2 hover:translate-x-1 transition-all">
                       Configure Permissions <ArrowRight size={14} />
                     </button>
                   </div>
@@ -217,7 +217,7 @@ const SettingsPage = () => {
                   <Lock size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-text-primary tracking-tight">Security & Governance</h3>
+                  <h3 className="heading-2">Security & Governance</h3>
                   <p className="text-sm text-text-secondary font-medium">Hardened enforcement rules and neural access policies</p>
                 </div>
               </div>
@@ -268,7 +268,7 @@ const SettingsPage = () => {
                   <Bell size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-text-primary tracking-tight">Signal Orchestration</h3>
+                  <h3 className="heading-2">Signal Orchestration</h3>
                   <p className="text-sm text-text-secondary font-medium">Configure global event triggers and alert routing</p>
                 </div>
               </div>
@@ -280,7 +280,7 @@ const SettingsPage = () => {
                   { category: 'User Lifecycle', events: ['New Enterprise Registration', 'Subscription Renewal', 'Account Termination'] },
                 ].map((cat) => (
                   <div key={cat.category} className="space-y-6">
-                    <h4 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.3em] ml-1">{cat.category}</h4>
+                    <h4 className="text-micro font-black text-text-secondary uppercase tracking-[0.3em] ml-1">{cat.category}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {cat.events.map((event) => (
                         <div key={event} className="flex items-center justify-between p-5 bg-surface-variant/30 rounded-[24px] border border-border/50 group hover:border-primary/20 transition-all">
@@ -308,7 +308,7 @@ const SettingsPage = () => {
                   <Terminal size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-text-primary tracking-tight">Endpoint Configuration</h3>
+                  <h3 className="heading-2">Endpoint Configuration</h3>
                   <p className="text-sm text-text-secondary font-medium">Manage neural API gateways and external system handshakes</p>
                 </div>
               </div>
@@ -349,8 +349,8 @@ const SettingsPage = () => {
                   <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-sm", `bg-${stat.color}/10 text-${stat.color}`)}>
                     <stat.icon size={28} />
                   </div>
-                  <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-                  <h3 className="text-3xl font-black text-text-primary tracking-tight">{stat.value}</h3>
+                  <p className="text-label text-text-secondary tracking-[0.2em] mb-1">{stat.label}</p>
+                  <h3 className="text-stat-value">{stat.value}</h3>
                 </div>
               ))}
             </div>
@@ -365,7 +365,7 @@ const SettingsPage = () => {
                   <Cloud size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-text-primary tracking-tight">Cloud Orchestration</h3>
+                  <h3 className="heading-2">Cloud Orchestration</h3>
                   <p className="text-sm text-text-secondary font-medium">Distributed compute clusters and global storage synchronization</p>
                 </div>
               </div>
@@ -388,10 +388,11 @@ const SettingsPage = () => {
       {/* Header Section */}
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
+          <p className="text-label text-primary mb-1">Super Admin</p>
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-primary">
             System Configuration
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Fine-tune platform protocols, security layers, and global ecosystem parameters.
           </p>
         </div>
@@ -421,7 +422,7 @@ const SettingsPage = () => {
                   {item.name}
                 </div>
                 <p className={cn(
-                  "text-[10px] mt-1 font-bold ml-7 relative z-10 transition-colors",
+                  "text-micro mt-1 font-bold ml-7 relative z-10 transition-colors",
                   activeTab === item.name ? "text-white/60" : "text-text-secondary/60"
                 )}>
                   {item.desc}
@@ -454,8 +455,8 @@ const SettingsPage = () => {
                 </div>
               </div>
               
-              <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">System Infrastructure</p>
-              <h4 className="text-2xl font-black text-white tracking-tighter">V3.4.2 <span className="text-primary-light text-sm font-bold ml-1 opacity-80 tracking-normal italic">Stable</span></h4>
+              <p className="text-micro font-black text-white/50 uppercase tracking-[0.2em] mb-1">System Infrastructure</p>
+              <h4 className="text-lg font-semibold text-white tracking-tight">V3.4.2 <span className="text-primary-light text-xs font-medium ml-1 opacity-80 tracking-normal italic">Stable</span></h4>
               
               <div className="mt-8 space-y-4">
                 {[
@@ -464,7 +465,7 @@ const SettingsPage = () => {
                   { label: 'Resource usage', value: 68, color: 'success' },
                 ].map((metric) => (
                   <div key={metric.label} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-white/60">
+                    <div className="flex justify-between items-center text-micro font-black uppercase tracking-widest text-white/60">
                       <span>{metric.label}</span>
                       <span className="text-white">{metric.value}%</span>
                     </div>

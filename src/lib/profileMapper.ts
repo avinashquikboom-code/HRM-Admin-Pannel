@@ -65,7 +65,7 @@ export function mapApiProfileResponse(
     emailName.charAt(0).toUpperCase() + emailName.slice(1);
 
   return {
-    id: String(apiUser.id),
+    id: apiUser.id,
     email: apiUser.email,
     role: apiUser.role,
     name: mappedProfile.fullName || fallbackName,
@@ -81,7 +81,7 @@ export function mapUpdatedProfile(
   existingUser: Pick<User, 'id' | 'role'>
 ): User {
   return mapApiProfileResponse(profile, {
-    id: Number(existingUser.id),
+    id: existingUser.id,
     email: profile.email,
     role: existingUser.role,
   });

@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { getAuthToken } from '@/lib/authStorage';
-import { isDevAuthSession } from '@/lib/devAuth';
+import { getAuthSession, getAuthToken } from '@/lib/authStorage';
+import { DEV_AUTH_TOKEN, DEV_PLATFORM_AUTH_TOKEN, isDevAuthSession } from '@/lib/devAuth';
+import { getLoginPathForPortal } from '@/lib/portals';
 import { store } from '@/store';
 import { logout } from '@/store/slices/authSlice';
 
@@ -12,17 +13,32 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
-  if (isDevAuthSession()) {
+  const token = getAuthToken();
+  const isLogin = config.url?.includes('/api/auth/login');
+  const isRegister = config.url?.includes('/api/auth/register');
+  const isAdminRoute = config.url?.includes('/api/admin/');
+
+  if (isDevAuthSession() && !isLogin) {
     return Promise.reject(new axios.CanceledError('Offline dev mode'));
   }
 
-  const token = getAuthToken();
-  if (token) {
+  if (
+    (isRegister || isAdminRoute) &&
+    (!token || token === DEV_AUTH_TOKEN || token === DEV_PLATFORM_AUTH_TOKEN)
+  ) {
+    return Promise.reject(
+      new axios.CanceledError('Admin token required (hrm_auth / hrm_token cookie)')
+    );
+  }
+
+  if (token && token !== DEV_AUTH_TOKEN && token !== DEV_PLATFORM_AUTH_TOKEN) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
@@ -48,11 +64,12 @@ api.interceptors.response.use(
 
     store.dispatch(logout());
 
-    if (
-      typeof window !== 'undefined' &&
-      !window.location.pathname.startsWith('/login')
-    ) {
-      window.location.href = '/login';
+    if (typeof window !== 'undefined') {
+      const portal = getAuthSession()?.portal ?? 'platform_admin';
+      const loginPath = getLoginPathForPortal(portal);
+      if (!window.location.pathname.startsWith(loginPath)) {
+        window.location.href = loginPath;
+      }
     }
 
     return Promise.reject(error);

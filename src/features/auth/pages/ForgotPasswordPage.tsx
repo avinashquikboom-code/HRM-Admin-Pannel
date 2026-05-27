@@ -23,7 +23,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 relative overflow-hidden">
       {/* Background Decorative Elements */}
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]"></div>
@@ -33,15 +33,15 @@ const ForgotPasswordPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-primary/40">
-            <span className="text-white font-black text-2xl tracking-tighter">HRM</span>
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl shadow-primary/40">
+            <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">HRM</span>
           </div>
-          <h1 className="text-4xl font-black text-text-primary tracking-tight">Identity Recovery</h1>
-          <p className="text-text-secondary mt-2 text-lg">Secure Access Restoration</p>
+          <h1 className="heading-1">Identity Recovery</h1>
+          <p className="text-page-desc mt-2">Reset your admin credentials securely</p>
         </div>
 
-        <div className="glass-card p-10 bg-surface/40 border-surface/50 relative overflow-hidden">
+        <div className="glass-card p-6 sm:p-8 lg:p-10 bg-surface/40 border-surface/50 relative overflow-hidden">
           <AnimatePresence mode="wait">
             {!isSubmitted ? (
               <motion.div
@@ -59,7 +59,7 @@ const ForgotPasswordPage = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label className="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-2 ml-1">Work Email</label>
+                    <label className="block text-micro font-black text-muted uppercase tracking-[0.2em] mb-2 ml-1">Work Email</label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5 group-focus-within:text-primary transition-colors" />
                       <input 
@@ -120,7 +120,7 @@ const ForgotPasswordPage = () => {
                   Return to Login
                 </button>
                 
-                <p className="mt-6 text-[10px] font-bold text-muted uppercase tracking-tighter">
+                <p className="mt-6 text-micro font-bold text-muted uppercase tracking-tighter">
                   Link expires in 15 minutes
                 </p>
               </motion.div>
@@ -131,7 +131,7 @@ const ForgotPasswordPage = () => {
         <div className="mt-10 flex justify-center gap-4 text-muted">
           <div className="flex items-center gap-2">
             <ShieldCheck size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">End-to-End Encryption</span>
+            <span className="text-label">End-to-End Encryption</span>
           </div>
         </div>
       </motion.div>

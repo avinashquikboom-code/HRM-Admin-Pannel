@@ -2,11 +2,16 @@
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { hydrateAuth } from '@/store/slices/authSlice';
-import { getAuthToken } from '@/lib/authStorage';
+import { getAuthSession } from '@/lib/authStorage';
+import {
+  getHomePathForPortal,
+  getLoginPathForPortal,
+  isPublicPath,
+  isSuperAdminPath,
+  type PortalType,
+} from '@/lib/portals';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-
-const PUBLIC_PATHS = ['/login', '/forgot-password'];
+import { useEffect, useLayoutEffect, useState } from 'react';
 
 function AuthLoader() {
   return (
@@ -24,7 +29,7 @@ function AuthLoader() {
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, token } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, token, portal } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
   const [isReady, setIsReady] = useState(false);
@@ -34,34 +39,56 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     setIsReady(true);
   }, [dispatch]);
 
-  const isPublicPath = PUBLIC_PATHS.includes(pathname);
-  const isLoggedIn = useMemo(
-    () => isAuthenticated || Boolean(token) || Boolean(getAuthToken()),
-    [isAuthenticated, token]
+  const session = getAuthSession();
+  const isLoggedIn = Boolean(
+    isAuthenticated || token || session?.token
   );
+  const activePortal: PortalType | null =
+    session?.portal ?? portal ?? null;
+  const publicPath = isPublicPath(pathname);
 
   useEffect(() => {
     if (!isReady) return;
 
-    if (!isLoggedIn && !isPublicPath) {
-      router.replace('/login');
+    if (!isLoggedIn) {
+      if (!publicPath) {
+        router.replace(
+          isSuperAdminPath(pathname)
+            ? getLoginPathForPortal('super_admin')
+            : getLoginPathForPortal('platform_admin')
+        );
+      }
       return;
     }
 
-    if (isLoggedIn && isPublicPath) {
-      router.replace('/');
+    if (!activePortal) return;
+
+    const homePath = getHomePathForPortal(activePortal);
+
+    if (publicPath) {
+      router.replace(homePath);
+      return;
     }
-  }, [isLoggedIn, isPublicPath, isReady, router]);
+
+    if (activePortal === 'super_admin' && !isSuperAdminPath(pathname)) {
+      router.replace(homePath);
+      return;
+    }
+
+    if (activePortal === 'platform_admin' && isSuperAdminPath(pathname)) {
+      router.replace(homePath);
+    }
+  }, [activePortal, isLoggedIn, isReady, pathname, publicPath, router]);
 
   if (!isReady) {
     return <AuthLoader />;
   }
 
-  if (!isLoggedIn && !isPublicPath) {
+  if (!isLoggedIn && !publicPath) {
     return <AuthLoader />;
   }
 
-  if (isLoggedIn && isPublicPath) {
+  if (isLoggedIn && publicPath) {
     return <AuthLoader />;
   }
 

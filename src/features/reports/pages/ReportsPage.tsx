@@ -71,7 +71,7 @@ const ReportsPage = () => {
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-primary to-primary-light">
             Intelligence Center
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Access, generate, and manage platform-wide analytics and compliance documentation.
           </p>
         </div>
@@ -108,7 +108,7 @@ const ReportsPage = () => {
                 <stat.icon size={24} />
               </div>
               <span className={cn(
-                "text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-tighter",
+                "text-micro font-black px-2 py-1 rounded-lg uppercase tracking-tighter",
                 stat.trend.startsWith('+') ? "bg-success/10 text-success" : "bg-surface-variant text-muted"
               )}>
                 {stat.trend}
@@ -116,7 +116,7 @@ const ReportsPage = () => {
             </div>
             <div className="relative z-10">
               <p className="text-sm font-bold text-text-secondary uppercase tracking-wider">{stat.label}</p>
-              <h3 className="text-3xl font-black text-text-primary mt-1">{stat.value}</h3>
+              <h3 className="text-stat-value mt-1">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -169,7 +169,7 @@ const ReportsPage = () => {
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
                   <div className={cn(
-                    "w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black text-[10px] shadow-sm transition-transform group-hover:scale-110",
+                    "w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black text-micro shadow-sm transition-transform group-hover:scale-110",
                     report.format === 'PDF' ? 'bg-error/10 text-error' : 
                     report.format === 'Excel' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'
                   )}>
@@ -194,7 +194,7 @@ const ReportsPage = () => {
                         {report.size}
                       </span>
                       <span className={cn(
-                        "text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest",
+                        "text-micro font-black px-2 py-0.5 rounded-lg uppercase tracking-widest",
                         report.status === 'Verified' ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
                       )}>
                         {report.status}

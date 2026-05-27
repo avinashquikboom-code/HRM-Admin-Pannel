@@ -1,19 +1,23 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useAppDispatch } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
 import { loginRequest } from '@/services/authService';
 import { motion } from 'framer-motion';
 import { Mail, LogIn, ShieldCheck, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
-import { DEFAULT_DEV_EMAIL, DEFAULT_DEV_PASSWORD } from '@/lib/devAuth';
+import {
+  DEFAULT_PLATFORM_DEV_EMAIL,
+  DEFAULT_PLATFORM_DEV_PASSWORD,
+} from '@/lib/devAuth';
+import { PLATFORM_HOME } from '@/lib/portals';
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
-  const [email, setEmail] = useState(DEFAULT_DEV_EMAIL);
-  const [password, setPassword] = useState(DEFAULT_DEV_PASSWORD);
+  const [email, setEmail] = useState(DEFAULT_PLATFORM_DEV_EMAIL);
+  const [password, setPassword] = useState(DEFAULT_PLATFORM_DEV_PASSWORD);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,8 +27,12 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await loginRequest({ email, password });
+      const response = await loginRequest(
+        { email, password },
+        'platform_admin'
+      );
       dispatch(login(response));
+      window.location.href = PLATFORM_HOME;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
@@ -33,8 +41,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6 relative overflow-hidden">
-      {/* Background Decorative Elements */}
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 relative overflow-hidden">
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]"></div>
 
@@ -43,15 +50,15 @@ const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-primary/40">
-            <span className="text-white font-black text-2xl tracking-tighter">HRM</span>
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl shadow-primary/40">
+            <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">HRM</span>
           </div>
-          <h1 className="text-4xl font-black text-text-primary tracking-tight">Super Admin</h1>
-          <p className="text-text-secondary mt-2 text-lg">Payroll & HRMS Ecosystem</p>
+          <h1 className="heading-1">Admin Panel Login</h1>
+          <p className="text-page-desc mt-2">HR, payroll, attendance & operations</p>
         </div>
 
-        <div className="glass-card p-10 bg-surface/40 border-surface/50">
+        <div className="glass-card p-6 sm:p-8 lg:p-10 bg-surface/40 border-surface/50">
           <form onSubmit={handleLogin} className="space-y-6">
             {error && (
               <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
@@ -69,8 +76,8 @@ const LoginPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60"
-                  placeholder="admin@hrm.com"
+                  className="w-full pl-12 pr-4 py-3.5 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60 text-sm"
+                  placeholder="hr@quickboom.com"
                   autoComplete="email"
                 />
               </div>
@@ -89,7 +96,7 @@ const LoginPage = () => {
             </div>
 
             <p className="text-xs text-text-secondary ml-1">
-              Offline demo — no backend required. Default: {DEFAULT_DEV_EMAIL} / {DEFAULT_DEV_PASSWORD}
+              Offline demo: {DEFAULT_PLATFORM_DEV_EMAIL} / {DEFAULT_PLATFORM_DEV_PASSWORD}
             </p>
 
             <div className="flex items-center justify-between ml-1">
@@ -103,41 +110,38 @@ const LoginPage = () => {
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg mt-8 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-semibold rounded-2xl shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 mt-4 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
             >
               {isLoading ? (
                 <>
-                  <Loader2 size={22} className="animate-spin" />
+                  <Loader2 size={20} className="animate-spin" />
                   Signing in...
                 </>
               ) : (
                 <>
-                  <LogIn size={22} />
-                  Enter Dashboard
+                  <LogIn size={20} />
+                  Enter Admin Panel
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 flex items-center gap-3 justify-center text-muted text-xs font-semibold uppercase tracking-widest">
-            <div className="h-px w-10 bg-border"></div>
-            <span>Secure Access</span>
-            <div className="h-px w-10 bg-border"></div>
+          <div className="mt-6 pt-6 border-t border-border text-center space-y-3">
+            <Link
+              href="/super-admin/login"
+              className="text-sm font-medium text-secondary hover:text-primary transition-colors"
+            >
+              Super Admin login instead
+            </Link>
           </div>
 
           <div className="mt-6 flex justify-center gap-4">
             <div className="flex items-center gap-2 text-success">
               <ShieldCheck size={16} />
-              <span className="text-[10px] font-bold">256-bit SSL</span>
+              <span className="text-micro font-bold">256-bit SSL</span>
             </div>
           </div>
         </div>
-
-        <p className="text-center mt-10 text-text-secondary text-sm">
-          Protected by HRM Security Systems. <a>Ecosystem Policy</a>
-          <br/>
-          &copy; 2024 All Rights Reserved.
-        </p>
       </motion.div>
     </div>
   );

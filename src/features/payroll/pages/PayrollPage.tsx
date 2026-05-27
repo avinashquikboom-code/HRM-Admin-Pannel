@@ -104,17 +104,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="glass-card p-4 border-none shadow-2xl backdrop-blur-xl bg-surface/80 dark:bg-surface-variant/80">
-        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-2">{label}</p>
+        <p className="text-label text-muted mb-2">{label}</p>
         <div className="space-y-1">
           <p className="text-lg font-black text-primary">
             {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(payload[0].value)}
           </p>
           <div className="flex items-center gap-2">
-             <div className="flex items-center gap-1 text-[10px] font-black text-success uppercase tracking-tighter">
+             <div className="flex items-center gap-1 text-micro font-black text-success uppercase tracking-tighter">
                 <TrendingUp size={12} />
                 +14.2%
              </div>
-             <span className="text-[10px] font-bold text-text-secondary uppercase">vs last cycle</span>
+             <span className="text-micro font-bold text-text-secondary uppercase">vs last cycle</span>
           </div>
         </div>
       </div>
@@ -144,12 +144,12 @@ const PayrollPage = () => {
             <div className="p-2 bg-primary/10 rounded-lg text-primary shadow-sm">
               <Wallet size={18} />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Disbursement Center</span>
+            <span className="text-micro font-black uppercase tracking-[0.2em] text-primary">Disbursement Center</span>
           </div>
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-muted">
             Payroll Monitoring
           </h1>
-          <p className="text-text-secondary mt-1 max-w-2xl text-sm font-medium">
+          <p className="text-page-desc mt-1 max-w-2xl">
             Strategic oversight of fund flows, compliance healthy, and ecosystem-wide disbursement performance.
           </p>
         </div>
@@ -196,7 +196,7 @@ const PayrollPage = () => {
                 <stat.icon size={22} />
               </div>
               <span className={cn(
-                "text-[10px] font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm",
+                "text-micro font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm",
                 stat.trend.startsWith('+') ? "bg-success/10 text-success border-success/10" : 
                 stat.trend.startsWith('-') ? "bg-error/10 text-error border-error/10" : "bg-error/20 text-error border-error/20 animate-pulse"
               )}>
@@ -204,8 +204,8 @@ const PayrollPage = () => {
               </span>
             </div>
             <div className="relative z-10">
-              <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-              <h3 className="text-2xl font-black text-text-primary tracking-tighter tabular-nums">{stat.value}</h3>
+              <p className="text-micro font-black text-text-secondary uppercase tracking-[0.15em] mb-1">{stat.label}</p>
+              <h3 className="heading-2er tabular-nums">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -222,9 +222,9 @@ const PayrollPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
             <div>
               <h3 className="heading-2">Platform Disbursement Volume</h3>
-              <p className="text-sm text-text-secondary mt-1 font-medium italic">Global payroll distribution trends over the last 5 months</p>
+              <p className="text-sm text-page-desc mt-1 italic">Global payroll distribution trends over the last 5 months</p>
             </div>
-            <div className="flex items-center gap-3 text-success font-black text-[10px] uppercase tracking-[0.15em] bg-success/10 px-5 py-2.5 rounded-2xl self-start sm:self-center border border-success/10 shadow-sm">
+            <div className="flex items-center gap-3 text-success text-label tracking-[0.15em] bg-success/10 px-5 py-2.5 rounded-2xl self-start sm:self-center border border-success/10 shadow-sm">
               <TrendingUp size={16} />
               +14.2% SYSTEM GROWTH
             </div>
@@ -290,17 +290,17 @@ const PayrollPage = () => {
                 <div className="p-4 bg-white/5 backdrop-blur-2xl rounded-2xl group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/10 shadow-sm">
                   <IndianRupee size={32} className="text-primary" />
                 </div>
-                <div className="px-4 py-1.5 bg-white/5 backdrop-blur-2xl rounded-full text-[10px] font-black tracking-[0.2em] flex items-center gap-2 border border-white/10 shadow-sm">
+                <div className="px-4 py-1.5 bg-white/5 backdrop-blur-2xl rounded-full text-micro font-black tracking-[0.2em] flex items-center gap-2 border border-white/10 shadow-sm">
                   <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_12px_#3BA38B]" />
                   ACTIVE LIQUIDITY
                 </div>
               </div>
               
               <div className="mt-auto pt-10">
-                <p className="text-white/40 font-black tracking-[0.2em] uppercase text-[9px] mb-2">Global Disbursement Pool</p>
+                <p className="text-white/40 text-micro font-black tracking-[0.2em] uppercase mb-2">Global Disbursement Pool</p>
                 <h3 className="text-5xl font-black mb-8 tracking-tighter tabular-nums text-white group-hover:text-primary transition-colors duration-500">₹24,842,100</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em]">
+                  <div className="flex items-center justify-between text-micro font-black uppercase tracking-[0.2em]">
                     <span className="text-white/60">Pool utilization</span>
                     <span className="text-primary">75.4%</span>
                   </div>
@@ -314,7 +314,7 @@ const PayrollPage = () => {
                   </div>
                 </div>
                 <div className="mt-10 flex items-center gap-3">
-                  <button className="flex-1 py-4 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary-light transition-all active:scale-95 shadow-xl shadow-primary/30">
+                  <button className="flex-1 py-4 bg-primary text-white text-micro font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary-light transition-all active:scale-95 shadow-xl shadow-primary/30">
                     Rebalance Pool
                   </button>
                   <button className="p-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95 shadow-sm">
@@ -337,7 +337,7 @@ const PayrollPage = () => {
               </div>
               <div>
                 <p className="text-sm font-black text-text-primary uppercase tracking-tight">Manual Audit Queue</p>
-                <p className="text-[10px] font-bold text-text-secondary mt-1 uppercase tracking-widest">12 runs awaiting approval</p>
+                <p className="text-micro font-bold text-text-secondary mt-1 uppercase tracking-widest">12 runs awaiting approval</p>
               </div>
             </div>
             <div className="w-12 h-12 bg-surface-variant rounded-2xl flex items-center justify-center text-text-secondary group-hover:bg-primary group-hover:text-white transition-all shadow-sm border border-border relative z-10">
@@ -352,7 +352,7 @@ const PayrollPage = () => {
         <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <h3 className="heading-2">Recent Payroll Cycles</h3>
-            <p className="text-sm text-text-secondary mt-1 font-medium">Global audit stream of recent disbursement batches</p>
+            <p className="text-sm text-page-desc mt-1">Global audit stream of recent disbursement batches</p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-grow sm:flex-grow-0 group">
@@ -378,12 +378,12 @@ const PayrollPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted border-b border-border">Batch Identity</th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted border-b border-border">Company</th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted border-b border-border">Operational Scale</th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted border-b border-border">Total Volume</th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted border-b border-border">Status</th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted border-b border-border text-right">Actions</th>
+                  <th className="px-8 py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Batch Identity</th>
+                  <th className="px-8 py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Company</th>
+                  <th className="px-8 py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Operational Scale</th>
+                  <th className="px-8 py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Total Volume</th>
+                  <th className="px-8 py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Status</th>
+                  <th className="px-8 py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -394,7 +394,7 @@ const PayrollPage = () => {
                     className="hover:bg-surface-variant transition-colors group cursor-pointer"
                   >
                     <td className="px-8 py-7">
-                      <span className="font-mono text-[10px] font-black text-muted bg-surface-variant px-3 py-1.5 rounded-xl border border-border shadow-sm group-hover:border-primary/30 transition-colors">
+                      <span className="font-mono text-micro font-black text-muted bg-surface-variant px-3 py-1.5 rounded-xl border border-border shadow-sm group-hover:border-primary/30 transition-colors">
                         {run.id}
                       </span>
                     </td>
@@ -405,7 +405,7 @@ const PayrollPage = () => {
                         </div>
                         <div>
                           <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block">{run.company}</span>
-                          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">{run.date}</span>
+                          <span className="text-label font-bold text-text-secondary">{run.date}</span>
                         </div>
                       </div>
                     </td>
@@ -415,18 +415,18 @@ const PayrollPage = () => {
                           <Users size={14} className="text-primary" />
                           <span className="text-sm font-black text-text-primary">{run.employees}</span>
                         </div>
-                        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">Managed Seats</span>
+                        <span className="text-micro font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">Managed Seats</span>
                       </div>
                     </td>
                     <td className="px-8 py-7">
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-text-primary tracking-tighter">{run.totalAmount}</span>
-                        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1">Disbursed</span>
+                        <span className="text-label font-bold text-text-secondary mt-1">Disbursed</span>
                       </div>
                     </td>
                     <td className="px-8 py-7">
                       <span className={cn(
-                        "px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2.5 transition-all border shadow-sm",
+                        "px-4 py-2 rounded-2xl text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
                         run.status === 'Completed' ? "bg-success/10 text-success border-success/10" : 
                         run.status === 'Failed' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
                       )}>
@@ -458,11 +458,11 @@ const PayrollPage = () => {
           <div className="p-8 bg-surface-variant/50 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-              <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em]">Global Audit Stream Live</p>
+              <p className="text-label text-text-secondary tracking-[0.2em]">Global Audit Stream Live</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-[10px] font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
-              <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-[10px] font-black uppercase tracking-widest text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
+              <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
+              <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
             </div>
           </div>
         )}
@@ -478,30 +478,30 @@ const PayrollPage = () => {
           <div className="p-6 bg-surface-variant/50 rounded-3xl border border-border/50">
             <div className="flex items-center justify-between mb-6">
               <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">Batch Summary</h4>
-              <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest border border-primary/10">Draft Batch #882</span>
+              <span className="px-3 py-1 bg-primary/10 text-primary text-micro font-black rounded-full uppercase tracking-widest border border-primary/10">Draft Batch #882</span>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Total Entities</p>
+                <p className="text-label text-muted">Total Entities</p>
                 <p className="text-xl font-black text-text-primary">12 Companies</p>
               </div>
               <div className="space-y-1 text-right">
-                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Total Employees</p>
+                <p className="text-label text-muted">Total Employees</p>
                 <p className="text-xl font-black text-text-primary">4,842 Seats</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Total Volume</p>
+                <p className="text-label text-muted">Total Volume</p>
                 <p className="text-xl font-black text-primary">₹1,248,500</p>
               </div>
               <div className="space-y-1 text-right">
-                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Est. Gas Fees</p>
+                <p className="text-label text-muted">Est. Gas Fees</p>
                 <p className="text-xl font-black text-text-secondary">₹142.50</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Confirmation Protocol</h4>
+            <h4 className="text-label text-text-secondary ml-1">Confirmation Protocol</h4>
             <div className="space-y-3">
               {[
                 'Verify all entity compliance certificates',

@@ -12,10 +12,10 @@ import { cn } from '@/utils/cn';
 
 interface AssignEmployeeModalProps {
   isOpen: boolean;
-  officeId: number | null;
+  officeId: string | null;
   officeName: string;
   onClose: () => void;
-  onAssigned: (message: string, officeId: number) => void;
+  onAssigned: (message: string, officeId: string) => void;
 }
 
 export default function AssignEmployeeModal({
@@ -26,7 +26,7 @@ export default function AssignEmployeeModal({
   onAssigned,
 }: AssignEmployeeModalProps) {
   const [employees, setEmployees] = useState<AdminEmployee[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | ''>('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +61,7 @@ export default function AssignEmployeeModal({
 
     try {
       const result = await assignEmployeeToOffice(
-        Number(selectedEmployeeId),
+        selectedEmployeeId,
         officeId
       );
       onAssigned(result.message, officeId);
@@ -102,9 +102,7 @@ export default function AssignEmployeeModal({
           ) : (
             <select
               value={selectedEmployeeId}
-              onChange={(e) =>
-                setSelectedEmployeeId(e.target.value ? Number(e.target.value) : '')
-              }
+              onChange={(e) => setSelectedEmployeeId(e.target.value)}
               required
               className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
             >

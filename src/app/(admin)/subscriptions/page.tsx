@@ -1,5 +1,5 @@
-import SubscriptionsPage from '@/features/subscriptions/pages/SubscriptionsPage';
+import { redirect } from 'next/navigation';
 
-export default function SubscriptionsPageWrapper() {
-  return <SubscriptionsPage />;
+export default function LegacySubscriptionsRedirect() {
+  redirect('/super-admin/subscriptions');
 }

@@ -85,7 +85,7 @@ const AnalyticsPage = () => {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-primary">Ecosystem Intelligence</h1>
-          <p className="text-text-secondary mt-1 font-medium">Deep dive into platform growth, revenue, and workforce analytics.</p>
+          <p className="text-page-desc mt-1">Deep dive into platform growth, revenue, and workforce analytics.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-5 py-3 bg-surface border border-border rounded-2xl text-xs font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-lg">
@@ -116,8 +116,8 @@ const AnalyticsPage = () => {
               </div>
               <span className="text-xs font-black text-success bg-success/10 px-2.5 py-1 rounded-full">{stat.trend}</span>
             </div>
-            <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-            <h3 className="text-3xl font-black text-text-primary tracking-tight">{stat.value}</h3>
+            <p className="text-label text-text-secondary tracking-[0.2em] mb-1">{stat.label}</p>
+            <h3 className="text-stat-value">{stat.value}</h3>
           </motion.div>
         ))}
       </div>
@@ -129,7 +129,7 @@ const AnalyticsPage = () => {
           
           <div className="flex items-center justify-between mb-10 relative z-10">
             <div>
-              <h3 className="text-2xl font-black text-text-primary tracking-tight">Workforce Expansion</h3>
+              <h3 className="heading-2">Workforce Expansion</h3>
               <p className="text-sm text-text-secondary font-medium italic">Global employee registration & seat allocation metrics</p>
             </div>
             <div className="flex items-center gap-4">
@@ -220,12 +220,12 @@ const AnalyticsPage = () => {
         <motion.div variants={itemVariants} className="lg:col-span-3 glass-card p-10">
           <div className="flex items-center justify-between mb-12">
             <div>
-              <h3 className="text-2xl font-black text-text-primary tracking-tight">Enterprise Scaling</h3>
+              <h3 className="heading-2">Enterprise Scaling</h3>
               <p className="text-sm text-text-secondary font-medium italic">Revenue vs Employee growth correlation across the ecosystem</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-6 py-3 bg-surface-variant text-text-primary font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-surface transition-all border border-border">Daily</button>
-              <button className="px-6 py-3 bg-primary text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20">Weekly</button>
+              <button className="px-6 py-3 bg-surface-variant text-text-primary text-label rounded-xl hover:bg-surface transition-all border border-border">Daily</button>
+              <button className="px-6 py-3 bg-primary text-white text-label rounded-xl shadow-lg shadow-primary/20">Weekly</button>
             </div>
           </div>
           
@@ -252,12 +252,12 @@ const AnalyticsPage = () => {
             <div className="w-16 h-16 rounded-[28px] bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20 mx-auto md:mx-0">
               <Activity size={32} className="text-primary-light" />
             </div>
-            <h3 className="text-3xl font-black tracking-tighter">AI-Driven Predictive Onboarding</h3>
+            <h3 className="text-xl font-semibold tracking-tight">AI-Driven Predictive Onboarding</h3>
             <p className="text-white/70 max-w-xl font-medium leading-relaxed">
               Our neural models project a 24% increase in seat allocation for the next quarter based on current ecosystem trends.
             </p>
           </div>
-          <button className="px-12 py-5 bg-white text-primary font-black uppercase tracking-[0.2em] text-[10px] rounded-[28px] shadow-2xl hover:bg-primary-light hover:text-white transition-all active:scale-95">
+          <button className="px-12 py-5 bg-white text-primary text-label tracking-[0.2em] rounded-[28px] shadow-2xl hover:bg-primary-light hover:text-white transition-all active:scale-95">
             Execute Strategy <ChevronRight size={16} className="inline ml-1" />
           </button>
         </div>

@@ -131,7 +131,7 @@ const TasksPage = () => {
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1">Task Orchestrator</h1>
-          <p className="text-text-secondary mt-1">Assign deliverables, monitor project velocities, and manage deadlines.</p>
+          <p className="text-page-desc mt-1">Assign deliverables, monitor project velocities, and manage deadlines.</p>
         </div>
         <button 
           onClick={() => setIsAssignModalOpen(true)}
@@ -163,7 +163,7 @@ const TasksPage = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">{stat.label}</p>
-                <p className="text-3xl font-black text-text-primary mt-1 tracking-tight">{stat.value}</p>
+                <p className="text-stat-value mt-1">{stat.value}</p>
               </div>
             </div>
           </motion.div>
@@ -242,7 +242,7 @@ const TasksPage = () => {
 
                         {/* Card Header: Task ID & Priority */}
                         <div className="flex items-center justify-between mb-3 relative z-10">
-                          <span className="font-mono text-[9px] font-black text-muted uppercase tracking-widest">{task.id}</span>
+                          <span className="font-mono text-micro font-black text-muted uppercase tracking-widest">{task.id}</span>
                           <span className={cn(
                             "px-2.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider border",
                             task.priority === 'High' ? 'bg-error/10 text-error border-error/10' :
@@ -264,7 +264,7 @@ const TasksPage = () => {
 
                         {/* Progress Bar */}
                         <div className="space-y-1 mb-4">
-                          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted">
+                          <div className="flex justify-between items-center text-micro font-black uppercase tracking-widest text-muted">
                             <span>Progress</span>
                             <span>{task.progress}%</span>
                           </div>
@@ -282,15 +282,15 @@ const TasksPage = () => {
                         {/* Assignee & Footer */}
                         <div className="flex items-center justify-between pt-3 border-t border-border/40 relative z-10">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] border border-primary/10 shadow-sm">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-micro font-bold border border-primary/10 shadow-sm">
                               {task.assignee.substring(0, 2)}
                             </div>
-                            <span className="text-[10px] font-bold text-text-secondary">{task.assignee}</span>
+                            <span className="text-micro font-bold text-text-secondary">{task.assignee}</span>
                           </div>
                           
                           <div className="flex items-center gap-2">
                             <Clock size={12} className="text-muted" />
-                            <span className="text-[9px] font-black text-muted tracking-tight">{task.deadline}</span>
+                            <span className="text-micro font-black text-muted tracking-tight">{task.deadline}</span>
                           </div>
                         </div>
 
@@ -316,7 +316,7 @@ const TasksPage = () => {
                                 const nextIdx = columnNames.indexOf(colName) + 1;
                                 handleStatusChange(task.id, columnNames[nextIdx]);
                               }}
-                              className="p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/10 active:scale-95 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2"
+                              className="p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/10 active:scale-95 flex items-center gap-1 text-label tracking-wider px-2"
                             >
                               <span>Next</span>
                               <ArrowRight size={10} />
@@ -337,7 +337,7 @@ const TasksPage = () => {
       <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title="Assign Sprint Deliverable">
         <form onSubmit={handleAssignTask} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Task Title</label>
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Task Title</label>
             <input 
               type="text" 
               placeholder="e.g. Optimize Ledger API Endpoints"
@@ -349,7 +349,7 @@ const TasksPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Assignee</label>
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Assignee</label>
             <select 
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
@@ -365,7 +365,7 @@ const TasksPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Priority Tier</label>
+              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Priority Tier</label>
               <select 
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
@@ -377,7 +377,7 @@ const TasksPage = () => {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Target Deadline</label>
+              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Target Deadline</label>
               <input 
                 type="date" 
                 value={deadline}
@@ -389,7 +389,7 @@ const TasksPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">Deliverable Description</label>
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Deliverable Description</label>
             <textarea 
               rows={3}
               value={description}
