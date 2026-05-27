@@ -4,12 +4,12 @@ import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Camera, 
-  Save, 
+import {
+  User,
+  Mail,
+  Phone,
+  Camera,
+  Save,
   ArrowLeft,
   ShieldCheck,
   Globe,
@@ -47,7 +47,7 @@ const EditProfilePage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasCustomAvatar = Boolean(profile?.avatarUrl ?? user?.profile?.avatarUrl);
   const avatarSrc = hasCustomAvatar ? user?.avatar : null;
-  
+
   const {
     register,
     handleSubmit,
@@ -178,7 +178,7 @@ const EditProfilePage = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={false}
       animate="visible"
       variants={containerVariants}
@@ -187,7 +187,7 @@ const EditProfilePage = () => {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between bg-surface/50 backdrop-blur-xl p-6 rounded-[32px] border border-border/50 shadow-sm">
         <div className="flex items-center gap-5">
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05, x: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push(profileBasePath)}
@@ -214,7 +214,7 @@ const EditProfilePage = () => {
           <motion.div variants={itemVariants} className="space-y-8">
             <div className="glass-card p-6 sm:p-8 md:p-10 flex flex-col items-center text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
-              
+
               <div className="relative group mb-6">
                 <input
                   ref={fileInputRef}
@@ -223,7 +223,7 @@ const EditProfilePage = () => {
                   className="hidden"
                   onChange={handleAvatarSelect}
                 />
-                <motion.div 
+                <motion.div
                   whileHover={{ scale: 1.02 }}
                   className="w-48 h-48 rounded-full bg-surface-variant border-4 border-surface shadow-2xl flex items-center justify-center overflow-hidden relative"
                 >
@@ -244,7 +244,7 @@ const EditProfilePage = () => {
                     )}
                   </div>
                 </motion.div>
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   type="button"
@@ -255,7 +255,7 @@ const EditProfilePage = () => {
                   <Camera size={20} />
                 </motion.button>
               </div>
-              
+
               <h3 className="text-lg font-black text-text-primary mb-1">Administrator Avatar</h3>
               <p className="text-xs text-text-secondary font-medium px-4">
                 This image will be visible across the system for all verified entities.
@@ -267,7 +267,7 @@ const EditProfilePage = () => {
               {avatarMessage && (
                 <p className="mt-4 text-xs font-bold text-success">{avatarMessage}</p>
               )}
-              
+
               <div className="flex gap-4 mt-8 w-full">
                 <button
                   type="button"
@@ -324,14 +324,14 @@ const EditProfilePage = () => {
                   <p className="text-xs text-text-secondary font-medium">Verified system information for the controller account.</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
                 <div className="space-y-2.5">
                   <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                     <User size={12} /> Full Name
                   </label>
                   <div className="relative group">
-                    <input 
+                    <input
                       {...register('name')}
                       placeholder="e.g. Avinash Magar"
                       className={cn(
@@ -339,9 +339,9 @@ const EditProfilePage = () => {
                         errors.name && "border-error/50 bg-error/5 focus:ring-error/5"
                       )}
                     />
-                    <motion.div 
+                    <motion.div
                       layoutId="input-glow"
-                      className="absolute inset-0 rounded-[24px] pointer-events-none group-focus-within:shadow-[0_0_20px_rgba(59,163,139,0.1)] transition-shadow" 
+                      className="absolute inset-0 rounded-[24px] pointer-events-none group-focus-within:shadow-[0_0_20px_rgba(59,163,139,0.1)] transition-shadow"
                     />
                   </div>
                   {errors.name && <p className="text-micro text-error font-black uppercase tracking-wider ml-1">{errors.name.message}</p>}
@@ -352,7 +352,7 @@ const EditProfilePage = () => {
                     <Mail size={12} /> Email Protocol
                   </label>
                   <div className="relative group">
-                    <input 
+                    <input
                       {...register('email')}
                       placeholder="admin@hrm.ai"
                       className={cn(
@@ -369,7 +369,7 @@ const EditProfilePage = () => {
                     <Phone size={12} /> Secure Phone
                   </label>
                   <div className="relative group">
-                    <input 
+                    <input
                       {...register('phone')}
                       placeholder="+91 00000 00000"
                       className={cn(
@@ -394,7 +394,7 @@ const EditProfilePage = () => {
 
               <div className="space-y-2.5">
                 <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1">Administrative Bio</label>
-                <textarea 
+                <textarea
                   {...register('bio')}
                   rows={5}
                   placeholder="Describe your role and focus areas..."
@@ -409,7 +409,7 @@ const EditProfilePage = () => {
 
             {/* Action Buttons */}
             <motion.div variants={itemVariants} className="flex gap-5">
-              <motion.button 
+              <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 type="button"
@@ -418,7 +418,7 @@ const EditProfilePage = () => {
               >
                 Discard Changes
               </motion.button>
-              <motion.button 
+              <motion.button
                 whileHover={{ y: -2, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
@@ -426,7 +426,7 @@ const EditProfilePage = () => {
                 className="flex-[2] py-5 bg-primary text-white text-label tracking-[0.2em] rounded-[28px] shadow-2xl shadow-primary/30 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-4"
               >
                 {isSubmitting ? (
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
                     className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"

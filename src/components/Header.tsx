@@ -220,7 +220,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         {!isEmployee && (
         <>
         <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="flex items-center gap-3 w-full bg-surface-variant px-4 py-2.5 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-surface focus-within:shadow-lg focus-within:shadow-primary/5 transition-all group">
+        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-surface focus-within:shadow-lg focus-within:shadow-primary/5 transition-all group">
           <Search className="w-5 h-5 text-muted group-focus-within:text-primary transition-colors shrink-0" />
           <input 
             id="global-search"
