@@ -40,6 +40,8 @@ import EditOfficeModal from '@/features/location/components/EditOfficeModal';
 import AssignEmployeeModal from '@/features/location/components/AssignEmployeeModal';
 import { deleteOffice, type Office } from '@/services/officeService';
 import { unassignEmployeeFromOffice } from '@/services/employeeService';
+import { useLiveLocations } from '@/hooks/useLiveLocations';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 import { 
   mockLiveLocations as initialLocations, 
@@ -113,12 +115,21 @@ export default function LocationPage() {
     error: officeDetailError,
     refetch: refetchOfficeDetail,
   } = useOfficeDetail(selectedOfficeId);
-  const [locations, setLocations] = useState<EmployeeLocation[]>(initialLocations);
-  const [logs, setLogs] = useState<LocationLog[]>(initialLogs);
-  const [selectedEmpId, setSelectedEmpId] = useState<number | null>(null);
   
   // Controls
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
+
+  const { 
+    locations, 
+    isLoading: isLocationsLoading, 
+    error: locationsError, 
+    refetch: refetchLocations, 
+    setLocations 
+  } = useLiveLocations(isAutoRefreshing);
+
+  const [logs, setLogs] = useState<LocationLog[]>(initialLogs);
+  const [selectedEmpId, setSelectedEmpId] = useState<number | null>(null);
+  
   const [geofenceRadius, setGeofenceRadius] = useState(0.015);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -303,7 +314,7 @@ export default function LocationPage() {
 
   // Real-time GPS coordinate movement simulator
   useEffect(() => {
-    if (!isAutoRefreshing) return;
+    if (!isAutoRefreshing || !isDevAuthSession()) return;
 
     const intervalId = setInterval(() => {
       setLocations(prevLocs => {
@@ -512,6 +523,7 @@ export default function LocationPage() {
               setIsLoading(true);
               Promise.all([
                 refetch(),
+                refetchLocations(),
                 selectedOfficeId
                   ? refetchOfficeDetail(selectedOfficeId)
                   : Promise.resolve(),
@@ -522,7 +534,7 @@ export default function LocationPage() {
             className="p-3 bg-surface-variant hover:bg-border text-text-primary rounded-2xl transition-all shadow-sm active:scale-95"
             title="Refresh offices & GPS links"
           >
-            <RefreshCw size={18} className={cn((isLoading || isOfficesLoading) && "animate-spin")} />
+            <RefreshCw size={18} className={cn((isLoading || isOfficesLoading || isLocationsLoading) && "animate-spin")} />
           </button>
         </div>
       </motion.div>
@@ -530,6 +542,12 @@ export default function LocationPage() {
       {officesError && (
         <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
           {officesError}
+        </div>
+      )}
+
+      {locationsError && (
+        <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+          {locationsError}
         </div>
       )}
 
@@ -1155,33 +1173,34 @@ export default function LocationPage() {
                 </div>
               </div>
 
-              {/* Simulation Refresh Clock Speed */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-label font-bold text-text-secondary tracking-wider">Simulation Walk Speed multiplier</span>
-                  <span className="font-mono font-black text-accent">{radarSpeed}x Speed</span>
+              {isDevAuthSession() && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-label font-bold text-text-secondary tracking-wider">Simulation Walk Speed multiplier</span>
+                    <span className="font-mono font-black text-accent">{radarSpeed}x Speed</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      { label: 'Slow (0.5x)', value: 0.5 },
+                      { label: 'Normal (1x)', value: 1 },
+                      { label: 'Dynamic (2x)', value: 2 },
+                    ].map((spd) => (
+                      <button
+                        key={spd.value}
+                        onClick={() => setRadarSpeed(spd.value)}
+                        className={cn(
+                          "py-2 rounded-xl text-micro font-black uppercase tracking-wider transition-all border",
+                          radarSpeed === spd.value 
+                            ? "bg-accent/10 border-accent/20 text-accent font-bold shadow-sm"
+                            : "bg-surface-variant hover:bg-border text-text-secondary border-transparent"
+                        )}
+                      >
+                        {spd.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {[
-                    { label: 'Slow (0.5x)', value: 0.5 },
-                    { label: 'Normal (1x)', value: 1 },
-                    { label: 'Dynamic (2x)', value: 2 },
-                  ].map((spd) => (
-                    <button
-                      key={spd.value}
-                      onClick={() => setRadarSpeed(spd.value)}
-                      className={cn(
-                        "py-2 rounded-xl text-micro font-black uppercase tracking-wider transition-all border",
-                        radarSpeed === spd.value 
-                          ? "bg-accent/10 border-accent/20 text-accent font-bold shadow-sm"
-                          : "bg-surface-variant hover:bg-border text-text-secondary border-transparent"
-                      )}
-                    >
-                      {spd.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              )}
 
             </div>
           </motion.div>

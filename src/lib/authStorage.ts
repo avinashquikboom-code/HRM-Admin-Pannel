@@ -1,6 +1,24 @@
 import type { User } from '@/store/slices/authSlice';
-import type { PortalType } from '@/lib/portals';
+import { portalForRole, type PortalType } from '@/lib/portals';
 import { DEV_AUTH_TOKEN } from '@/lib/devAuth';
+
+function decodeJwt(token: string): any {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
 
 /** Single localStorage key — shared reference for auth across the app */
 export const AUTH_STORAGE_KEY = 'hrm_auth';
@@ -54,29 +72,70 @@ export function getAuthSession(): AuthSession | null {
     }
   }
 
+  // Recover session from cookie token if localStorage is empty
+  const cookieToken = readTokenCookie();
+  if (cookieToken && cookieToken !== DEV_AUTH_TOKEN) {
+    try {
+      const decoded = decodeJwt(cookieToken);
+      if (decoded && decoded.email && decoded.role) {
+        const portal = portalForRole(decoded.role) ?? 'platform_admin';
+        const emailName = decoded.email.split('@')[0];
+        const fallbackName =
+          emailName.charAt(0).toUpperCase() + emailName.slice(1);
+
+        const session: AuthSession = {
+          token: cookieToken,
+          user: {
+            id: decoded.userId ?? 1,
+            email: decoded.email,
+            role: decoded.role,
+            name: fallbackName,
+            avatar: '/favicon.svg',
+          },
+          portal,
+        };
+        // Save to localStorage to sync
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+        return session;
+      }
+    } catch (e) {
+      console.error('Failed to recover session from cookie token:', e);
+    }
+  }
+
   return null;
 }
 
-function readTokenCookie(): string | null {
+export function readTokenCookie(): string | null {
   if (!isBrowser()) return null;
 
-  const match = document.cookie.match(
+  // Try reading hrm_token first
+  let match = document.cookie.match(
     new RegExp(`(?:^|; )${AUTH_TOKEN_COOKIE}=([^;]*)`)
   );
+  if (match) {
+    return decodeURIComponent(match[1]);
+  }
 
+  // Fallback to token cookie
+  match = document.cookie.match(
+    new RegExp(`(?:^|; )token=([^;]*)`)
+  );
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function writeTokenCookie(token: string): void {
+export function writeTokenCookie(token: string): void {
   if (!isBrowser()) return;
 
   document.cookie = `${AUTH_TOKEN_COOKIE}=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+  document.cookie = `token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
 }
 
 function clearTokenCookie(): void {
   if (!isBrowser()) return;
 
   document.cookie = `${AUTH_TOKEN_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  document.cookie = `token=; path=/; max-age=0; SameSite=Lax`;
 }
 
 /** Persist token + user together in localStorage and cookie */

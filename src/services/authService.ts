@@ -6,7 +6,7 @@ import {
   matchesPlatformDevCredentials,
   matchesSuperAdminDevCredentials,
 } from '@/lib/devAuth';
-import { getAuthToken } from '@/lib/authStorage';
+import { getAuthToken, writeTokenCookie } from '@/lib/authStorage';
 import { mapApiProfileResponse } from '@/lib/profileMapper';
 import {
   resolveLoginLocationQuick,
@@ -150,6 +150,7 @@ export interface RegisteredUser {
 export interface RegisterResponse {
   message: string;
   user: RegisteredUser;
+  token?: string;
 }
 
 function assertRegisterAuthToken() {
@@ -185,6 +186,10 @@ export async function registerUser(payload: RegisterRequest) {
         },
       }
     );
+
+    if (data.token) {
+      writeTokenCookie(data.token);
+    }
 
     return data;
   } catch (error) {
