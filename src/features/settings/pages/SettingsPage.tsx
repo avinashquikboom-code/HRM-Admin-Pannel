@@ -77,7 +77,7 @@ const SettingsPage = () => {
       case 'General':
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="glass-card p-10 space-y-10 relative overflow-hidden group">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10 relative overflow-hidden group">
               <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
               
               <div className="flex items-center gap-4 relative z-10">
@@ -131,7 +131,7 @@ const SettingsPage = () => {
       case 'Access Control':
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="glass-card p-10 space-y-10">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                   <div className="p-4 bg-primary/10 text-primary rounded-2xl">
@@ -184,7 +184,7 @@ const SettingsPage = () => {
               </div>
             </div>
 
-            <div className="glass-card p-10 space-y-8">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-8">
               <UserRightsControl
                 managerPortal="super_admin"
                 roleOptions={SUPER_ADMIN_MANAGED_ROLES}
@@ -207,7 +207,7 @@ const SettingsPage = () => {
       case 'Security':
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="glass-card p-10 space-y-10">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10">
               <div className="flex items-center gap-4">
                 <div className="p-4 bg-accent/10 text-accent rounded-2xl">
                   <Lock size={24} />
@@ -258,7 +258,7 @@ const SettingsPage = () => {
       case 'Notifications':
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="glass-card p-10 space-y-10">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10">
               <div className="flex items-center gap-4">
                 <div className="p-4 bg-secondary/10 text-secondary rounded-2xl">
                   <Bell size={24} />
@@ -298,7 +298,7 @@ const SettingsPage = () => {
       case 'API & Gateway':
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="glass-card p-10 space-y-10">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10">
               <div className="flex items-center gap-4">
                 <div className="p-4 bg-primary/10 text-primary rounded-2xl">
                   <Terminal size={24} />
@@ -351,7 +351,7 @@ const SettingsPage = () => {
               ))}
             </div>
 
-            <div className="glass-card p-10 space-y-10 relative overflow-hidden">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
                 <Server size={120} />
               </div>

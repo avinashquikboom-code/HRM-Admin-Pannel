@@ -353,12 +353,12 @@ const SubscriptionsPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Invoice ID</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Company</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Plan</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Amount</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Status</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border text-right">Actions</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Invoice ID</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Company</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Plan</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Amount</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Status</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -368,12 +368,12 @@ const SubscriptionsPage = () => {
                     variants={itemVariants}
                     className="hover:bg-surface-variant/30 transition-colors group cursor-pointer"
                   >
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <span className="font-mono text-micro font-black text-muted bg-surface-variant px-2.5 py-1.5 rounded-xl border border-border shadow-sm">
                         {invoice.id}
                       </span>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xs group-hover:scale-110 transition-all duration-300 shadow-sm border border-primary/10">
                           {invoice.company.substring(0, 2)}
@@ -381,7 +381,7 @@ const SubscriptionsPage = () => {
                         <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors">{invoice.company}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <span className={cn(
                         "text-micro font-black px-3 py-1 rounded-xl uppercase tracking-widest border",
                         invoice.plan === 'Enterprise' ? "bg-secondary text-white border-secondary" :
@@ -390,8 +390,8 @@ const SubscriptionsPage = () => {
                         {invoice.plan}
                       </span>
                     </td>
-                    <td className="px-8 py-6 font-black text-text-primary tracking-tight tabular-nums">{invoice.amount}</td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 font-black text-text-primary tracking-tight tabular-nums">{invoice.amount}</td>
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <span className={cn(
                         "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 border shadow-sm",
                         invoice.status === 'Paid' ? "bg-success/10 text-success border-success/10" : 
@@ -405,7 +405,7 @@ const SubscriptionsPage = () => {
                         {invoice.status}
                       </span>
                     </td>
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                       <button className="p-2.5 hover:bg-surface-variant rounded-xl transition-all border border-transparent hover:border-border shadow-sm">
                         <ArrowRight size={20} className="text-muted group-hover:text-primary transition-colors" />
                       </button>

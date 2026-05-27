@@ -185,6 +185,22 @@
     @apply flex flex-col h-full py-3 sm:py-4;
   }
 
+  .glass-card-pad {
+    @apply p-4 sm:p-6 md:p-8 lg:p-10;
+  }
+
+  .table-th {
+    @apply px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider;
+  }
+
+  .table-td {
+    @apply px-4 sm:px-6 md:px-8 py-4 sm:py-5;
+  }
+
+  .page-toolbar {
+    @apply flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4;
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-light to-primary;
   }

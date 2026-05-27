@@ -274,7 +274,7 @@ export default function UserRightsControl({
         <div
           className={cn(
             'grid gap-2 p-2 rounded-[20px] bg-surface-variant/80 max-w-xl',
-            roleOptions.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+            roleOptions.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
           )}
         >
           {roleOptions.map((roleId) => {

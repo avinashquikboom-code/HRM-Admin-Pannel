@@ -366,11 +366,11 @@ const AttendancePage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Employee</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Company</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Log Time</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Method</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border text-right">Status</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Employee</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Company</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Log Time</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Method</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -386,7 +386,7 @@ const AttendancePage = () => {
                     variants={itemVariants}
                     className="hover:bg-surface-variant/30 transition-all group cursor-pointer"
                   >
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-surface-variant border border-border flex items-center justify-center font-bold text-xs text-text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
                           {avatar}
@@ -397,22 +397,22 @@ const AttendancePage = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <span className="text-sm font-bold text-text-secondary uppercase tracking-tight">{record.office?.name ?? 'Unassigned'}</span>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-2 text-sm text-text-primary font-black tabular-nums">
                         <Clock size={16} className="text-primary" />
                         {formatCheckInTime(record.checkIn)}
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-2 text-xs font-bold text-text-secondary uppercase tracking-widest">
                         <MapPin size={14} className="text-muted" />
                         {record.status === 'REMOTE' ? 'Remote' : 'Office'}
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                       <span className={cn(
                         "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
                         statusLabel === 'On-time' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
@@ -426,7 +426,7 @@ const AttendancePage = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-8 py-10 text-center text-sm font-medium text-text-secondary">
+                    <td colSpan={5} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
                       No attendance records for today yet.
                     </td>
                   </tr>

@@ -479,13 +479,13 @@ const DashboardPage = () => {
 
       {/* Calendar Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div variants={itemVariants} className="lg:col-span-3 glass-card p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+        <motion.div variants={itemVariants} className="lg:col-span-3 glass-card p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-8 mb-6 sm:mb-10">
             <div>
               <h3 className="heading-2">Platform Calendar</h3>
               <p className="text-sm text-page-desc mt-1">Upcoming disbursements & audits</p>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-primary" />
                 <span className="text-xs font-bold text-text-secondary">Payroll Run</span>
@@ -497,19 +497,19 @@ const DashboardPage = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 sm:gap-10">
             <div className="xl:col-span-3">
-              <div className="grid grid-cols-7 gap-4 mb-6">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-4 mb-4 sm:mb-6">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                  <span key={d} className="text-micro font-black text-muted text-center uppercase tracking-[0.2em]">{d}</span>
+                  <span key={d} className="text-[9px] sm:text-micro font-black text-muted text-center uppercase tracking-[0.1em] sm:tracking-[0.2em]">{d}</span>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-4">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-4">
                 {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
                   <div 
                     key={d} 
                     className={cn(
-                      "aspect-square flex flex-col items-center justify-center rounded-3xl text-sm font-bold transition-all cursor-pointer border border-transparent hover:border-primary/20 hover:bg-primary/5",
+                      "aspect-square flex flex-col items-center justify-center rounded-xl sm:rounded-2xl md:rounded-3xl text-xs sm:text-sm font-bold transition-all cursor-pointer border border-transparent hover:border-primary/20 hover:bg-primary/5",
                       d === new Date().getDate() ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-text-primary",
                       [1, 15, 28].includes(d) && d !== new Date().getDate() && "relative after:absolute after:bottom-2 after:w-1.5 after:h-1.5 after:bg-accent after:rounded-full"
                     )}
@@ -520,7 +520,7 @@ const DashboardPage = () => {
               </div>
             </div>
             
-            <div className="space-y-6 border-l border-border pl-10">
+            <div className="space-y-6 border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pt-0 xl:pl-6 2xl:pl-10">
               <h4 className="text-xs font-black text-text-secondary uppercase tracking-widest">Upcoming tomorrow</h4>
               {[
                 { title: 'TechVibe Payroll', amount: '₹382,500', time: '09:00 AM', icon: Wallet, color: 'primary' },

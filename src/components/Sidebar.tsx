@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { toggleSidebar } from '../store/slices/sidebarSlice';
+import { toggleSidebar, setSidebarOpen } from '../store/slices/sidebarSlice';
 import { logout } from '../store/slices/authSlice';
 import SignOutModal from './SignOutModal';
 import {
@@ -29,6 +29,7 @@ import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getLoginPathForPortal } from '@/lib/portals';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -62,14 +63,17 @@ function NavItem({
   item,
   isActive,
   isOpen,
+  onNavigate,
 }: {
   item: MenuItem;
   isActive: boolean;
   isOpen: boolean;
+  onNavigate?: () => void;
 }) {
   return (
     <Link
       href={item.path}
+      onClick={onNavigate}
       className={cn(
         'sidebar-nav-item group',
         !isOpen && 'sidebar-nav-item-collapsed',
@@ -103,16 +107,11 @@ const Sidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const closeMobileSidebar = () => {
+    if (isMobile) dispatch(setSidebarOpen(false));
+  };
 
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
@@ -161,6 +160,7 @@ const Sidebar = () => {
               item={item}
               isActive={pathname === item.path}
               isOpen={isOpen}
+              onNavigate={closeMobileSidebar}
             />
           ))}
         </nav>
@@ -172,6 +172,7 @@ const Sidebar = () => {
               item={item}
               isActive={pathname === item.path}
               isOpen={isOpen}
+              onNavigate={closeMobileSidebar}
             />
           ))}
         </div>
@@ -181,7 +182,7 @@ const Sidebar = () => {
             type="button"
             onClick={() => dispatch(toggleSidebar())}
             className={cn(
-              'sidebar-nav-item text-text-secondary hover:bg-surface-variant',
+              'sidebar-nav-item text-text-secondary hover:bg-surface-variant hidden md:flex',
               !isOpen && 'sidebar-nav-item-collapsed'
             )}
           >

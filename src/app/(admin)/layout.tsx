@@ -3,6 +3,7 @@
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import LoginLocationBanner from '@/components/LoginLocationBanner';
+import SidebarResponsiveInit from '@/components/SidebarResponsiveInit';
 import { usePathname } from 'next/navigation';
 
 export default function AdminRouteLayout({ children }: { children: React.ReactNode }) {
@@ -10,11 +11,12 @@ export default function AdminRouteLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <SidebarResponsiveInit />
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         {/* Header */}
         <Header portal="platform_admin" />
 

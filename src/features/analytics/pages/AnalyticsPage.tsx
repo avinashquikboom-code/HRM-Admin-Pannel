@@ -124,7 +124,7 @@ const AnalyticsPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Employee Trend */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 glass-card p-10 group relative overflow-hidden">
+        <motion.div variants={itemVariants} className="lg:col-span-2 glass-card p-6 sm:p-8 md:p-10 group relative overflow-hidden">
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
           
           <div className="flex items-center justify-between mb-10 relative z-10">
@@ -177,7 +177,7 @@ const AnalyticsPage = () => {
         </motion.div>
 
         {/* Workforce Health - Pie Chart */}
-        <motion.div variants={itemVariants} className="glass-card p-10 flex flex-col">
+        <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 flex flex-col">
           <h3 className="text-xl font-black text-text-primary tracking-tight mb-2">Workforce Lifecycle</h3>
           <p className="text-xs text-text-secondary font-medium mb-10">Employee health & state distribution</p>
           
@@ -217,7 +217,7 @@ const AnalyticsPage = () => {
         </motion.div>
 
         {/* Industry Distribution */}
-        <motion.div variants={itemVariants} className="lg:col-span-3 glass-card p-10">
+        <motion.div variants={itemVariants} className="lg:col-span-3 glass-card p-6 sm:p-8 md:p-10">
           <div className="flex items-center justify-between mb-12">
             <div>
               <h3 className="heading-2">Enterprise Scaling</h3>
@@ -244,7 +244,7 @@ const AnalyticsPage = () => {
         </motion.div>
       </div>
 
-      <motion.div variants={itemVariants} className="glass-card p-10 bg-gradient-to-br from-primary to-primary-dark text-white border-none overflow-hidden relative group">
+      <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 bg-gradient-to-br from-primary to-primary-dark text-white border-none overflow-hidden relative group">
         <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-white/10 rounded-full blur-[120px] group-hover:bg-white/20 transition-all duration-700" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">

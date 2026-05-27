@@ -90,14 +90,14 @@ const EmployeesPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-10"
+      className="space-y-6 sm:space-y-8 pb-10"
     >
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-1">Global Employee Directory</h1>
           <p className="text-page-desc mt-1">Monitor and manage all employees across the platform ecosystem.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => refetch()}
@@ -106,7 +106,7 @@ const EmployeesPage = () => {
           >
             <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
           </button>
-          <Link href="/users/register" className="btn-primary shadow-lg shadow-primary/20">
+          <Link href="/users/register" className="btn-primary shadow-lg shadow-primary/20 w-full sm:w-auto justify-center">
             <UserPlus size={20} />
             Register User
           </Link>
@@ -170,17 +170,79 @@ const EmployeesPage = () => {
           <TableSkeleton rows={5} columns={6} />
         </div>
       ) : (
-        <motion.div variants={itemVariants} className="glass-card overflow-hidden">
+        <>
+        {/* Mobile card list */}
+        <motion.div variants={itemVariants} className="md:hidden space-y-3">
+          {filteredEmployees.length > 0 ? (
+            filteredEmployees.map((employee) => {
+              const fullName = `${employee.firstName} ${employee.lastName}`;
+              const initials = `${employee.firstName[0] ?? ''}${employee.lastName[0] ?? ''}`.toUpperCase();
+              const statusLabel = formatStatus(employee.status);
+
+              return (
+                <div key={employee.id} className="glass-card p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10 shrink-0">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-text-primary truncate">{fullName}</p>
+                        <p className="text-xs text-text-secondary truncate mt-0.5">
+                          {employee.user?.email ?? employee.employeeCode}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="p-2 hover:bg-surface-variant rounded-xl text-text-secondary shrink-0">
+                      <MoreVertical size={18} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-surface-variant/60 rounded-xl p-2.5">
+                      <p className="text-muted uppercase tracking-wide text-[10px] font-bold">Office</p>
+                      <p className="font-semibold text-text-primary mt-1 truncate">{employee.office?.name ?? 'Unassigned'}</p>
+                    </div>
+                    <div className="bg-surface-variant/60 rounded-xl p-2.5">
+                      <p className="text-muted uppercase tracking-wide text-[10px] font-bold">Role</p>
+                      <p className="font-semibold text-text-primary mt-1 truncate">{employee.designation ?? '—'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-text-secondary truncate">{employee.department?.name ?? 'No department'}</span>
+                    <span className={cn(
+                      "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shrink-0",
+                      statusLabel === 'Active' ? 'bg-success/10 text-success' :
+                      statusLabel === 'On Leave' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'
+                    )}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="glass-card p-8 text-center text-sm font-medium text-text-secondary">
+              No employees found.
+            </div>
+          )}
+          <div className="p-4 bg-surface-variant/50 rounded-2xl border border-border text-sm text-text-secondary font-medium text-center">
+            Showing <span className="text-text-primary font-bold">{filteredEmployees.length}</span> of{' '}
+            <span className="text-text-primary font-bold">{employees.length}</span> employees
+          </div>
+        </motion.div>
+
+        {/* Desktop table */}
+        <motion.div variants={itemVariants} className="glass-card overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50 border-b border-border">
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Employee</th>
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Office</th>
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Department</th>
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Employee</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Office</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Department</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -196,7 +258,7 @@ const EmployeesPage = () => {
                         variants={itemVariants}
                         className="hover:bg-surface-variant transition-colors group cursor-pointer"
                       >
-                        <td className="px-8 py-5">
+                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10 shadow-sm group-hover:scale-110 transition-transform">
                               {initials}
@@ -210,7 +272,7 @@ const EmployeesPage = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                           <div className="flex items-center gap-2">
                             <Building2 size={16} className="text-muted" />
                             <span className="text-sm font-semibold text-text-secondary group-hover:text-text-primary transition-colors">
@@ -218,13 +280,13 @@ const EmployeesPage = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                           <span className="text-sm font-medium text-text-secondary">{employee.designation ?? '—'}</span>
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                           <span className="text-sm font-medium text-text-secondary">{employee.department?.name ?? '—'}</span>
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                           <span className={cn(
                             "px-4 py-1.5 rounded-full text-micro font-bold uppercase tracking-widest inline-flex items-center gap-2",
                             statusLabel === 'Active' ? 'bg-success/10 text-success' : 
@@ -233,7 +295,7 @@ const EmployeesPage = () => {
                             {statusLabel}
                           </span>
                         </td>
-                        <td className="px-8 py-5 text-right">
+                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-right">
                           <button className="p-2.5 hover:bg-surface rounded-xl text-text-secondary hover:text-primary transition-all duration-300 shadow-sm border border-transparent hover:border-border">
                             <MoreVertical size={18} />
                           </button>
@@ -243,7 +305,7 @@ const EmployeesPage = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-8 py-10 text-center text-sm font-medium text-text-secondary">
+                    <td colSpan={6} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
                       No employees found.
                     </td>
                   </tr>
@@ -251,13 +313,14 @@ const EmployeesPage = () => {
               </tbody>
             </table>
           </div>
-          <div className="p-6 bg-surface-variant/50 flex items-center justify-between border-t border-border">
+          <div className="p-4 sm:p-6 bg-surface-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border">
             <p className="text-sm text-text-secondary font-medium">
               Showing <span className="text-text-primary font-bold">{filteredEmployees.length}</span> of{' '}
               <span className="text-text-primary font-bold">{employees.length}</span> employees
             </p>
           </div>
         </motion.div>
+        </>
       )}
     </motion.div>
   );

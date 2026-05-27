@@ -266,12 +266,12 @@ const CompaniesPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/50">
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Entity Details</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Operational Scale</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Subscription Tier</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Status</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border">Engagement</th>
-                  <th className="px-8 py-5 text-label text-muted border-b border-border text-right">Controls</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Entity Details</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Operational Scale</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Subscription Tier</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Status</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Engagement</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-right">Controls</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -281,7 +281,7 @@ const CompaniesPage = () => {
                     variants={itemVariants}
                     className="hover:bg-surface-variant transition-colors group cursor-pointer"
                   >
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-all duration-300 shadow-sm border border-primary/10">
                           {company.name.substring(0, 1)}
@@ -297,13 +297,13 @@ const CompaniesPage = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-text-primary">{company.employees.toLocaleString()}</span>
                         <span className="text-micro font-bold text-text-secondary uppercase tracking-tight">Active Seats</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <span className={cn(
                         "px-4 py-1.5 rounded-xl text-label transition-all",
                         company.plan === 'Enterprise' ? "bg-secondary text-white shadow-lg shadow-secondary/20" : 
@@ -312,7 +312,7 @@ const CompaniesPage = () => {
                         {company.plan}
                       </span>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-2">
                         <div className={cn(
                           "w-2 h-2 rounded-full",
@@ -326,13 +326,13 @@ const CompaniesPage = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
                         <Calendar size={14} className="text-muted" />
                         {company.joiningDate}
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                         <button className="p-2.5 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-xl transition-all shadow-sm">
                           <Globe size={18} />

@@ -164,7 +164,7 @@ const ProfilePage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Details */}
         <div className="lg:col-span-2 space-y-8">
-          <motion.div variants={itemVariants} className="glass-card p-10 relative overflow-hidden group">
+          <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
               <UserIcon size={120} className="text-primary" />
             </div>
@@ -207,14 +207,14 @@ const ProfilePage = () => {
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="glass-card p-10">
+          <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10">
             <h3 className="text-xl font-black text-text-primary uppercase tracking-tight mb-6">Strategic Profile</h3>
             <p className="text-base text-text-secondary leading-relaxed font-medium">
               {user?.bio || profile?.bio}
             </p>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="glass-card p-10 space-y-8">
+          <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 space-y-8">
             <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">Security Protocols</h3>
             <div className="grid grid-cols-1 gap-4">
               {[

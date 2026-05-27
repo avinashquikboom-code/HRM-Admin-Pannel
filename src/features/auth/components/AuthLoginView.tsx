@@ -195,7 +195,7 @@ export default function AuthLoginView({
               />
             </div>
 
-            <div className="flex items-center justify-between ml-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 ml-1">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"

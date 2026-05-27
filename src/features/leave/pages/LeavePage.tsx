@@ -283,12 +283,12 @@ const LeavePage = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-surface-variant/50 border-b border-border">
-                    <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Requester</th>
-                    <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Type</th>
-                    <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-widest text-center">Period</th>
-                    <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Reason</th>
-                    <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Status</th>
-                    <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-widest text-right">Actions</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Requester</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Type</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-widest text-center">Period</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Reason</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-widest">Status</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-widest text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -302,21 +302,21 @@ const LeavePage = () => {
                         key={req.id}
                         className="hover:bg-surface-variant/30 transition-colors group cursor-default"
                       >
-                        <td className="px-8 py-6">
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                           <span className="font-black text-text-primary group-hover:text-primary transition-colors tracking-tight">
                             {req.employeeName}
                           </span>
                         </td>
-                        <td className="px-8 py-6">
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                           <span className="text-xs font-bold text-text-secondary">{req.type}</span>
                         </td>
-                        <td className="px-8 py-6 text-center">
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-center">
                           <span className="font-mono text-xs font-black text-muted bg-surface-variant px-2.5 py-1.5 rounded-xl border border-border shadow-sm">
                             {req.startDate} to {req.endDate}
                           </span>
                         </td>
-                        <td className="px-8 py-6 font-medium text-text-secondary max-w-xs truncate">{req.reason}</td>
-                        <td className="px-8 py-6">
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 font-medium text-text-secondary max-w-xs truncate">{req.reason}</td>
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                           <span className={cn(
                             "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 border shadow-sm",
                             req.status === 'Approved' ? "bg-success/10 text-success border-success/10" : 
@@ -330,7 +330,7 @@ const LeavePage = () => {
                             {req.status}
                           </span>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                           {req.status === 'Pending' ? (
                             <div className="flex items-center justify-end gap-2">
                               <button 

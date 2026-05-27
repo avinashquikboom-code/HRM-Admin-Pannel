@@ -15,7 +15,7 @@ const TableSkeleton = ({ rows = 5, columns = 6 }: TableSkeletonProps) => {
             <thead>
               <tr className="bg-surface-variant/50 border-b border-border/50">
                 {Array.from({ length: columns }).map((_, i) => (
-                  <th key={i} className="px-6 py-5">
+                  <th key={i} className="px-4 sm:px-6 py-4 sm:py-5">
                     <div className="h-4 bg-surface-variant rounded-lg w-24"></div>
                   </th>
                 ))}
@@ -25,7 +25,7 @@ const TableSkeleton = ({ rows = 5, columns = 6 }: TableSkeletonProps) => {
               {Array.from({ length: rows }).map((_, rowIndex) => (
                 <tr key={rowIndex} className="bg-transparent">
                   {Array.from({ length: columns }).map((_, colIndex) => (
-                    <td key={colIndex} className="px-6 py-5">
+                    <td key={colIndex} className="px-4 sm:px-6 py-4 sm:py-5">
                       {colIndex === 0 ? (
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-surface-variant"></div>

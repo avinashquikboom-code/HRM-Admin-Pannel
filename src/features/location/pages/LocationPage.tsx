@@ -651,7 +651,7 @@ export default function LocationPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-border/50">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 pt-5 border-t border-border/50">
                   <div>
                     <p className="text-label text-muted">Employees</p>
                     <p className="text-sm font-bold text-text-primary mt-1">{office._count.employees}</p>
@@ -1161,7 +1161,7 @@ export default function LocationPage() {
                   <span className="text-label font-bold text-text-secondary tracking-wider">Simulation Walk Speed multiplier</span>
                   <span className="font-mono font-black text-accent">{radarSpeed}x Speed</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     { label: 'Slow (0.5x)', value: 0.5 },
                     { label: 'Normal (1x)', value: 1 },

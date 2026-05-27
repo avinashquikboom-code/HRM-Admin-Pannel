@@ -263,12 +263,12 @@ const HRManagementPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/30">
-                  <th className="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Admin Name</th>
-                  <th className="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Company</th>
-                  <th className="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">System Role</th>
-                  <th className="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Last Login</th>
-                  <th className="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Status</th>
-                  <th className="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50 text-right">Actions</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Admin Name</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Company</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">System Role</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Last Login</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50">Status</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold uppercase tracking-wider text-text-secondary border-b border-border/50 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
@@ -278,7 +278,7 @@ const HRManagementPage = () => {
                     variants={itemVariants}
                     className="hover:bg-surface-variant/30 transition-colors group cursor-pointer"
                   >
-                    <td className="px-8 py-5">
+                    <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-surface-variant to-border flex items-center justify-center font-bold text-muted group-hover:scale-110 transition-transform shadow-sm">
                           {hr.name.charAt(0)}
@@ -286,23 +286,23 @@ const HRManagementPage = () => {
                         <span className="font-semibold text-text-primary group-hover:text-primary transition-colors">{hr.name}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">{hr.company}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                       <span className="px-3 py-1.5 bg-surface-variant rounded-xl text-xs font-semibold text-text-primary border border-border/50">
                         {hr.role}
                       </span>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                       <div className="flex items-center gap-2 text-sm text-text-secondary font-medium">
                         <Clock size={14} className="text-muted" />
                         {hr.lastLogin}
                       </div>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                       <span className={cn(
                         "px-4 py-1.5 rounded-full text-micro font-bold uppercase tracking-widest inline-flex items-center gap-2",
                         hr.status === 'Online' ? "bg-success/10 text-success" : "bg-surface-variant text-text-secondary"
@@ -311,7 +311,7 @@ const HRManagementPage = () => {
                         {hr.status}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-right">
                       <button className="p-2.5 hover:bg-surface rounded-xl text-text-secondary hover:text-primary transition-all duration-300 shadow-sm border border-transparent hover:border-border">
                         <MoreVertical size={18} />
                       </button>

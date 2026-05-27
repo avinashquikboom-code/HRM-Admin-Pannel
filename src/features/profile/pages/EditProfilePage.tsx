@@ -212,7 +212,7 @@ const EditProfilePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Avatar & Quick Info */}
           <motion.div variants={itemVariants} className="space-y-8">
-            <div className="glass-card p-10 flex flex-col items-center text-center relative overflow-hidden">
+            <div className="glass-card p-6 sm:p-8 md:p-10 flex flex-col items-center text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
               
               <div className="relative group mb-6">
@@ -314,7 +314,7 @@ const EditProfilePage = () => {
 
           {/* Right Column: Form Fields */}
           <motion.div variants={itemVariants} className="lg:col-span-2 space-y-8">
-            <div className="glass-card p-10 space-y-10">
+            <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10">
               <div className="flex items-center gap-4 border-b border-border/50 pb-6">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                   <Info size={24} />

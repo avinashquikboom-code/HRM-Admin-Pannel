@@ -18,7 +18,6 @@ const Modal: React.FC<ModalProps> = ({
   children, 
   maxWidth = 'max-w-2xl' 
 }) => {
-  // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -33,8 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -43,29 +41,27 @@ const Modal: React.FC<ModalProps> = ({
             className="absolute inset-0 bg-secondary/40 backdrop-blur-sm"
           />
 
-          {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className={cn(
-              "relative w-full bg-surface rounded-[32px] shadow-2xl border border-border overflow-hidden",
+              'relative w-full bg-surface rounded-t-[28px] sm:rounded-[32px] shadow-2xl border border-border overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col',
               maxWidth
             )}
           >
-            {/* Header */}
-            <div className="px-8 py-6 border-b border-border/50 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-text-primary">{title}</h3>
+            <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 border-b border-border/50 flex items-center justify-between gap-4 shrink-0">
+              <h3 className="text-lg sm:text-xl font-bold text-text-primary">{title}</h3>
               <button 
                 onClick={onClose}
-                className="p-2 hover:bg-surface-variant rounded-xl transition-colors text-muted hover:text-text-primary"
+                className="p-2 hover:bg-surface-variant rounded-xl transition-colors text-muted hover:text-text-primary shrink-0"
+                aria-label="Close modal"
               >
                 <X size={24} />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="px-8 py-8 max-h-[70vh] overflow-y-auto no-scrollbar">
+            <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 overflow-y-auto no-scrollbar flex-1">
               {children}
             </div>
           </motion.div>
