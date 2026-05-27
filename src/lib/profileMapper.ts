@@ -67,7 +67,7 @@ export function mapApiProfileResponse(
   return {
     id: apiUser.id,
     email: apiUser.email,
-    role: apiUser.role,
+    role: apiUser.role.toUpperCase(),
     name: mappedProfile.fullName || fallbackName,
     phone: mappedProfile.phone,
     bio: mappedProfile.bio,

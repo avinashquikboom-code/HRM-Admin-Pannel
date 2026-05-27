@@ -48,7 +48,7 @@ function mapLoginUser(apiUser: LoginApiUser): User {
   return {
     id: apiUser.id,
     email: apiUser.email,
-    role: apiUser.role,
+    role: apiUser.role.toUpperCase(),
     name: fallbackName,
     avatar: '/favicon.svg',
   };
