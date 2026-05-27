@@ -22,9 +22,9 @@ export function useEmployees() {
     setError('');
 
     try {
-      const data = await fetchEmployees();
-      setEmployees(data);
-      return data;
+      const response = await fetchEmployees();
+      setEmployees(response.employees);
+      return response.employees;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to load employees';

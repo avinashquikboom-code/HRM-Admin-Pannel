@@ -37,8 +37,9 @@ export interface AdminEmployee {
   department: AdminEmployeeDepartment | null;
 }
 
-interface EmployeesResponse {
+export interface EmployeesResponse {
   count: number;
+  registeredCount: number;
   employees: AdminEmployee[];
 }
 
@@ -56,14 +57,14 @@ interface AssignEmployeeResponse {
   employee: AssignedEmployeeResult;
 }
 
-export async function fetchEmployees(): Promise<AdminEmployee[]> {
+export async function fetchEmployees(): Promise<EmployeesResponse> {
   if (isDevAuthSession()) {
-    return [];
+    return { count: 0, registeredCount: 0, employees: [] };
   }
 
   try {
     const { data } = await api.get<EmployeesResponse>('/api/admin/employees');
-    return data.employees;
+    return data;
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load employees. Please try again.')
