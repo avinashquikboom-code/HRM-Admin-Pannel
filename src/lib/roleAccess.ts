@@ -1,4 +1,5 @@
 import type { PortalType } from '@/lib/portals';
+import { isEmployeePath } from '@/lib/portals';
 
 export type AppRole = 'ADMIN' | 'HR' | 'EMPLOYEE';
 
@@ -223,11 +224,11 @@ export function canAccessPath(portal: PortalType, pathname: string): boolean {
   }
 
   if (portal === 'employee') {
-    return pathname === '/employee' || pathname.startsWith('/employee/');
+    return isEmployeePath(pathname);
   }
 
   if (portal === 'platform_admin') {
-    if (pathname.startsWith('/super-admin') || pathname.startsWith('/employee')) {
+    if (pathname.startsWith('/super-admin') || isEmployeePath(pathname)) {
       return false;
     }
     return true;
