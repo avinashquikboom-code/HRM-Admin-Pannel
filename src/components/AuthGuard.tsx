@@ -3,11 +3,13 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { hydrateAuth } from '@/store/slices/authSlice';
 import { getAuthSession } from '@/lib/authStorage';
+import { canAccessPath } from '@/lib/roleAccess';
 import {
   getHomePathForPortal,
   getLoginPathForPortal,
   isPublicPath,
   isSuperAdminPath,
+  isEmployeePath,
   type PortalType,
 } from '@/lib/portals';
 import { useRouter, usePathname } from 'next/navigation';
@@ -40,11 +42,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [dispatch]);
 
   const session = getAuthSession();
-  const isLoggedIn = Boolean(
-    isAuthenticated || token || session?.token
-  );
-  const activePortal: PortalType | null =
-    session?.portal ?? portal ?? null;
+  const isLoggedIn = Boolean(isAuthenticated || token || session?.token);
+  const activePortal: PortalType | null = session?.portal ?? portal ?? null;
   const publicPath = isPublicPath(pathname);
 
   useEffect(() => {
@@ -52,11 +51,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     if (!isLoggedIn) {
       if (!publicPath) {
-        router.replace(
-          isSuperAdminPath(pathname)
-            ? getLoginPathForPortal('super_admin')
-            : getLoginPathForPortal('platform_admin')
-        );
+        let loginPortal: PortalType = 'platform_admin';
+        if (isSuperAdminPath(pathname)) loginPortal = 'super_admin';
+        if (isEmployeePath(pathname)) loginPortal = 'employee';
+        router.replace(getLoginPathForPortal(loginPortal));
       }
       return;
     }
@@ -70,12 +68,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (activePortal === 'super_admin' && !isSuperAdminPath(pathname)) {
-      router.replace(homePath);
-      return;
-    }
-
-    if (activePortal === 'platform_admin' && isSuperAdminPath(pathname)) {
+    if (!canAccessPath(activePortal, pathname)) {
       router.replace(homePath);
     }
   }, [activePortal, isLoggedIn, isReady, pathname, publicPath, router]);
@@ -89,6 +82,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (isLoggedIn && publicPath) {
+    return <AuthLoader />;
+  }
+
+  if (isLoggedIn && activePortal && !canAccessPath(activePortal, pathname)) {
     return <AuthLoader />;
   }
 

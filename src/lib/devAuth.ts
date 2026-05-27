@@ -4,18 +4,19 @@ import type { PortalType } from '@/lib/portals';
 /** Super Admin portal — offline demo */
 export const SUPER_ADMIN_DEV_EMAIL = 'superadmin@hrm.com';
 export const SUPER_ADMIN_DEV_PASSWORD = '123456';
-/** Also accepts legacy admin email on super-admin login */
 export const LEGACY_SUPER_ADMIN_DEV_EMAIL = 'admin@hrm.com';
 
-/** Platform Admin portal — offline demo */
+/** Admin (HR) portal — offline demo */
 export const DEFAULT_PLATFORM_DEV_EMAIL = 'hr@quickboom.com';
 export const DEFAULT_PLATFORM_DEV_PASSWORD = '123456';
 
-/** @deprecated use SUPER_ADMIN_DEV_EMAIL */
-export const DEFAULT_DEV_EMAIL = SUPER_ADMIN_DEV_EMAIL;
-export const DEFAULT_DEV_PASSWORD = SUPER_ADMIN_DEV_PASSWORD;
+/** Employee portal — offline demo */
+export const EMPLOYEE_DEV_EMAIL = 'employee@quickboom.com';
+export const EMPLOYEE_DEV_PASSWORD = '123456';
+
 export const DEV_AUTH_TOKEN = 'dev-local-auth-token';
 export const DEV_PLATFORM_AUTH_TOKEN = 'dev-platform-auth-token';
+export const DEV_EMPLOYEE_AUTH_TOKEN = 'dev-employee-auth-token';
 
 export function matchesSuperAdminDevCredentials(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
@@ -26,15 +27,17 @@ export function matchesSuperAdminDevCredentials(email: string, password: string)
   );
 }
 
-/** @deprecated use matchesSuperAdminDevCredentials */
-export function matchesDevCredentials(email: string, password: string) {
-  return matchesSuperAdminDevCredentials(email, password);
-}
-
 export function matchesPlatformDevCredentials(email: string, password: string) {
   return (
     email.trim().toLowerCase() === DEFAULT_PLATFORM_DEV_EMAIL &&
     password === DEFAULT_PLATFORM_DEV_PASSWORD
+  );
+}
+
+export function matchesEmployeeDevCredentials(email: string, password: string) {
+  return (
+    email.trim().toLowerCase() === EMPLOYEE_DEV_EMAIL &&
+    password === EMPLOYEE_DEV_PASSWORD
   );
 }
 
@@ -47,7 +50,8 @@ export function isDevAuthSession(): boolean {
     const session = JSON.parse(raw) as { token?: string };
     return (
       session.token === DEV_AUTH_TOKEN ||
-      session.token === DEV_PLATFORM_AUTH_TOKEN
+      session.token === DEV_PLATFORM_AUTH_TOKEN ||
+      session.token === DEV_EMPLOYEE_AUTH_TOKEN
     );
   } catch {
     return false;
@@ -85,25 +89,63 @@ export function createDevAuthSession(portal: PortalType): {
   user: User;
   portal: PortalType;
 } {
-  const isSuperAdmin = portal === 'super_admin';
+  if (portal === 'super_admin') {
+    return {
+      token: DEV_AUTH_TOKEN,
+      portal,
+      user: {
+        id: 1,
+        name: 'Super Admin',
+        email: SUPER_ADMIN_DEV_EMAIL,
+        role: 'ADMIN',
+        avatar: '/favicon.svg',
+        phone: '',
+        bio: 'Offline demo super administrator',
+        profile: createBaseProfile(
+          SUPER_ADMIN_DEV_EMAIL,
+          'Super Admin',
+          'Super Admin'
+        ),
+      },
+    };
+  }
+
+  if (portal === 'employee') {
+    return {
+      token: DEV_EMPLOYEE_AUTH_TOKEN,
+      portal,
+      user: {
+        id: 3,
+        name: 'Rahul Verma',
+        email: EMPLOYEE_DEV_EMAIL,
+        role: 'EMPLOYEE',
+        avatar: '/favicon.svg',
+        phone: '',
+        bio: 'Offline demo employee',
+        profile: createBaseProfile(
+          EMPLOYEE_DEV_EMAIL,
+          'Rahul Verma',
+          'Employee'
+        ),
+      },
+    };
+  }
 
   return {
-    token: isSuperAdmin ? DEV_AUTH_TOKEN : DEV_PLATFORM_AUTH_TOKEN,
-    portal,
+    token: DEV_PLATFORM_AUTH_TOKEN,
+    portal: 'platform_admin',
     user: {
-      id: 1,
-      name: isSuperAdmin ? 'Super Admin' : 'HR Admin',
-      email: isSuperAdmin ? SUPER_ADMIN_DEV_EMAIL : DEFAULT_PLATFORM_DEV_EMAIL,
-      role: isSuperAdmin ? 'ADMIN' : 'HR',
+      id: 2,
+      name: 'HR Admin',
+      email: DEFAULT_PLATFORM_DEV_EMAIL,
+      role: 'HR',
       avatar: '/favicon.svg',
       phone: '',
-      bio: isSuperAdmin
-        ? 'Offline demo super administrator'
-        : 'Offline demo platform administrator',
+      bio: 'Offline demo platform administrator',
       profile: createBaseProfile(
-        isSuperAdmin ? SUPER_ADMIN_DEV_EMAIL : DEFAULT_PLATFORM_DEV_EMAIL,
-        isSuperAdmin ? 'Super Admin' : 'HR Admin',
-        isSuperAdmin ? 'Super Admin' : 'HR Manager'
+        DEFAULT_PLATFORM_DEV_EMAIL,
+        'HR Admin',
+        'HR Manager'
       ),
     },
   };

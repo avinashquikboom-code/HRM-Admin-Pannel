@@ -27,13 +27,12 @@ import {
   Network,
   UserPlus,
   Users,
-  ShieldCheck,
   Search,
-  MoreVertical,
-  ArrowRight
+  MoreVertical
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import UserRightsControl from '@/components/UserRightsControl';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -64,7 +63,7 @@ const SettingsPage = () => {
 
   const tabs = [
     { name: 'General', icon: SettingsIcon, desc: 'Ecosystem metadata & routing' },
-    { name: 'Access Control', icon: Users, desc: 'Admin invitations & permissions' },
+    { name: 'Access Control', icon: Users, desc: 'User rights & role permissions' },
     { name: 'Security', icon: Shield, desc: 'Hardened access protocols' },
     { name: 'Notifications', icon: Bell, desc: 'Signal & alert orchestration' },
     { name: 'API & Gateway', icon: Key, desc: 'Neural endpoint management' },
@@ -184,26 +183,10 @@ const SettingsPage = () => {
             </div>
 
             <div className="glass-card p-10 space-y-8">
-              <h4 className="text-micro font-black text-text-secondary uppercase tracking-[0.3em]">Access Granularity Policies</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                  { title: 'ReadOnly Auditor', desc: 'Can view all modules but cannot modify any system state.', icon: Eye },
-                  { title: 'Module Governor', desc: 'Full control over specific modules (Payroll, HR, etc.) only.', icon: ShieldCheck },
-                ].map((policy) => (
-                  <div key={policy.title} className="p-6 rounded-[28px] bg-surface-variant/30 border border-border/50 group hover:border-primary/20 transition-all">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="p-3 bg-white dark:bg-surface rounded-xl border border-border group-hover:text-primary transition-colors">
-                        <policy.icon size={20} />
-                      </div>
-                      <h5 className="text-sm font-black text-text-primary uppercase tracking-tight">{policy.title}</h5>
-                    </div>
-                    <p className="text-xs text-text-secondary leading-relaxed font-medium">{policy.desc}</p>
-                    <button className="mt-6 text-label text-primary flex items-center gap-2 hover:translate-x-1 transition-all">
-                      Configure Permissions <ArrowRight size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <UserRightsControl
+                title="User Rights Control"
+                description="Select a role to see which modules they can access. Super Admin sees what Admin and Employee see; Admin sees Employee access."
+              />
             </div>
           </motion.div>
         );

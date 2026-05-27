@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getAuthSession, getAuthToken } from '@/lib/authStorage';
-import { DEV_AUTH_TOKEN, DEV_PLATFORM_AUTH_TOKEN, isDevAuthSession } from '@/lib/devAuth';
+import { DEV_AUTH_TOKEN, DEV_EMPLOYEE_AUTH_TOKEN, DEV_PLATFORM_AUTH_TOKEN, isDevAuthSession } from '@/lib/devAuth';
 import { getLoginPathForPortal } from '@/lib/portals';
 import { store } from '@/store';
 import { logout } from '@/store/slices/authSlice';
@@ -28,14 +28,22 @@ api.interceptors.request.use((config) => {
 
   if (
     (isRegister || isAdminRoute) &&
-    (!token || token === DEV_AUTH_TOKEN || token === DEV_PLATFORM_AUTH_TOKEN)
+    (!token ||
+      token === DEV_AUTH_TOKEN ||
+      token === DEV_PLATFORM_AUTH_TOKEN ||
+      token === DEV_EMPLOYEE_AUTH_TOKEN)
   ) {
     return Promise.reject(
       new axios.CanceledError('Admin token required (hrm_auth / hrm_token cookie)')
     );
   }
 
-  if (token && token !== DEV_AUTH_TOKEN && token !== DEV_PLATFORM_AUTH_TOKEN) {
+  if (
+    token &&
+    token !== DEV_AUTH_TOKEN &&
+    token !== DEV_PLATFORM_AUTH_TOKEN &&
+    token !== DEV_EMPLOYEE_AUTH_TOKEN
+  ) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 

@@ -69,7 +69,8 @@ function NavItem({
     <Link
       href={item.path}
       className={cn(
-        'relative flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 group',
+        'sidebar-nav-item group',
+        !isOpen && 'sidebar-nav-item-collapsed',
         isActive
           ? 'bg-primary text-white shadow-lg shadow-primary/20'
           : 'text-text-secondary hover:bg-surface-variant text-muted'
@@ -137,7 +138,7 @@ const Sidebar = () => {
           !isOpen && 'md:items-center overflow-hidden'
         )}
       >
-        <div className="flex items-center gap-3 p-6 mb-2">
+        <div className="sidebar-brand-wrap">
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/30">
             <span className="text-white font-semibold text-sm">HRM</span>
           </div>
@@ -151,7 +152,7 @@ const Sidebar = () => {
           )}
         </div>
 
-        <nav className="flex-grow px-4 space-y-1 overflow-y-auto no-scrollbar min-h-0">
+        <nav className="sidebar-nav">
           {platformMenuItems.map((item) => (
             <NavItem
               key={item.path}
@@ -162,7 +163,7 @@ const Sidebar = () => {
           ))}
         </nav>
 
-        <div className="px-4 pb-2 space-y-1 border-t border-border pt-4 shrink-0">
+        <div className="sidebar-footer pt-5">
           {accountMenuItems.map((item) => (
             <NavItem
               key={item.path}
@@ -173,11 +174,14 @@ const Sidebar = () => {
           ))}
         </div>
 
-        <div className="p-4 space-y-1 border-t border-border shrink-0">
+        <div className="sidebar-footer">
           <button
             type="button"
             onClick={() => dispatch(toggleSidebar())}
-            className="flex items-center gap-4 w-full px-4 py-3 text-text-secondary hover:bg-surface-variant rounded-2xl transition-all"
+            className={cn(
+              'sidebar-nav-item text-text-secondary hover:bg-surface-variant',
+              !isOpen && 'sidebar-nav-item-collapsed'
+            )}
           >
             {isOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
             {isOpen && <span className="text-nav text-text-primary">Collapse Menu</span>}
@@ -186,7 +190,10 @@ const Sidebar = () => {
           <button
             type="button"
             onClick={() => setIsSignOutModalOpen(true)}
-            className="flex items-center gap-4 w-full px-4 py-3 text-error hover:bg-error/5 rounded-2xl transition-all"
+            className={cn(
+              'sidebar-nav-item text-error hover:bg-error/5',
+              !isOpen && 'sidebar-nav-item-collapsed'
+            )}
           >
             <LogOut className="w-5 h-5" />
             {isOpen && <span className="text-nav text-error">Sign Out</span>}

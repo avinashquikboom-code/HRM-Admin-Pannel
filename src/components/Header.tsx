@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { mockCompanies, mockEmployees } from '../data/mockData';
 import { toggleSidebar } from '../store/slices/sidebarSlice';
 import type { PortalType } from '@/lib/portals';
-import { getLoginPathForPortal, SUPER_ADMIN_PREFIX } from '@/lib/portals';
+import { getLoginPathForPortal, SUPER_ADMIN_PREFIX, EMPLOYEE_PREFIX } from '@/lib/portals';
 
 interface HeaderProps {
   portal?: PortalType;
@@ -36,12 +36,23 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
   const router = useRouter();
 
   const isSuperAdmin = portal === 'super_admin';
-  const profilePath = isSuperAdmin ? `${SUPER_ADMIN_PREFIX}/profile` : '/profile';
+  const isEmployee = portal === 'employee';
+  const profilePath = isSuperAdmin
+    ? `${SUPER_ADMIN_PREFIX}/profile`
+    : isEmployee
+      ? `${EMPLOYEE_PREFIX}/profile`
+      : '/profile';
   const settingsPath = `${SUPER_ADMIN_PREFIX}/settings`;
   const notificationsPath = isSuperAdmin
     ? `${SUPER_ADMIN_PREFIX}`
-    : '/notifications';
-  const roleLabel = isSuperAdmin ? 'Super Admin' : 'Platform Admin';
+    : isEmployee
+      ? `${EMPLOYEE_PREFIX}/notifications`
+      : '/notifications';
+  const roleLabel = isSuperAdmin
+    ? 'Super Admin'
+    : isEmployee
+      ? 'Employee'
+      : 'Platform Admin';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -107,7 +118,8 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Search Bar */}
+        {/* Search Bar — hidden for employee self-service portal */}
+        {!isEmployee && (
         <div ref={searchRef} className="relative hidden md:block">
         <div className="flex items-center gap-3 w-96 bg-surface-variant px-4 py-2.5 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-surface focus-within:shadow-lg focus-within:shadow-primary/5 transition-all group">
           <Search className="w-5 h-5 text-muted group-focus-within:text-primary transition-colors" />
@@ -215,6 +227,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
           )}
         </AnimatePresence>
       </div>
+        )}
     </div>
 
       {/* Right Actions */}

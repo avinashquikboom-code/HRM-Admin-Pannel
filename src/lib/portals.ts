@@ -1,10 +1,12 @@
-export type PortalType = 'super_admin' | 'platform_admin';
+export type PortalType = 'super_admin' | 'platform_admin' | 'employee';
 
 export const SUPER_ADMIN_LOGIN_PATH = '/super-admin/login';
 export const PLATFORM_LOGIN_PATH = '/login';
+export const EMPLOYEE_PREFIX = '/employee';
 
 export const SUPER_ADMIN_HOME = '/super-admin';
 export const PLATFORM_HOME = '/hr-management';
+export const EMPLOYEE_HOME = '/employee';
 
 export const SUPER_ADMIN_PREFIX = '/super-admin';
 
@@ -32,16 +34,30 @@ export function isSuperAdminPath(pathname: string) {
   );
 }
 
+export function isEmployeePath(pathname: string) {
+  return (
+    pathname === EMPLOYEE_PREFIX || pathname.startsWith(`${EMPLOYEE_PREFIX}/`)
+  );
+}
+
 export function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.includes(pathname);
 }
 
 export function getLoginPathForPortal(portal: PortalType) {
-  return portal === 'super_admin' ? SUPER_ADMIN_LOGIN_PATH : PLATFORM_LOGIN_PATH;
+  if (portal === 'super_admin') {
+    return `${PLATFORM_LOGIN_PATH}?portal=super_admin`;
+  }
+  if (portal === 'employee') {
+    return `${PLATFORM_LOGIN_PATH}?portal=employee`;
+  }
+  return PLATFORM_LOGIN_PATH;
 }
 
 export function getHomePathForPortal(portal: PortalType) {
-  return portal === 'super_admin' ? SUPER_ADMIN_HOME : PLATFORM_HOME;
+  if (portal === 'super_admin') return SUPER_ADMIN_HOME;
+  if (portal === 'employee') return EMPLOYEE_HOME;
+  return PLATFORM_HOME;
 }
 
 export function normalizeUserRole(role: string | undefined | null) {
@@ -58,7 +74,15 @@ export function roleAllowedForPortal(
     return normalized === 'ADMIN';
   }
 
-  return normalized === 'HR' || normalized === 'ADMIN';
+  if (portal === 'platform_admin') {
+    return normalized === 'HR';
+  }
+
+  if (portal === 'employee') {
+    return normalized === 'EMPLOYEE';
+  }
+
+  return false;
 }
 
 export function getProfileBasePath(pathname: string) {
@@ -68,6 +92,10 @@ export function getProfileBasePath(pathname: string) {
       pathname !== SUPER_ADMIN_LOGIN_PATH)
   ) {
     return `${SUPER_ADMIN_PREFIX}/profile`;
+  }
+
+  if (isEmployeePath(pathname)) {
+    return `${EMPLOYEE_PREFIX}/profile`;
   }
 
   return '/profile';
@@ -84,5 +112,14 @@ export function portalForRole(role: string | undefined | null): PortalType | nul
     return 'platform_admin';
   }
 
+  if (normalized === 'EMPLOYEE') {
+    return 'employee';
+  }
+
   return null;
+}
+
+export function portalFromLoginParam(value: string | null): PortalType {
+  if (value === 'super_admin') return 'super_admin';
+  return 'platform_admin';
 }

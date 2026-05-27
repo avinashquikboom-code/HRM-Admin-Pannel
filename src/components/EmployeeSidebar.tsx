@@ -9,20 +9,20 @@ import { logout } from '@/store/slices/authSlice';
 import SignOutModal from './SignOutModal';
 import {
   LayoutDashboard,
-  Building2,
   CreditCard,
-  Settings,
+  Calendar,
+  CheckSquare,
+  Bell,
   User,
   ChevronLeft,
   ChevronRight,
   LogOut,
-  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getLoginPathForPortal, SUPER_ADMIN_PREFIX } from '@/lib/portals';
+import { getLoginPathForPortal, EMPLOYEE_PREFIX } from '@/lib/portals';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,11 +34,12 @@ interface MenuItem {
   path: string;
 }
 
-const superAdminMenuItems: MenuItem[] = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX },
-  { name: 'Companies', icon: Building2, path: `${SUPER_ADMIN_PREFIX}/companies` },
-  { name: 'Subscriptions', icon: CreditCard, path: `${SUPER_ADMIN_PREFIX}/subscriptions` },
-  { name: 'Settings', icon: Settings, path: `${SUPER_ADMIN_PREFIX}/settings` },
+const employeeMenuItems: MenuItem[] = [
+  { name: 'My Dashboard', icon: LayoutDashboard, path: EMPLOYEE_PREFIX },
+  { name: 'My Attendance', icon: CreditCard, path: `${EMPLOYEE_PREFIX}/attendance` },
+  { name: 'My Leave', icon: Calendar, path: `${EMPLOYEE_PREFIX}/leave` },
+  { name: 'My Tasks', icon: CheckSquare, path: `${EMPLOYEE_PREFIX}/tasks` },
+  { name: 'Notifications', icon: Bell, path: `${EMPLOYEE_PREFIX}/notifications` },
 ];
 
 function NavItem({
@@ -57,7 +58,7 @@ function NavItem({
         'sidebar-nav-item group',
         !isOpen && 'sidebar-nav-item-collapsed',
         isActive
-          ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
+          ? 'bg-accent text-secondary shadow-lg shadow-accent/30'
           : 'text-text-secondary hover:bg-surface-variant text-muted'
       )}
     >
@@ -80,7 +81,7 @@ function NavItem({
   );
 }
 
-const SuperAdminSidebar = () => {
+const EmployeeSidebar = () => {
   const { isOpen } = useAppSelector((state) => state.sidebar);
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -89,9 +90,7 @@ const SuperAdminSidebar = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -100,14 +99,14 @@ const SuperAdminSidebar = () => {
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
     dispatch(logout());
-    router.push(getLoginPathForPortal('super_admin'));
+    router.push(getLoginPathForPortal('employee'));
   };
 
   return (
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-secondary/50 backdrop-blur-sm z-40 md:hidden transition-all duration-300"
+          className="fixed inset-0 bg-secondary/50 backdrop-blur-sm z-40 md:hidden"
           onClick={() => dispatch(toggleSidebar())}
         />
       )}
@@ -119,26 +118,26 @@ const SuperAdminSidebar = () => {
           x: isMobile && !isOpen ? -280 : 0,
         }}
         className={cn(
-          'fixed md:relative flex flex-col bg-surface border-r border-border transition-colors duration-300 z-50 h-full',
+          'fixed md:relative flex flex-col bg-surface border-r border-border z-50 h-full',
           !isOpen && 'md:items-center overflow-hidden'
         )}
       >
         <div className="sidebar-brand-wrap">
-          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-secondary/30">
-            <ShieldCheck className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent/30">
+            <User className="w-5 h-5 text-secondary" />
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-              <p className="sidebar-brand leading-tight">Super Admin</p>
-              <p className="text-micro font-medium text-secondary uppercase tracking-wide mt-0.5">
-                Ecosystem Control
+              <p className="sidebar-brand leading-tight">Employee Portal</p>
+              <p className="text-micro font-medium text-accent uppercase tracking-wide mt-0.5">
+                Self Service
               </p>
             </motion.div>
           )}
         </div>
 
         <nav className="sidebar-nav">
-          {superAdminMenuItems.map((item) => (
+          {employeeMenuItems.map((item) => (
             <NavItem
               key={item.path}
               item={item}
@@ -149,19 +148,11 @@ const SuperAdminSidebar = () => {
         </nav>
 
         <div className="sidebar-footer pt-5">
-          <Link
-            href={`${SUPER_ADMIN_PREFIX}/profile`}
-            className={cn(
-              'sidebar-nav-item group',
-              !isOpen && 'sidebar-nav-item-collapsed',
-              pathname === `${SUPER_ADMIN_PREFIX}/profile`
-                ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
-                : 'text-text-secondary hover:bg-surface-variant text-muted'
-            )}
-          >
-            <User className="w-5 h-5 flex-shrink-0" />
-            {isOpen && <span className="text-nav whitespace-nowrap">Profile</span>}
-          </Link>
+          <NavItem
+            item={{ name: 'Profile', icon: User, path: `${EMPLOYEE_PREFIX}/profile` }}
+            isActive={pathname === `${EMPLOYEE_PREFIX}/profile`}
+            isOpen={isOpen}
+          />
         </div>
 
         <div className="sidebar-footer">
@@ -200,4 +191,4 @@ const SuperAdminSidebar = () => {
   );
 };
 
-export default SuperAdminSidebar;
+export default EmployeeSidebar;

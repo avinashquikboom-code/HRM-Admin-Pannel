@@ -2,6 +2,7 @@ import { api, getApiErrorMessage } from '@/lib/api';
 import {
   createDevAuthSession,
   isDevAuthSession,
+  matchesEmployeeDevCredentials,
   matchesPlatformDevCredentials,
   matchesSuperAdminDevCredentials,
 } from '@/lib/devAuth';
@@ -66,11 +67,15 @@ async function tryApiLogin(
   const user = mapLoginUser(data.user);
 
   if (!roleAllowedForPortal(user.role, portal)) {
-    throw new Error(
-      portal === 'super_admin'
-        ? 'This account cannot access Super Admin. Use an ADMIN account.'
-        : 'This account cannot access the Admin Panel. Use an HR account.'
-    );
+    const messages: Record<PortalType, string> = {
+      super_admin:
+        'This account cannot access Super Admin. Use an ADMIN account.',
+      platform_admin:
+        'This account cannot access Admin Panel. Use an HR (Admin) account.',
+      employee:
+        'This account cannot access Employee Portal. Use an EMPLOYEE account.',
+    };
+    throw new Error(messages[portal]);
   }
 
   const resolvedLocation =
@@ -112,7 +117,11 @@ export async function loginRequest(
       portal === 'platform_admin' &&
       matchesPlatformDevCredentials(credentials.email, credentials.password);
 
-    if (canUseSuperAdminDemo || canUsePlatformDemo) {
+    const canUseEmployeeDemo =
+      portal === 'employee' &&
+      matchesEmployeeDevCredentials(credentials.email, credentials.password);
+
+    if (canUseSuperAdminDemo || canUsePlatformDemo || canUseEmployeeDemo) {
       console.info('[HRM] API login unavailable — using offline demo session');
       return tryDevLogin(portal);
     }

@@ -9,8 +9,15 @@ import { useRouter } from 'next/navigation';
 import { registerUser, type RegisterRole } from '@/services/authService';
 import { getAuthSession } from '@/lib/authStorage';
 import { isDevAuthSession } from '@/lib/devAuth';
+import { UserRightsPreview } from '@/components/UserRightsControl';
+import type { PortalType } from '@/lib/portals';
 
 const ROLES: RegisterRole[] = ['EMPLOYEE', 'HR'];
+
+const REGISTER_ROLE_PORTAL: Record<RegisterRole, PortalType> = {
+  EMPLOYEE: 'employee',
+  HR: 'platform_admin',
+};
 
 const RegisterUserPage = () => {
   const router = useRouter();
@@ -155,6 +162,9 @@ const RegisterUserPage = () => {
                 </option>
               ))}
             </select>
+            <div className="mt-4">
+              <UserRightsPreview portal={REGISTER_ROLE_PORTAL[role]} />
+            </div>
           </div>
 
           <button
