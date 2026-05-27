@@ -38,6 +38,7 @@ const superAdminMenuItems: MenuItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX },
   { name: 'Companies', icon: Building2, path: `${SUPER_ADMIN_PREFIX}/companies` },
   { name: 'Subscriptions', icon: CreditCard, path: `${SUPER_ADMIN_PREFIX}/subscriptions` },
+  { name: 'Admin Rights', icon: ShieldCheck, path: `${SUPER_ADMIN_PREFIX}/user-rights` },
   { name: 'Settings', icon: Settings, path: `${SUPER_ADMIN_PREFIX}/settings` },
 ];
 
@@ -119,7 +120,7 @@ const SuperAdminSidebar = () => {
           x: isMobile && !isOpen ? -280 : 0,
         }}
         className={cn(
-          'fixed md:relative flex flex-col bg-surface border-r border-border transition-colors duration-300 z-50 h-full',
+          'sidebar-panel fixed md:relative bg-surface border-r border-border transition-colors duration-300 z-50',
           !isOpen && 'md:items-center overflow-hidden'
         )}
       >
@@ -148,7 +149,7 @@ const SuperAdminSidebar = () => {
           ))}
         </nav>
 
-        <div className="sidebar-footer pt-5">
+        <div className="sidebar-footer">
           <Link
             href={`${SUPER_ADMIN_PREFIX}/profile`}
             className={cn(

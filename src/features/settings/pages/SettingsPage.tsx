@@ -33,6 +33,8 @@ import {
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import UserRightsControl from '@/components/UserRightsControl';
+import { SUPER_ADMIN_MANAGED_ROLES } from '@/lib/roleAccess';
+import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -184,9 +186,20 @@ const SettingsPage = () => {
 
             <div className="glass-card p-10 space-y-8">
               <UserRightsControl
-                title="User Rights Control"
-                description="Select a role to see which modules they can access. Super Admin sees what Admin and Employee see; Admin sees Employee access."
+                managerPortal="super_admin"
+                roleOptions={SUPER_ADMIN_MANAGED_ROLES}
+                defaultRole="platform_admin"
+                title="Admin Rights Control"
+                description="Configure Admin (HR) module access."
+                showSaveActions
+                showLowerRoles={false}
               />
+              <Link
+                href={`${SUPER_ADMIN_PREFIX}/user-rights`}
+                className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:opacity-80 transition-colors"
+              >
+                Open User Rights page
+              </Link>
             </div>
           </motion.div>
         );
@@ -387,14 +400,14 @@ const SettingsPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar Tabs */}
-        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-2">
-          <div className="glass-card p-2 space-y-1">
+        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-3">
+          <div className="glass-card p-3 sm:p-4 space-y-2">
             {tabs.map((item) => (
               <button 
                 key={item.name}
                 onClick={() => setActiveTab(item.name)}
                 className={cn(
-                  "w-full flex flex-col items-start px-5 py-4 rounded-2xl text-sm font-bold transition-all group relative overflow-hidden",
+                  "w-full flex flex-col items-start px-5 sm:px-6 py-4 sm:py-[18px] rounded-2xl text-sm font-bold transition-all group relative overflow-hidden",
                   activeTab === item.name 
                     ? "bg-primary text-white shadow-lg shadow-primary/20" 
                     : "text-text-secondary hover:bg-surface-variant font-medium"

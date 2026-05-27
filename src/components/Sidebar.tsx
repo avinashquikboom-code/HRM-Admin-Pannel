@@ -22,6 +22,7 @@ import {
   Calendar,
   CheckSquare,
   MapPin,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -41,6 +42,7 @@ interface MenuItem {
 
 const platformMenuItems: MenuItem[] = [
   { name: 'HR Management', icon: Users, path: '/hr-management' },
+  { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights' },
   { name: 'Employees', icon: UserSquare2, path: '/employees' },
   { name: 'Leave Management', icon: Calendar, path: '/leave' },
   { name: 'Task Management', icon: CheckSquare, path: '/tasks' },
@@ -134,7 +136,7 @@ const Sidebar = () => {
           x: isMobile && !isOpen ? -280 : 0,
         }}
         className={cn(
-          'fixed md:relative flex flex-col bg-surface border-r border-border transition-colors duration-300 z-50 h-full',
+          'sidebar-panel fixed md:relative bg-surface border-r border-border transition-colors duration-300 z-50',
           !isOpen && 'md:items-center overflow-hidden'
         )}
       >
@@ -163,7 +165,7 @@ const Sidebar = () => {
           ))}
         </nav>
 
-        <div className="sidebar-footer pt-5">
+        <div className="sidebar-footer">
           {accountMenuItems.map((item) => (
             <NavItem
               key={item.path}

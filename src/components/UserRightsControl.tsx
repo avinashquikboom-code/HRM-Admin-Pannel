@@ -1,14 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ShieldCheck, LayoutDashboard, User } from 'lucide-react';
+import {
+  ShieldCheck,
+  LayoutDashboard,
+  User,
+  CheckSquare,
+  Square,
+  RotateCcw,
+  Save,
+  CheckCircle2,
+} from 'lucide-react';
 import type { PortalType } from '@/lib/portals';
 import {
   ROLE_ACCESS,
-  PORTAL_ORDER,
-  getLowerRoleAccess,
+  countEnabledModules,
+  getDefaultRolePermissions,
+  getHierarchyPreview,
+  getManagedRolesForPortal,
+  loadRolePermissions,
+  saveManagedRolePermissions,
+  canManageRole,
+  type AccessModuleDef,
   type RoleAccessInfo,
+  type RolePermissionsMap,
 } from '@/lib/roleAccess';
 import { cn } from '@/utils/cn';
 
@@ -20,117 +36,272 @@ const PORTAL_ICONS: Record<PortalType, typeof ShieldCheck> = {
 
 const ACCENT = {
   secondary: {
-    tab: 'bg-secondary text-white shadow-md',
-    card: 'border-secondary/20 bg-secondary/5',
-    badge: 'bg-secondary/10 text-secondary',
+    tab: 'bg-secondary text-white shadow-md shadow-secondary/20',
+    ring: 'ring-secondary/30',
+    badge: 'bg-secondary/10 text-secondary border-secondary/20',
+    progress: 'bg-secondary',
+    checkbox: 'accent-secondary',
   },
   primary: {
-    tab: 'bg-primary text-white shadow-md',
-    card: 'border-primary/20 bg-primary/5',
-    badge: 'bg-primary/10 text-primary',
+    tab: 'bg-primary text-white shadow-md shadow-primary/20',
+    ring: 'ring-primary/30',
+    badge: 'bg-primary/10 text-primary border-primary/20',
+    progress: 'bg-primary',
+    checkbox: 'accent-primary',
   },
   accent: {
-    tab: 'bg-accent text-secondary shadow-md',
-    card: 'border-accent/25 bg-accent/10',
-    badge: 'bg-accent/15 text-secondary',
+    tab: 'bg-accent text-secondary shadow-md shadow-accent/20',
+    ring: 'ring-accent/30',
+    badge: 'bg-accent/15 text-secondary border-accent/25',
+    progress: 'bg-accent',
+    checkbox: 'accent-accent',
   },
 };
 
-function ModuleGrid({ modules }: { modules: string[] }) {
+function groupModules(modules: AccessModuleDef[]) {
+  return modules.reduce<Record<string, AccessModuleDef[]>>((groups, module) => {
+    if (!groups[module.group]) groups[module.group] = [];
+    groups[module.group].push(module);
+    return groups;
+  }, {});
+}
+
+function PermissionCheckbox({
+  module,
+  checked,
+  disabled,
+  onChange,
+  accent,
+}: {
+  module: AccessModuleDef;
+  checked: boolean;
+  disabled?: boolean;
+  onChange?: (checked: boolean) => void;
+  accent: keyof typeof ACCENT;
+}) {
+  const styles = ACCENT[accent];
+
   return (
-    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {modules.map((module) => (
-        <li
-          key={module}
-          className="flex items-center gap-2.5 text-sm text-text-secondary"
-        >
-          <span className="w-5 h-5 rounded-full bg-success/10 flex items-center justify-center shrink-0">
-            <Check size={12} className="text-success" />
-          </span>
-          <span className="font-medium">{module}</span>
-        </li>
-      ))}
-    </ul>
+    <label
+      className={cn(
+        'flex items-start gap-4 p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer',
+        disabled && 'cursor-default opacity-80',
+        checked
+          ? cn('border-transparent shadow-sm', styles.badge)
+          : 'border-border/70 bg-surface/50 hover:border-border hover:bg-surface-variant/40'
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange?.(event.target.checked)}
+        className={cn(
+          'mt-0.5 w-5 h-5 rounded-md border-2 border-border shrink-0 cursor-pointer disabled:cursor-default',
+          styles.checkbox
+        )}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold text-text-primary">{module.label}</p>
+        <p className="text-xs text-text-secondary mt-1 leading-relaxed">{module.description}</p>
+      </div>
+      {checked && (
+        <CheckCircle2
+          size={18}
+          className={cn(
+            'shrink-0 mt-0.5',
+            accent === 'secondary' && 'text-secondary',
+            accent === 'primary' && 'text-primary',
+            accent === 'accent' && 'text-accent'
+          )}
+        />
+      )}
+    </label>
   );
 }
 
-function RoleAccessCard({
+function ReadOnlyModuleList({
   access,
-  variant = 'primary',
+  permissions,
+  managedBy,
 }: {
   access: RoleAccessInfo;
-  variant?: 'primary' | 'nested';
+  permissions: RolePermissionsMap;
+  managedBy?: string;
 }) {
-  const styles = ACCENT[access.accent];
   const Icon = PORTAL_ICONS[access.portal];
+  const styles = ACCENT[access.accent];
+  const { enabled, total } = countEnabledModules(access.portal, permissions);
 
   return (
-    <div
-      className={cn(
-        'rounded-[24px] border p-5 sm:p-6',
-        variant === 'primary' ? styles.card : 'border-border/60 bg-surface-variant/30'
-      )}
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <div className={cn('p-2.5 rounded-xl', styles.badge)}>
-          <Icon size={18} />
-        </div>
-        <div>
-          <h4 className="text-sm font-bold text-text-primary">{access.label}</h4>
-          <p className="text-xs text-text-secondary mt-0.5">{access.description}</p>
+    <div className="rounded-[24px] border border-border/60 bg-surface-variant/25 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <div className={cn('p-2.5 rounded-xl border', styles.badge)}>
+            <Icon size={18} />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-text-primary">{access.label}</h4>
+            <p className="text-xs text-text-secondary">{enabled}/{total} modules enabled</p>
+          </div>
         </div>
       </div>
-      <ModuleGrid modules={access.modules} />
+      {managedBy && (
+        <p className="text-xs font-medium text-warning mb-4 rounded-xl bg-warning/10 border border-warning/20 px-3 py-2">
+          {managedBy}
+        </p>
+      )}
+      <div className="space-y-2">
+        {access.moduleDefs.map((module) => (
+          <PermissionCheckbox
+            key={module.id}
+            module={module}
+            checked={permissions[access.portal][module.id] ?? true}
+            disabled
+            accent={access.accent}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
 interface UserRightsControlProps {
-  /** Starting role tab — defaults to Super Admin in settings. */
+  /** Who is editing — Super Admin or Admin (HR). */
+  managerPortal: PortalType;
   defaultRole?: PortalType;
-  /** Show role picker tabs. Default true. */
+  roleOptions?: PortalType[];
   showRolePicker?: boolean;
-  /** Heading override */
+  showLowerRoles?: boolean;
+  showSaveActions?: boolean;
   title?: string;
   description?: string;
 }
 
 export default function UserRightsControl({
-  defaultRole = 'super_admin',
+  managerPortal,
+  defaultRole,
+  roleOptions: roleOptionsProp,
   showRolePicker = true,
+  showLowerRoles = true,
+  showSaveActions = true,
   title = 'User Rights Control',
-  description = 'Module access per role — changes when you select a role below.',
+  description = 'Toggle checkboxes to grant or revoke module access for each role.',
 }: UserRightsControlProps) {
-  const [selectedRole, setSelectedRole] = useState<PortalType>(defaultRole);
+  const roleOptions = roleOptionsProp ?? getManagedRolesForPortal(managerPortal);
+  const initialRole =
+    defaultRole && roleOptions.includes(defaultRole) ? defaultRole : roleOptions[0];
+
+  const [selectedRole, setSelectedRole] = useState<PortalType>(initialRole);
+  const [permissions, setPermissions] = useState<RolePermissionsMap>(() =>
+    getDefaultRolePermissions()
+  );
+  const [savedMessage, setSavedMessage] = useState('');
+
+  useEffect(() => {
+    setPermissions(loadRolePermissions());
+  }, []);
+
   const access = ROLE_ACCESS[selectedRole];
-  const lowerRoles = getLowerRoleAccess(selectedRole);
+  const hierarchyPreview = showLowerRoles
+    ? getHierarchyPreview(managerPortal, selectedRole)
+    : [];
+  const canEditSelected = canManageRole(managerPortal, selectedRole);
   const styles = ACCENT[access.accent];
+  const { enabled, total } = countEnabledModules(selectedRole, permissions);
+  const groupedModules = useMemo(
+    () => groupModules(access.moduleDefs),
+    [access.moduleDefs]
+  );
+  const progress = total > 0 ? Math.round((enabled / total) * 100) : 0;
+
+  const setModule = (moduleId: string, checked: boolean) => {
+    setPermissions((current) => ({
+      ...current,
+      [selectedRole]: {
+        ...current[selectedRole],
+        [moduleId]: checked,
+      },
+    }));
+    setSavedMessage('');
+  };
+
+  const selectAll = () => {
+    const next = { ...permissions[selectedRole] };
+    for (const module of access.moduleDefs) next[module.id] = true;
+    setPermissions((current) => ({ ...current, [selectedRole]: next }));
+    setSavedMessage('');
+  };
+
+  const deselectAll = () => {
+    const next = { ...permissions[selectedRole] };
+    for (const module of access.moduleDefs) next[module.id] = false;
+    setPermissions((current) => ({ ...current, [selectedRole]: next }));
+    setSavedMessage('');
+  };
+
+  const resetRole = () => {
+    const defaults = getDefaultRolePermissions();
+    setPermissions((current) => ({
+      ...current,
+      [selectedRole]: defaults[selectedRole],
+    }));
+    setSavedMessage('');
+  };
+
+  const handleSave = () => {
+    saveManagedRolePermissions(managerPortal, permissions);
+    setSavedMessage(
+      managerPortal === 'super_admin'
+        ? 'Admin permissions saved successfully.'
+        : 'Employee permissions saved successfully.'
+    );
+    window.setTimeout(() => setSavedMessage(''), 3000);
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="heading-2">{title}</h3>
-        <p className="text-sm text-text-secondary font-medium mt-1">{description}</p>
-      </div>
+      {(title || description) && (
+        <div>
+          {title ? <h3 className="heading-2">{title}</h3> : null}
+          {description ? (
+            <p className="text-sm text-text-secondary font-medium mt-1">{description}</p>
+          ) : null}
+        </div>
+      )}
 
-      {showRolePicker && (
-        <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-surface-variant max-w-md">
-          {PORTAL_ORDER.map((roleId) => {
+      {showRolePicker && roleOptions.length > 1 && (
+        <div
+          className={cn(
+            'grid gap-2 p-2 rounded-[20px] bg-surface-variant/80 max-w-xl',
+            roleOptions.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+          )}
+        >
+          {roleOptions.map((roleId) => {
             const role = ROLE_ACCESS[roleId];
             const roleStyles = ACCENT[role.accent];
+            const counts = countEnabledModules(roleId, permissions);
             return (
               <button
                 key={roleId}
                 type="button"
                 onClick={() => setSelectedRole(roleId)}
                 className={cn(
-                  'py-2.5 px-2 rounded-xl text-xs font-semibold transition-all',
+                  'flex flex-col items-start px-4 py-3.5 rounded-2xl text-left transition-all',
                   selectedRole === roleId
                     ? roleStyles.tab
-                    : 'text-text-secondary hover:text-text-primary'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-surface/70'
                 )}
               >
-                {role.label}
+                <span className="text-sm font-bold">{role.label}</span>
+                <span
+                  className={cn(
+                    'text-[11px] mt-1 font-medium',
+                    selectedRole === roleId ? 'text-white/75' : 'text-text-secondary'
+                  )}
+                >
+                  {counts.enabled}/{counts.total} active
+                </span>
               </button>
             );
           })}
@@ -140,27 +311,115 @@ export default function UserRightsControl({
       <AnimatePresence mode="wait">
         <motion.div
           key={selectedRole}
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
+          exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="space-y-4"
+          className="space-y-5"
         >
-          <div className={cn('rounded-[28px] border p-6 sm:p-8', styles.card)}>
-            <p className="text-micro font-black text-text-secondary uppercase tracking-[0.2em] mb-4">
-              {access.label} — allowed modules
-            </p>
-            <RoleAccessCard access={access} variant="primary" />
+          <div className={cn('rounded-[28px] border p-5 sm:p-7', styles.badge)}>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
+              <div>
+                <p className="text-micro font-black uppercase tracking-[0.2em] text-text-secondary mb-1">
+                  {access.label} permissions
+                </p>
+                <h4 className="text-lg font-bold text-text-primary">
+                  {enabled} of {total} modules enabled
+                </h4>
+              </div>
+              {canEditSelected && showSaveActions && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={selectAll}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-primary/30 transition-colors"
+                  >
+                    <CheckSquare size={14} />
+                    Select all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deselectAll}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-primary/30 transition-colors"
+                  >
+                    <Square size={14} />
+                    Clear all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetRole}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-bold text-text-secondary hover:text-primary transition-colors"
+                  >
+                    <RotateCcw size={14} />
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors"
+                  >
+                    <Save size={14} />
+                    Save
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="h-2 w-full rounded-full bg-surface/80 overflow-hidden mb-6">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                className={cn('h-full rounded-full', styles.progress)}
+              />
+            </div>
+
+            {savedMessage && (
+              <div className="mb-5 rounded-2xl bg-success/10 border border-success/20 px-4 py-3 text-sm font-medium text-success">
+                {savedMessage}
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {Object.entries(groupedModules).map(([group, modules]) => (
+                <div key={group}>
+                  <p className="text-label text-text-secondary uppercase tracking-[0.18em] mb-3 ml-1">
+                    {group}
+                  </p>
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                    {modules.map((module) => (
+                      <PermissionCheckbox
+                        key={module.id}
+                        module={module}
+                        checked={permissions[selectedRole][module.id] ?? true}
+                        disabled={!canEditSelected}
+                        onChange={(checked) => setModule(module.id, checked)}
+                        accent={access.accent}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {lowerRoles.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-micro font-black text-text-secondary uppercase tracking-[0.2em] ml-1">
-                Lower role visibility
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {lowerRoles.map((lower) => (
-                  <RoleAccessCard key={lower.portal} access={lower} variant="nested" />
+          {hierarchyPreview.length > 0 && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-micro font-black text-text-secondary uppercase tracking-[0.2em]">
+                  Hierarchy preview
+                </p>
+                <p className="text-sm text-text-secondary mt-1">
+                  See how permissions flow to the next role level.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                {hierarchyPreview.map((preview) => (
+                  <ReadOnlyModuleList
+                    key={preview.access.portal}
+                    access={preview.access}
+                    permissions={permissions}
+                    managedBy={preview.managedBy}
+                  />
                 ))}
               </div>
             </div>
@@ -171,18 +430,34 @@ export default function UserRightsControl({
   );
 }
 
-export function UserRightsPreview({
-  portal,
-}: {
-  portal: PortalType;
-}) {
+export function UserRightsPreview({ portal }: { portal: PortalType }) {
   const access = ROLE_ACCESS[portal];
+  const permissions = loadRolePermissions();
+  const enabledModules = access.moduleDefs.filter(
+    (module) => permissions[portal][module.id] ?? true
+  );
+
   return (
-    <div className="rounded-2xl border border-border/60 bg-surface-variant/30 px-4 py-4">
-      <p className="text-xs font-bold text-text-primary mb-3">
+    <div className="rounded-2xl border border-border/60 bg-surface-variant/30 px-4 py-4 space-y-3">
+      <p className="text-xs font-bold text-text-primary">
         This user will access ({access.label})
       </p>
-      <ModuleGrid modules={access.modules} />
+      <div className="space-y-2">
+        {enabledModules.map((module) => (
+          <label
+            key={module.id}
+            className="flex items-center gap-3 text-sm text-text-secondary"
+          >
+            <input
+              type="checkbox"
+              checked
+              readOnly
+              className="w-4 h-4 rounded border-border accent-primary"
+            />
+            <span className="font-medium">{module.label}</span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }

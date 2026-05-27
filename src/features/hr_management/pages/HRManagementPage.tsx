@@ -27,6 +27,7 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import TableSkeleton from '@/components/TableSkeleton';
+import Link from 'next/link';
 
 const hiringData = [
   { name: 'Jan', hires: 45 },
@@ -96,10 +97,13 @@ const HRManagementPage = () => {
           <p className="text-page-desc mt-1">Monitor HR administrative activity and platform-wide hiring trends.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-medium text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-lg">
+          <Link
+            href="/user-rights"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-medium text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-lg"
+          >
             <Shield size={18} />
-            Access Controls
-          </button>
+            Employee Rights
+          </Link>
           <button className="btn-primary shadow-lg shadow-primary/20">
             <UserPlus size={20} />
             Invite Admin

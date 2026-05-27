@@ -152,11 +152,11 @@
   }
 
   .sidebar-brand-wrap {
-    @apply flex items-center gap-3 px-4 sm:px-5 py-4 sm:py-5 mb-1 shrink-0;
+    @apply flex items-center gap-3.5 px-5 sm:px-6 py-5 sm:py-6 mb-3 shrink-0;
   }
 
   .sidebar-nav {
-    @apply flex-grow px-3 sm:px-4 py-2 space-y-1.5 overflow-y-auto min-h-0;
+    @apply flex-grow px-4 sm:px-5 py-3 sm:py-4 space-y-2.5 overflow-y-auto min-h-0;
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
@@ -166,15 +166,23 @@
   }
 
   .sidebar-footer {
-    @apply px-3 sm:px-4 py-4 pb-5 space-y-1.5 border-t border-border shrink-0;
+    @apply px-4 sm:px-5 pt-5 pb-4 space-y-2.5 border-t border-border shrink-0;
+  }
+
+  .sidebar-footer:last-of-type {
+    @apply pt-3 pb-6;
   }
 
   .sidebar-nav-item {
-    @apply relative flex items-center gap-3 sm:gap-4 w-full px-4 sm:px-5 py-3.5 rounded-2xl transition-all duration-200;
+    @apply relative flex items-center gap-3.5 sm:gap-4 w-full px-4 sm:px-5 py-4 rounded-2xl transition-all duration-200;
   }
 
   .sidebar-nav-item-collapsed {
-    @apply md:justify-center md:px-3 md:py-3.5;
+    @apply md:justify-center md:px-3.5 md:py-4;
+  }
+
+  .sidebar-panel {
+    @apply flex flex-col h-full py-3 sm:py-4;
   }
 
   .text-gradient {

@@ -118,7 +118,7 @@ const EmployeeSidebar = () => {
           x: isMobile && !isOpen ? -280 : 0,
         }}
         className={cn(
-          'fixed md:relative flex flex-col bg-surface border-r border-border z-50 h-full',
+          'sidebar-panel fixed md:relative bg-surface border-r border-border z-50',
           !isOpen && 'md:items-center overflow-hidden'
         )}
       >
@@ -147,7 +147,7 @@ const EmployeeSidebar = () => {
           ))}
         </nav>
 
-        <div className="sidebar-footer pt-5">
+        <div className="sidebar-footer">
           <NavItem
             item={{ name: 'Profile', icon: User, path: `${EMPLOYEE_PREFIX}/profile` }}
             isActive={pathname === `${EMPLOYEE_PREFIX}/profile`}

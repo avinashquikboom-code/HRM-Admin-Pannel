@@ -154,16 +154,12 @@ export interface RegisterResponse {
 
 function assertRegisterAuthToken() {
   if (isDevAuthSession()) {
-    throw new Error(
-      'User registration needs a real backend login. Sign out and sign in with your API account (not offline demo mode).'
-    );
+    throw new Error('Registration is unavailable. Please sign in again.');
   }
 
   const token = getAuthToken();
   if (!token) {
-    throw new Error(
-      'Admin token not found. Sign in first so the shared auth token is stored.'
-    );
+    throw new Error('Please sign in again.');
   }
 }
 

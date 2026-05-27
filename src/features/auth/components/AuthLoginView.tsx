@@ -217,17 +217,6 @@ export default function AuthLoginView({
               />
             </div>
 
-            <div className={cn('rounded-2xl px-4 py-3 text-xs text-text-secondary space-y-1 ml-1 border', styles.demo)}>
-              <p className="font-semibold text-text-primary">Demo login (no backend)</p>
-              <p>
-                Email: <span className="font-mono text-primary">{demo.email}</span>
-              </p>
-              <p>
-                Password:{' '}
-                <span className="font-mono text-primary">{demo.password}</span>
-              </p>
-            </div>
-
             {portal === 'platform_admin' && (
               <div className="flex items-center justify-between ml-1">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -269,13 +258,6 @@ export default function AuthLoginView({
               )}
             </button>
           </form>
-
-          <div className="mt-6 flex justify-center gap-4">
-            <div className="flex items-center gap-2 text-success">
-              <ShieldCheck size={16} />
-              <span className="text-micro font-bold">256-bit SSL</span>
-            </div>
-          </div>
         </div>
       </motion.div>
     </div>

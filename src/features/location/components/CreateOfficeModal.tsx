@@ -45,7 +45,7 @@ export default function CreateOfficeModal({
     setError('');
 
     if (!getAuthToken()) {
-      setError('Admin token not found. Sign in first so hrm_token cookie is set.');
+      setError('Please sign in again.');
       return;
     }
 
@@ -78,17 +78,6 @@ export default function CreateOfficeModal({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Provision New Office">
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="rounded-2xl border border-border bg-surface-variant/40 px-4 py-3 text-xs font-mono text-text-secondary space-y-1">
-          <p>
-            <span className="font-bold text-primary">POST</span>{' '}
-            /api/admin/offices
-          </p>
-          <p>
-            {'{ name, code, address, latitude, longitude, idealRadiusMeters, maxPunchRadiusMeters }'}
-          </p>
-          <p>Authorization: Bearer &lt;token-from-hrm_token-cookie&gt;</p>
-        </div>
-
         {error && (
           <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
             {error}
