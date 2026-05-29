@@ -2,7 +2,6 @@
 
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import Header from '@/components/Header';
-import LoginLocationBanner from '@/components/LoginLocationBanner';
 import SidebarResponsiveInit from '@/components/SidebarResponsiveInit';
 import { usePathname } from 'next/navigation';
 
@@ -22,7 +21,6 @@ export default function SuperAdminLayout({
         <Header portal="super_admin" />
 
         <main className="flex-grow p-3 sm:p-4 md:p-6 lg:p-8">
-          <LoginLocationBanner />
           <div key={pathname}>{children}</div>
         </main>
       </div>

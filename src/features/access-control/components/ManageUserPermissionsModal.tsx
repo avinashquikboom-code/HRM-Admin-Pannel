@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ShieldCheck, CheckCircle2, Save, X, RotateCcw, CheckSquare, Square } from 'lucide-react';
-import { ROLE_ACCESS } from '@/lib/roleAccess';
+import { ROLE_ACCESS, getModuleDefsForManager } from '@/lib/roleAccess';
 import { cn } from '@/utils/cn';
 import {
   getUserPermissionRecord,
   saveUserPermissionRecord,
   buildInitialUserPermissions,
-  countUserEnabledModules,
 } from '@/lib/userPermissions';
 import type { PlatformUser } from '@/services/userService';
 import type { PortalType } from '@/lib/portals';
@@ -20,6 +19,7 @@ interface ManageUserPermissionsModalProps {
   onClose: () => void;
   user: PlatformUser | null;
   onSaved: (message: string) => void;
+  managerPortal?: PortalType;
 }
 
 function groupModules(modules: typeof ROLE_ACCESS.platform_admin.moduleDefs) {
@@ -35,13 +35,15 @@ export default function ManageUserPermissionsModal({
   onClose,
   user,
   onSaved,
+  managerPortal = 'platform_admin',
 }: ManageUserPermissionsModalProps) {
   const [permissions, setPermissions] = useState<Record<string, boolean>>({});
   const [success, setSuccess] = useState('');
 
   const targetPortal = useMemo<PortalType | null>(() => {
     if (!user) return null;
-    if (user.role === 'ADMIN' || user.role === 'HR') return 'platform_admin';
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return 'super_admin';
+    if (user.role === 'HR') return 'platform_admin';
     return 'employee';
   }, [user]);
 
@@ -62,15 +64,22 @@ export default function ManageUserPermissionsModal({
     setSuccess('');
   }, [user, targetPortal]);
 
+  const visibleModules = useMemo(() => {
+    if (!targetPortal) return [];
+    return getModuleDefsForManager(targetPortal, managerPortal);
+  }, [targetPortal, managerPortal]);
+
   const grouped = useMemo(() => {
-    if (!access) return {};
-    return groupModules(access.moduleDefs);
-  }, [access]);
+    return groupModules(visibleModules);
+  }, [visibleModules]);
 
   const { enabled, total } = useMemo(() => {
     if (!targetPortal) return { enabled: 0, total: 0 };
-    return countUserEnabledModules(targetPortal, permissions);
-  }, [targetPortal, permissions]);
+    const enabledCount = visibleModules.filter(
+      (module) => permissions[module.id]
+    ).length;
+    return { enabled: enabledCount, total: visibleModules.length };
+  }, [targetPortal, permissions, visibleModules]);
 
   const progress = total > 0 ? Math.round((enabled / total) * 100) : 0;
 
@@ -82,13 +91,13 @@ export default function ManageUserPermissionsModal({
 
   const selectAll = () => {
     const next: Record<string, boolean> = {};
-    for (const module of access.moduleDefs) next[module.id] = true;
+    for (const module of visibleModules) next[module.id] = true;
     setPermissions(next);
   };
 
   const clearAll = () => {
     const next: Record<string, boolean> = {};
-    for (const module of access.moduleDefs) next[module.id] = false;
+    for (const module of visibleModules) next[module.id] = false;
     setPermissions(next);
   };
 

@@ -12,12 +12,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
 import { loginRequest } from '@/services/authService';
 import PasswordInput from '@/components/PasswordInput';
-import {
-  DEFAULT_PLATFORM_DEV_EMAIL,
-  DEFAULT_PLATFORM_DEV_PASSWORD,
-  SUPER_ADMIN_DEV_EMAIL,
-  SUPER_ADMIN_DEV_PASSWORD,
-} from '@/lib/devAuth';
 import { getHomePathForPortal, type PortalType } from '@/lib/portals';
 import {
   ROLE_ACCESS,
@@ -30,27 +24,23 @@ interface AuthLoginViewProps {
   initialPortal?: PortalType;
 }
 
-const PORTAL_DEMO: Record<
+const PORTAL_COPY: Record<
   LoginPortalType,
-  { email: string; password: string; placeholder: string; buttonLabel: string }
+  { emailPlaceholder: string; buttonLabel: string }
 > = {
   super_admin: {
-    email: SUPER_ADMIN_DEV_EMAIL,
-    password: SUPER_ADMIN_DEV_PASSWORD,
-    placeholder: 'superadmin@hrm.com',
-    buttonLabel: 'Enter Super Admin Panel',
+    emailPlaceholder: 'Enter your work email',
+    buttonLabel: 'Enter Super HRM',
   },
   platform_admin: {
-    email: DEFAULT_PLATFORM_DEV_EMAIL,
-    password: DEFAULT_PLATFORM_DEV_PASSWORD,
-    placeholder: 'hr@quickboom.com',
-    buttonLabel: 'Enter Admin Panel',
+    emailPlaceholder: 'Enter your work email',
+    buttonLabel: 'Enter HRM Admin',
   },
 };
 
 const LOGIN_TAB_LABELS: Record<LoginPortalType, string> = {
-  super_admin: 'Super Admin',
-  platform_admin: 'Admin Panel',
+  super_admin: 'Super HRM',
+  platform_admin: 'HRM Admin',
 };
 
 const LOGIN_ACCENT = {
@@ -73,21 +63,22 @@ export default function AuthLoginView({
     toLoginPortal(initialPortal)
   );
   const access = ROLE_ACCESS[portal];
-  const demo = PORTAL_DEMO[portal];
+  const copy = PORTAL_COPY[portal];
   const styles = LOGIN_ACCENT;
 
-  const [email, setEmail] = useState(demo.email);
-  const [password, setPassword] = useState(demo.password);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [allowAutofill, setAllowAutofill] = useState(false);
 
   const switchPortal = (nextPortal: LoginPortalType) => {
     if (nextPortal === portal) return;
-    const nextDemo = PORTAL_DEMO[nextPortal];
     setPortal(nextPortal);
-    setEmail(nextDemo.email);
-    setPassword(nextDemo.password);
+    setEmail('');
+    setPassword('');
     setError('');
+    setAllowAutofill(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -98,6 +89,8 @@ export default function AuthLoginView({
     try {
       const response = await loginRequest({ email, password }, portal);
       dispatch(login(response));
+      setEmail('');
+      setPassword('');
       window.location.href = getHomePathForPortal(portal);
     } catch (err) {
       setError(
@@ -152,10 +145,23 @@ export default function AuthLoginView({
             ))}
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form
+            onSubmit={handleLogin}
+            className="space-y-5"
+            autoComplete="off"
+          >
             {error && (
               <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
                 {error}
+                {error.includes('Super Admin') && portal !== 'super_admin' && (
+                  <button
+                    type="button"
+                    onClick={() => switchPortal('super_admin')}
+                    className="ml-2 underline text-primary"
+                  >
+                    Switch to Super Admin
+                  </button>
+                )}
               </div>
             )}
 
@@ -167,16 +173,19 @@ export default function AuthLoginView({
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
                 <input
                   type="email"
+                  name="hrm-login-email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setAllowAutofill(true)}
+                  readOnly={!allowAutofill}
                   disabled={isLoading}
-                  required
+                  required={true}
                   className={cn(
                     'w-full pl-12 pr-4 py-3.5 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 transition-all text-text-primary disabled:opacity-60 text-sm',
                     styles.ring
                   )}
-                  placeholder={demo.placeholder}
-                  autoComplete="email"
+                  placeholder={copy.emailPlaceholder}
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -186,12 +195,15 @@ export default function AuthLoginView({
                 Password
               </label>
               <PasswordInput
+                name="hrm-login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setAllowAutofill(true)}
+                readOnly={!allowAutofill}
                 disabled={isLoading}
-                required
+                required={true}
                 placeholder="Enter your password"
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
             </div>
 
@@ -229,7 +241,7 @@ export default function AuthLoginView({
               ) : (
                 <>
                   <LogIn size={20} />
-                  {demo.buttonLabel}
+                  {copy.buttonLabel}
                 </>
               )}
             </button>

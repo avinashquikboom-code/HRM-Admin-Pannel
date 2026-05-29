@@ -1,12 +1,29 @@
 import axios from 'axios';
-import { getAuthSession, getAuthToken } from '@/lib/authStorage';
-import { DEV_AUTH_TOKEN, DEV_EMPLOYEE_AUTH_TOKEN, DEV_PLATFORM_AUTH_TOKEN, isDevAuthSession } from '@/lib/devAuth';
+import { getApiBaseUrl, getBackendApiTarget } from '@/lib/apiConfig';
+import {
+  attachRequestMetadata,
+  isApiLoggingEnabled,
+  logApiCanceled,
+  logApiError,
+  logApiRequest,
+  logApiResponse,
+} from '@/lib/apiLogger';
+import {
+  getAuthSession,
+  getAuthToken,
+  resolvePortalFromWindow,
+} from '@/lib/authStorage';
+import {
+  DEV_AUTH_TOKEN,
+  DEV_EMPLOYEE_AUTH_TOKEN,
+  DEV_PLATFORM_AUTH_TOKEN,
+  isDevAuthSession,
+} from '@/lib/devAuth';
 import { getLoginPathForPortal } from '@/lib/portals';
 import { store } from '@/store';
 import { logout } from '@/store/slices/authSlice';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5003';
+const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,13 +33,24 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+if (typeof window !== 'undefined' && isApiLoggingEnabled()) {
+  console.info(
+    `[HRM] API client → ${API_BASE_URL || window.location.origin}/api/* (backend: ${getBackendApiTarget()})`
+  );
+  console.info('[HRM] API logging enabled — open DevTools Console to inspect requests');
+}
+
 api.interceptors.request.use((config) => {
-  const token = getAuthToken();
+  attachRequestMetadata(config);
+
+  const activePortal = resolvePortalFromWindow();
+  const token = getAuthToken(activePortal);
   const isLogin = config.url?.includes('/api/auth/login');
   const isRegister = config.url?.includes('/api/auth/register');
   const isAdminRoute = config.url?.includes('/api/admin/');
 
-  if (isDevAuthSession() && !isLogin) {
+  if (isDevAuthSession(activePortal) && !isLogin) {
+    logApiCanceled(config, 'Offline dev mode');
     return Promise.reject(new axios.CanceledError('Offline dev mode'));
   }
 
@@ -33,8 +61,11 @@ api.interceptors.request.use((config) => {
       token === DEV_PLATFORM_AUTH_TOKEN ||
       token === DEV_EMPLOYEE_AUTH_TOKEN)
   ) {
+    logApiCanceled(config, 'Admin token required');
     return Promise.reject(
-      new axios.CanceledError('Admin token required (hrm_auth / hrm_token cookie)')
+      new axios.CanceledError(
+        'Admin token required (hrm_auth / super_hrm_auth cookies)'
+      )
     );
   }
 
@@ -47,13 +78,25 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  logApiRequest(config);
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    logApiResponse(response);
+    return response;
+  },
   (error) => {
-    if (axios.isCancel(error) || isDevAuthSession()) {
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
+    if (axios.isAxiosError(error)) {
+      logApiError(error);
+    }
+
+    if (isDevAuthSession(resolvePortalFromWindow())) {
       return Promise.reject(error);
     }
 
@@ -70,11 +113,12 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    const activePortal = resolvePortalFromWindow();
+    const sessionPortal = getAuthSession(activePortal)?.portal ?? activePortal;
     store.dispatch(logout());
 
     if (typeof window !== 'undefined') {
-      const portal = getAuthSession()?.portal ?? 'platform_admin';
-      const loginPath = getLoginPathForPortal(portal);
+      const loginPath = getLoginPathForPortal(sessionPortal);
       if (!window.location.pathname.startsWith(loginPath)) {
         window.location.href = loginPath;
       }

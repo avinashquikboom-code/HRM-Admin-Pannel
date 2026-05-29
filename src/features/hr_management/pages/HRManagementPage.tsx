@@ -20,12 +20,12 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell
 } from 'recharts';
 import { cn } from '@/utils/cn';
+import ChartContainer from '@/components/ChartContainer';
 import TableSkeleton from '@/components/TableSkeleton';
 import Link from 'next/link';
 
@@ -152,8 +152,7 @@ const HRManagementPage = () => {
               <option>Last Year</option>
             </select>
           </div>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[300px]">
               <BarChart data={hiringData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} dy={10} />
@@ -178,15 +177,13 @@ const HRManagementPage = () => {
                   animationDuration={1500}
                 />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         <motion.div variants={itemVariants} className="glass-card p-8">
           <h3 className="heading-2 mb-2">HR Status Distribution</h3>
           <p className="text-sm text-text-secondary mb-8">Active vs Inactive Administrators</p>
-          <div className="h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[250px]">
               <PieChart>
                 <Pie
                   data={hrDistribution}
@@ -216,8 +213,7 @@ const HRManagementPage = () => {
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
               </PieChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
           <div className="mt-6 space-y-4">
             {hrDistribution.map((item) => (
               <div key={item.name} className="flex items-center justify-between group cursor-default">

@@ -19,6 +19,7 @@ import {
   getDefaultRolePermissions,
   getHierarchyPreview,
   getManagedRolesForPortal,
+  getModuleDefsForManager,
   loadRolePermissions,
   saveManagedRolePermissions,
   canManageRole,
@@ -124,14 +125,21 @@ function ReadOnlyModuleList({
   access,
   permissions,
   managedBy,
+  managerPortal,
 }: {
   access: RoleAccessInfo;
   permissions: RolePermissionsMap;
   managedBy?: string;
+  managerPortal?: PortalType;
 }) {
   const Icon = PORTAL_ICONS[access.portal];
   const styles = ACCENT[access.accent];
-  const { enabled, total } = countEnabledModules(access.portal, permissions);
+  const visibleModules = getModuleDefsForManager(access.portal, managerPortal);
+  const { enabled, total } = countEnabledModules(
+    access.portal,
+    permissions,
+    managerPortal
+  );
 
   return (
     <div className="rounded-[24px] border border-border/60 bg-surface-variant/25 p-5 sm:p-6">
@@ -152,7 +160,7 @@ function ReadOnlyModuleList({
         </p>
       )}
       <div className="space-y-2">
-        {access.moduleDefs.map((module) => (
+        {visibleModules.map((module) => (
           <PermissionCheckbox
             key={module.id}
             module={module}
@@ -203,15 +211,23 @@ export default function UserRightsControl({
   }, []);
 
   const access = ROLE_ACCESS[selectedRole];
+  const visibleModules = useMemo(
+    () => getModuleDefsForManager(selectedRole, managerPortal),
+    [selectedRole, managerPortal]
+  );
   const hierarchyPreview = showLowerRoles
     ? getHierarchyPreview(managerPortal, selectedRole)
     : [];
   const canEditSelected = canManageRole(managerPortal, selectedRole);
   const styles = ACCENT[access.accent];
-  const { enabled, total } = countEnabledModules(selectedRole, permissions);
+  const { enabled, total } = countEnabledModules(
+    selectedRole,
+    permissions,
+    managerPortal
+  );
   const groupedModules = useMemo(
-    () => groupModules(access.moduleDefs),
-    [access.moduleDefs]
+    () => groupModules(visibleModules),
+    [visibleModules]
   );
   const progress = total > 0 ? Math.round((enabled / total) * 100) : 0;
 
@@ -228,14 +244,14 @@ export default function UserRightsControl({
 
   const selectAll = () => {
     const next = { ...permissions[selectedRole] };
-    for (const module of access.moduleDefs) next[module.id] = true;
+    for (const module of visibleModules) next[module.id] = true;
     setPermissions((current) => ({ ...current, [selectedRole]: next }));
     setSavedMessage('');
   };
 
   const deselectAll = () => {
     const next = { ...permissions[selectedRole] };
-    for (const module of access.moduleDefs) next[module.id] = false;
+    for (const module of visibleModules) next[module.id] = false;
     setPermissions((current) => ({ ...current, [selectedRole]: next }));
     setSavedMessage('');
   };
@@ -280,7 +296,7 @@ export default function UserRightsControl({
           {roleOptions.map((roleId) => {
             const role = ROLE_ACCESS[roleId];
             const roleStyles = ACCENT[role.accent];
-            const counts = countEnabledModules(roleId, permissions);
+            const counts = countEnabledModules(roleId, permissions, managerPortal);
             return (
               <button
                 key={roleId}

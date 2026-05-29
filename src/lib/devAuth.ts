@@ -7,11 +7,11 @@ export const SUPER_ADMIN_DEV_PASSWORD = '123456';
 export const LEGACY_SUPER_ADMIN_DEV_EMAIL = 'admin@hrm.com';
 
 /** Admin (HR) portal — offline demo */
-export const DEFAULT_PLATFORM_DEV_EMAIL = 'hr@quickboom.com';
+export const DEFAULT_PLATFORM_DEV_EMAIL = 'hr@hrm.com';
 export const DEFAULT_PLATFORM_DEV_PASSWORD = '123456';
 
 /** Employee portal — offline demo */
-export const EMPLOYEE_DEV_EMAIL = 'employee@quickboom.com';
+export const EMPLOYEE_DEV_EMAIL = 'employee@hrm.com';
 export const EMPLOYEE_DEV_PASSWORD = '123456';
 
 export const DEV_AUTH_TOKEN = 'dev-local-auth-token';
@@ -21,7 +21,7 @@ export const DEV_EMPLOYEE_AUTH_TOKEN = 'dev-employee-auth-token';
 export function matchesSuperAdminDevCredentials(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
   return (
-    password === SUPER_ADMIN_DEV_PASSWORD &&
+    password.trim() === SUPER_ADMIN_DEV_PASSWORD &&
     (normalizedEmail === SUPER_ADMIN_DEV_EMAIL ||
       normalizedEmail === LEGACY_SUPER_ADMIN_DEV_EMAIL)
   );
@@ -30,29 +30,62 @@ export function matchesSuperAdminDevCredentials(email: string, password: string)
 export function matchesPlatformDevCredentials(email: string, password: string) {
   return (
     email.trim().toLowerCase() === DEFAULT_PLATFORM_DEV_EMAIL &&
-    password === DEFAULT_PLATFORM_DEV_PASSWORD
+    password.trim() === DEFAULT_PLATFORM_DEV_PASSWORD
   );
 }
 
 export function matchesEmployeeDevCredentials(email: string, password: string) {
   return (
     email.trim().toLowerCase() === EMPLOYEE_DEV_EMAIL &&
-    password === EMPLOYEE_DEV_PASSWORD
+    password.trim() === EMPLOYEE_DEV_PASSWORD
   );
 }
 
-export function isDevAuthSession(): boolean {
+export function matchesDevCredentialsForPortal(
+  email: string,
+  password: string,
+  portal: PortalType
+) {
+  if (portal === 'super_admin') {
+    return matchesSuperAdminDevCredentials(email, password);
+  }
+  if (portal === 'platform_admin') {
+    return matchesPlatformDevCredentials(email, password);
+  }
+  if (portal === 'employee') {
+    return matchesEmployeeDevCredentials(email, password);
+  }
+  return false;
+}
+
+export function isDevAuthSession(portal?: PortalType): boolean {
   if (typeof window === 'undefined') return false;
 
+  const portals: PortalType[] = portal
+    ? [portal]
+    : ['super_admin', 'platform_admin', 'employee'];
+
   try {
-    const raw = localStorage.getItem('hrm_auth');
-    if (!raw) return false;
-    const session = JSON.parse(raw) as { token?: string };
-    return (
-      session.token === DEV_AUTH_TOKEN ||
-      session.token === DEV_PLATFORM_AUTH_TOKEN ||
-      session.token === DEV_EMPLOYEE_AUTH_TOKEN
-    );
+    for (const target of portals) {
+      const storageKey =
+        target === 'super_admin'
+          ? 'super_hrm_auth'
+          : target === 'employee'
+            ? 'employee_hrm_auth'
+            : 'hrm_auth';
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) continue;
+
+      const session = JSON.parse(raw) as { token?: string };
+      if (
+        session.token === DEV_AUTH_TOKEN ||
+        session.token === DEV_PLATFORM_AUTH_TOKEN ||
+        session.token === DEV_EMPLOYEE_AUTH_TOKEN
+      ) {
+        return true;
+      }
+    }
+    return false;
   } catch {
     return false;
   }
@@ -97,7 +130,7 @@ export function createDevAuthSession(portal: PortalType): {
         id: 1,
         name: 'Super Admin',
         email: SUPER_ADMIN_DEV_EMAIL,
-        role: 'ADMIN',
+        role: 'SUPER_ADMIN',
         avatar: '/favicon.svg',
         phone: '',
         bio: 'Offline demo super administrator',

@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { mockCompanies, mockEmployees } from '../data/mockData';
 import { toggleSidebar } from '../store/slices/sidebarSlice';
 import type { PortalType } from '@/lib/portals';
+import { PORTAL_AUTH_KEYS } from '@/lib/authStorage';
 import { getLoginPathForPortal, SUPER_ADMIN_PREFIX, EMPLOYEE_PREFIX } from '@/lib/portals';
 
 interface HeaderProps {
@@ -48,11 +49,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
     : isEmployee
       ? `${EMPLOYEE_PREFIX}/notifications`
       : '/notifications';
-  const roleLabel = isSuperAdmin
-    ? 'Super Admin'
-    : isEmployee
-      ? 'Employee'
-      : 'Platform Admin';
+  const roleLabel = PORTAL_AUTH_KEYS[portal].displayName;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -327,7 +324,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                   <p className="text-label text-primary mb-1">Authenticated As</p>
                   <p className="text-sm font-bold text-text-primary truncate">{user?.name || 'Super Admin'}</p>
                   <p className="text-xs text-text-secondary truncate mt-0.5 font-medium">{user?.email || 'admin@hrm.ai'}</p>
-                  {loginLocation && (
+                  {loginLocation && !isSuperAdmin && (
                     <p className="text-micro text-primary truncate mt-1 font-bold flex items-center gap-1">
                       <MapPin size={10} className="shrink-0" />
                       Logged in from {loginLocation}

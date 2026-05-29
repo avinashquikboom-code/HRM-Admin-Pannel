@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { UseFormRegister, FieldError } from 'react-hook-form';
 
 interface FloatingLabelInputProps {
@@ -6,7 +5,7 @@ interface FloatingLabelInputProps {
   label: string;
   type?: string;
   placeholder?: string;
-  register: ReturnType<UseFormRegister<any>>;
+  register: UseFormRegister<any>;
   error?: FieldError;
   required?: boolean;
   className?: string;
@@ -23,7 +22,7 @@ export default function FloatingLabelInput({
   className = '',
 }: FloatingLabelInputProps) {
   return (
-    <div className={`relative mt-6 ${className}`}> 
+    <div className={`relative mt-6 ${className}`}>
       <input
         id={id}
         type={type}

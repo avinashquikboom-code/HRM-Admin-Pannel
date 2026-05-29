@@ -24,6 +24,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getLoginPathForPortal, EMPLOYEE_PREFIX } from '@/lib/portals';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { usePermissions } from '@/hooks/usePermissions';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,14 +34,15 @@ interface MenuItem {
   name: string;
   icon: LucideIcon;
   path: string;
+  moduleId: string;
 }
 
 const employeeMenuItems: MenuItem[] = [
-  { name: 'My Dashboard', icon: LayoutDashboard, path: EMPLOYEE_PREFIX },
-  { name: 'My Attendance', icon: CreditCard, path: `${EMPLOYEE_PREFIX}/attendance` },
-  { name: 'My Leave', icon: Calendar, path: `${EMPLOYEE_PREFIX}/leave` },
-  { name: 'My Tasks', icon: CheckSquare, path: `${EMPLOYEE_PREFIX}/tasks` },
-  { name: 'Notifications', icon: Bell, path: `${EMPLOYEE_PREFIX}/notifications` },
+  { name: 'My Dashboard', icon: LayoutDashboard, path: EMPLOYEE_PREFIX, moduleId: 'em-dashboard' },
+  { name: 'My Attendance', icon: CreditCard, path: `${EMPLOYEE_PREFIX}/attendance`, moduleId: 'em-attendance' },
+  { name: 'My Leave', icon: Calendar, path: `${EMPLOYEE_PREFIX}/leave`, moduleId: 'em-leave' },
+  { name: 'My Tasks', icon: CheckSquare, path: `${EMPLOYEE_PREFIX}/tasks`, moduleId: 'em-tasks' },
+  { name: 'Notifications', icon: Bell, path: `${EMPLOYEE_PREFIX}/notifications`, moduleId: 'em-notifications' },
 ];
 
 function NavItem({
@@ -87,9 +89,20 @@ function NavItem({
 
 const EmployeeSidebar = () => {
   const { isOpen } = useAppSelector((state) => state.sidebar);
+  const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
+  const { filterMenuItems } = usePermissions('employee', user?.email);
+  const visibleMenuItems = filterMenuItems(employeeMenuItems);
+  const visibleProfileItems = filterMenuItems([
+    {
+      name: 'Profile',
+      icon: User,
+      path: `${EMPLOYEE_PREFIX}/profile`,
+      moduleId: 'em-profile',
+    },
+  ]);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -138,7 +151,7 @@ const EmployeeSidebar = () => {
         </div>
 
         <nav className="sidebar-nav">
-          {employeeMenuItems.map((item) => (
+          {visibleMenuItems.map((item) => (
             <NavItem
               key={item.path}
               item={item}
@@ -149,14 +162,16 @@ const EmployeeSidebar = () => {
           ))}
         </nav>
 
+        {visibleProfileItems.length > 0 && (
         <div className="sidebar-footer">
           <NavItem
-            item={{ name: 'Profile', icon: User, path: `${EMPLOYEE_PREFIX}/profile` }}
+            item={visibleProfileItems[0]}
             isActive={pathname === `${EMPLOYEE_PREFIX}/profile`}
             isOpen={isOpen}
             onNavigate={closeMobileSidebar}
           />
         </div>
+        )}
 
         <div className="sidebar-footer">
           <button

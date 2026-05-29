@@ -22,13 +22,14 @@ export interface RoleAccessInfo {
 export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
   super_admin: {
     portal: 'super_admin',
-    label: 'Super Admin',
-    title: 'Super Admin Login',
+    label: 'Super HRM',
+    title: 'Super HRM Login',
     description: 'Platform owner — companies, billing & global settings',
     moduleDefs: [
       { id: 'sa-dashboard', label: 'Dashboard', group: 'Platform', description: 'Overview of companies and platform metrics' },
       { id: 'sa-companies', label: 'Companies', group: 'Platform', description: 'Manage registered organizations' },
       { id: 'sa-subscriptions', label: 'Subscriptions', group: 'Billing', description: 'Plans, renewals and billing status' },
+      { id: 'sa-location', label: 'Live Location', group: 'Operations', description: 'Platform-wide field staff location tracking' },
       { id: 'sa-settings', label: 'System Settings', group: 'Platform', description: 'Global configuration and access policies' },
       { id: 'sa-user-rights', label: 'User Rights', group: 'Security', description: 'Role permissions and module access' },
       { id: 'sa-profile', label: 'Profile', group: 'Account', description: 'Personal account and security settings' },
@@ -37,8 +38,8 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
   },
   platform_admin: {
     portal: 'platform_admin',
-    label: 'Admin',
-    title: 'Admin Login',
+    label: 'HRM Admin',
+    title: 'HRM Admin Login',
     description: 'HR & operations — manage workforce across the organization',
     moduleDefs: [
       { id: 'pa-hr', label: 'HR Management', group: 'Workforce', description: 'HR activity and hiring oversight' },
@@ -46,7 +47,6 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
       { id: 'pa-employees', label: 'Employees', group: 'Workforce', description: 'Employee directory and records' },
       { id: 'pa-leave', label: 'Leave Management', group: 'Operations', description: 'Leave requests and approvals' },
       { id: 'pa-tasks', label: 'Task Management', group: 'Operations', description: 'Assign and track team tasks' },
-      { id: 'pa-location', label: 'Live Location', group: 'Operations', description: 'Field staff location tracking' },
       { id: 'pa-payroll', label: 'Payroll', group: 'Finance', description: 'Salary runs and disbursements' },
       { id: 'pa-attendance', label: 'Attendance', group: 'Operations', description: 'Attendance logs and policies' },
       { id: 'pa-analytics', label: 'Analytics', group: 'Insights', description: 'Workforce analytics dashboards' },
@@ -87,6 +87,13 @@ export const LOGIN_PORTAL_ORDER = [
 export type LoginPortalType = (typeof LOGIN_PORTAL_ORDER)[number];
 
 export const PLATFORM_HR_ROLE_ORDER: PortalType[] = ['employee'];
+
+export function getModuleDefsForManager(
+  targetPortal: PortalType,
+  _managerPortal?: PortalType
+): AccessModuleDef[] {
+  return ROLE_ACCESS[targetPortal].moduleDefs;
+}
 
 /** Super Admin configures Admin (HR) role only — not own Super Admin access. */
 export const SUPER_ADMIN_MANAGED_ROLES: PortalType[] = ['platform_admin'];
@@ -193,13 +200,17 @@ export function loadRolePermissions(): RolePermissionsMap {
 export function saveRolePermissions(permissions: RolePermissionsMap) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permissions));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('hrm-permissions-updated'));
+  }
 }
 
 export function countEnabledModules(
   portal: PortalType,
-  permissions: RolePermissionsMap
+  permissions: RolePermissionsMap,
+  managerPortal?: PortalType
 ) {
-  const defs = ROLE_ACCESS[portal].moduleDefs;
+  const defs = getModuleDefsForManager(portal, managerPortal);
   const enabled = defs.filter((module) => permissions[portal][module.id]).length;
   return { enabled, total: defs.length };
 }
@@ -229,6 +240,9 @@ export function canAccessPath(portal: PortalType, pathname: string): boolean {
 
   if (portal === 'platform_admin') {
     if (pathname.startsWith('/super-admin') || isEmployeePath(pathname)) {
+      return false;
+    }
+    if (pathname === '/location' || pathname.startsWith('/location/')) {
       return false;
     }
     return true;

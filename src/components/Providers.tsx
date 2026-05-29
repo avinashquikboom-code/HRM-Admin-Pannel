@@ -22,7 +22,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   // Trigger client-side hydration of localStorage states
   useEffect(() => {
-    store.dispatch(hydrateAuth());
+    store.dispatch(hydrateAuth(undefined));
     store.dispatch(hydrateTheme());
   }, []);
 

@@ -1,4 +1,6 @@
 import type { User, UserProfile } from '@/store/slices/authSlice';
+import { normalizeUserRole } from '@/lib/portals';
+import { getApiBaseUrl, getBackendApiTarget } from '@/lib/apiConfig';
 
 export interface ApiProfile {
   id: number;
@@ -21,8 +23,6 @@ export interface ApiProfileUser {
   role: string;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5003';
 
 export function resolveAvatarUrl(avatarUrl: string | null | undefined): string {
   if (!avatarUrl) {
@@ -33,7 +33,9 @@ export function resolveAvatarUrl(avatarUrl: string | null | undefined): string {
     return avatarUrl;
   }
 
-  const base = API_BASE_URL.replace(/\/$/, '');
+  const base = (
+    typeof window !== 'undefined' ? getBackendApiTarget() : getApiBaseUrl()
+  ).replace(/\/$/, '');
   const path = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
   return `${base}${path}`;
 }
@@ -67,7 +69,7 @@ export function mapApiProfileResponse(
   return {
     id: apiUser.id,
     email: profile.email || apiUser.email,
-    role: apiUser.role.toUpperCase(),
+    role: normalizeUserRole(apiUser.role),
     name: mappedProfile.fullName || fallbackName,
     phone: mappedProfile.phone,
     bio: mappedProfile.bio,

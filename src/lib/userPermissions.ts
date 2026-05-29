@@ -39,6 +39,7 @@ export function saveUserPermissionRecord(record: UserPermissionRecord) {
   const store = loadAllUserPermissions();
   store[normalizeEmail(record.email)] = record;
   localStorage.setItem(USER_PERMISSIONS_STORAGE_KEY, JSON.stringify(store));
+  window.dispatchEvent(new Event('hrm-permissions-updated'));
 }
 
 export function getUserPermissionRecord(

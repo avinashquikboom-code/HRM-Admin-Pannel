@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { 
   Users, 
   Building2, 
@@ -32,7 +33,6 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
   BarChart,
   Bar,
   PieChart,
@@ -42,6 +42,7 @@ import {
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
+import ChartContainer from '@/components/ChartContainer';
 
 const revenueData = [
   { name: 'Jan', value: 400000, active: 380000 },
@@ -151,6 +152,7 @@ const MiniCalendar = () => {
 
 const DashboardPage = () => {
   const router = useRouter();
+  const { data, loading, error } = useDashboardStats();
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('May 2024');
@@ -231,15 +233,52 @@ const DashboardPage = () => {
         </div>
       </motion.div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard title="Total Companies" value="1,284" icon={Building2} change="12.5" isPositive={true} color="primary" />
-        <KPICard title="Platform Workforce" value="45.9k" icon={Users} change="8.2" isPositive={true} color="secondary" />
-        <div onClick={() => router.push('/payroll')} className="cursor-pointer">
-          <KPICard title="Manual Audits" value="12" icon={ShieldCheck} change="4.1" isPositive={false} color="warning" />
-        </div>
-        <KPICard title="Monthly Revenue" value="₹2.4M" icon={IndianRupee} change="18.7" isPositive={true} color="success" />
-      </div>
+      {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="glass-card p-6 animate-pulse h-32" />
+            ))}
+          </div>
+        ) : error ? (
+          <p className="text-error">{error}</p>
+        ) : data ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <KPICard
+              title="Total Companies"
+              value={data.totalCompanies.toLocaleString()}
+              icon={Building2}
+              change="12.5"
+              isPositive={true}
+              color="primary"
+            />
+            <KPICard
+              title="Platform Workforce"
+              value={`${data.platformWorkforce.toLocaleString()}k`}
+              icon={Users}
+              change="8.2"
+              isPositive={true}
+              color="secondary"
+            />
+            <div onClick={() => router.push('/payroll')} className="cursor-pointer">
+              <KPICard
+                title="Manual Audits"
+                value={data.manualAudits.toString()}
+                icon={ShieldCheck}
+                change="4.1"
+                isPositive={false}
+                color="warning"
+              />
+            </div>
+            <KPICard
+              title="Monthly Revenue"
+              value={`₹${(data.monthlyRevenue / 1000000).toFixed(2)}M`}
+              icon={IndianRupee}
+              change="18.7"
+              isPositive={true}
+              color="success"
+            />
+          </div>
+        ) : null}
 
       {/* Main Analytics Row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -263,8 +302,7 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="h-[350px] w-full relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[350px]" className="relative z-10">
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="dashboardRevenueGradient" x1="0" y1="0" x2="0" y2="1">
@@ -309,16 +347,15 @@ const DashboardPage = () => {
                   animationDuration={2000}
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         <motion.div variants={itemVariants} className="glass-card p-8 flex flex-col group">
           <h3 className="heading-2 mb-2">Subscription Mix</h3>
           <p className="text-sm text-text-secondary mb-8 font-medium">Platform-wide plan adoption</p>
           
-          <div className="h-64 w-full relative mb-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="relative mb-10">
+          <ChartContainer heightClassName="h-64">
               <PieChart>
                 <Pie
                   data={subscriptionData}
@@ -341,7 +378,7 @@ const DashboardPage = () => {
                 </Pie>
                 <Tooltip />
               </PieChart>
-            </ResponsiveContainer>
+          </ChartContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-stat-value">1,050</span>
               <span className="text-label text-text-secondary">Active Plans</span>

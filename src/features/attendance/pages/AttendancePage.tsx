@@ -25,7 +25,6 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
@@ -33,6 +32,7 @@ import {
   Bar
 } from 'recharts';
 import { cn } from '@/utils/cn';
+import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
 
@@ -206,8 +206,8 @@ const AttendancePage = () => {
           <h3 className="heading-2 relative z-10">Presence Breakdown</h3>
           <p className="text-page-desc mt-1 mb-8 relative z-10 font-medium">System-wide daily status distribution</p>
           
-          <div className="h-[250px] relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="relative z-10">
+          <ChartContainer heightClassName="h-[250px]">
               <PieChart>
                 <Pie
                   data={attendanceStats}
@@ -234,9 +234,9 @@ const AttendancePage = () => {
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
               </PieChart>
-            </ResponsiveContainer>
+          </ChartContainer>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <span className="text-stat-valueer">92%</span>
+              <span className="text-stat-value">92%</span>
               <p className="text-label text-text-secondary">Active</p>
             </div>
           </div>
@@ -273,8 +273,7 @@ const AttendancePage = () => {
             </div>
           </div>
 
-          <div className="h-[320px] w-full relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[320px]" className="relative z-10">
               <BarChart data={[
                 { time: '7 AM', ontime: 1500, late: 50 },
                 { time: '8 AM', ontime: 5800, late: 120 },
@@ -312,8 +311,7 @@ const AttendancePage = () => {
                 <Bar dataKey="ontime" stackId="a" fill="#3BA38B" radius={[0, 0, 0, 0]} animationDuration={1500} />
                 <Bar dataKey="late" stackId="a" fill="#F4B860" radius={[10, 10, 0, 0]} animationDuration={2000} />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
       </div>
 

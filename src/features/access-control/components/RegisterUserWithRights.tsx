@@ -8,10 +8,9 @@ import { registerUser, type RegisterRole } from '@/services/authService';
 import { getAuthSession } from '@/lib/authStorage';
 import { isDevAuthSession } from '@/lib/devAuth';
 import type { PortalType } from '@/lib/portals';
-import { ROLE_ACCESS } from '@/lib/roleAccess';
+import { ROLE_ACCESS, getModuleDefsForManager } from '@/lib/roleAccess';
 import {
   buildInitialUserPermissions,
-  countUserEnabledModules,
   saveUserPermissionRecord,
 } from '@/lib/userPermissions';
 import { cn } from '@/utils/cn';
@@ -56,7 +55,11 @@ export default function RegisterUserWithRights({
 }: RegisterUserWithRightsProps) {
   const copy = CONFIG[managerPortal];
   const access = ROLE_ACCESS[targetPortal];
-  const adminSession = getAuthSession();
+  const visibleModules = useMemo(
+    () => getModuleDefsForManager(targetPortal, managerPortal),
+    [targetPortal, managerPortal]
+  );
+  const adminSession = getAuthSession(managerPortal);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,8 +74,9 @@ export default function RegisterUserWithRights({
     setPermissions(buildInitialUserPermissions(targetPortal));
   }, [targetPortal]);
 
-  const grouped = useMemo(() => groupModules(access.moduleDefs), [access.moduleDefs]);
-  const { enabled, total } = countUserEnabledModules(targetPortal, permissions);
+  const grouped = useMemo(() => groupModules(visibleModules), [visibleModules]);
+  const enabled = visibleModules.filter((module) => permissions[module.id]).length;
+  const total = visibleModules.length;
 
   const toggleModule = (moduleId: string, checked: boolean) => {
     setPermissions((current) => ({ ...current, [moduleId]: checked }));
@@ -80,13 +84,13 @@ export default function RegisterUserWithRights({
 
   const selectAll = () => {
     const next: Record<string, boolean> = {};
-    for (const module of access.moduleDefs) next[module.id] = true;
+    for (const module of visibleModules) next[module.id] = true;
     setPermissions(next);
   };
 
   const clearAll = () => {
     const next: Record<string, boolean> = {};
-    for (const module of access.moduleDefs) next[module.id] = false;
+    for (const module of visibleModules) next[module.id] = false;
     setPermissions(next);
   };
 

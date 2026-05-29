@@ -22,7 +22,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import SignOutModal from '@/components/SignOutModal';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { formatLastLogin } from '@/lib/profileMapper';
-import { getProfileBasePath } from '@/lib/portals';
+import { getProfileBasePath, isSuperAdminPath } from '@/lib/portals';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -52,6 +52,7 @@ const ProfilePage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const profileBasePath = getProfileBasePath(pathname);
+  const hideLoginTracking = isSuperAdminPath(pathname);
   const { user, profile, isLoading, error } = useAdminProfile();
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
@@ -236,7 +237,9 @@ const ProfilePage = () => {
                 {
                   label: 'Last Login',
                   desc: security?.lastLoginAt
-                    ? `${formatLastLogin(security.lastLoginAt)} • ${security.lastLoginLocation}`
+                    ? hideLoginTracking
+                      ? formatLastLogin(security.lastLoginAt)
+                      : `${formatLastLogin(security.lastLoginAt)} • ${security.lastLoginLocation}`
                     : 'No recent login recorded',
                   icon: Smartphone,
                   action: 'Review',
@@ -274,6 +277,7 @@ const ProfilePage = () => {
 
         {/* Right Column: Activity */}
         <div className="space-y-8">
+          {!hideLoginTracking && (
           <motion.div variants={itemVariants} className="glass-card p-8">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-sm font-black text-text-primary uppercase tracking-[0.2em] flex items-center gap-2">
@@ -306,6 +310,7 @@ const ProfilePage = () => {
               )}
             </div>
           </motion.div>
+          )}
 
           <motion.div 
             variants={itemVariants}

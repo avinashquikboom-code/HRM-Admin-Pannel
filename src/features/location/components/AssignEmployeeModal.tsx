@@ -39,7 +39,7 @@ export default function AssignEmployeeModal({
     setIsLoadingEmployees(true);
 
     fetchEmployees()
-      .then(setEmployees)
+      .then((data) => setEmployees(data.employees))
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to load employees.');
       })

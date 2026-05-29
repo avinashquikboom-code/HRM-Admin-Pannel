@@ -114,7 +114,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
     let enabled = 0;
 
     for (const role of config.managedRoles) {
-      const counts = countEnabledModules(role, permissions);
+      const counts = countEnabledModules(role, permissions, config.managerPortal);
       modules += counts.total;
       enabled += counts.enabled;
     }
@@ -139,6 +139,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
       case 'ADMIN':
+      case 'SUPER_ADMIN':
         return 'bg-error/10 text-error border-error/20';
       case 'HR':
         return 'bg-secondary/10 text-secondary border-secondary/20';
@@ -152,7 +153,8 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return 'System Admin';
+      case 'SUPER_ADMIN':
+        return 'Super Admin';
       case 'HR':
         return 'HR Admin';
       case 'EMPLOYEE':
@@ -434,6 +436,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
       <ManageUserPermissionsModal
         isOpen={isCustomModalOpen}
         user={selectedUser}
+        managerPortal={config.managerPortal}
         onClose={() => {
           setIsCustomModalOpen(false);
           setSelectedUser(null);

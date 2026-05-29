@@ -26,24 +26,68 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { updateUser } from '@/store/slices/authSlice';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { updateAdminProfile, uploadAdminAvatar, removeAdminAvatar, fileToDataUrl } from '@/services/profileService';
-import { getProfileBasePath } from '@/lib/portals';
+import { useOffices } from '@/hooks/useOffices';
+import { getProfileBasePath, isSuperAdminPath } from '@/lib/portals';
+import PremiumCard from '@/components/PremiumCard';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Invalid phone number'),
+  officeId: z.string().optional(),
   bio: z.string().max(300, 'Bio must be under 300 characters').optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+function EmployeeListSection() {
+  const [employees, setEmployees] = useState<AdminEmployee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    fetchEmployees()
+      .then((data) => {
+        setEmployees(data.employees);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Failed to load employees');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <p className="text-sm text-text-secondary">Loading employees...</p>;
+  }
+  if (error) {
+    return <p className="text-sm text-error">{error}</p>;
+  }
+  return (
+    <div className="space-y-4">
+      <h2 className="heading-2">Employee Directory</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {employees.map((emp) => (
+          <PremiumCard key={emp.id} className="p-4">
+            <p className="font-bold text-text-primary">{emp.firstName} {emp.lastName}</p>
+            <p className="text-text-secondary">{emp.user?.email ?? emp.employeeCode}</p>
+            <p className="text-text-secondary">{emp.designation ?? '—'}</p>
+          </PremiumCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const EditProfilePage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const profileBasePath = getProfileBasePath(pathname);
+  const hideLoginTracking = isSuperAdminPath(pathname);
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { profile, isLoading } = useAdminProfile();
+const { offices, isLoading: officesLoading, error: officesError } = useOffices();
   const [submitError, setSubmitError] = useState('');
   const [avatarError, setAvatarError] = useState('');
   const [avatarMessage, setAvatarMessage] = useState('');
@@ -318,10 +362,12 @@ const EditProfilePage = () => {
                     <span className="text-text-secondary">2FA Authentication</span>
                     <span className="text-success uppercase">{security?.twoFactorStatus || 'Active'}</span>
                   </li>
+                  {!hideLoginTracking && (
                   <li className="flex items-center justify-between text-xs font-bold">
                     <span className="text-text-secondary">Last Login</span>
                     <span className="text-text-primary">{security?.lastLoginLocation || '—'}</span>
                   </li>
+                  )}
                   <li className="flex items-center justify-between text-xs font-bold">
                     <span className="text-text-secondary">Clearance Level</span>
                     <span className="text-primary uppercase">{security?.clearanceLabel || 'Level 5'}</span>
@@ -329,7 +375,6 @@ const EditProfilePage = () => {
                 </ul>
               </div>
             </motion.div>
-            <EmployeeListSection />
 
             {/* Right Column: Form Fields */}
             <motion.div variants={itemVariants} className="lg:col-span-2 space-y-8">
@@ -352,7 +397,7 @@ const EditProfilePage = () => {
                       placeholder="e.g. Avinash Magar"
                       register={register}
                       error={errors.name}
-                      required
+                      required={true}
                     />
                   </div>
 
@@ -363,7 +408,7 @@ const EditProfilePage = () => {
                       placeholder="admin@hrm.ai"
                       register={register}
                       error={errors.email}
-                      required
+                      required={true}
                     />
                   </div>
 
@@ -374,12 +419,25 @@ const EditProfilePage = () => {
                       placeholder="+91 00000 00000"
                       register={register}
                       error={errors.phone}
-                      required
+                      required={true}
                     />
-                    <div className="w-full px-6 py-4.5 bg-surface-variant/30 border-2 border-border/50 rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
+                    <div className="w-full px-6 py-4.5 bg-surface-variant/30 border-2 border-border rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
                       <Globe size={20} className="text-primary" />
                       {profile?.timezoneLabel || 'Asia/Kolkata (IST)'}
                     </div>
+                    {officesLoading && <p className="text-sm text-text-secondary">Loading offices…</p>}
+                    {officesError && <p className="text-sm text-error">{officesError}</p>}
+                    {!officesLoading && !officesError && (
+                      <select
+                        {...register('officeId')}
+                        className="w-full px-4 py-2 bg-surface-variant/30 border-2 border-border rounded-[24px] text-text-primary"
+                      >
+                        <option value="">Select Office</option>
+                        {offices.map((office) => (
+                          <option key={office.id} value={office.id}>{office.name}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
               </div>
@@ -399,8 +457,7 @@ const EditProfilePage = () => {
               </div>
 
 
-            {/* Action Buttons */}
-            <motion.div variants={itemVariants} className="flex gap-5">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-5">
               <PremiumButton
                 onClick={() => router.push(profileBasePath)}
                 type="button"
@@ -421,52 +478,13 @@ const EditProfilePage = () => {
               </PremiumButton>
             </motion.div>
           </motion.div>
-      </form>
+          </div>
+        </form>
 
-    </motion.div>
+        <EmployeeListSection />
+      </motion.div>
     </>
   );
 };
 
-// Employee List Section (optional premium view)
-import PremiumCard from '@/components/PremiumCard';
-
-function EmployeeListSection() {
-  const [employees, setEmployees] = useState<AdminEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-
-  useEffect(() => {
-    fetchEmployees()
-      .then((data) => {
-        setEmployees(data.employees);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Failed to load employees');
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return <p className="text-sm text-text-secondary">Loading employees...</p>;
-  }
-  if (error) {
-    return <p className="text-sm text-error">{error}</p>;
-  }
-  return (
-    <div className="mt-8 space-y-4">
-      <h2 className="heading-2">Employee Directory</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {employees.map((emp) => (
-          <PremiumCard key={emp.id} className="p-4">
-            <p className="font-bold text-text-primary">{emp.firstName} {emp.lastName}</p>
-            <p className="text-text-secondary">{emp.user?.email ?? emp.employeeCode}</p>
-            <p className="text-text-secondary">{emp.designation ?? '—'}</p>
-          </PremiumCard>
-        ))}
-      </div>
-    </div>
-  );
-}
 export default EditProfilePage;

@@ -14,10 +14,12 @@ export const SUPER_ADMIN_ROUTES = [
   SUPER_ADMIN_HOME,
   `${SUPER_ADMIN_PREFIX}/companies`,
   `${SUPER_ADMIN_PREFIX}/subscriptions`,
+  `${SUPER_ADMIN_PREFIX}/location`,
   `${SUPER_ADMIN_PREFIX}/settings`,
 ];
 
 export const PUBLIC_PATHS = [
+  '/',
   PLATFORM_LOGIN_PATH,
   SUPER_ADMIN_LOGIN_PATH,
   '/forgot-password',
@@ -61,25 +63,37 @@ export function getHomePathForPortal(portal: PortalType) {
 }
 
 export function normalizeUserRole(role: string | undefined | null) {
-  return (role ?? '').trim().toUpperCase();
+  return (role ?? '').trim().toUpperCase().replace(/\s+/g, '_');
+}
+
+export function isSuperAdminRole(role: string | undefined | null) {
+  const normalized = normalizeUserRole(role);
+  return normalized === 'SUPER_ADMIN' || normalized === 'ADMIN';
+}
+
+export function isPlatformAdminRole(role: string | undefined | null) {
+  const normalized = normalizeUserRole(role);
+  return normalized === 'HR' || normalized === 'PLATFORM_ADMIN';
+}
+
+export function isEmployeeRole(role: string | undefined | null) {
+  return normalizeUserRole(role) === 'EMPLOYEE';
 }
 
 export function roleAllowedForPortal(
   role: string | undefined | null,
   portal: PortalType
 ) {
-  const normalized = normalizeUserRole(role);
-
   if (portal === 'super_admin') {
-    return normalized === 'ADMIN';
+    return isSuperAdminRole(role);
   }
 
   if (portal === 'platform_admin') {
-    return normalized === 'HR';
+    return isPlatformAdminRole(role);
   }
 
   if (portal === 'employee') {
-    return normalized === 'EMPLOYEE';
+    return isEmployeeRole(role);
   }
 
   return false;
@@ -102,17 +116,15 @@ export function getProfileBasePath(pathname: string) {
 }
 
 export function portalForRole(role: string | undefined | null): PortalType | null {
-  const normalized = normalizeUserRole(role);
-
-  if (normalized === 'ADMIN') {
+  if (isSuperAdminRole(role)) {
     return 'super_admin';
   }
 
-  if (normalized === 'HR') {
+  if (isPlatformAdminRole(role)) {
     return 'platform_admin';
   }
 
-  if (normalized === 'EMPLOYEE') {
+  if (isEmployeeRole(role)) {
     return 'employee';
   }
 

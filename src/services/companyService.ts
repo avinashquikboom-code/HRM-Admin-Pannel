@@ -30,7 +30,7 @@ export async function fetchCompanyStats(): Promise<CompanyStats> {
 
   if (!getAuthToken()) {
     throw new Error(
-      'Admin token not found. Sign in first — token is stored in hrm_auth and hrm_token cookie.'
+      'Admin token not found. Sign in first — token is stored in hrm_auth / hrm_token (HRM Admin) or super_hrm_auth / super_hrm_token (Super HRM).'
     );
   }
 

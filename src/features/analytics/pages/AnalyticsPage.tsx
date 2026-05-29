@@ -7,7 +7,6 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
   LineChart,
   Line,
   AreaChart,
@@ -30,6 +29,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import ChartContainer from '@/components/ChartContainer';
 
 const data = [
   { name: 'Week 1', revenue: 4000, employees: 2400, companies: 2400 },
@@ -140,8 +140,7 @@ const AnalyticsPage = () => {
               <button className="p-3 bg-surface-variant rounded-xl text-muted hover:text-primary transition-colors"><Filter size={18} /></button>
             </div>
           </div>
-          <div className="h-[350px] relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[350px]" className="relative z-10">
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
@@ -172,8 +171,7 @@ const AnalyticsPage = () => {
                   animationDuration={2500}
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         {/* Workforce Health - Pie Chart */}
@@ -181,8 +179,7 @@ const AnalyticsPage = () => {
           <h3 className="text-xl font-black text-text-primary tracking-tight mb-2">Workforce Lifecycle</h3>
           <p className="text-xs text-text-secondary font-medium mb-10">Employee health & state distribution</p>
           
-          <div className="h-[250px] w-full mb-8">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[250px]" className="mb-8">
               <PieChart>
                 <Pie
                   data={employeeRetentionData}
@@ -200,8 +197,7 @@ const AnalyticsPage = () => {
                 </Pie>
                 <Tooltip />
               </PieChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
 
           <div className="space-y-4 mt-auto">
             {employeeRetentionData.map((item, index) => (
@@ -229,8 +225,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
           
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[400px]">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} dy={15} />
@@ -239,8 +234,7 @@ const AnalyticsPage = () => {
                 <Bar dataKey="employees" fill="#3BA38B" radius={[12, 12, 0, 0]} barSize={40} />
                 <Bar dataKey="revenue" fill="#F4B860" radius={[12, 12, 0, 0]} barSize={40} />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
       </div>
 

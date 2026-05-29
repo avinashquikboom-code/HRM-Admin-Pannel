@@ -8,21 +8,9 @@ import { toggleSidebar, setSidebarOpen } from '../store/slices/sidebarSlice';
 import { logout } from '../store/slices/authSlice';
 import SignOutModal from './SignOutModal';
 import {
-  Users,
-  UserSquare2,
-  CreditCard,
-  Wallet,
-  BarChart3,
-  FileText,
-  Bell,
-  User,
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Calendar,
-  CheckSquare,
-  MapPin,
-  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -30,6 +18,12 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getLoginPathForPortal } from '@/lib/portals';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { usePermissions } from '@/hooks/usePermissions';
+import {
+  PLATFORM_ADMIN_ACCOUNT_ITEMS,
+  PLATFORM_ADMIN_MENU_ITEMS,
+  stripRemovedAdminModules,
+} from '@/lib/sidebarMenus';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,25 +33,8 @@ interface MenuItem {
   name: string;
   icon: LucideIcon;
   path: string;
+  moduleId: string;
 }
-
-const platformMenuItems: MenuItem[] = [
-  { name: 'HR Management', icon: Users, path: '/hr-management' },
-  { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights' },
-  { name: 'Employees', icon: UserSquare2, path: '/employees' },
-  { name: 'Leave Management', icon: Calendar, path: '/leave' },
-  { name: 'Task Management', icon: CheckSquare, path: '/tasks' },
-  { name: 'Live Location', icon: MapPin, path: '/location' },
-  { name: 'Payroll', icon: Wallet, path: '/payroll' },
-  { name: 'Attendance', icon: CreditCard, path: '/attendance' },
-  { name: 'Analytics', icon: BarChart3, path: '/analytics' },
-  { name: 'Reports', icon: FileText, path: '/reports' },
-  { name: 'Notifications', icon: Bell, path: '/notifications' },
-];
-
-const accountMenuItems: MenuItem[] = [
-  { name: 'Profile', icon: User, path: '/profile' },
-];
 
 function NavItem({
   item,
@@ -103,9 +80,17 @@ function NavItem({
 
 const Sidebar = () => {
   const { isOpen } = useAppSelector((state) => state.sidebar);
+  const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
+  const { filterMenuItems } = usePermissions('platform_admin', user?.email);
+  const visiblePlatformItems = stripRemovedAdminModules(
+    filterMenuItems(PLATFORM_ADMIN_MENU_ITEMS)
+  );
+  const visibleAccountItems = stripRemovedAdminModules(
+    filterMenuItems(PLATFORM_ADMIN_ACCOUNT_ITEMS)
+  );
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -145,7 +130,7 @@ const Sidebar = () => {
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-              <p className="sidebar-brand leading-tight">Admin Panel</p>
+              <p className="sidebar-brand leading-tight">HRM Admin</p>
               <p className="text-micro font-medium text-primary uppercase tracking-wide mt-0.5">
                 Platform Operations
               </p>
@@ -154,7 +139,7 @@ const Sidebar = () => {
         </div>
 
         <nav className="sidebar-nav">
-          {platformMenuItems.map((item) => (
+          {visiblePlatformItems.map((item) => (
             <NavItem
               key={item.path}
               item={item}
@@ -166,7 +151,7 @@ const Sidebar = () => {
         </nav>
 
         <div className="sidebar-footer">
-          {accountMenuItems.map((item) => (
+          {visibleAccountItems.map((item) => (
             <NavItem
               key={item.path}
               item={item}

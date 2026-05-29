@@ -45,7 +45,7 @@ const MOCK_PLATFORM_USERS: PlatformUser[] = [
   {
     id: 2,
     name: 'Priya Sharma',
-    email: 'hr@quickboom.com',
+    email: 'hr@hrm.com',
     role: 'HR',
     isActive: true,
     registeredAt: '2026-05-26T17:14:09.514Z',
@@ -66,7 +66,7 @@ const MOCK_PLATFORM_USERS: PlatformUser[] = [
   {
     id: 3,
     name: 'Rahul Verma',
-    email: 'employee@quickboom.com',
+    email: 'employee@hrm.com',
     role: 'EMPLOYEE',
     isActive: true,
     registeredAt: '2026-05-26T17:14:09.515Z',
@@ -87,7 +87,7 @@ const MOCK_PLATFORM_USERS: PlatformUser[] = [
   {
     id: 4,
     name: 'newuser',
-    email: 'newuser@quickboom.com',
+    email: 'newuser@hrm.com',
     role: 'EMPLOYEE',
     isActive: true,
     registeredAt: '2026-05-27T15:28:17.241Z',

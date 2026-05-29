@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   clearAuthSession,
   getAuthSession,
+  resolvePortalFromWindow,
   setAuthSession,
 } from '@/lib/authStorage';
 import type { PortalType } from '@/lib/portals';
@@ -55,8 +56,8 @@ const initialState: AuthState = {
   portal: null,
 };
 
-export const loadAuthFromStorage = (): AuthState => {
-  const session = getAuthSession();
+export const loadAuthFromStorage = (portal?: PortalType): AuthState => {
+  const session = getAuthSession(portal ?? resolvePortalFromWindow());
   if (!session) {
     return initialState;
   }
@@ -73,8 +74,8 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    hydrateAuth: (state) => {
-      const hydrated = loadAuthFromStorage();
+    hydrateAuth: (state, action: PayloadAction<PortalType | undefined>) => {
+      const hydrated = loadAuthFromStorage(action.payload);
       state.user = hydrated.user;
       state.token = hydrated.token;
       state.isAuthenticated = hydrated.isAuthenticated;
@@ -95,11 +96,14 @@ const authSlice = createSlice({
       });
     },
     logout: (state) => {
+      const portal = state.portal ?? resolvePortalFromWindow();
+      if (portal) {
+        clearAuthSession(portal);
+      }
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.portal = null;
-      clearAuthSession();
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user && state.token && state.portal) {

@@ -8,15 +8,10 @@ import { toggleSidebar, setSidebarOpen } from '@/store/slices/sidebarSlice';
 import { logout } from '@/store/slices/authSlice';
 import SignOutModal from './SignOutModal';
 import {
-  LayoutDashboard,
-  Building2,
-  CreditCard,
-  Settings,
   User,
   ChevronLeft,
   ChevronRight,
   LogOut,
-  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -24,6 +19,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getLoginPathForPortal, SUPER_ADMIN_PREFIX } from '@/lib/portals';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { SUPER_ADMIN_MENU_ITEMS } from '@/lib/sidebarMenus';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,15 +29,8 @@ interface MenuItem {
   name: string;
   icon: LucideIcon;
   path: string;
+  moduleId: string;
 }
-
-const superAdminMenuItems: MenuItem[] = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX },
-  { name: 'Companies', icon: Building2, path: `${SUPER_ADMIN_PREFIX}/companies` },
-  { name: 'Subscriptions', icon: CreditCard, path: `${SUPER_ADMIN_PREFIX}/subscriptions` },
-  { name: 'Admin Rights', icon: ShieldCheck, path: `${SUPER_ADMIN_PREFIX}/user-rights` },
-  { name: 'Settings', icon: Settings, path: `${SUPER_ADMIN_PREFIX}/settings` },
-];
 
 function NavItem({
   item,
@@ -103,6 +92,10 @@ const SuperAdminSidebar = () => {
     router.push(getLoginPathForPortal('super_admin'));
   };
 
+  const isProfileActive =
+    pathname === `${SUPER_ADMIN_PREFIX}/profile` ||
+    pathname === `${SUPER_ADMIN_PREFIX}/profile/edit`;
+
   return (
     <>
       {isOpen && (
@@ -129,7 +122,7 @@ const SuperAdminSidebar = () => {
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-              <p className="sidebar-brand leading-tight">Super Admin</p>
+              <p className="sidebar-brand leading-tight">Super HRM</p>
               <p className="text-micro font-medium text-primary uppercase tracking-wide mt-0.5">
                 Ecosystem Control
               </p>
@@ -138,7 +131,7 @@ const SuperAdminSidebar = () => {
         </div>
 
         <nav className="sidebar-nav">
-          {superAdminMenuItems.map((item) => (
+          {SUPER_ADMIN_MENU_ITEMS.map((item) => (
             <NavItem
               key={item.path}
               item={item}
@@ -156,7 +149,7 @@ const SuperAdminSidebar = () => {
             className={cn(
               'sidebar-nav-item group',
               !isOpen && 'sidebar-nav-item-collapsed',
-              pathname === `${SUPER_ADMIN_PREFIX}/profile`
+              isProfileActive
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
                 : 'text-text-secondary hover:bg-surface-variant text-muted'
             )}

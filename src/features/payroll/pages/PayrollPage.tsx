@@ -25,11 +25,11 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
   AreaChart,
   Area
 } from 'recharts';
 import { cn } from '@/utils/cn';
+import ChartContainer from '@/components/ChartContainer';
 import { useLoadingData } from '@/hooks/useLoadingData';
 import Modal from '@/components/Modal';
 
@@ -230,8 +230,7 @@ const PayrollPage = () => {
             </div>
           </div>
 
-          <div className="h-[350px] w-full relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer heightClassName="h-[350px]" className="relative z-10">
               <AreaChart data={payrollStats}>
                 <defs>
                   <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
@@ -265,8 +264,7 @@ const PayrollPage = () => {
                   animationEasing="ease-in-out"
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          </ChartContainer>
         </motion.div>
 
         <div className="flex flex-col gap-6">

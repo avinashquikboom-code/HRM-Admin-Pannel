@@ -2,18 +2,20 @@ import { api, getApiErrorMessage } from '@/lib/api';
 import {
   createDevAuthSession,
   isDevAuthSession,
+  matchesDevCredentialsForPortal,
   matchesEmployeeDevCredentials,
   matchesPlatformDevCredentials,
   matchesSuperAdminDevCredentials,
 } from '@/lib/devAuth';
-import { getAuthToken, writeTokenCookie } from '@/lib/authStorage';
+import { getAuthSession, getAuthToken, writeTokenCookie } from '@/lib/authStorage';
 import { mapApiProfileResponse } from '@/lib/profileMapper';
 import {
   resolveLoginLocationQuick,
   setLoginLocationBanner,
 } from '@/lib/loginLocation';
 import {
-  roleAllowedForPortal,
+  portalForRole,
+  normalizeUserRole,
   type PortalType,
 } from '@/lib/portals';
 import type { User } from '@/store/slices/authSlice';
@@ -48,7 +50,7 @@ function mapLoginUser(apiUser: LoginApiUser): User {
   return {
     id: apiUser.id,
     email: apiUser.email,
-    role: apiUser.role.toUpperCase(),
+    role: normalizeUserRole(apiUser.role),
     name: fallbackName,
     avatar: '/favicon.svg',
   };
@@ -58,18 +60,18 @@ async function tryApiLogin(
   credentials: LoginRequest,
   portal: PortalType
 ) {
-  const loginLocation = await resolveLoginLocationQuick();
   const { data } = await api.post<LoginApiResponse>('/api/auth/login', {
-    ...credentials,
-    loginLocation,
+    email: credentials.email.trim().toLowerCase(),
+    password: credentials.password,
   });
 
   const user = mapLoginUser(data.user);
+  const resolvedPortal = portalForRole(user.role);
 
-  if (!roleAllowedForPortal(user.role, portal)) {
+  if (!resolvedPortal || resolvedPortal !== portal) {
     const messages: Record<PortalType, string> = {
       super_admin:
-        'This account cannot access Super Admin. Use an ADMIN account.',
+        'This account cannot access Super Admin. Use a Super Admin account.',
       platform_admin:
         'This account cannot access Admin Panel. Use an HR (Admin) account.',
       employee:
@@ -81,53 +83,87 @@ async function tryApiLogin(
   const resolvedLocation =
     data.currentLoginLocation ||
     data.user.profile?.security?.lastLoginLocation ||
-    loginLocation;
+    (portal !== 'super_admin' ? await resolveLoginLocationQuick() : null);
 
-  setLoginLocationBanner(resolvedLocation);
+  if (resolvedLocation && portal !== 'super_admin') {
+    setLoginLocationBanner(resolvedLocation);
+  }
 
   return {
     token: data.token,
     user,
-    portal,
+    portal: resolvedPortal,
   };
 }
 
 function tryDevLogin(portal: PortalType) {
-  const loginLocation = 'Local device';
-  setLoginLocationBanner(loginLocation);
   const session = createDevAuthSession(portal);
-  if (session.user.profile?.security) {
-    session.user.profile.security.lastLoginLocation = loginLocation;
+  if (portal !== 'super_admin') {
+    const loginLocation = 'Local device';
+    setLoginLocationBanner(loginLocation);
+    if (session.user.profile?.security) {
+      session.user.profile.security.lastLoginLocation = loginLocation;
+    }
   }
   return session;
+}
+
+function getPortalMismatchMessage(
+  credentials: LoginRequest,
+  portal: PortalType
+): string | null {
+  if (
+    portal !== 'super_admin' &&
+    matchesSuperAdminDevCredentials(credentials.email, credentials.password)
+  ) {
+    return 'This account is for Super Admin. Switch to the Super Admin tab.';
+  }
+
+  if (
+    portal !== 'platform_admin' &&
+    matchesPlatformDevCredentials(credentials.email, credentials.password)
+  ) {
+    return 'This account is for Admin Panel. Switch to the Admin Panel tab.';
+  }
+
+  if (
+    portal !== 'employee' &&
+    matchesEmployeeDevCredentials(credentials.email, credentials.password)
+  ) {
+    return 'This account is for Employee Portal.';
+  }
+
+  return null;
 }
 
 export async function loginRequest(
   credentials: LoginRequest,
   portal: PortalType
 ) {
+  const portalMismatch = getPortalMismatchMessage(credentials, portal);
+  if (portalMismatch) {
+    throw new Error(portalMismatch);
+  }
+
   try {
     return await tryApiLogin(credentials, portal);
   } catch (apiError) {
-    const canUseSuperAdminDemo =
-      portal === 'super_admin' &&
-      matchesSuperAdminDevCredentials(credentials.email, credentials.password);
+    const canUseDevLogin = matchesDevCredentialsForPortal(
+      credentials.email,
+      credentials.password,
+      portal
+    );
 
-    const canUsePlatformDemo =
-      portal === 'platform_admin' &&
-      matchesPlatformDevCredentials(credentials.email, credentials.password);
-
-    const canUseEmployeeDemo =
-      portal === 'employee' &&
-      matchesEmployeeDevCredentials(credentials.email, credentials.password);
-
-    if (canUseSuperAdminDemo || canUsePlatformDemo || canUseEmployeeDemo) {
+    if (canUseDevLogin) {
       console.info('[HRM] API login unavailable — using offline demo session');
       return tryDevLogin(portal);
     }
 
     throw new Error(
-      getApiErrorMessage(apiError, 'Login failed. Please try again.')
+      getApiErrorMessage(
+        apiError,
+        'Invalid email or password. Please check your credentials and try again.'
+      )
     );
   }
 }
@@ -188,7 +224,8 @@ export async function registerUser(payload: RegisterRequest) {
     );
 
     if (data.token) {
-      writeTokenCookie(data.token);
+      const portal = getAuthSession()?.portal ?? 'platform_admin';
+      writeTokenCookie(data.token, portal);
     }
 
     return data;
