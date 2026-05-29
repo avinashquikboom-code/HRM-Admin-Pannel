@@ -7,6 +7,7 @@ export interface CompanyStats {
   globalSeats: number;
   pendingVerification: number;
   systemGrowth: string;
+  monthlyRevenue: number;
 }
 
 interface CompanyStatsResponse {
@@ -14,6 +15,7 @@ interface CompanyStatsResponse {
   globalSeats: number;
   pendingVerification: number;
   systemGrowth: string;
+  monthlyRevenue?: number;
 }
 
 const DEMO_COMPANY_STATS: CompanyStats = {
@@ -21,6 +23,7 @@ const DEMO_COMPANY_STATS: CompanyStats = {
   globalSeats: 6425,
   pendingVerification: 2,
   systemGrowth: '18.7%',
+  monthlyRevenue: 2400000,
 };
 
 export async function fetchCompanyStats(): Promise<CompanyStats> {
@@ -44,6 +47,7 @@ export async function fetchCompanyStats(): Promise<CompanyStats> {
       globalSeats: data.globalSeats ?? 0,
       pendingVerification: data.pendingVerification ?? 0,
       systemGrowth: data.systemGrowth ?? '0%',
+      monthlyRevenue: data.monthlyRevenue ?? 0,
     };
   } catch (error) {
     throw new Error(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   CheckSquare, 
   Plus, 
@@ -13,7 +13,8 @@ import {
   User,
   SlidersHorizontal,
   Search,
-  CheckCircle2
+  CheckCircle2,
+  Trash2
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -21,7 +22,9 @@ import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 
-import { mockTasks as initialTasks } from '@/data/mockData';
+import { mockTasks as initialTasks, mockEmployees } from '@/data/mockData';
+import { isDevAuthSession } from '@/lib/devAuth';
+import { api } from '@/lib/api';
 import { useEmployees } from '@/hooks/useEmployees';
 
 const containerVariants: Variants = {
@@ -53,55 +56,158 @@ type TaskStatus = typeof columnNames[number];
 
 const TasksPage = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDevSession, setIsDevSession] = useState(false);
 
   // Form State
   const [title, setTitle] = useState('');
-  const [assignee, setAssignee] = useState('Sarah Johnson');
+  const [assigneeId, setAssigneeId] = useState('');
   const [priority, setPriority] = useState('High');
   const [deadline, setDeadline] = useState('');
   const [description, setDescription] = useState('');
   const { employees } = useEmployees();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+  const loadTasks = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.get<{ success: boolean; tasks: any[] }>('/api/admin/tasks');
+      if (res.data.success) {
+        setTasks(res.data.tasks);
+      }
+    } catch (err) {
+      console.error('Failed to load admin tasks:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const handleStatusChange = (taskId: string, nextStatus: TaskStatus) => {
-    setTasks(prev => prev.map(t => 
-      t.id === taskId 
-        ? { ...t, status: nextStatus, progress: nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0 } 
-        : t
-    ));
+  useEffect(() => {
+    const dev = isDevAuthSession();
+    setIsDevSession(dev);
+    if (!dev) {
+      loadTasks();
+    } else {
+      setTasks(initialTasks);
+      setIsLoading(false);
+    }
+  }, [loadTasks]);
+
+  const displayEmployees = useMemo(() => {
+    return isDevSession 
+      ? mockEmployees.map(emp => ({
+          id: String(emp.id),
+          name: emp.name,
+          code: `EMP-0${emp.id}`
+        }))
+      : employees.map(emp => ({
+          id: String(emp.id),
+          name: `${emp.firstName} ${emp.lastName}`,
+          code: emp.employeeCode
+        }));
+  }, [isDevSession, employees]);
+
+  useEffect(() => {
+    if (displayEmployees.length > 0 && !assigneeId) {
+      setAssigneeId(displayEmployees[0].id);
+    }
+  }, [displayEmployees, assigneeId]);
+
+  const handleStatusChange = async (taskId: string, nextStatus: TaskStatus) => {
+    if (isDevSession) {
+      setTasks(prev => prev.map(t => 
+        t.id === taskId 
+          ? { ...t, status: nextStatus, progress: nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0 } 
+          : t
+      ));
+    } else {
+      try {
+        const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
+        await api.put(`/api/admin/tasks/${taskId}`, {
+          status: nextStatus,
+          progress: nextProgress
+        });
+        await loadTasks();
+      } catch (err) {
+        console.error('Failed to update task status:', err);
+        alert(err instanceof Error ? err.message : 'Operation failed');
+      }
+    }
   };
 
-  const handleAssignTask = (e: React.FormEvent) => {
+  const handleAssignTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !deadline || !description) return;
+    if (!title || !deadline || !description || !assigneeId) return;
 
-    const newTask = {
-      id: `TSK-${Math.floor(200 + Math.random() * 800)}`,
-      title,
-      description,
-      assignee,
-      priority,
-      status: 'To Do' as TaskStatus,
-      deadline,
-      progress: 0
-    };
+    if (isDevSession) {
+      const selectedEmp = displayEmployees.find(emp => emp.id === assigneeId);
+      const newTask = {
+        id: `TSK-${Math.floor(200 + Math.random() * 800)}`,
+        title,
+        description,
+        assignee: selectedEmp ? selectedEmp.name : 'Sarah Johnson',
+        priority,
+        status: 'To Do' as TaskStatus,
+        deadline,
+        progress: 0
+      };
 
-    setTasks(prev => [...prev, newTask]);
-    setIsAssignModalOpen(false);
+      setTasks(prev => [...prev, newTask]);
+      setIsAssignModalOpen(false);
 
-    // Reset Form
-    setTitle('');
-    setDescription('');
-    setDeadline('');
-    setPriority('High');
+      // Reset Form
+      setTitle('');
+      setDescription('');
+      setDeadline('');
+      setPriority('High');
+    } else {
+      try {
+        const selectedEmp = displayEmployees.find(emp => emp.id === assigneeId);
+        if (!selectedEmp) {
+          alert('Please select an assignee.');
+          return;
+        }
+
+        await api.post('/api/admin/tasks', {
+          title,
+          description,
+          assigneeId: selectedEmp.id,
+          priority: priority.toLowerCase(),
+          deadline,
+          projectName: 'General'
+        });
+
+        await loadTasks();
+        setIsAssignModalOpen(false);
+
+        // Reset Form
+        setTitle('');
+        setDescription('');
+        setDeadline('');
+        setPriority('High');
+      } catch (err) {
+        console.error('Failed to assign task:', err);
+        alert(err instanceof Error ? err.message : 'Failed to assign task');
+      }
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+
+    if (isDevSession) {
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    } else {
+      try {
+        await api.delete(`/api/admin/tasks/${taskId}`);
+        await loadTasks();
+      } catch (err) {
+        console.error('Failed to delete task:', err);
+        alert(err instanceof Error ? err.message : 'Failed to delete task');
+      }
+    }
   };
 
   // KPIs Calculations
@@ -295,33 +401,48 @@ const TasksPage = () => {
                         </div>
 
                         {/* Status Progression Controls */}
-                        <div className="mt-4 pt-3 border-t border-border/40 flex justify-end gap-1.5">
-                          {colName !== 'To Do' && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const prevIdx = columnNames.indexOf(colName) - 1;
-                                handleStatusChange(task.id, columnNames[prevIdx]);
-                              }}
-                              className="p-1.5 bg-surface-variant text-muted hover:text-text-primary rounded-lg transition-colors border border-border/20 active:scale-95"
-                              title="Regress Status"
-                            >
-                              <RotateCcw size={12} />
-                            </button>
-                          )}
-                          {colName !== 'Completed' && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const nextIdx = columnNames.indexOf(colName) + 1;
-                                handleStatusChange(task.id, columnNames[nextIdx]);
-                              }}
-                              className="p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/10 active:scale-95 flex items-center gap-1 text-label tracking-wider px-2"
-                            >
-                              <span>Next</span>
-                              <ArrowRight size={10} />
-                            </button>
-                          )}
+                        <div className="mt-4 pt-3 border-t border-border/40 flex justify-between items-center">
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTask(task.id);
+                            }}
+                            className="p-1.5 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-all border border-error/10 active:scale-95 animate-transition"
+                            title="Delete Task"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                          <div className="flex gap-1.5">
+                            {colName !== 'To Do' && (
+                              <button 
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const prevIdx = columnNames.indexOf(colName) - 1;
+                                  handleStatusChange(task.id, columnNames[prevIdx]);
+                                }}
+                                className="p-1.5 bg-surface-variant text-muted hover:text-text-primary rounded-lg transition-colors border border-border/20 active:scale-95"
+                                title="Regress Status"
+                              >
+                                <RotateCcw size={12} />
+                              </button>
+                            )}
+                            {colName !== 'Completed' && (
+                              <button 
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const nextIdx = columnNames.indexOf(colName) + 1;
+                                  handleStatusChange(task.id, columnNames[nextIdx]);
+                                }}
+                                className="p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/10 active:scale-95 flex items-center gap-1 text-label tracking-wider px-2"
+                              >
+                                <span>Next</span>
+                                <ArrowRight size={10} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -351,13 +472,13 @@ const TasksPage = () => {
           <div className="space-y-2">
             <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Assignee</label>
             <select 
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
+              value={assigneeId}
+              onChange={(e) => setAssigneeId(e.target.value)}
               className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
             >
-              {employees.map((emp) => (
-                <option key={emp.id} value={`${emp.firstName} ${emp.lastName}`}>
-                  {emp.firstName} {emp.lastName} ({emp.employeeCode})
+              {displayEmployees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name} ({emp.code})
                 </option>
               ))}
             </select>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Plus, 
   Search, 
@@ -24,6 +24,7 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import { useCompanyStats } from '@/hooks/useCompanyStats';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 import { mockCompanies as companies } from '@/data/mockData';
 
@@ -67,6 +68,16 @@ const CompaniesPage = () => {
   const [editingCompany, setEditingCompany] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Live Integration States
+  const [localCompanies, setLocalCompanies] = useState<any[]>(companies);
+  const [realCompanies, setRealCompanies] = useState<any[]>([]);
+  const [isDevSession, setIsDevSession] = useState(true);
+
+  // Search & Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [planFilter, setPlanFilter] = useState('All');
+
   const summaryStats = [
     {
       label: 'Total Entities',
@@ -99,10 +110,46 @@ const CompaniesPage = () => {
     },
   ];
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+  const loadRealCompanies = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { fetchOffices } = await import('@/services/officeService');
+      const offices = await fetchOffices();
+      const mapped = offices.map((off) => ({
+        id: Number(off.id) || Math.floor(Math.random() * 10000),
+        name: off.name,
+        employees: off._count?.employees ?? 0,
+        plan: off.maxPunchRadiusMeters === 100 ? 'Enterprise' : off.maxPunchRadiusMeters === 50 ? 'Pro' : 'Basic',
+        status: off.isActive ? 'Active' : 'Suspended',
+        joiningDate: new Date(off.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        logo: off.name.substring(0, 2).toUpperCase(),
+        website: off.code ? `https://${off.code.toLowerCase()}.quickboom.com` : 'https://quickboom.com',
+        adminEmail: `admin@${off.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        address: off.address,
+        latitude: off.latitude,
+        longitude: off.longitude,
+        idealRadiusMeters: off.idealRadiusMeters,
+        maxPunchRadiusMeters: off.maxPunchRadiusMeters,
+        code: off.code
+      }));
+      setRealCompanies(mapped);
+    } catch (err) {
+      console.error('Failed to load real companies:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const devSession = isDevAuthSession();
+    setIsDevSession(devSession);
+    if (!devSession) {
+      loadRealCompanies();
+    } else {
+      const timer = setTimeout(() => setIsLoading(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [loadRealCompanies]);
 
   const {
     register,
@@ -126,17 +173,140 @@ const CompaniesPage = () => {
       setValue('name', editingCompany.name);
       setValue('plan', editingCompany.plan.toLowerCase());
       setValue('employeeCount', editingCompany.employees);
+      setValue('website', editingCompany.website || '');
+      setValue('adminEmail', editingCompany.adminEmail || '');
     } else {
       reset();
     }
   }, [editingCompany, setValue, reset]);
 
   const onSubmit = async (data: CompanyFormData) => {
-    console.log('Form Submitted:', data);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsModalOpen(false);
-    reset();
+    try {
+      if (isDevSession) {
+        if (editingCompany) {
+          setLocalCompanies((prev) =>
+            prev.map((c) =>
+              c.id === editingCompany.id
+                ? {
+                    ...c,
+                    name: data.name,
+                    plan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1),
+                    employees: data.employeeCount,
+                    website: data.website,
+                    adminEmail: data.adminEmail,
+                  }
+                : c
+            )
+          );
+        } else {
+          const newId = localCompanies.length > 0 ? Math.max(...localCompanies.map((c) => c.id)) + 1 : 1;
+          setLocalCompanies((prev) => [
+            ...prev,
+            {
+              id: newId,
+              name: data.name,
+              employees: data.employeeCount,
+              plan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1),
+              status: 'Active',
+              joiningDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              logo: data.name.substring(0, 2).toUpperCase(),
+              website: data.website || `https://${data.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+              adminEmail: data.adminEmail,
+            },
+          ]);
+        }
+      } else {
+        const payload = {
+          name: data.name,
+          code: data.website ? data.website.replace('https://', '').replace('http://', '').split('.')[0] : data.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+          address: editingCompany?.address || 'Primary Business Address',
+          latitude: editingCompany?.latitude || 19.0760,
+          longitude: editingCompany?.longitude || 72.8777,
+          idealRadiusMeters: editingCompany?.idealRadiusMeters || 50,
+          maxPunchRadiusMeters: data.plan === 'enterprise' ? 100 : data.plan === 'pro' ? 50 : 25,
+          isActive: editingCompany ? editingCompany.status === 'Active' : true,
+        };
+
+        if (editingCompany) {
+          const { updateOffice } = await import('@/services/officeService');
+          await updateOffice(editingCompany.id.toString(), payload);
+        } else {
+          const { createOffice } = await import('@/services/officeService');
+          await createOffice(payload);
+        }
+        await loadRealCompanies();
+      }
+
+      setIsModalOpen(false);
+      setEditingCompany(null);
+      reset();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Operation failed');
+    }
   };
+
+  const handleToggleStatus = async (company: any) => {
+    try {
+      const newStatus = company.status === 'Active' ? 'Suspended' : 'Active';
+      if (isDevSession) {
+        setLocalCompanies((prev) =>
+          prev.map((c) => (c.id === company.id ? { ...c, status: newStatus } : c))
+        );
+      } else {
+        const { updateOffice } = await import('@/services/officeService');
+        await updateOffice(company.id.toString(), {
+          name: company.name,
+          code: company.code || undefined,
+          address: company.address || 'Primary Business Address',
+          latitude: company.latitude || 19.0760,
+          longitude: company.longitude || 72.8777,
+          idealRadiusMeters: company.idealRadiusMeters || 50,
+          maxPunchRadiusMeters: company.maxPunchRadiusMeters || 50,
+          isActive: newStatus === 'Active',
+        });
+        await loadRealCompanies();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Operation failed');
+    }
+  };
+
+  const handleDelete = async (company: any) => {
+    if (!confirm(`Are you sure you want to delete ${company.name}?`)) return;
+    try {
+      if (isDevSession) {
+        setLocalCompanies((prev) => prev.filter((c) => c.id !== company.id));
+      } else {
+        const { deleteOffice } = await import('@/services/officeService');
+        await deleteOffice(company.id.toString());
+        await loadRealCompanies();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Operation failed');
+    }
+  };
+
+  const filteredCompanies = (isDevSession ? localCompanies : realCompanies).filter((company) => {
+    const matchesSearch =
+      searchQuery === '' ||
+      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      company.id.toString().includes(searchQuery) ||
+      (company.adminEmail && company.adminEmail.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesStatus =
+      statusFilter === 'All' ||
+      company.status.toLowerCase() === statusFilter.toLowerCase();
+
+    const matchesPlan =
+      planFilter === 'All' ||
+      company.plan.toLowerCase() === planFilter.toLowerCase() ||
+      (planFilter.toLowerCase() === 'professional' && company.plan.toLowerCase() === 'pro');
+
+    return matchesSearch && matchesStatus && matchesPlan;
+  });
 
   return (
     <motion.div 
@@ -234,6 +404,8 @@ const CompaniesPage = () => {
           <input 
             type="text" 
             placeholder="Search by name, ID, or admin email..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm text-text-primary"
           />
         </div>
@@ -242,15 +414,23 @@ const CompaniesPage = () => {
             <Filter size={16} />
             Filters
           </button>
-          <select className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
-            <option>Status: All</option>
-            <option>Active</option>
-            <option>Suspended</option>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+          >
+            <option value="All">Status: All</option>
+            <option value="Active">Active</option>
+            <option value="Suspended">Suspended</option>
           </select>
-          <select className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
-            <option>Plan: All</option>
-            <option>Enterprise</option>
-            <option>Professional</option>
+          <select 
+            value={planFilter}
+            onChange={(e) => setPlanFilter(e.target.value)}
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+          >
+            <option value="All">Plan: All</option>
+            <option value="Enterprise">Enterprise</option>
+            <option value="Professional">Professional</option>
           </select>
         </div>
       </motion.div>
@@ -275,7 +455,7 @@ const CompaniesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {companies.map((company) => (
+                {filteredCompanies.map((company) => (
                   <motion.tr 
                     key={company.id}
                     variants={itemVariants}
@@ -290,9 +470,9 @@ const CompaniesPage = () => {
                           <p className="font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{company.name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-micro font-bold text-muted bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-tighter">
-                              ID: #{company.id}042
+                              ID: #{company.id}
                             </span>
-                            <span className="text-micro font-medium text-text-secondary">• admin@techvibe.com</span>
+                            <span className="text-micro font-medium text-text-secondary">• {company.adminEmail || 'admin@entity.com'}</span>
                           </div>
                         </div>
                       </div>
@@ -307,7 +487,7 @@ const CompaniesPage = () => {
                       <span className={cn(
                         "px-4 py-1.5 rounded-xl text-label transition-all",
                         company.plan === 'Enterprise' ? "bg-secondary text-white shadow-lg shadow-secondary/20" : 
-                        company.plan === 'Pro' ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
+                        company.plan === 'Pro' || company.plan === 'Professional' ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
                       )}>
                         {company.plan}
                       </span>
@@ -315,12 +495,12 @@ const CompaniesPage = () => {
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-2">
                         <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          company.status === 'Active' ? "bg-success" : "bg-error"
+                           "w-2 h-2 rounded-full",
+                           company.status === 'Active' ? "bg-success" : "bg-error"
                         )} />
                         <span className={cn(
-                          "text-xs font-bold",
-                          company.status === 'Active' ? "text-success" : "text-error"
+                           "text-xs font-bold",
+                           company.status === 'Active' ? "text-success" : "text-error"
                         )}>
                           {company.status}
                         </span>
@@ -334,8 +514,25 @@ const CompaniesPage = () => {
                     </td>
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                        <button className="p-2.5 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-xl transition-all shadow-sm">
-                          <Globe size={18} />
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleStatus(company);
+                          }}
+                          title={company.status === 'Active' ? 'Suspend Company' : 'Activate Company'}
+                          className="p-2.5 bg-surface border border-border text-muted hover:text-warning hover:border-warning/50 rounded-xl transition-all shadow-sm"
+                        >
+                          {company.status === 'Active' ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(company);
+                          }}
+                          title="Delete Company"
+                          className="p-2.5 bg-surface border border-border text-muted hover:text-error hover:border-error/50 rounded-xl transition-all shadow-sm"
+                        >
+                          <Plus size={18} className="rotate-45 text-error" />
                         </button>
                         <button 
                           onClick={(e) => {
@@ -343,6 +540,7 @@ const CompaniesPage = () => {
                             setEditingCompany(company);
                             setIsModalOpen(true);
                           }}
+                          title="Edit Parameters"
                           className="p-2.5 bg-surface border border-border text-muted hover:text-text-primary rounded-xl transition-all shadow-sm"
                         >
                           <MoreHorizontal size={18} />
@@ -357,7 +555,7 @@ const CompaniesPage = () => {
         )}
         {!isLoading && (
           <div className="p-6 bg-surface-variant border-t border-border flex items-center justify-between">
-            <p className="text-label text-text-secondary">Showing 5 of 1,284 Managed Entities</p>
+            <p className="text-label text-text-secondary">Showing {filteredCompanies.length} of {(isDevSession ? localCompanies : realCompanies).length} Managed Entities</p>
             <div className="flex items-center gap-2">
               <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-sm transition-all" disabled>Previous</button>
               <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary hover:shadow-sm hover:text-primary transition-all">Next</button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar as CalendarIcon, 
   Check, 
@@ -19,6 +19,8 @@ import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
+import { api } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 import { 
   mockLeaveRequests as initialLeaveRequests, 
@@ -57,6 +59,11 @@ const LeavePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
 
+  // Live Integration States
+  const [isDevSession, setIsDevSession] = useState(true);
+  const [leaveBalances, setLeaveBalances] = useState<any[]>(mockLeaveBalances);
+  const [realEmployees, setRealEmployees] = useState<any[]>([]);
+
   // Form State
   const [employeeName, setEmployeeName] = useState('Sarah Johnson');
   const [leaveType, setLeaveType] = useState('Casual Leave');
@@ -64,45 +71,113 @@ const LeavePage = () => {
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const leavesRes = await api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves');
+      if (leavesRes.data.success) {
+        setLeaveRequests(leavesRes.data.leaves);
+      }
+
+      const balancesRes = await api.get<{ success: boolean; balances: any[] }>('/api/admin/leaves/balances');
+      if (balancesRes.data.success) {
+        setLeaveBalances(balancesRes.data.balances);
+      }
+
+      const empRes = await api.get<{ success: boolean; employees: any[] }>('/api/admin/employees');
+      if (empRes.data.success && empRes.data.employees.length > 0) {
+        setRealEmployees(empRes.data.employees);
+        setEmployeeName(`${empRes.data.employees[0].firstName} ${empRes.data.employees[0].lastName}`);
+      }
+    } catch (err) {
+      console.error('Failed to load leave admin data:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    const dev = isDevAuthSession();
+    setIsDevSession(dev);
+    if (!dev) {
+      loadData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [loadData]);
+
   // Handlers
-  const handleApprove = (id: string) => {
-    setLeaveRequests(prev => prev.map(req => 
-      req.id === id ? { ...req, status: 'Approved' } : req
-    ));
+  const handleApprove = async (id: string) => {
+    try {
+      if (isDevSession) {
+        setLeaveRequests(prev => prev.map(req => 
+          req.id === id ? { ...req, status: 'Approved' } : req
+        ));
+      } else {
+        await api.put(`/api/admin/leaves/${id}`, { status: 'APPROVED' });
+        await loadData();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Operation failed');
+    }
   };
 
-  const handleReject = (id: string) => {
-    setLeaveRequests(prev => prev.map(req => 
-      req.id === id ? { ...req, status: 'Rejected' } : req
-    ));
+  const handleReject = async (id: string) => {
+    try {
+      if (isDevSession) {
+        setLeaveRequests(prev => prev.map(req => 
+          req.id === id ? { ...req, status: 'Rejected' } : req
+        ));
+      } else {
+        await api.put(`/api/admin/leaves/${id}`, { status: 'REJECTED' });
+        await loadData();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Operation failed');
+    }
   };
 
-  const handleApplyLeave = (e: React.FormEvent) => {
+  const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!startDate || !endDate || !reason) return;
 
-    const newRequest = {
-      id: `LR-${Math.floor(100 + Math.random() * 900)}`,
-      employeeName,
-      type: leaveType,
-      startDate,
-      endDate,
-      reason,
-      status: 'Pending'
-    };
+    try {
+      if (isDevSession) {
+        const newRequest = {
+          id: `LR-${Math.floor(100 + Math.random() * 900)}`,
+          employeeName,
+          type: leaveType,
+          startDate,
+          endDate,
+          reason,
+          status: 'Pending'
+        };
+        setLeaveRequests(prev => [newRequest, ...prev]);
+      } else {
+        const targetEmp = realEmployees.find(emp => `${emp.firstName} ${emp.lastName}` === employeeName) || realEmployees[0];
+        if (!targetEmp) throw new Error('No registered employee found.');
 
-    setLeaveRequests(prev => [newRequest, ...prev]);
-    setIsApplyModalOpen(false);
+        await api.post('/api/admin/leaves', {
+          employeeId: targetEmp.id,
+          type: leaveType,
+          fromDate: startDate,
+          toDate: endDate,
+          reason,
+        });
 
-    // Reset Form
-    setStartDate('');
-    setEndDate('');
-    setReason('');
+        await loadData();
+      }
+
+      setIsApplyModalOpen(false);
+      setStartDate('');
+      setEndDate('');
+      setReason('');
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Failed to apply leave');
+    }
   };
 
   // Stats Counters
@@ -189,7 +264,7 @@ const LeavePage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {mockLeaveBalances.map((bal) => (
+                {leaveBalances.map((bal) => (
                   <tr key={bal.employeeId} className="hover:bg-surface-variant/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -372,7 +447,7 @@ const LeavePage = () => {
               onChange={(e) => setEmployeeName(e.target.value)}
               className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
             >
-              {mockLeaveBalances.map(bal => (
+              {leaveBalances.map(bal => (
                 <option key={bal.employeeId} value={bal.name}>{bal.name}</option>
               ))}
             </select>

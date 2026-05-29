@@ -151,7 +151,9 @@ export default function SuperAdminDashboardPage() {
   const heroHighlights = [
     {
       label: 'Revenue',
-      value: isLoading ? '—' : '₹2.4M',
+      value: isLoading
+        ? '—'
+        : `₹${((stats?.monthlyRevenue ?? 0) / 1000000).toFixed(1)}M`,
     },
     {
       label: 'Seats',
@@ -199,7 +201,11 @@ export default function SuperAdminDashboardPage() {
       >
         <StatCard
           label="Monthly revenue"
-          value={isLoading ? '—' : '₹2.4M'}
+          value={
+            isLoading
+              ? '—'
+              : `₹${((stats?.monthlyRevenue ?? 0) / 1000000).toFixed(1)}M`
+          }
           sub="Platform billing this month"
           icon={IndianRupee}
           tone="primary"
