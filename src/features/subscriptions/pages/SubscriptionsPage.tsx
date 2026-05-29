@@ -13,10 +13,13 @@ import {
   Percent,
   Check,
   Zap,
-  HelpCircle,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  WalletCards,
+  Building2,
+  CalendarClock
 } from 'lucide-react';
-import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { 
   AreaChart, 
   Area, 
@@ -141,6 +144,7 @@ const SubscriptionsPage = () => {
       features: ['Standard dashboard analytics', 'Up to 5 geofences', 'Email support', '1-year logs retention'],
       activeHires: '20 Companies',
       color: 'from-emerald-500/20 to-emerald-500/5',
+      accent: 'emerald',
       badgeColor: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
       buttonVariant: 'secondary',
     },
@@ -153,6 +157,7 @@ const SubscriptionsPage = () => {
       features: ['Real-time live location tracking', 'Unlimited geofencing alerts', '24/7 priority support', 'Custom report building', 'SSO & Multi-admin access'],
       activeHires: '380 Companies',
       color: 'from-amber-500/20 to-amber-500/5',
+      accent: 'amber',
       badgeColor: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
       buttonVariant: 'primary',
       isPopular: true,
@@ -166,9 +171,17 @@ const SubscriptionsPage = () => {
       features: ['Dedicated account architect', 'Custom backend API pipelines', 'Tailored hardware integrations', 'Unlimited logs & backups', 'Whiteglove data onboarding'],
       activeHires: '45 Companies',
       color: 'from-indigo-500/20 to-indigo-500/5',
+      accent: 'indigo',
       badgeColor: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
       buttonVariant: 'secondary',
     }
+  ];
+
+  const summaryCards = [
+    { label: 'Monthly Revenue', value: '₹842,500', icon: IndianRupee, color: 'primary', trend: '+14.5%', glow: 'bg-indigo-500/10', detail: '₹96k projected uplift' },
+    { label: 'Active Licenses', value: '1,284', icon: Users, color: 'secondary', trend: '+5.2%', glow: 'bg-amber-500/10', detail: '445 seats added this quarter' },
+    { label: 'Net Churn Rate', value: '1.2%', icon: Percent, color: 'error', trend: '-0.4%', glow: 'bg-rose-500/10', detail: 'Lowest in 6 months' },
+    { label: 'Customer LTV', value: '₹14,200', icon: CreditCard, color: 'success', trend: '+8.1%', glow: 'bg-emerald-500/10', detail: 'Healthy expansion revenue' },
   ];
 
   return (
@@ -176,46 +189,61 @@ const SubscriptionsPage = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-10 pb-12 max-w-7xl mx-auto"
+      className="space-y-8 pb-12 max-w-7xl mx-auto"
     >
-      {/* Header Section */}
       <motion.div 
         variants={itemVariants}
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-surface/30 backdrop-blur-md p-6 rounded-[32px] border border-border/50 shadow-sm"
+        className="relative overflow-hidden rounded-[36px] border border-border/50 bg-gradient-to-br from-primary/15 via-surface to-amber-500/10 p-6 sm:p-8 shadow-sm"
       >
-        <div>
-          <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-text-primary to-muted">
-            Subscription Ecosystem
-          </h1>
-          <p className="text-page-desc mt-1 max-w-2xl">
-            Strategic oversight of platform MRR, tier distribution, active licensing, and global company billing cycles.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2.5 px-5 py-3 bg-surface hover:bg-surface-variant/50 border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
-            <Download size={18} />
-            Financial Audit
-          </button>
-          <button className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2">
-            <CreditCard size={18} className="group-hover:rotate-12 transition-transform" />
-            Payout Controls
-          </button>
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" />
+        <div className="relative z-10 grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-2 text-xs font-black uppercase tracking-widest text-primary">
+              <Sparkles size={14} />
+              Super Admin Billing Console
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text-primary">
+              Subscription Control Center
+            </h1>
+            <p className="text-page-desc mt-3 max-w-2xl">
+              Monitor recurring revenue, manage platform tiers, track invoices, and identify expansion opportunities across all companies.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2">
+                <WalletCards size={18} className="group-hover:rotate-12 transition-transform" />
+                Manage Billing
+              </button>
+              <button className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
+                <Download size={18} />
+                Export Report
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Collections', value: '98.7%', icon: ShieldCheck },
+              { label: 'Companies', value: '445', icon: Building2 },
+              { label: 'Renewals Due', value: '28', icon: CalendarClock },
+              { label: 'ARR Run Rate', value: '₹1.01Cr', icon: TrendingUp },
+            ].map((item) => (
+              <div key={item.label} className="rounded-3xl border border-border/50 bg-surface/70 p-4 shadow-sm backdrop-blur-xl">
+                <item.icon size={20} className="mb-4 text-primary" />
+                <p className="text-2xl font-black text-text-primary tracking-tight">{item.value}</p>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-text-secondary">{item.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </motion.div>
 
-      {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Monthly Revenue', value: '₹842,500', icon: IndianRupee, color: 'primary', trend: '+14.5%', glow: 'bg-indigo-500/10' },
-          { label: 'Active Licenses', value: '1,284', icon: Users, color: 'secondary', trend: '+5.2%', glow: 'bg-amber-500/10' },
-          { label: 'Net Churn Rate', value: '1.2%', icon: Percent, color: 'error', trend: '-0.4%', glow: 'bg-rose-500/10' },
-          { label: 'Customer LTV', value: '₹14,200', icon: CreditCard, color: 'success', trend: '+8.1%', glow: 'bg-emerald-500/10' },
-        ].map((stat) => (
+        {summaryCards.map((stat) => (
           <motion.div
             key={stat.label}
             variants={itemVariants}
             whileHover={{ y: -5, scale: 1.01 }}
-            className="glass-card p-6 group hover:border-primary/30 transition-all duration-300 cursor-default relative overflow-hidden"
+            className="glass-card p-5 group hover:border-primary/30 transition-all duration-300 cursor-default relative overflow-hidden"
           >
             <div className={cn("absolute -right-4 -top-4 w-28 h-28 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-all duration-700", stat.glow)} />
             
@@ -239,14 +267,13 @@ const SubscriptionsPage = () => {
             <div className="relative z-10">
               <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">{stat.label}</p>
               <h3 className="text-3xl font-black text-text-primary tracking-tight mt-1">{stat.value}</h3>
+              <p className="mt-3 text-xs font-semibold text-muted">{stat.detail}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Main Charts Dashboard Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Revenue Area Chart */}
         <motion.div 
           variants={itemVariants} 
           className="lg:col-span-2 glass-card p-6 sm:p-8 relative overflow-hidden group border border-border/50 shadow-sm"
@@ -255,7 +282,7 @@ const SubscriptionsPage = () => {
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
             <div>
-              <h3 className="heading-2">Revenue Growth Engine</h3>
+              <h3 className="heading-2">Revenue Momentum</h3>
               <p className="text-sm text-text-secondary mt-0.5">Monthly Recurring Revenue (MRR) performance overview</p>
             </div>
             <select className="bg-surface-variant border border-border/40 rounded-xl px-4 py-2.5 text-sm outline-none font-bold text-text-secondary focus:ring-2 focus:ring-primary/20 self-start sm:self-center cursor-pointer">
@@ -303,7 +330,6 @@ const SubscriptionsPage = () => {
           </ChartContainer>
         </motion.div>
 
-        {/* Plan Distribution Chart */}
         <motion.div 
           variants={itemVariants} 
           className="glass-card p-6 sm:p-8 relative overflow-hidden group border border-border/50 shadow-sm flex flex-col justify-between"
@@ -368,18 +394,16 @@ const SubscriptionsPage = () => {
         </motion.div>
       </div>
 
-      {/* Pricing Comparison Panel */}
       <motion.div variants={itemVariants} className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[28px] border border-border/50 bg-surface/40 p-5">
           <div>
             <h3 className="heading-2 flex items-center gap-2">
               <Sparkles className="text-amber-500" size={22} />
-              Subscription Tiers Configuration
+              Subscription Plans
             </h3>
-            <p className="text-sm text-text-secondary mt-0.5">Explore platform-wide pricing models and company-level licenses allocation.</p>
+            <p className="text-sm text-text-secondary mt-0.5">Configure platform-wide pricing models and company-level license allocation.</p>
           </div>
           
-          {/* Billing cycle toggler */}
           <div className="flex items-center gap-2.5 p-1 bg-surface-variant/40 border border-border/60 rounded-2xl self-start sm:self-center">
             <button
               onClick={() => setBillingCycle('monthly')}
@@ -405,7 +429,6 @@ const SubscriptionsPage = () => {
           </div>
         </div>
 
-        {/* Pricing Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {pricingPlans.map((plan) => (
             <motion.div
@@ -413,11 +436,10 @@ const SubscriptionsPage = () => {
               whileHover={{ y: -8, scale: 1.01 }}
               transition={{ duration: 0.3 }}
               className={cn(
-                "glass-card p-8 flex flex-col relative border overflow-hidden",
-                plan.isPopular ? "border-amber-500/40 shadow-xl shadow-amber-500/5" : "border-border/50 shadow-sm"
+                "glass-card p-7 flex flex-col relative border overflow-hidden min-h-[460px]",
+                plan.isPopular ? "border-amber-500/50 shadow-2xl shadow-amber-500/10 lg:-translate-y-3" : "border-border/50 shadow-sm"
               )}
             >
-              {/* Radial gradient background based on plan theme */}
               <div className={cn("absolute inset-0 bg-gradient-to-b opacity-40 pointer-events-none", plan.color)} />
               
               {plan.isPopular && (
@@ -430,9 +452,12 @@ const SubscriptionsPage = () => {
               )}
 
               <div className="relative z-10 mb-6">
-                <span className={cn("px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border", plan.badgeColor)}>
-                  {plan.name} Tier
-                </span>
+                <div className="flex items-center justify-between gap-3">
+                  <span className={cn("px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border", plan.badgeColor)}>
+                    {plan.name} Tier
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted">{plan.activeHires}</span>
+                </div>
                 <div className="flex items-baseline gap-1 mt-6">
                   <span className="text-4xl font-black text-text-primary tracking-tight">
                     {billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
@@ -445,7 +470,6 @@ const SubscriptionsPage = () => {
                 <p className="text-xs text-text-secondary mt-4 leading-relaxed font-medium">{plan.desc}</p>
               </div>
 
-              {/* Features List */}
               <div className="relative z-10 space-y-3.5 mb-8 border-t border-border/40 pt-6 mt-auto">
                 <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Included privileges</p>
                 {plan.features.map((feature) => (
@@ -458,10 +482,9 @@ const SubscriptionsPage = () => {
                 ))}
               </div>
 
-              {/* Bottom Card Meta / Button */}
               <div className="relative z-10 border-t border-border/40 pt-6 mt-auto flex flex-col gap-4">
                 <div className="flex items-center justify-between text-xs font-bold text-text-secondary">
-                  <span>Current Utilization:</span>
+                  <span>Utilization:</span>
                   <span className="text-text-primary font-black">{plan.activeHires}</span>
                 </div>
                 <button 
@@ -481,7 +504,6 @@ const SubscriptionsPage = () => {
         </div>
       </motion.div>
 
-      {/* Recent Invoices Table */}
       <motion.div variants={itemVariants} className="glass-card overflow-hidden border border-border/50 shadow-sm">
         <div className="p-6 sm:p-8 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
           <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
