@@ -119,7 +119,7 @@ const CompaniesPage = () => {
         id: Number(off.id) || Math.floor(Math.random() * 10000),
         name: off.name,
         employees: off._count?.employees ?? 0,
-        plan: off.maxPunchRadiusMeters === 100 ? 'Enterprise' : off.maxPunchRadiusMeters === 50 ? 'Pro' : 'Basic',
+        plan: off.subscriptionPlan || 'Basic',
         status: off.isActive ? 'Active' : 'Suspended',
         joiningDate: new Date(off.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         logo: off.name.substring(0, 2).toUpperCase(),
@@ -130,6 +130,9 @@ const CompaniesPage = () => {
         longitude: off.longitude,
         idealRadiusMeters: off.idealRadiusMeters,
         maxPunchRadiusMeters: off.maxPunchRadiusMeters,
+        subscriptionPlan: off.subscriptionPlan,
+        billingCycle: off.billingCycle,
+        invoiceStatus: off.invoiceStatus,
         code: off.code
       }));
       setRealCompanies(mapped);
@@ -223,8 +226,11 @@ const CompaniesPage = () => {
           latitude: editingCompany?.latitude || 19.0760,
           longitude: editingCompany?.longitude || 72.8777,
           idealRadiusMeters: editingCompany?.idealRadiusMeters || 50,
-          maxPunchRadiusMeters: data.plan === 'enterprise' ? 100 : data.plan === 'pro' ? 50 : 25,
+          maxPunchRadiusMeters: editingCompany?.maxPunchRadiusMeters || 50,
           isActive: editingCompany ? editingCompany.status === 'Active' : true,
+          subscriptionPlan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1).toLowerCase(),
+          billingCycle: editingCompany?.billingCycle || 'monthly',
+          invoiceStatus: editingCompany?.invoiceStatus || 'Paid',
         };
 
         if (editingCompany) {
@@ -264,6 +270,9 @@ const CompaniesPage = () => {
           idealRadiusMeters: company.idealRadiusMeters || 50,
           maxPunchRadiusMeters: company.maxPunchRadiusMeters || 50,
           isActive: newStatus === 'Active',
+          subscriptionPlan: company.subscriptionPlan,
+          billingCycle: company.billingCycle,
+          invoiceStatus: company.invoiceStatus,
         });
         await loadRealCompanies();
       }

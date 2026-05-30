@@ -72,10 +72,10 @@ export async function fetchCompanyStats(): Promise<CompanyStats> {
       pendingVerification: data.pendingVerification ?? 0,
       systemGrowth: data.systemGrowth ?? '0%',
       monthlyRevenue: data.monthlyRevenue ?? 0,
-      planMix: data.planMix,
-      recentInvoices: data.recentInvoices,
-      growthHistory: data.growthHistory,
-      recentActivity: data.recentActivity
+      planMix: data.planMix ?? [],
+      recentInvoices: data.recentInvoices ?? [],
+      growthHistory: data.growthHistory ?? [],
+      recentActivity: data.recentActivity ?? []
     };
   } catch (error) {
     if (isDevAuthSession()) {

@@ -12,6 +12,9 @@ interface ApiOffice {
   idealRadiusMeters: number | null;
   maxPunchRadiusMeters: number | null;
   isActive: boolean | null;
+  subscriptionPlan?: string;
+  billingCycle?: string;
+  invoiceStatus?: string;
   createdAt: string;
   updatedAt: string;
   _count: {
@@ -37,6 +40,9 @@ export interface Office {
   idealRadiusMeters: number;
   maxPunchRadiusMeters: number;
   isActive: boolean;
+  subscriptionPlan: string;
+  billingCycle: string;
+  invoiceStatus: string;
   createdAt: string;
   updatedAt: string;
   _count: {
@@ -70,6 +76,9 @@ export interface UpdateOfficeRequest {
   idealRadiusMeters: number;
   maxPunchRadiusMeters: number;
   isActive: boolean;
+  subscriptionPlan?: string;
+  billingCycle?: string;
+  invoiceStatus?: string;
 }
 
 export type CreateOfficeRequest = Omit<UpdateOfficeRequest, 'isActive'> & {
@@ -97,6 +106,9 @@ function mapOffice(api: ApiOffice): Office {
     idealRadiusMeters: api.idealRadiusMeters ?? 25,
     maxPunchRadiusMeters: api.maxPunchRadiusMeters ?? 50,
     isActive: api.isActive ?? true,
+    subscriptionPlan: api.subscriptionPlan || 'Basic',
+    billingCycle: api.billingCycle || 'monthly',
+    invoiceStatus: api.invoiceStatus || 'Paid',
     createdAt: api.createdAt,
     updatedAt: api.updatedAt,
     _count: api._count ?? { employees: 0 },
@@ -121,6 +133,9 @@ const demoOfficesList: Office[] = [
     idealRadiusMeters: 50,
     maxPunchRadiusMeters: 100,
     isActive: true,
+    subscriptionPlan: 'Enterprise',
+    billingCycle: 'yearly',
+    invoiceStatus: 'Paid',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     _count: { employees: 2 }
@@ -135,6 +150,9 @@ const demoOfficesList: Office[] = [
     idealRadiusMeters: 50,
     maxPunchRadiusMeters: 100,
     isActive: true,
+    subscriptionPlan: 'Pro',
+    billingCycle: 'monthly',
+    invoiceStatus: 'Paid',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     _count: { employees: 1 }
@@ -233,6 +251,9 @@ export async function createOffice(
     idealRadiusMeters: payload.idealRadiusMeters,
     maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
     isActive: payload.isActive ?? true,
+    subscriptionPlan: payload.subscriptionPlan,
+    billingCycle: payload.billingCycle,
+    invoiceStatus: payload.invoiceStatus,
   };
 
   try {
@@ -262,6 +283,9 @@ export async function createOffice(
         idealRadiusMeters: payload.idealRadiusMeters,
         maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
         isActive: payload.isActive ?? true,
+        subscriptionPlan: payload.subscriptionPlan || 'Basic',
+        billingCycle: payload.billingCycle || 'monthly',
+        invoiceStatus: payload.invoiceStatus || 'Paid',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         _count: { employees: 0 }
@@ -293,6 +317,9 @@ export async function updateOffice(
     idealRadiusMeters: payload.idealRadiusMeters,
     maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
     isActive: payload.isActive,
+    subscriptionPlan: payload.subscriptionPlan,
+    billingCycle: payload.billingCycle,
+    invoiceStatus: payload.invoiceStatus,
   };
 
   try {
@@ -324,6 +351,9 @@ export async function updateOffice(
           idealRadiusMeters: payload.idealRadiusMeters,
           maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
           isActive: payload.isActive,
+          subscriptionPlan: payload.subscriptionPlan || demoOfficesList[idx].subscriptionPlan,
+          billingCycle: payload.billingCycle || demoOfficesList[idx].billingCycle,
+          invoiceStatus: payload.invoiceStatus || demoOfficesList[idx].invoiceStatus,
           updatedAt: new Date().toISOString()
         };
         return {

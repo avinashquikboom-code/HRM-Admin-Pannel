@@ -62,47 +62,55 @@ export default function RecentSubscriptionsPanel({
             </tr>
           </thead>
           <tbody>
-            {invoices.map((invoice, index) => (
-              <tr
-                key={invoice.id}
-                className={cn(
-                  'border-b border-border/60 last:border-0 transition-colors hover:bg-surface-variant/25',
-                  index % 2 === 1 && 'bg-surface-variant/15'
-                )}
-              >
-                <td className="px-5 py-4">
-                  <p className="font-semibold text-text-primary text-sm">
-                    {invoice.id}
-                  </p>
-                  <p className="text-xs text-text-secondary mt-0.5">
-                    {invoice.company}
-                  </p>
-                </td>
-                <td className="px-5 py-4">
-                  <span
-                    className={cn(
-                      'inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide',
-                      planStyle(invoice.plan)
-                    )}
-                  >
-                    {invoice.plan}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-sm font-semibold text-text-primary tabular-nums">
-                  {invoice.amount}
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide',
-                      statusStyle(invoice.status)
-                    )}
-                  >
-                    {invoice.status}
-                  </span>
+            {invoices.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-5 py-8 text-center text-sm text-text-secondary">
+                  No recent invoices available yet. Refresh to load the latest billing data.
                 </td>
               </tr>
-            ))}
+            ) : (
+              invoices.map((invoice, index) => (
+                <tr
+                  key={invoice.id}
+                  className={cn(
+                    'border-b border-border/60 last:border-0 transition-colors hover:bg-surface-variant/25',
+                    index % 2 === 1 && 'bg-surface-variant/15'
+                  )}
+                >
+                  <td className="px-5 py-4">
+                    <p className="font-semibold text-text-primary text-sm">
+                      {invoice.id}
+                    </p>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      {invoice.company}
+                    </p>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span
+                      className={cn(
+                        'inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide',
+                        planStyle(invoice.plan)
+                      )}
+                    >
+                      {invoice.plan}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-sm font-semibold text-text-primary tabular-nums">
+                    {invoice.amount}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <span
+                      className={cn(
+                        'inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide',
+                        statusStyle(invoice.status)
+                      )}
+                    >
+                      {invoice.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

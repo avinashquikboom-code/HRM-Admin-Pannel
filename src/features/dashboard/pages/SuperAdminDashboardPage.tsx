@@ -29,49 +29,6 @@ import DashboardActivityFeed, {
   defaultDashboardActivity,
 } from '@/features/dashboard/components/DashboardActivityFeed';
 
-const RECENT_INVOICES = [
-  {
-    id: 'INV-2024-001',
-    company: 'TechVibe Inc.',
-    plan: 'Enterprise',
-    amount: '₹12,400',
-    status: 'Paid',
-    date: '28 Apr 2024',
-  },
-  {
-    id: 'INV-2024-002',
-    company: 'Global Logistics',
-    plan: 'Pro',
-    amount: '₹4,500',
-    status: 'Pending',
-    date: '30 Apr 2024',
-  },
-  {
-    id: 'INV-2024-003',
-    company: 'EcoWare Solutions',
-    plan: 'Basic',
-    amount: '₹1,200',
-    status: 'Overdue',
-    date: '01 May 2024',
-  },
-  {
-    id: 'INV-2024-004',
-    company: 'Innovate Digital',
-    plan: 'Pro',
-    amount: '₹4,500',
-    status: 'Paid',
-    date: '02 May 2024',
-  },
-  {
-    id: 'INV-2024-005',
-    company: 'Blue Sky Media',
-    plan: 'Pro',
-    amount: '₹4,500',
-    status: 'Paid',
-    date: '03 May 2024',
-  },
-];
-
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -140,7 +97,7 @@ export default function SuperAdminDashboardPage() {
 
   const displayName = user?.name?.split(' ')[0] ?? 'Super Admin';
 
-  const activeInvoices = stats?.recentInvoices ?? RECENT_INVOICES;
+  const activeInvoices = stats?.recentInvoices ?? [];
 
   const pendingBillingCount = useMemo(
     () =>
@@ -158,16 +115,16 @@ export default function SuperAdminDashboardPage() {
         : `₹${((stats?.monthlyRevenue ?? 0) / 1000000).toFixed(1)}M`,
     },
     {
+      label: 'Companies',
+      value: isLoading ? '—' : String(stats?.totalEntities ?? 0),
+    },
+    {
       label: 'Seats',
       value: isLoading
         ? '—'
         : (stats?.globalSeats ?? 0) >= 1000
           ? `${((stats?.globalSeats ?? 0) / 1000).toFixed(1)}k`
           : String(stats?.globalSeats ?? 0),
-    },
-    {
-      label: 'Growth',
-      value: isLoading ? '—' : stats?.systemGrowth ?? '—',
     },
   ];
 

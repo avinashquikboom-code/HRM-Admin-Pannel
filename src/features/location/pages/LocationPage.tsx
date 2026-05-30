@@ -17,6 +17,7 @@ import {
   type Office,
 } from '@/services/officeService';
 import { unassignEmployeeFromOffice } from '@/services/employeeService';
+import { fetchLiveLocationLogs, clearLiveLocationLogs } from '@/services/locationService';
 import CreateOfficeModal from '@/features/location/components/CreateOfficeModal';
 import EditOfficeModal from '@/features/location/components/EditOfficeModal';
 import AssignEmployeeModal from '@/features/location/components/AssignEmployeeModal';
@@ -167,20 +168,44 @@ export default function LocationPage() {
     [selectedOffice]
   );
 
-  const {
-    logs,
-    setLogs,
-    handleManualBreachTrigger,
-    handleManualOfficeTrigger,
-  } = useLocationSimulation({
-    isAutoRefreshing,
-    geofenceRadius,
-    radarSpeed: 1,
-    officeCenter,
-    mapBounds,
-    setLocations,
-    initialLocations: locations,
-  });
+  const [logs, setLogs] = useState<any[]>([]);
+
+  const loadTelemetryLogs = useCallback(async () => {
+    try {
+      const data = await fetchLiveLocationLogs();
+      setLogs(data);
+    } catch (err) {
+      console.error('[Telemetry Logs Fetch Error]:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'tracker') {
+      loadTelemetryLogs();
+    }
+  }, [activeTab, loadTelemetryLogs]);
+
+  useEffect(() => {
+    if (!isAutoRefreshing || activeTab !== 'tracker') return;
+
+    const intervalId = setInterval(() => {
+      loadTelemetryLogs();
+    }, 7000);
+
+    return () => clearInterval(intervalId);
+  }, [isAutoRefreshing, activeTab, loadTelemetryLogs]);
+
+  const handleClearLogs = async () => {
+    try {
+      await clearLiveLocationLogs();
+      setLogs([]);
+    } catch (err) {
+      console.error('Clear logs error:', err);
+    }
+  };
+
+  const handleManualBreachTrigger = () => {};
+  const handleManualOfficeTrigger = () => {};
 
   useEffect(() => {
     if (offices.length > 0 && selectedOfficeId === null && activeTab === 'tracker') {
@@ -960,7 +985,7 @@ export default function LocationPage() {
               />
             </div>
             <div className="lg:col-span-5">
-              <ActivityFeed logs={logs} onClear={() => setLogs([])} />
+              <ActivityFeed logs={logs} onClear={handleClearLogs} />
             </div>
           </motion.div>
 
