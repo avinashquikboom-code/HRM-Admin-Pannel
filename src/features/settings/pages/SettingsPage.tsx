@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Bell,
   Globe,
@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { api, getApiErrorMessage } from '@/lib/api';
 import SettingsHero from '@/features/settings/components/SettingsHero';
 import SettingsSidebar, {
   type SettingsTab,
@@ -91,13 +92,59 @@ export default function SettingsPage() {
     defaultNotificationPreferences
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get('/api/settings');
+        if (response.data?.success && response.data?.data) {
+          const settings = response.data.data;
+          setPlatformName(settings.platformName ?? 'Super HRM');
+          setSupportEmail(settings.supportEmail ?? 'admin@hrm.com');
+          setCurrency(settings.currency ?? 'INR');
+          setLocale(settings.locale ?? 'en');
+          
+          setTwoFactor(settings.twoFactor ?? true);
+          setSessionLock(settings.sessionLock ?? true);
+          setAuditLogs(settings.auditLogs ?? true);
+          setIpRestriction(settings.ipRestriction ?? false);
+          
+          if (settings.notifications) {
+            setNotifications(settings.notifications);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const handleSave = async () => {
     setIsSaving(true);
     setSaveMessage('');
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSaving(false);
-    setSaveMessage('Your settings were saved successfully.');
-    setTimeout(() => setSaveMessage(''), 4000);
+    try {
+      await api.put('/api/settings', {
+        platformName,
+        supportEmail,
+        currency,
+        locale,
+        twoFactor,
+        sessionLock,
+        auditLogs,
+        ipRestriction,
+        notifications,
+      });
+      setSaveMessage('Your settings were saved successfully.');
+    } catch (error) {
+      setSaveMessage(getApiErrorMessage(error, 'Failed to save settings.'));
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage(''), 4000);
+    }
   };
 
   const handleNotificationToggle = (
@@ -165,8 +212,14 @@ export default function SettingsPage() {
       variants={containerVariants}
       className="space-y-6 pb-10"
     >
-      <motion.div variants={itemVariants}>
-        <SettingsHero
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <>
+          <motion.div variants={itemVariants}>
+            <SettingsHero
           onSave={handleSave}
           isSaving={isSaving}
           saveMessage={saveMessage}
@@ -196,6 +249,9 @@ export default function SettingsPage() {
           </AnimatePresence>
         </motion.div>
       </div>
+        </>
+      )}
     </motion.div>
   );
 }
+
