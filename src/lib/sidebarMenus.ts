@@ -15,6 +15,7 @@ import {
   FileText,
   Bell,
   User,
+  Navigation,
 } from 'lucide-react';
 import type { PortalType } from '@/lib/portals';
 import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
@@ -31,7 +32,8 @@ export const ADMIN_REMOVED_MODULE_IDS = new Set(['pa-location']);
 
 export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX, moduleId: 'sa-dashboard' },
-  { name: 'Live Location', icon: MapPin, path: `${SUPER_ADMIN_PREFIX}/location`, moduleId: 'sa-location' },
+  { name: 'Geofencing Editor', icon: MapPin, path: `${SUPER_ADMIN_PREFIX}/location?tab=editor`, moduleId: 'sa-location' },
+  { name: 'Live Location New', icon: Navigation, path: `${SUPER_ADMIN_PREFIX}/location?tab=tracker`, moduleId: 'sa-location-new' },
   { name: 'Companies', icon: Building2, path: `${SUPER_ADMIN_PREFIX}/companies`, moduleId: 'sa-companies' },
   { name: 'Subscriptions', icon: CreditCard, path: `${SUPER_ADMIN_PREFIX}/subscriptions`, moduleId: 'sa-subscriptions' },
   { name: 'Admin Rights', icon: ShieldCheck, path: `${SUPER_ADMIN_PREFIX}/user-rights`, moduleId: 'sa-user-rights' },

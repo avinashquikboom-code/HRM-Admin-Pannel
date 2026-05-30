@@ -27,14 +27,13 @@ const MOCK_LIVE_LOCATIONS: EmployeeLiveLocation[] = [
 ];
 
 export async function fetchLiveLocations(): Promise<EmployeeLiveLocation[]> {
-  if (isDevAuthSession()) {
-    return MOCK_LIVE_LOCATIONS;
-  }
-
   try {
     const { data } = await api.get<LiveLocationResponse>('/api/admin/location/live');
     return data.employees ?? [];
   } catch (error) {
+    if (isDevAuthSession()) {
+      return MOCK_LIVE_LOCATIONS;
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load live telemetry locations. Please try again.')
     );

@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import ChartContainer from '@/components/ChartContainer';
 
-const growthData = [
+const growthDataDefault = [
   { name: 'Jan', companies: 8, seats: 2100 },
   { name: 'Feb', companies: 9, seats: 2450 },
   { name: 'Mar', companies: 10, seats: 2800 },
@@ -20,8 +20,13 @@ const growthData = [
   { name: 'Jul', companies: 15, seats: 6425 },
 ];
 
-export default function DashboardGrowthChart() {
-  const latest = growthData[growthData.length - 1];
+interface DashboardGrowthChartProps {
+  data?: { name: string; companies: number; seats: number }[];
+}
+
+export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps) {
+  const chartData = data && data.length > 0 ? data : growthDataDefault;
+  const latest = chartData[chartData.length - 1];
 
   return (
     <div className="rounded-3xl border border-border/60 bg-surface p-5 sm:p-6 flex flex-col shadow-sm">
@@ -53,7 +58,7 @@ export default function DashboardGrowthChart() {
       </div>
 
       <ChartContainer heightClassName="h-[260px] sm:min-h-[300px] sm:h-[300px]">
-        <BarChart data={growthData} barSize={28}>
+        <BarChart data={chartData} barSize={28}>
           <CartesianGrid
             strokeDasharray="3 3"
             vertical={false}

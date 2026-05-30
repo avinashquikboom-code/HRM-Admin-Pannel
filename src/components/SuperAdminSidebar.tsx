@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { toggleSidebar, setSidebarOpen } from '@/store/slices/sidebarSlice';
 import { logout } from '@/store/slices/authSlice';
@@ -79,8 +79,19 @@ const SuperAdminSidebar = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
-  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'editor';
   const isMobile = useIsMobile();
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+
+  const isItemActive = (itemPath: string) => {
+    const [pathPart, queryPart] = itemPath.split('?');
+    if (pathname !== pathPart) return false;
+    if (!queryPart) return true;
+    const urlParams = new URLSearchParams(queryPart);
+    const tabParam = urlParams.get('tab');
+    return tabParam === currentTab;
+  };
 
   const closeMobileSidebar = () => {
     if (isMobile) dispatch(setSidebarOpen(false));
@@ -135,7 +146,7 @@ const SuperAdminSidebar = () => {
             <NavItem
               key={item.path}
               item={item}
-              isActive={pathname === item.path}
+              isActive={isItemActive(item.path)}
               isOpen={isOpen}
               onNavigate={closeMobileSidebar}
             />

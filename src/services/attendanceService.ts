@@ -41,16 +41,15 @@ interface AttendanceHistoryResponse {
 }
 
 export async function fetchTodayAttendance(): Promise<AttendanceRecord[]> {
-  if (isDevAuthSession()) {
-    return [];
-  }
-
   try {
     const { data } = await api.get<TodayAttendanceResponse>(
       '/api/admin/attendance/today'
     );
     return data.attendances;
   } catch (error) {
+    if (isDevAuthSession()) {
+      return [];
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load today attendance. Please try again.')
     );

@@ -45,36 +45,8 @@ api.interceptors.request.use((config) => {
 
   const activePortal = resolvePortalFromWindow();
   const token = getAuthToken(activePortal);
-  const isLogin = config.url?.includes('/api/auth/login');
-  const isRegister = config.url?.includes('/api/auth/register');
-  const isAdminRoute = config.url?.includes('/api/admin/');
 
-  if (isDevAuthSession(activePortal) && !isLogin) {
-    logApiCanceled(config, 'Offline dev mode');
-    return Promise.reject(new axios.CanceledError('Offline dev mode'));
-  }
-
-  if (
-    (isRegister || isAdminRoute) &&
-    (!token ||
-      token === DEV_AUTH_TOKEN ||
-      token === DEV_PLATFORM_AUTH_TOKEN ||
-      token === DEV_EMPLOYEE_AUTH_TOKEN)
-  ) {
-    logApiCanceled(config, 'Admin token required');
-    return Promise.reject(
-      new axios.CanceledError(
-        'Admin token required (hrm_auth / super_hrm_auth cookies)'
-      )
-    );
-  }
-
-  if (
-    token &&
-    token !== DEV_AUTH_TOKEN &&
-    token !== DEV_PLATFORM_AUTH_TOKEN &&
-    token !== DEV_EMPLOYEE_AUTH_TOKEN
-  ) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 

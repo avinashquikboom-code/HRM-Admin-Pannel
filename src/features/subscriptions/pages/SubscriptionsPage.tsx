@@ -35,6 +35,7 @@ import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
 import TableSkeleton from '@/components/TableSkeleton';
 import { useLoadingData } from '@/hooks/useLoadingData';
+import { useCompanyStats } from '@/hooks/useCompanyStats';
 
 const revenueData = [
   { name: 'Jan', value: 450000, churn: 12000 },
@@ -131,8 +132,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const SubscriptionsPage = () => {
-  const { isLoading } = useLoadingData(600);
+  const { isLoading: isStaticLoading } = useLoadingData(600);
+  const { stats, isLoading: isStatsLoading } = useCompanyStats();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
+  const isLoading = isStaticLoading || isStatsLoading;
+
+  const basicCount = stats?.planMix?.find((p) => p.name === 'Basic')?.count ?? 20;
+  const proCount = stats?.planMix?.find((p) => p.name === 'Pro')?.count ?? 380;
+  const enterpriseCount = stats?.planMix?.find((p) => p.name === 'Enterprise')?.count ?? 45;
 
   const pricingPlans = [
     {
@@ -142,7 +150,7 @@ const SubscriptionsPage = () => {
       seats: 'Up to 50 active seats',
       desc: 'Essential features for growing startups.',
       features: ['Standard dashboard analytics', 'Up to 5 geofences', 'Email support', '1-year logs retention'],
-      activeHires: '20 Companies',
+      activeHires: `${basicCount} ${basicCount === 1 ? 'Company' : 'Companies'}`,
       color: 'from-emerald-500/20 to-emerald-500/5',
       accent: 'emerald',
       badgeColor: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
@@ -155,7 +163,7 @@ const SubscriptionsPage = () => {
       seats: 'Up to 250 active seats',
       desc: 'Advanced controls for professional enterprises.',
       features: ['Real-time live location tracking', 'Unlimited geofencing alerts', '24/7 priority support', 'Custom report building', 'SSO & Multi-admin access'],
-      activeHires: '380 Companies',
+      activeHires: `${proCount} ${proCount === 1 ? 'Company' : 'Companies'}`,
       color: 'from-amber-500/20 to-amber-500/5',
       accent: 'amber',
       badgeColor: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
@@ -169,7 +177,7 @@ const SubscriptionsPage = () => {
       seats: 'Unlimited seats & servers',
       desc: 'State-of-the-art power for global organizations.',
       features: ['Dedicated account architect', 'Custom backend API pipelines', 'Tailored hardware integrations', 'Unlimited logs & backups', 'Whiteglove data onboarding'],
-      activeHires: '45 Companies',
+      activeHires: `${enterpriseCount} ${enterpriseCount === 1 ? 'Company' : 'Companies'}`,
       color: 'from-indigo-500/20 to-indigo-500/5',
       accent: 'indigo',
       badgeColor: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
@@ -177,9 +185,20 @@ const SubscriptionsPage = () => {
     }
   ];
 
+  const activeInvoices = stats?.recentInvoices ?? recentInvoices;
+
+  const activePlanMix = stats?.planMix?.map((p) => ({
+    name: p.name,
+    value: p.percent,
+    color: p.color === 'bg-primary' ? '#6366F1' : p.color === 'bg-accent' ? '#F59E0B' : '#10B981'
+  })) ?? planDistribution;
+
+  const revenueVal = stats ? `₹${stats.monthlyRevenue.toLocaleString('en-IN')}` : '₹842,500';
+  const seatsVal = stats ? stats.globalSeats.toLocaleString('en-IN') : '1,284';
+
   const summaryCards = [
-    { label: 'Monthly Revenue', value: '₹842,500', icon: IndianRupee, color: 'primary', trend: '+14.5%', glow: 'bg-indigo-500/10', detail: '₹96k projected uplift' },
-    { label: 'Active Licenses', value: '1,284', icon: Users, color: 'secondary', trend: '+5.2%', glow: 'bg-amber-500/10', detail: '445 seats added this quarter' },
+    { label: 'Monthly Revenue', value: revenueVal, icon: IndianRupee, color: 'primary', trend: '+14.5%', glow: 'bg-indigo-500/10', detail: '₹96k projected uplift' },
+    { label: 'Active Licenses', value: seatsVal, icon: Users, color: 'secondary', trend: '+5.2%', glow: 'bg-amber-500/10', detail: '445 seats added this quarter' },
     { label: 'Net Churn Rate', value: '1.2%', icon: Percent, color: 'error', trend: '-0.4%', glow: 'bg-rose-500/10', detail: 'Lowest in 6 months' },
     { label: 'Customer LTV', value: '₹14,200', icon: CreditCard, color: 'success', trend: '+8.1%', glow: 'bg-emerald-500/10', detail: 'Healthy expansion revenue' },
   ];
@@ -345,7 +364,7 @@ const SubscriptionsPage = () => {
             <ChartContainer heightClassName="h-60" className="w-full">
               <PieChart>
                 <Pie
-                  data={planDistribution}
+                  data={activePlanMix}
                   cx="50%"
                   cy="50%"
                   innerRadius={65}
@@ -355,7 +374,7 @@ const SubscriptionsPage = () => {
                   animationDuration={1500}
                   stroke="none"
                 >
-                  {planDistribution.map((entry, index) => (
+                  {activePlanMix.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} className="outline-none hover:opacity-85 transition-opacity" />
                   ))}
                 </Pie>
@@ -378,7 +397,7 @@ const SubscriptionsPage = () => {
           </div>
 
           <div className="space-y-3 relative z-10 mt-auto">
-            {planDistribution.map((plan) => (
+            {activePlanMix.map((plan) => (
               <div 
                 key={plan.name} 
                 className="flex items-center justify-between p-3.5 rounded-2xl bg-surface-variant/30 hover:bg-surface-variant/70 border border-border/40 hover:border-border transition-all duration-300 group/item cursor-default shadow-sm"
@@ -546,7 +565,7 @@ const SubscriptionsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {recentInvoices.map((invoice) => (
+                {activeInvoices.map((invoice) => (
                   <motion.tr 
                     key={invoice.id}
                     variants={itemVariants}

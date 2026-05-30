@@ -25,28 +25,6 @@ interface LocationMapViewProps {
   isLive: boolean;
 }
 
-function getMapCoords(
-  lat: number,
-  lng: number,
-  mapBounds: MapBounds,
-  size = 500
-) {
-  const xSpan = mapBounds.maxLng - mapBounds.minLng;
-  const ySpan = mapBounds.maxLat - mapBounds.minLat;
-  const x = ((lng - mapBounds.minLng) / xSpan) * size;
-  const y = size - ((lat - mapBounds.minLat) / ySpan) * size;
-  return { x, y };
-}
-
-function getPixelRadius(
-  radiusDegrees: number,
-  mapBounds: MapBounds,
-  size = 500
-) {
-  const ySpan = mapBounds.maxLat - mapBounds.minLat;
-  return (radiusDegrees / ySpan) * size;
-}
-
 function statusStyle(status: string) {
   if (status === 'Outside Geofence') {
     return { fill: '#f97316', ring: 'rgba(249, 115, 22, 0.25)' };
@@ -62,12 +40,10 @@ interface MapCanvasProps {
   selectedEmpId: number | null;
   onSelectEmployee: (id: number | null) => void;
   officeCenter: MapCenter;
-  mapBounds: MapBounds;
   geofenceRadius: number;
-  gradientId: string;
+  officeName?: string;
+  containerId: string;
   className?: string;
-  onExpand?: () => void;
-  showExpandHint?: boolean;
 }
 
 function MapCanvas({
@@ -75,156 +51,218 @@ function MapCanvas({
   selectedEmpId,
   onSelectEmployee,
   officeCenter,
-  mapBounds,
   geofenceRadius,
-  gradientId,
+  officeName,
+  containerId,
   className,
-  onExpand,
-  showExpandHint,
 }: MapCanvasProps) {
-  const officeCoords = getMapCoords(
-    officeCenter.lat,
-    officeCenter.lng,
-    mapBounds
-  );
-  const pixelRadius = getPixelRadius(geofenceRadius, mapBounds);
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [layersGroup, setLayersGroup] = useState<any>(null);
+
+  // Dynamically load Leaflet assets via browser CDN
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ((window as any).L) {
+      setLeafletLoaded(true);
+      return;
+    }
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.async = true;
+    script.onload = () => {
+      setLeafletLoaded(true);
+    };
+    document.head.appendChild(script);
+  }, []);
+
+  // Initialize Map
+  useEffect(() => {
+    if (!leafletLoaded || !document.getElementById(containerId) || mapInstance) return;
+
+    const L = (window as any).L;
+
+    const map = L.map(containerId, {
+      zoomControl: false
+    }).setView([officeCenter.lat, officeCenter.lng], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.control.zoom({
+      position: 'bottomright'
+    }).addTo(map);
+
+    const group = L.featureGroup().addTo(map);
+    setMapInstance(map);
+    setLayersGroup(group);
+
+    return () => {
+      map.remove();
+    };
+  }, [leafletLoaded, containerId]);
+
+  // Redraw layers when office coordinates, radius, employees or selection updates
+  useEffect(() => {
+    if (!mapInstance || !layersGroup) return;
+
+    const L = (window as any).L;
+    layersGroup.clearLayers();
+
+    // 1. Draw Office Center Icon
+    const officeIcon = L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="background-color: #0d9488; width: 18px; height: 18px; border: 3px solid white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transform: translate(-5px, -5px);"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+
+    const officeMarker = L.marker([officeCenter.lat, officeCenter.lng], {
+      icon: officeIcon
+    }).addTo(layersGroup);
+
+    officeMarker.bindTooltip(officeName || "Office Center", {
+      permanent: true,
+      direction: 'bottom',
+      className: 'custom-leaflet-tooltip-office',
+      offset: [0, 8]
+    });
+
+    // 2. Draw Geofence Circle Overlay (convert degree geofenceRadius to meters)
+    const radiusMeters = geofenceRadius * 111320;
+    L.circle([officeCenter.lat, officeCenter.lng], {
+      color: '#10b981',
+      fillColor: '#10b981',
+      fillOpacity: 0.08,
+      weight: 1.5,
+      dashArray: '5, 5',
+      radius: radiusMeters
+    }).addTo(layersGroup);
+
+    // 3. Draw Employees
+    employees.forEach((emp) => {
+      const isSelected = selectedEmpId === emp.employeeId;
+      const style = statusStyle(emp.status);
+
+      const empIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `
+          <div style="position: relative;">
+            <div style="background-color: ${style.fill}; width: 14px; height: 14px; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 3px 6px rgba(0,0,0,0.25); transform: translate(-3px, -3px);"></div>
+            ${isSelected ? `<div style="position: absolute; top: -8px; left: -8px; width: 24px; height: 24px; border: 2.5px dashed #0d9488; border-radius: 50%; animation: spin 4s linear infinite; box-sizing: border-box;"></div>` : ''}
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      const empMarker = L.marker([emp.lat, emp.lng], {
+        icon: empIcon
+      }).addTo(layersGroup);
+
+      empMarker.on('click', () => {
+        onSelectEmployee(emp.employeeId);
+      });
+
+      empMarker.bindTooltip(emp.name.split(' ')[0], {
+        permanent: true,
+        direction: 'top',
+        className: 'custom-leaflet-tooltip',
+        offset: [0, -8]
+      });
+    });
+
+    // Dynamic zoom focus to selected employee
+    if (selectedEmpId) {
+      const selEmp = employees.find((e) => e.employeeId === selectedEmpId);
+      if (selEmp) {
+        mapInstance.setView([selEmp.lat, selEmp.lng], mapInstance.getZoom());
+      }
+    }
+  }, [mapInstance, layersGroup, employees, officeCenter, geofenceRadius, selectedEmpId, officeName]);
 
   return (
-    <div
-      className={cn(
-        'relative w-full bg-gradient-to-br from-emerald-50/80 via-surface to-sky-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800',
-        onExpand && 'cursor-pointer group/map',
-        className
-      )}
-      onClick={onExpand}
-      onKeyDown={(event) => {
-        if (onExpand && (event.key === 'Enter' || event.key === ' ')) {
-          event.preventDefault();
-          onExpand();
+    <div className={cn('relative w-full overflow-hidden bg-surface-variant', className)}>
+      <style dangerouslySetInnerHTML={{__html: `
+        .leaflet-container {
+          font-family: inherit !important;
         }
-      }}
-      role={onExpand ? 'button' : undefined}
-      tabIndex={onExpand ? 0 : undefined}
-      aria-label={onExpand ? 'Expand map to full screen' : undefined}
-    >
-      <div className="absolute inset-0 opacity-30 bg-[linear-gradient(rgba(15,118,110,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,118,110,0.08)_1px,transparent_1px)] bg-[size:32px_32px]" />
+        .custom-div-icon {
+          background: transparent !important;
+          border: none !important;
+        }
+        .custom-leaflet-tooltip {
+          background-color: var(--surface) !important;
+          color: var(--text-primary) !important;
+          border: 1px solid var(--border) !important;
+          font-size: 10px !important;
+          font-weight: 800 !important;
+          padding: 2px 6px !important;
+          border-radius: 6px !important;
+          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
+        }
+        .custom-leaflet-tooltip-office {
+          background-color: var(--primary-light) !important;
+          color: var(--primary) !important;
+          border: 1px solid var(--border) !important;
+          font-size: 10px !important;
+          font-weight: 800 !important;
+          padding: 2px 6px !important;
+          border-radius: 6px !important;
+          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
+        }
+        .leaflet-bar {
+          border: none !important;
+          box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+          border-radius: 1rem !important;
+          overflow: hidden;
+        }
+        .leaflet-bar a {
+          background-color: var(--surface) !important;
+          color: var(--text-primary) !important;
+          border-bottom: 1px solid var(--border) !important;
+          transition: all 0.2s;
+        }
+        .leaflet-bar a:hover {
+          background-color: var(--primary-light) !important;
+          color: var(--primary) !important;
+        }
+        @keyframes spin {
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      `}} />
 
-      {showExpandHint && onExpand && (
-        <div className="absolute inset-0 z-[1] flex items-center justify-center bg-black/0 group-hover/map:bg-black/5 transition-colors pointer-events-none">
-          <span className="opacity-0 group-hover/map:opacity-100 transition-opacity rounded-full bg-surface/95 border border-border px-4 py-2 text-xs font-semibold text-text-primary shadow-lg flex items-center gap-2">
-            <Maximize2 size={14} />
-            Click to expand
-          </span>
+      {!leafletLoaded && (
+        <div className="absolute inset-0 z-[10] flex flex-col items-center justify-center bg-surface-variant/90 animate-pulse">
+          <span className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-3" />
+          <span className="text-xs font-black uppercase tracking-widest text-text-secondary">Loading Tracker Map...</span>
         </div>
       )}
 
-      <svg
-        viewBox="0 0 500 500"
-        className="relative z-[2] h-full w-full"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <defs>
-          <radialGradient id={gradientId} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(16, 185, 129, 0.12)" />
-            <stop offset="100%" stopColor="rgba(16, 185, 129, 0.02)" />
-          </radialGradient>
-        </defs>
+      <div id={containerId} className="w-full h-full" style={{ zIndex: 1 }} />
 
-        <circle
-          cx={officeCoords.x}
-          cy={officeCoords.y}
-          r={pixelRadius}
-          fill={`url(#${gradientId})`}
-          stroke="rgba(16, 185, 129, 0.45)"
-          strokeWidth="2"
-          strokeDasharray="8 6"
-        />
-
-        <circle
-          cx={officeCoords.x}
-          cy={officeCoords.y}
-          r="10"
-          fill="#0d9488"
-          stroke="#fff"
-          strokeWidth="2"
-        />
-        <circle
-          cx={officeCoords.x}
-          cy={officeCoords.y}
-          r="18"
-          fill="none"
-          stroke="rgba(13, 148, 136, 0.35)"
-          strokeWidth="1.5"
-        />
-
-        {employees.map((emp) => {
-          const { x, y } = getMapCoords(emp.lat, emp.lng, mapBounds);
-          const isSelected = selectedEmpId === emp.employeeId;
-          const style = statusStyle(emp.status);
-
-          return (
-            <motion.g
-              key={emp.employeeId}
-              className="cursor-pointer"
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelectEmployee(emp.employeeId);
-              }}
-              whileHover={{ scale: 1.15 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 18 }}
-            >
-              {isSelected && (
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="20"
-                  fill="none"
-                  stroke="#0d9488"
-                  strokeWidth="2"
-                  strokeDasharray="4 3"
-                />
-              )}
-              {emp.status !== 'On Leave' && (
-                <circle cx={x} cy={y} r="14" fill={style.ring} />
-              )}
-              <circle
-                cx={x}
-                cy={y}
-                r="7"
-                fill={style.fill}
-                stroke="#fff"
-                strokeWidth="2"
-              />
-              <text
-                x={x + 12}
-                y={y + 4}
-                fill="currentColor"
-                className="text-[10px] font-semibold fill-text-primary pointer-events-none"
-              >
-                {emp.name.split(' ')[0]}
-              </text>
-            </motion.g>
-          );
-        })}
-      </svg>
-
-      <div
-        className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-xs z-[3] p-3 rounded-xl bg-surface/90 backdrop-blur border border-border shadow-sm text-xs space-y-1 pointer-events-none"
-        onClick={(event) => event.stopPropagation()}
-      >
+      {/* Info Legend Overlay */}
+      <div className="absolute bottom-3 left-3 z-[5] p-3 rounded-xl bg-surface/90 backdrop-blur border border-border shadow-sm text-xs space-y-1 pointer-events-none">
         <p className="font-semibold text-text-primary flex items-center gap-1.5">
           <MapPin size={12} className="text-primary" />
           {officeCenter.lat.toFixed(4)}, {officeCenter.lng.toFixed(4)}
         </p>
         <p className="text-text-secondary">
-          Tap a marker for details · expand for full view
+          Click employee pins to view telemetry profiles
         </p>
       </div>
 
-      <div
-        className="absolute top-3 right-3 z-[3] p-3 rounded-xl bg-surface/90 backdrop-blur border border-border shadow-sm space-y-1.5 text-[10px] font-semibold pointer-events-none"
-        onClick={(event) => event.stopPropagation()}
-      >
+      {/* Map Markers Legend */}
+      <div className="absolute top-3 right-3 z-[5] p-3 rounded-xl bg-surface/90 backdrop-blur border border-border shadow-sm space-y-1.5 text-[10px] font-semibold pointer-events-none">
         <div className="flex items-center gap-2 text-text-secondary">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
           In office
@@ -242,21 +280,6 @@ function MapCanvas({
           Office center
         </div>
       </div>
-
-      {onExpand && (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onExpand();
-          }}
-          className="absolute top-3 left-3 z-[4] inline-flex items-center gap-1.5 rounded-xl bg-surface/95 border border-border px-3 py-2 text-xs font-semibold text-text-primary shadow-sm hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
-          aria-label="Expand map to full screen"
-        >
-          <Maximize2 size={14} />
-          Full screen
-        </button>
-      )}
     </div>
   );
 }
@@ -267,7 +290,6 @@ export default function LocationMapView(props: LocationMapViewProps) {
     selectedEmpId,
     onSelectEmployee,
     officeCenter,
-    mapBounds,
     geofenceRadius,
     officeName,
     isLive,
@@ -275,8 +297,9 @@ export default function LocationMapView(props: LocationMapViewProps) {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const gradientId = useId().replace(/:/g, '');
-  const fullscreenGradientId = `${gradientId}-fs`;
+  const mapUniqueId = useId().replace(/:/g, '');
+  const mainMapId = `tracker-map-${mapUniqueId}`;
+  const fullscreenMapId = `tracker-map-fs-${mapUniqueId}`;
 
   const openFullscreen = useCallback(() => setIsFullscreen(true), []);
   const closeFullscreen = useCallback(() => setIsFullscreen(false), []);
@@ -307,8 +330,8 @@ export default function LocationMapView(props: LocationMapViewProps) {
     selectedEmpId,
     onSelectEmployee,
     officeCenter,
-    mapBounds,
     geofenceRadius,
+    officeName,
   };
 
   return (
@@ -344,7 +367,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
             >
               <span
                 className={cn(
-                  'w-2 h-2 rounded-full',
+                  'w-2.5 h-2.5 rounded-full',
                   isLive ? 'bg-success animate-pulse' : 'bg-muted'
                 )}
               />
@@ -355,10 +378,8 @@ export default function LocationMapView(props: LocationMapViewProps) {
 
         <MapCanvas
           {...canvasProps}
-          gradientId={gradientId}
-          className="aspect-[4/3] sm:aspect-[16/10]"
-          onExpand={openFullscreen}
-          showExpandHint
+          containerId={mainMapId}
+          className="h-[380px] sm:h-[480px]"
         />
       </div>
 
@@ -435,7 +456,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
                 >
                   <MapCanvas
                     {...canvasProps}
-                    gradientId={fullscreenGradientId}
+                    containerId={fullscreenMapId}
                     className="h-full min-h-[280px] rounded-2xl border border-border overflow-hidden"
                   />
                 </motion.div>

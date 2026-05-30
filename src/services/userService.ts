@@ -97,14 +97,13 @@ const MOCK_PLATFORM_USERS: PlatformUser[] = [
 ];
 
 export async function fetchPlatformUsers(): Promise<PlatformUser[]> {
-  if (isDevAuthSession()) {
-    return MOCK_PLATFORM_USERS;
-  }
-
   try {
     const { data } = await api.get<UsersApiResponse>('/api/admin/users');
     return data.employees ?? [];
   } catch (error) {
+    if (isDevAuthSession()) {
+      return MOCK_PLATFORM_USERS;
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to fetch platform users. Please try again.')
     );

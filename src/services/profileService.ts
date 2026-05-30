@@ -27,17 +27,16 @@ interface UpdateProfileResponse {
 }
 
 export async function fetchAdminProfile(): Promise<User> {
-  if (isDevAuthSession()) {
-    const session = getAuthSession();
-    if (session?.user) {
-      return session.user;
-    }
-  }
-
   try {
     const { data } = await api.get<AdminProfileResponse>('/api/admin/profile');
     return mapApiProfileResponse(data.profile, data.user);
   } catch (error) {
+    if (isDevAuthSession()) {
+      const session = getAuthSession();
+      if (session?.user) {
+        return session.user;
+      }
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load profile. Please try again.')
     );

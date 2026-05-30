@@ -38,16 +38,15 @@ export async function fetchComments(
   entityType: string,
   entityId: string
 ): Promise<Comment[]> {
-  if (isDevAuthSession()) {
-    return [];
-  }
-
   try {
     const { data } = await api.get<CommentsResponse>('/api/admin/comments', {
       params: { entityType, entityId },
     });
     return data.comments;
   } catch (error) {
+    if (isDevAuthSession()) {
+      return [];
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load comments. Please try again.')
     );
@@ -57,10 +56,6 @@ export async function fetchComments(
 export async function createComment(
   payload: CreateCommentRequest
 ): Promise<{ message: string; comment: Comment }> {
-  if (isDevAuthSession()) {
-    throw new Error('Comments are unavailable in offline demo mode.');
-  }
-
   try {
     const { data } = await api.post<CreateCommentResponse>(
       '/api/admin/comments',
@@ -72,6 +67,9 @@ export async function createComment(
       comment: data.comment,
     };
   } catch (error) {
+    if (isDevAuthSession()) {
+      throw new Error('Comments are unavailable in offline demo mode.');
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to add comment. Please try again.')
     );

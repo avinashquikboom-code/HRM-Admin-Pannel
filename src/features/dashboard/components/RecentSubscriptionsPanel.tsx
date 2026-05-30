@@ -152,12 +152,21 @@ export function SubscriptionAlertsCard({
   );
 }
 
-export function PlanMixCard() {
-  const plans = [
+interface PlanMixDataPoint {
+  name: string;
+  count: number;
+  percent: number;
+  color: string;
+}
+
+export function PlanMixCard({ plans }: { plans?: PlanMixDataPoint[] }) {
+  const defaultPlans = [
     { name: 'Enterprise', count: 2, percent: 40, color: 'bg-primary' },
     { name: 'Pro', count: 2, percent: 40, color: 'bg-accent' },
     { name: 'Basic', count: 1, percent: 20, color: 'bg-muted' },
   ];
+
+  const activePlans = plans && plans.length > 0 ? plans : defaultPlans;
 
   return (
     <div className="rounded-3xl border border-border/60 bg-surface p-5 shadow-sm">
@@ -167,7 +176,7 @@ export function PlanMixCard() {
       </p>
 
       <div className="space-y-4">
-        {plans.map((plan) => (
+        {activePlans.map((plan) => (
           <div key={plan.name}>
             <div className="flex items-center justify-between text-sm mb-1.5">
               <span className="font-medium text-text-primary">{plan.name}</span>

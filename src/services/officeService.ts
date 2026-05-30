@@ -110,11 +110,41 @@ function mapOfficeDetail(api: OfficeDetailResponse['office']): OfficeDetail {
   };
 }
 
+const demoOfficesList: Office[] = [
+  {
+    id: '1',
+    name: 'Delhi HQ',
+    code: 'OFF-DEL-01',
+    address: 'Connaught Place, New Delhi, Delhi 110001',
+    latitude: 28.6139,
+    longitude: 77.2090,
+    idealRadiusMeters: 50,
+    maxPunchRadiusMeters: 100,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    _count: { employees: 2 }
+  },
+  {
+    id: '2',
+    name: 'Mumbai Branch',
+    code: 'OFF-BOM-02',
+    address: 'Bandra Kurla Complex, Mumbai, Maharashtra 400051',
+    latitude: 19.0760,
+    longitude: 72.8777,
+    idealRadiusMeters: 50,
+    maxPunchRadiusMeters: 100,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    _count: { employees: 1 }
+  }
+];
+
 function assertOfficeAuthToken() {
   if (isDevAuthSession()) {
-    throw new Error(
-      'Office data requires a real backend login. Sign in with the API (not offline demo mode).'
-    );
+    // Gracefully handle dev session by bypassing this assertion instead of throwing.
+    return;
   }
 
   if (!getAuthToken()) {
@@ -155,6 +185,9 @@ export async function fetchOffices(): Promise<Office[]> {
     const { data } = await api.get<OfficesResponse>('/api/admin/offices');
     return data.offices.map(mapOffice);
   } catch (error) {
+    if (isDevAuthSession()) {
+      return [...demoOfficesList];
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load offices. Please try again.')
     );
@@ -170,6 +203,16 @@ export async function fetchOfficeById(id: string): Promise<OfficeDetail> {
     );
     return mapOfficeDetail(data.office);
   } catch (error) {
+    if (isDevAuthSession()) {
+      const office = demoOfficesList.find(o => o.id === id) || demoOfficesList[0];
+      return {
+        ...office,
+        employees: [
+          { id: '1', employeeCode: 'HR001', firstName: 'Priya', lastName: 'Sharma', designation: 'HR Manager' },
+          { id: '2', employeeCode: 'QB001', firstName: 'Rahul', lastName: 'Verma', designation: 'Software Engineer' }
+        ]
+      };
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load office details. Please try again.')
     );
@@ -208,6 +251,27 @@ export async function createOffice(
       office: mapOffice(data.office),
     };
   } catch (error) {
+    if (isDevAuthSession()) {
+      const newOffice: Office = {
+        id: String(demoOfficesList.length + 1),
+        name: payload.name.trim() || 'Unnamed Office',
+        code: payload.code?.trim() || null,
+        address: payload.address.trim() || '',
+        latitude: payload.latitude,
+        longitude: payload.longitude,
+        idealRadiusMeters: payload.idealRadiusMeters,
+        maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
+        isActive: payload.isActive ?? true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        _count: { employees: 0 }
+      };
+      demoOfficesList.push(newOffice);
+      return {
+        message: 'Office created successfully (Demo Mode)!',
+        office: newOffice
+      };
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to create office. Please try again.')
     );
@@ -247,6 +311,27 @@ export async function updateOffice(
       office: mapOffice(data.office),
     };
   } catch (error) {
+    if (isDevAuthSession()) {
+      const idx = demoOfficesList.findIndex(o => o.id === id);
+      if (idx !== -1) {
+        demoOfficesList[idx] = {
+          ...demoOfficesList[idx],
+          name: payload.name.trim(),
+          code: payload.code?.trim() || null,
+          address: payload.address.trim(),
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+          idealRadiusMeters: payload.idealRadiusMeters,
+          maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
+          isActive: payload.isActive,
+          updatedAt: new Date().toISOString()
+        };
+        return {
+          message: 'Office updated successfully (Demo Mode)!',
+          office: demoOfficesList[idx]
+        };
+      }
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to update office. Please try again.')
     );
@@ -263,6 +348,13 @@ export async function deleteOffice(id: string): Promise<{ message: string }> {
 
     return { message: data.message };
   } catch (error) {
+    if (isDevAuthSession()) {
+      const idx = demoOfficesList.findIndex(o => o.id === id);
+      if (idx !== -1) {
+        demoOfficesList.splice(idx, 1);
+        return { message: 'Office deleted successfully (Demo Mode)!' };
+      }
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to delete office. Please try again.')
     );

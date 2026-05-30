@@ -140,12 +140,14 @@ export default function SuperAdminDashboardPage() {
 
   const displayName = user?.name?.split(' ')[0] ?? 'Super Admin';
 
+  const activeInvoices = stats?.recentInvoices ?? RECENT_INVOICES;
+
   const pendingBillingCount = useMemo(
     () =>
-      RECENT_INVOICES.filter(
+      activeInvoices.filter(
         (inv) => inv.status === 'Pending' || inv.status === 'Overdue'
       ).length,
-    []
+    [activeInvoices]
   );
 
   const heroHighlights = [
@@ -250,11 +252,11 @@ export default function SuperAdminDashboardPage() {
         className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start"
       >
         <div className="xl:col-span-8 min-w-0">
-          <DashboardGrowthChart />
+          <DashboardGrowthChart data={stats?.growthHistory} />
         </div>
         <div className="xl:col-span-4 space-y-4 min-w-0">
           <SubscriptionAlertsCard pendingCount={pendingBillingCount} />
-          <PlanMixCard />
+          <PlanMixCard plans={stats?.planMix} />
         </div>
       </motion.div>
 
@@ -267,10 +269,10 @@ export default function SuperAdminDashboardPage() {
         className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
       >
         <div className="lg:col-span-7 min-w-0">
-          <RecentSubscriptionsPanel invoices={RECENT_INVOICES} />
+          <RecentSubscriptionsPanel invoices={activeInvoices} />
         </div>
         <div className="lg:col-span-5 min-w-0">
-          <DashboardActivityFeed items={defaultDashboardActivity} />
+          <DashboardActivityFeed items={stats?.recentActivity ?? defaultDashboardActivity} />
         </div>
       </motion.div>
     </motion.div>
