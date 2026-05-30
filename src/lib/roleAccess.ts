@@ -1,5 +1,6 @@
 import type { PortalType } from '@/lib/portals';
 import { isEmployeePath } from '@/lib/portals';
+import { api } from '@/lib/api';
 
 export type AppRole = 'ADMIN' | 'HR' | 'EMPLOYEE';
 
@@ -150,6 +151,20 @@ export function saveManagedRolePermissions(
   saveRolePermissions(existing);
 }
 
+export async function saveManagedRolePermissionsAsync(
+  managerPortal: PortalType,
+  permissions: RolePermissionsMap
+) {
+  const existing = await fetchRolePermissionsAsync();
+  const managed = getManagedRolesForPortal(managerPortal);
+
+  for (const role of managed) {
+    existing[role] = { ...permissions[role] };
+  }
+
+  await saveRolePermissionsAsync(existing);
+}
+
 export const PERMISSIONS_STORAGE_KEY = 'hrm_role_permissions';
 
 export type RolePermissionsMap = Record<PortalType, Record<string, boolean>>;
@@ -202,6 +217,34 @@ export function saveRolePermissions(permissions: RolePermissionsMap) {
   localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permissions));
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('hrm-permissions-updated'));
+  }
+}
+
+export async function fetchRolePermissionsAsync(): Promise<RolePermissionsMap> {
+  const defaults = getDefaultRolePermissions();
+  try {
+    const { data } = await api.get('/api/permissions/global');
+    if (data.ADMIN || data.SUPER_ADMIN) defaults.super_admin = { ...defaults.super_admin, ...(data.ADMIN || data.SUPER_ADMIN) };
+    if (data.HR || data.PLATFORM_ADMIN) defaults.platform_admin = { ...defaults.platform_admin, ...(data.HR || data.PLATFORM_ADMIN) };
+    if (data.EMPLOYEE) defaults.employee = { ...defaults.employee, ...data.EMPLOYEE };
+  } catch (error) {
+    console.error('Failed to fetch global permissions', error);
+  }
+  return defaults;
+}
+
+export async function saveRolePermissionsAsync(permissions: RolePermissionsMap) {
+  try {
+    const payload = {
+      ADMIN: permissions.super_admin,
+      HR: permissions.platform_admin,
+      EMPLOYEE: permissions.employee
+    };
+    await api.put('/api/permissions/global', { permissions: payload });
+    saveRolePermissions(permissions); // keep local in sync
+  } catch (error) {
+    console.error('Failed to save global permissions', error);
+    throw error;
   }
 }
 

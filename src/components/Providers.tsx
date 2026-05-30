@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { store } from '@/store';
 import { hydrateAuth } from '@/store/slices/authSlice';
 import { hydrateTheme } from '@/store/slices/themeSlice';
+import PushNotificationInitializer from './PushNotificationInitializer';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,6 +30,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
+        <PushNotificationInitializer />
         {children}
       </QueryClientProvider>
     </Provider>

@@ -11,6 +11,7 @@ export interface CompanyStats {
   planMix?: { name: string; count: number; percent: number; color: string }[];
   recentInvoices?: { id: string; company: string; plan: string; amount: string; status: string; date: string }[];
   growthHistory?: { name: string; companies: number; seats: number }[];
+  revenueHistory?: { name: string; value: number; churn: number }[];
   recentActivity?: { id: string; type: 'success' | 'warning' | 'error' | 'info'; title: string; description: string; time: string }[];
 }
 
@@ -23,6 +24,7 @@ interface CompanyStatsResponse {
   planMix?: { name: string; count: number; percent: number; color: string }[];
   recentInvoices?: { id: string; company: string; plan: string; amount: string; status: string; date: string }[];
   growthHistory?: { name: string; companies: number; seats: number }[];
+  revenueHistory?: { name: string; value: number; churn: number }[];
   recentActivity?: { id: string; type: 'success' | 'warning' | 'error' | 'info'; title: string; description: string; time: string }[];
 }
 
@@ -53,6 +55,14 @@ const DEMO_COMPANY_STATS: CompanyStats = {
     { name: 'Jun', companies: 14, seats: 5100 },
     { name: 'Jul', companies: 15, seats: 6425 },
   ],
+  revenueHistory: [
+    { name: 'Jan', value: 450000, churn: 12000 },
+    { name: 'Feb', value: 520000, churn: 15000 },
+    { name: 'Mar', value: 480000, churn: 18000 },
+    { name: 'Apr', value: 610000, churn: 14000 },
+    { name: 'May', value: 720000, churn: 11000 },
+    { name: 'Jun', value: 850000, churn: 9000 },
+  ],
   recentActivity: [
     { id: 'act-1', type: 'success', title: 'New company onboarded', description: 'Innovate Digital was onboarded successfully.', time: '2h ago' },
     { id: 'act-2', type: 'info', title: 'New employee registered', description: 'Employee Amit Kumar was registered.', time: '5h ago' },
@@ -75,6 +85,7 @@ export async function fetchCompanyStats(): Promise<CompanyStats> {
       planMix: data.planMix ?? [],
       recentInvoices: data.recentInvoices ?? [],
       growthHistory: data.growthHistory ?? [],
+      revenueHistory: data.revenueHistory ?? [],
       recentActivity: data.recentActivity ?? []
     };
   } catch (error) {

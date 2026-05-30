@@ -22,6 +22,8 @@ import {
   getModuleDefsForManager,
   loadRolePermissions,
   saveManagedRolePermissions,
+  fetchRolePermissionsAsync,
+  saveManagedRolePermissionsAsync,
   canManageRole,
   type AccessModuleDef,
   type RoleAccessInfo,
@@ -206,8 +208,10 @@ export default function UserRightsControl({
   );
   const [savedMessage, setSavedMessage] = useState('');
 
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    setPermissions(loadRolePermissions());
+    fetchRolePermissionsAsync().then(setPermissions);
   }, []);
 
   const access = ROLE_ACCESS[selectedRole];
@@ -265,14 +269,21 @@ export default function UserRightsControl({
     setSavedMessage('');
   };
 
-  const handleSave = () => {
-    saveManagedRolePermissions(managerPortal, permissions);
-    setSavedMessage(
-      managerPortal === 'super_admin'
-        ? 'Admin permissions saved successfully.'
-        : 'Employee permissions saved successfully.'
-    );
-    window.setTimeout(() => setSavedMessage(''), 3000);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await saveManagedRolePermissionsAsync(managerPortal, permissions);
+      setSavedMessage(
+        managerPortal === 'super_admin'
+          ? 'Admin permissions saved successfully.'
+          : 'Employee permissions saved successfully.'
+      );
+      window.setTimeout(() => setSavedMessage(''), 3000);
+    } catch (e) {
+      setSavedMessage('Failed to save permissions.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -372,10 +383,11 @@ export default function UserRightsControl({
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors"
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors disabled:opacity-50"
                   >
                     <Save size={14} />
-                    Save
+                    {isSaving ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               )}

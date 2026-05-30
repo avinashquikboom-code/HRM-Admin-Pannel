@@ -498,25 +498,27 @@ const SubscriptionsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <motion.div 
           variants={itemVariants} 
-          className="lg:col-span-2 glass-card p-6 sm:p-8 relative overflow-hidden group border border-border/50 shadow-sm"
+          className="glass-card p-6 md:p-8 lg:col-span-2 relative overflow-hidden group border border-border/40 hover:border-primary/30 transition-colors duration-500"
         >
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors duration-1000" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] rounded-full mix-blend-screen pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-50" />
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 relative z-10">
             <div>
               <h3 className="heading-2">Revenue Momentum</h3>
-              <p className="text-sm text-text-secondary mt-0.5">Monthly Recurring Revenue (MRR) performance overview</p>
+              <p className="text-sm text-muted mt-1.5 font-medium">Monthly Recurring Revenue (MRR) performance overview</p>
             </div>
-            <select className="bg-surface-variant border border-border/40 rounded-xl px-4 py-2.5 text-sm outline-none font-bold text-text-secondary focus:ring-2 focus:ring-primary/20 self-start sm:self-center cursor-pointer">
-              <option>Last 6 Months</option>
-              <option>Year to Date</option>
-            </select>
+            <div className="flex bg-surface-variant/50 p-1.5 rounded-xl border border-border/50">
+              <select className="bg-transparent text-sm font-bold text-text-primary px-3 py-1 outline-none border-none cursor-pointer">
+                <option>Last 6 Months</option>
+                <option>Last 12 Months</option>
+              </select>
+            </div>
           </div>
 
-          <ChartContainer heightClassName="h-[360px]" className="relative z-10">
-            <AreaChart data={revenueData}>
+          <ChartContainer heightClassName="h-[280px]">
+            <AreaChart data={stats?.revenueHistory || revenueData}>
               <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#6366F1" stopOpacity={0.35}/>
                   <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
                 </linearGradient>
