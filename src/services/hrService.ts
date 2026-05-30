@@ -10,6 +10,11 @@ export interface HRStats {
   departments: number;
   attendanceRate: number;
   totalAttendanceToday: number;
+  totalHRAdmins: number;
+  activeSessions: number;
+  onboardingRate: string;
+  hiringGrowth: Array<{ name: string; hires: number }>;
+  hrDistribution: Array<{ name: string; value: number; color: string }>;
 }
 
 export interface HRDepartmentOverview {
