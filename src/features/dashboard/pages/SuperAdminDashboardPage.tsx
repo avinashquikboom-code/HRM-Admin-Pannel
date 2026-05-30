@@ -119,12 +119,8 @@ export default function SuperAdminDashboardPage() {
       value: isLoading ? '—' : String(stats?.totalEntities ?? 0),
     },
     {
-      label: 'Seats',
-      value: isLoading
-        ? '—'
-        : (stats?.globalSeats ?? 0) >= 1000
-          ? `${((stats?.globalSeats ?? 0) / 1000).toFixed(1)}k`
-          : String(stats?.globalSeats ?? 0),
+      label: 'Pending',
+      value: isLoading ? '—' : String(stats?.pendingVerification ?? 0),
     },
   ];
 
@@ -171,35 +167,29 @@ export default function SuperAdminDashboardPage() {
           isLoading={isLoading}
         />
         <StatCard
-          label="Employee seats"
-          value={
-            isLoading ? '—' : (stats?.globalSeats ?? 0).toLocaleString()
-          }
-          sub="Used across all tenants"
-          icon={Users}
+          label="Total companies"
+          value={isLoading ? '—' : String(stats?.totalEntities ?? 0)}
+          sub="Registered tenant organizations"
+          icon={Building2}
           tone="success"
           isLoading={isLoading}
         />
         <StatCard
-          label="Billing alerts"
-          value={isLoading ? '—' : pendingBillingCount}
-          sub={
-            pendingBillingCount > 0
-              ? 'Pending or overdue invoices'
-              : 'All payments clear'
+          label="Seats in use"
+          value={
+            isLoading ? '—' : (stats?.globalSeats ?? 0).toLocaleString()
           }
-          icon={CreditCard}
-          tone="warning"
-          badge={pendingBillingCount > 0 ? 'Action' : 'Clear'}
-          badgeTone={pendingBillingCount > 0 ? 'warning' : 'success'}
+          sub="Active employee seats"
+          icon={Users}
+          tone="accent"
           isLoading={isLoading}
         />
         <StatCard
-          label="Platform growth"
-          value={isLoading ? '—' : stats?.systemGrowth ?? '—'}
-          sub="Compared to last month"
-          icon={TrendingUp}
-          tone="accent"
+          label="Pending verifications"
+          value={isLoading ? '—' : String(stats?.pendingVerification ?? 0)}
+          sub="Companies awaiting approval"
+          icon={ShieldCheck}
+          tone="warning"
           isLoading={isLoading}
         />
       </motion.div>

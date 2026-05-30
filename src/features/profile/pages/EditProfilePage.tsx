@@ -99,16 +99,28 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting }
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    values: {
+    defaultValues: {
       name: user?.name || profile?.fullName || '',
       email: user?.email || profile?.email || '',
       phone: user?.phone || profile?.phone || '',
       bio: user?.bio || profile?.bio || '',
     },
   });
+
+  useEffect(() => {
+    if (!user && !profile) return;
+
+    reset({
+      name: user?.name || profile?.fullName || '',
+      email: user?.email || profile?.email || '',
+      phone: user?.phone || profile?.phone || '',
+      bio: user?.bio || profile?.bio || '',
+    });
+  }, [user, profile, reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!user) {
