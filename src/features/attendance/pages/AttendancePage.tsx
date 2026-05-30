@@ -35,6 +35,7 @@ import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
+import { isDevAuthSession } from '@/lib/devAuth';
 
 const attendanceStats = [
   { name: 'On-time', value: 38500 },
@@ -129,6 +130,56 @@ const MiniCalendar = () => {
 const AttendancePage = () => {
   const { records, isLoading, error, refetch } = useTodayAttendance();
   const [isHolidaysOpen, setIsHolidaysOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const presentCount = records.filter(r => r.status === 'PRESENT').length;
+  const lateCount = records.filter(r => r.status === 'LATE').length;
+  const absentCount = records.filter(r => r.status === 'ABSENT').length;
+  const activeTodayCount = presentCount + lateCount;
+  const onTimePercentage = activeTodayCount > 0 ? `${Math.round((presentCount / activeTodayCount) * 100)}%` : '0%';
+
+  const filteredRecords = records.filter(record => {
+    const employeeName = `${record.employee.firstName} ${record.employee.lastName}`.toLowerCase();
+    const employeeCode = (record.employee.employeeCode || '').toLowerCase();
+    const officeName = (record.office?.name || '').toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return employeeName.includes(search) || employeeCode.includes(search) || officeName.includes(search);
+  });
+
+  const topStats = [
+    { 
+      label: 'Active Today', 
+      value: isDevAuthSession() ? '45,920' : activeTodayCount.toLocaleString(), 
+      icon: Users, 
+      color: 'primary', 
+      trend: '+5.4%',
+      glowColor: 'rgba(59, 163, 139, 0.25)'
+    },
+    { 
+      label: 'Average On-time', 
+      value: isDevAuthSession() ? '84.2%' : onTimePercentage, 
+      icon: CheckCircle2, 
+      color: 'success', 
+      trend: '+2.1%',
+      glowColor: 'rgba(34, 197, 94, 0.25)'
+    },
+    { 
+      label: 'Late Arrivals', 
+      value: isDevAuthSession() ? '4,200' : lateCount.toLocaleString(), 
+      icon: Clock, 
+      color: 'warning', 
+      trend: '+12%',
+      glowColor: 'rgba(245, 158, 11, 0.25)'
+    },
+    { 
+      label: 'Absent Today', 
+      value: isDevAuthSession() ? '7.5%' : absentCount.toLocaleString(), 
+      icon: XCircle, 
+      color: 'error', 
+      trend: '-0.8%',
+      glowColor: 'rgba(239, 68, 68, 0.25)'
+    },
+  ];
 
   return (
     <motion.div 
@@ -167,33 +218,37 @@ const AttendancePage = () => {
 
       {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Active Today', value: '45,920', icon: Users, color: 'primary', trend: '+5.4%' },
-          { label: 'Average On-time', value: '84.2%', icon: CheckCircle2, color: 'success', trend: '+2.1%' },
-          { label: 'Late Arrivals', value: '4,200', icon: Clock, color: 'warning', trend: '+12%' },
-          { label: 'Absent (MTD)', value: '7.5%', icon: XCircle, color: 'error', trend: '-0.8%' },
-        ].map((stat) => (
+        {topStats.map((stat) => (
           <motion.div
             key={stat.label}
             variants={itemVariants}
-            className="glass-card p-6 group hover:border-primary/50 transition-all cursor-default"
+            whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
+            className="glass-card p-6 group hover:border-primary/50 transition-all cursor-default relative overflow-hidden shadow-premium"
           >
-            <div className="flex items-center justify-between mb-4">
+            {/* Radial Glow Effect */}
+            <div 
+              className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"
+              style={{ background: stat.glowColor }}
+            />
+            
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className={cn(
-                "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-300 shadow-sm",
+                "p-3.5 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
                 `bg-${stat.color}/10 text-${stat.color}`
               )}>
-                <stat.icon size={24} />
+                <stat.icon size={22} />
               </div>
               <span className={cn(
-                "text-micro font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-sm",
-                stat.trend.startsWith('+') ? "bg-success/10 text-success" : "bg-error/10 text-error"
+                "text-micro font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm",
+                stat.trend.startsWith('+') ? "bg-success/10 text-success border-success/10" : "bg-error/10 text-error border-error/10"
               )}>
                 {stat.trend}
               </span>
             </div>
-            <p className="text-xs font-bold text-text-secondary uppercase tracking-widest">{stat.label}</p>
-            <h3 className="text-stat-value mt-1">{stat.value}</h3>
+            <div className="relative z-10">
+              <p className="text-micro font-black text-text-secondary uppercase tracking-[0.15em] mb-1">{stat.label}</p>
+              <h3 className="text-stat-value tabular-nums">{stat.value}</h3>
+            </div>
           </motion.div>
         ))}
       </div>
@@ -346,6 +401,8 @@ const AttendancePage = () => {
               <input 
                 type="text" 
                 placeholder="Search employees..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-11 pr-4 py-3 bg-surface-variant border-none rounded-2xl text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-64 font-bold text-text-primary"
               />
             </div>
@@ -372,8 +429,8 @@ const AttendancePage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {records.length > 0 ? (
-                  records.map((record) => {
+                {filteredRecords.length > 0 ? (
+                  filteredRecords.map((record) => {
                     const employeeName = `${record.employee.firstName} ${record.employee.lastName}`;
                     const avatar = `${record.employee.firstName[0] ?? ''}${record.employee.lastName[0] ?? ''}`.toUpperCase();
                     const statusLabel = formatAttendanceStatus(record.status);

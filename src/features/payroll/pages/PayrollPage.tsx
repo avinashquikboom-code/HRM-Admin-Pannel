@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
 import { 
   Wallet, 
   TrendingUp, 
@@ -124,8 +126,67 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const PayrollPage = () => {
-  const { isLoading } = useLoadingData(800);
+  const [stats, setStats] = useState<any>({ mtdVolume: 4128400, disbursed: 3842100, pending: 210450, errors: 0 });
+  const [trendData, setTrendData] = useState<any[]>(payrollStats);
+  const [runsList, setRunsList] = useState<any[]>(recentPayrollRuns);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
+  const [isDisbursing, setIsDisbursing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const loadPayrollData = useCallback(async () => {
+    setIsPageLoading(true);
+    try {
+      if (isDevAuthSession()) {
+        setStats({ mtdVolume: 4128400, disbursed: 3842100, pending: 210450, errors: 0 });
+        setTrendData(payrollStats);
+        setRunsList(recentPayrollRuns);
+      } else {
+        const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/admin/payroll/stats');
+        if (statsRes.data.success) {
+          setStats(statsRes.data.stats);
+          setTrendData(statsRes.data.trend);
+        }
+
+        const runsRes = await api.get<{ success: boolean; runs: any[] }>('/api/admin/payroll/runs');
+        if (runsRes.data.success) {
+          setRunsList(runsRes.data.runs);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load payroll data:', err);
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPayrollData();
+  }, [loadPayrollData]);
+
+  const handleBulkDisburse = async () => {
+    setIsDisbursing(true);
+    try {
+      if (!isDevAuthSession()) {
+        await api.post('/api/admin/payroll/disburse');
+      }
+      alert('Disbursement completed successfully!');
+      setIsProcessModalOpen(false);
+      await loadPayrollData();
+    } catch (err) {
+      console.error('Disbursement execution failed:', err);
+      alert('Disbursement failed. Please verify pool balances and try again.');
+    } finally {
+      setIsDisbursing(false);
+    }
+  };
+
+  const filteredRuns = runsList.filter(run => 
+    run.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    run.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const isLoading = isPageLoading;
 
   return (
     <motion.div 
@@ -171,10 +232,10 @@ const PayrollPage = () => {
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Total Volume (MTD)', value: '₹4,128,400', icon: Wallet, color: 'primary', trend: '+12.5%', glowColor: 'rgba(59, 163, 139, 0.3)' },
-          { label: 'Total Disbursed', value: '₹3,842,100', icon: CheckCircle2, color: 'success', trend: '+8.2%', glowColor: 'rgba(34, 197, 94, 0.3)' },
-          { label: 'Pending Approval', value: '₹210,450', icon: Clock, color: 'warning', trend: '-2.4%', glowColor: 'rgba(245, 158, 11, 0.3)' },
-          { label: 'Critical Errors', value: '3 Batches', icon: IndianRupee, color: 'error', trend: 'CRITICAL', glowColor: 'rgba(239, 68, 68, 0.3)' },
+          { label: 'Total Volume (MTD)', value: `₹${stats.mtdVolume.toLocaleString('en-IN')}`, icon: Wallet, color: 'primary', trend: '+12.5%', glowColor: 'rgba(59, 163, 139, 0.3)' },
+          { label: 'Total Disbursed', value: `₹${stats.disbursed.toLocaleString('en-IN')}`, icon: CheckCircle2, color: 'success', trend: '+8.2%', glowColor: 'rgba(34, 197, 94, 0.3)' },
+          { label: 'Pending Approval', value: `₹${stats.pending.toLocaleString('en-IN')}`, icon: Clock, color: 'warning', trend: '-2.4%', glowColor: 'rgba(245, 158, 11, 0.3)' },
+          { label: 'Critical Errors', value: stats.errors > 0 ? `${stats.errors} Batches` : '0 Batches', icon: IndianRupee, color: 'error', trend: stats.errors > 0 ? 'CRITICAL' : 'SECURE', glowColor: 'rgba(239, 68, 68, 0.3)' },
         ].map((stat) => (
           <motion.div
             key={stat.label}
@@ -197,15 +258,15 @@ const PayrollPage = () => {
               </div>
               <span className={cn(
                 "text-micro font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm",
-                stat.trend.startsWith('+') ? "bg-success/10 text-success border-success/10" : 
-                stat.trend.startsWith('-') ? "bg-error/10 text-error border-error/10" : "bg-error/20 text-error border-error/20 animate-pulse"
+                stat.trend.startsWith('+') || stat.trend === 'SECURE' ? "bg-success/10 text-success border-success/10" : 
+                stat.trend.startsWith('-') ? "bg-warning/10 text-warning border-warning/10" : "bg-error/20 text-error border-error/20 animate-pulse"
               )}>
                 {stat.trend}
               </span>
             </div>
             <div className="relative z-10">
               <p className="text-micro font-black text-text-secondary uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-              <h3 className="heading-2er tabular-nums">{stat.value}</h3>
+              <h3 className="text-stat-value tabular-nums">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -231,7 +292,7 @@ const PayrollPage = () => {
           </div>
 
           <ChartContainer heightClassName="h-[350px]" className="relative z-10">
-              <AreaChart data={payrollStats}>
+              <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3BA38B" stopOpacity={0.4}/>
@@ -358,6 +419,8 @@ const PayrollPage = () => {
               <input 
                 type="text" 
                 placeholder="Search batches..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
               />
             </div>
@@ -385,7 +448,7 @@ const PayrollPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {recentPayrollRuns.map((run) => (
+                {filteredRuns.map((run) => (
                   <motion.tr 
                     key={run.id}
                     variants={itemVariants}
@@ -516,9 +579,13 @@ const PayrollPage = () => {
             </div>
           </div>
 
-          <button className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 mt-8">
-            <ShieldCheck size={20} />
-            Initiate Disbursement Protocol
+          <button 
+            disabled={isDisbursing}
+            onClick={handleBulkDisburse}
+            className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 mt-8 disabled:opacity-55 cursor-pointer"
+          >
+            <ShieldCheck size={20} className={cn(isDisbursing && "animate-spin")} />
+            {isDisbursing ? 'Processing Disbursement...' : 'Initiate Disbursement Protocol'}
           </button>
         </div>
       </Modal>

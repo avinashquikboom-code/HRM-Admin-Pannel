@@ -141,62 +141,62 @@ export default function RegisterUserWithRights({
   return (
     <div id="register-user-rights" className={cn(!compact && 'scroll-mt-8')}>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-text-primary">{copy.title}</h2>
-        <p className="text-sm text-text-secondary mt-1">{copy.description}</p>
+        <h2 className="text-xl font-black text-white tracking-tight">{copy.title}</h2>
+        <p className="text-xs text-slate-400 mt-1.5 font-medium">{copy.description}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+          <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-450">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="rounded-2xl bg-success/10 border border-success/20 px-4 py-3 text-sm font-medium text-success">
+          <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4.5 py-3.5 text-xs font-semibold text-emerald-450">
             {success}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-bold text-text-primary mb-2 ml-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Email Address</label>
+            <div className="relative group">
+              <Mail className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary disabled:opacity-60"
+                className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white placeholder-slate-500 disabled:opacity-60"
                 placeholder="newuser@company.com"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-text-primary mb-2 ml-1">Password</label>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Account Password</label>
             <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
               required
               minLength={8}
-              inputClassName="bg-surface-variant shadow-none py-3.5"
+              inputClassName="bg-slate-950/40 border-white/5 hover:border-white/10 focus:border-primary/30 text-white shadow-none py-4 text-xs"
               placeholder="Password@123"
               autoComplete="new-password"
             />
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-border/70 bg-surface-variant/30 p-5 sm:p-6 space-y-5">
+        <div className="rounded-[2rem] border border-white/5 bg-slate-950/20 p-5 sm:p-7 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-text-primary">
+              <p className="text-sm font-bold text-white">
                 Assign {access.label} rights
               </p>
-              <p className="text-xs text-text-secondary mt-1">
+              <p className="text-xs text-slate-400 mt-1 font-semibold">
                 {enabled} of {total} modules selected for this user
               </p>
             </div>
@@ -204,7 +204,7 @@ export default function RegisterUserWithRights({
               <button
                 type="button"
                 onClick={selectAll}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-350 cursor-pointer"
               >
                 <CheckSquare size={13} />
                 All
@@ -212,7 +212,7 @@ export default function RegisterUserWithRights({
               <button
                 type="button"
                 onClick={clearAll}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-350 cursor-pointer"
               >
                 <Square size={13} />
                 None
@@ -220,7 +220,7 @@ export default function RegisterUserWithRights({
               <button
                 type="button"
                 onClick={resetDefaults}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface border border-border text-xs font-bold text-text-secondary"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-400 cursor-pointer"
               >
                 <RotateCcw size={13} />
                 Defaults
@@ -228,34 +228,37 @@ export default function RegisterUserWithRights({
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             {Object.entries(grouped).map(([group, modules]) => (
               <div key={group}>
-                <p className="text-label text-text-secondary uppercase tracking-[0.15em] mb-2 ml-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2.5 ml-1">
                   {group}
                 </p>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {modules.map((module) => (
                     <label
                       key={module.id}
                       className={cn(
-                        'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all',
+                        'flex items-start gap-4.5 p-4 rounded-2xl border cursor-pointer transition-all group',
                         permissions[module.id]
-                          ? 'border-primary/25 bg-primary/5'
-                          : 'border-border/60 bg-surface/50 hover:bg-surface-variant/40'
+                          ? 'border-primary/25 bg-primary/5 text-primary shadow-[0_8px_20px_-6px_rgba(59,163,139,0.15)]'
+                          : 'border-white/5 bg-slate-950/30 hover:border-white/10 hover:bg-slate-950/50'
                       )}
                     >
                       <input
                         type="checkbox"
                         checked={permissions[module.id] ?? false}
                         onChange={(e) => toggleModule(module.id, e.target.checked)}
-                        className="mt-0.5 w-4 h-4 rounded accent-primary shrink-0"
+                        className="mt-0.5 w-4.5 h-4.5 rounded accent-primary shrink-0 cursor-pointer"
                       />
                       <span className="min-w-0">
-                        <span className="text-sm font-semibold text-text-primary block">
+                        <span className={cn(
+                          "text-sm font-bold transition-colors block",
+                          permissions[module.id] ? "text-primary" : "text-white group-hover:text-primary-light"
+                        )}>
                           {module.label}
                         </span>
-                        <span className="text-xs text-text-secondary">{module.description}</span>
+                        <span className="text-xs text-slate-450 block mt-1 leading-relaxed">{module.description}</span>
                       </span>
                     </label>
                   ))}
@@ -269,16 +272,16 @@ export default function RegisterUserWithRights({
           type="submit"
           disabled={isLoading}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full py-4.5 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
         >
           {isLoading ? (
             <>
-              <Loader2 size={20} className="animate-spin" />
-              Registering...
+              <Loader2 size={18} className="animate-spin" />
+              Registering Account...
             </>
           ) : (
             <>
-              <UserPlus size={20} />
+              <UserPlus size={18} />
               Register user with selected rights
             </>
           )}

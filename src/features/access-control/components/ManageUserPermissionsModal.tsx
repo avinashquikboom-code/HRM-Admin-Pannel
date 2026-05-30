@@ -152,7 +152,7 @@ export default function ManageUserPermissionsModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
         />
 
         {/* Modal content */}
@@ -161,25 +161,25 @@ export default function ManageUserPermissionsModal({
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.95, y: 20, opacity: 0 }}
           transition={{ type: 'spring', duration: 0.4 }}
-          className="relative w-full max-w-4xl bg-surface border border-border/80 rounded-[28px] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden z-10"
+          className="relative w-full max-w-4xl bg-slate-900 border border-white/10 rounded-[2rem] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden z-10 text-slate-100"
         >
           {/* Header */}
-          <div className="flex items-start justify-between p-6 sm:p-8 border-b border-border/60">
+          <div className="flex items-start justify-between p-6 sm:p-8 border-b border-white/5">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0 border border-primary/10">
+              <div className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-black text-sm shrink-0 border border-primary/30" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                 {user.name.split(' ').map((n) => n[0]).join('')}
               </div>
               <div className="min-w-0">
-                <h3 className="text-xl font-black text-text-primary tracking-tight truncate">
+                <h3 className="text-xl font-black text-white tracking-tight truncate">
                   Custom Rights: {user.name}
                 </h3>
-                <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
-                    <Mail size={12} className="text-muted" />
+                <div className="flex flex-wrap items-center gap-2.5 mt-1.5">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                    <Mail size={12} className="text-slate-500" />
                     {user.email}
                   </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-border" />
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-primary/20 text-primary uppercase tracking-wider">
                     {user.role}
                   </span>
                 </div>
@@ -187,7 +187,7 @@ export default function ManageUserPermissionsModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 bg-surface-variant hover:bg-border text-text-secondary hover:text-text-primary rounded-xl transition-all"
+              className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -195,13 +195,13 @@ export default function ManageUserPermissionsModal({
 
           {/* Body */}
           <div className="flex-1 p-6 sm:p-8 overflow-y-auto space-y-6">
-            <div className="rounded-2xl bg-surface-variant/40 border border-border/50 p-5 space-y-4">
+            <div className="rounded-2xl bg-slate-950/20 border border-white/5 p-5 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h4 className="text-sm font-bold text-text-primary">
+                  <h4 className="text-sm font-bold text-white">
                     Assign {access.label} Custom Overrides
                   </h4>
-                  <p className="text-xs text-text-secondary mt-0.5">
+                  <p className="text-xs text-slate-400 mt-1 font-medium leading-relaxed">
                     Configure individual access modules. System default permissions are loaded as fallback.
                   </p>
                 </div>
@@ -209,7 +209,7 @@ export default function ManageUserPermissionsModal({
                   <button
                     type="button"
                     onClick={selectAll}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface border border-border text-[11px] font-bold text-text-primary hover:border-primary/30 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
                     <CheckSquare size={13} />
                     All
@@ -217,7 +217,7 @@ export default function ManageUserPermissionsModal({
                   <button
                     type="button"
                     onClick={clearAll}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface border border-border text-[11px] font-bold text-text-primary hover:border-primary/30 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
                     <Square size={13} />
                     None
@@ -225,7 +225,7 @@ export default function ManageUserPermissionsModal({
                   <button
                     type="button"
                     onClick={resetDefaults}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface border border-border text-[11px] font-bold text-text-secondary hover:text-primary transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-450 hover:text-white transition-all cursor-pointer"
                   >
                     <RotateCcw size={13} />
                     Defaults
@@ -234,12 +234,12 @@ export default function ManageUserPermissionsModal({
               </div>
 
               {/* Progress bar */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-text-secondary">{enabled} of {total} Modules enabled</span>
+                  <span className="text-slate-400">{enabled} of {total} Modules enabled</span>
                   <span className="text-primary">{progress}%</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-surface overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-slate-950/40 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
@@ -253,7 +253,7 @@ export default function ManageUserPermissionsModal({
             <div className="space-y-6">
               {Object.entries(grouped).map(([group, modules]) => (
                 <div key={group}>
-                  <p className="text-xs font-bold text-text-secondary uppercase tracking-[0.18em] mb-3 ml-1">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.18em] mb-3 ml-1">
                     {group}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -263,10 +263,10 @@ export default function ManageUserPermissionsModal({
                         <label
                           key={module.id}
                           className={cn(
-                            'flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all',
+                            'flex items-start gap-4.5 p-4 rounded-2xl border cursor-pointer transition-all group',
                             checked
-                              ? 'border-transparent bg-primary/5 text-primary shadow-sm'
-                              : 'border-border/60 bg-surface/50 hover:bg-surface-variant/40'
+                              ? 'border-primary/25 bg-primary/5 text-primary shadow-[0_8px_20px_-6px_rgba(59,163,139,0.15)]'
+                              : 'border-white/5 bg-slate-950/30 hover:border-white/10 hover:bg-slate-950/50'
                           )}
                         >
                           <input
@@ -276,10 +276,13 @@ export default function ManageUserPermissionsModal({
                             className="mt-0.5 w-4.5 h-4.5 rounded accent-primary shrink-0 cursor-pointer"
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="text-sm font-bold text-text-primary block">
+                            <span className={cn(
+                              "text-sm font-bold transition-colors block",
+                              checked ? "text-primary" : "text-white group-hover:text-primary-light"
+                            )}>
                               {module.label}
                             </span>
-                            <span className="text-xs text-text-secondary block mt-0.5 leading-relaxed">
+                            <span className="text-xs text-slate-400 block mt-1 leading-relaxed">
                               {module.description}
                             </span>
                           </span>
@@ -296,18 +299,18 @@ export default function ManageUserPermissionsModal({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 p-6 sm:p-8 bg-surface-variant/30 border-t border-border/60">
+          <div className="flex items-center justify-end gap-3 p-6 sm:p-8 bg-slate-950/20 border-t border-white/5">
             <button
               onClick={onClose}
               disabled={isSaving}
-              className="btn-secondary py-3 px-5 text-sm rounded-xl font-bold disabled:opacity-50"
+              className="btn-secondary bg-white/5 hover:bg-white/10 border border-white/5 py-3 px-5 text-sm rounded-xl font-bold disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving || isLoading}
-              className="btn-primary shadow-lg shadow-primary/20 py-3 px-6 text-sm rounded-xl font-bold disabled:opacity-50 flex items-center gap-2"
+              className="btn-primary shadow-lg shadow-primary/20 py-3 px-6 text-sm rounded-xl font-black uppercase tracking-wider disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               {isSaving ? (
                 <>

@@ -99,6 +99,25 @@ const HRManagementPage = () => {
   const [attendanceTrend, setAttendanceTrend] = useState<HRAttendanceDay[]>([]);
   const [activityList, setActivityList] = useState<HRActivityItem[]>([]);
 
+  const getMonthsArray = () => {
+    const months = [];
+    const now = new Date();
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        name: d.toLocaleDateString('en-US', { month: 'short' }),
+        hires: 0
+      });
+    }
+    return months;
+  };
+
+  const hiringData = stats?.hiringGrowth && stats.hiringGrowth.length > 0 
+    ? stats.hiringGrowth 
+    : getMonthsArray();
+
+  const hasHiringData = stats?.hiringGrowth && stats.hiringGrowth.some(h => h.hires > 0);
+
   // Broadcast state
   const [broadcastMsg, setBroadcastMsg] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -394,7 +413,7 @@ const HRManagementPage = () => {
 
                   <ChartContainer heightClassName="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={stats?.hiringGrowth || []} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                      <BarChart data={hiringData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                         <defs>
                           <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#3BA38B" stopOpacity={0.95}/>
@@ -403,7 +422,7 @@ const HRManagementPage = () => {
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.1} />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} dy={8} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} domain={[0, hasHiringData ? 'auto' : 10]} allowDecimals={false} />
                         <Tooltip 
                           cursor={{fill: 'rgba(255, 255, 255, 0.02)', radius: 12}}
                           contentStyle={{ 

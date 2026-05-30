@@ -1,5 +1,10 @@
 "use client";
 
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
+import TableSkeleton from '@/components/TableSkeleton';
+
 import { 
   BarChart, 
   Bar, 
@@ -74,6 +79,89 @@ const itemVariants: Variants = {
 };
 
 const AnalyticsPage = () => {
+  const [stats, setStats] = useState<any>({
+    totalEmployees: 84942,
+    activeEmployees: 80000,
+    onLeaveEmployees: 4942,
+    averageRetention: '94.2%',
+    totalPresentToday: 4281,
+  });
+  const [chartData, setChartData] = useState<any[]>(data);
+  const [retentionData, setRetentionData] = useState<any[]>(employeeRetentionData);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  const loadAnalyticsData = useCallback(async () => {
+    setIsPageLoading(true);
+    try {
+      if (isDevAuthSession()) {
+        setStats({
+          totalEmployees: 84942,
+          activeEmployees: 80000,
+          onLeaveEmployees: 4942,
+          averageRetention: '94.2%',
+          totalPresentToday: 4281,
+        });
+        setChartData(data);
+        setRetentionData(employeeRetentionData);
+      } else {
+        const res = await api.get<{
+          success: boolean;
+          totalEmployees: number;
+          activeEmployees: number;
+          onLeaveEmployees: number;
+          averageRetention: string;
+          presentToday: number;
+          data: any[];
+          employeeRetentionData: any[];
+        }>('/api/admin/analytics/overview');
+        
+        if (res.data.success) {
+          setStats({
+            totalEmployees: res.data.totalEmployees,
+            activeEmployees: res.data.activeEmployees,
+            onLeaveEmployees: res.data.onLeaveEmployees,
+            averageRetention: res.data.averageRetention,
+            totalPresentToday: res.data.presentToday,
+          });
+          setChartData(res.data.data);
+          setRetentionData(res.data.employeeRetentionData);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load analytics overview:', err);
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [loadAnalyticsData]);
+
+  if (isPageLoading) {
+    return (
+      <div className="space-y-8 pb-10">
+        <div className="h-20 w-1/3 bg-surface-variant rounded-2xl animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="glass-card p-8 space-y-4">
+              <div className="h-6 w-24 bg-surface-variant rounded-md animate-pulse" />
+              <div className="h-10 w-36 bg-surface-variant rounded-md animate-pulse" />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 glass-card p-8">
+            <TableSkeleton rows={4} columns={1} />
+          </div>
+          <div className="glass-card p-8">
+            <TableSkeleton rows={4} columns={1} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div 
       initial="hidden"
@@ -102,9 +190,9 @@ const AnalyticsPage = () => {
       {/* High-Level Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { label: 'Total Active Workforce', value: '84,942', trend: '+12.5%', icon: Users, color: 'primary' },
-          { label: 'Average Retention', value: '94.2%', trend: '+2.1%', icon: UserCheck, color: 'success' },
-          { label: 'New Seats (MTD)', value: '4,281', trend: '+18.7%', icon: UserPlus, color: 'accent' },
+          { label: 'Total Active Workforce', value: stats.totalEmployees.toLocaleString(), trend: '+12.5%', icon: Users, color: 'primary' },
+          { label: 'Average Retention', value: stats.averageRetention, trend: '+2.1%', icon: UserCheck, color: 'success' },
+          { label: 'New Seats (MTD)', value: stats.totalPresentToday.toLocaleString(), trend: '+18.7%', icon: UserPlus, color: 'accent' },
         ].map((stat) => (
           <motion.div key={stat.label} variants={itemVariants} className="glass-card p-8 group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -141,7 +229,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
           <ChartContainer heightClassName="h-[350px]" className="relative z-10">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3BA38B" stopOpacity={0.4}/>
@@ -182,7 +270,7 @@ const AnalyticsPage = () => {
           <ChartContainer heightClassName="h-[250px]" className="mb-8">
               <PieChart>
                 <Pie
-                  data={employeeRetentionData}
+                  data={retentionData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -191,7 +279,7 @@ const AnalyticsPage = () => {
                   dataKey="value"
                   stroke="none"
                 >
-                  {employeeRetentionData.map((entry, index) => (
+                  {retentionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -200,7 +288,7 @@ const AnalyticsPage = () => {
           </ChartContainer>
 
           <div className="space-y-4 mt-auto">
-            {employeeRetentionData.map((item, index) => (
+            {retentionData.map((item, index) => (
               <div key={item.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-2xl border border-border/50 group hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
@@ -226,7 +314,7 @@ const AnalyticsPage = () => {
           </div>
           
           <ChartContainer heightClassName="h-[400px]">
-              <BarChart data={data}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} dy={15} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} />

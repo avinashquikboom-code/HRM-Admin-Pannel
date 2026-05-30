@@ -73,9 +73,9 @@ export const mockLeaveBalances = [
 ];
 
 export const mockLeaveRequests = [
-  { id: 'LR-101', employeeName: 'Sarah Johnson', type: 'Sick Leave', startDate: '2026-05-24', endDate: '2026-05-25', reason: 'Dental appointment & recovery', status: 'Pending' },
-  { id: 'LR-102', employeeName: 'Michael Chen', type: 'Casual Leave', startDate: '2026-06-01', endDate: '2026-06-03', reason: 'Attending family wedding', status: 'Approved' },
-  { id: 'LR-103', employeeName: 'Emma Wilson', type: 'Paid Leave', startDate: '2026-05-18', endDate: '2026-05-20', reason: 'Short summer getaway', status: 'Rejected' },
+  { id: 'LR-101', employeeName: 'Sarah Johnson', type: 'Sick Leave', startDate: '2026-05-24', endDate: '2026-05-25', reason: 'Dental appointment & recovery', status: 'Pending', remarks: '' },
+  { id: 'LR-102', employeeName: 'Michael Chen', type: 'Casual Leave', startDate: '2026-06-01', endDate: '2026-06-03', reason: 'Attending family wedding', status: 'Approved', remarks: '' },
+  { id: 'LR-103', employeeName: 'Emma Wilson', type: 'Paid Leave', startDate: '2026-05-18', endDate: '2026-05-20', reason: 'Short summer getaway', status: 'Rejected', remarks: '' },
 ];
 
 export const mockHolidays = [

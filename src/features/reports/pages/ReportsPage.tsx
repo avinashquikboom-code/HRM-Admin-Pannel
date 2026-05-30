@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '@/lib/api';
+import { isDevAuthSession } from '@/lib/devAuth';
+import Modal from '@/components/Modal';
 import { 
   FileText, 
   Download, 
@@ -51,12 +54,85 @@ const itemVariants: Variants = {
 };
 
 const ReportsPage = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [reportList, setReportList] = useState<any[]>(reports);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  
+  // Search & Filter State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [formatFilter, setFormatFilter] = useState('All');
+
+  // Modal State
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newReportName, setNewReportName] = useState('');
+  const [newReportType, setNewReportType] = useState('Payroll');
+  const [newReportFormat, setNewReportFormat] = useState('PDF');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const loadReportsData = useCallback(async () => {
+    setIsPageLoading(true);
+    try {
+      if (isDevAuthSession()) {
+        setReportList(reports);
+      } else {
+        const res = await api.get<{ success: boolean; reports: any[] }>('/api/admin/reports');
+        if (res.data.success) {
+          setReportList(res.data.reports);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load reports:', err);
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    loadReportsData();
+  }, [loadReportsData]);
+
+  const handleGenerateReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGenerating(true);
+    try {
+      if (isDevAuthSession()) {
+        const mockNew = {
+          id: reportList.length + 1,
+          name: newReportName || `Custom Generated ${newReportType} Report`,
+          type: newReportType,
+          format: newReportFormat,
+          date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+          size: `${(Math.random() * 4 + 1).toFixed(1)} MB`,
+          status: 'Verified'
+        };
+        setReportList(prev => [mockNew, ...prev]);
+      } else {
+        await api.post('/api/admin/reports/generate', {
+          name: newReportName,
+          type: newReportType,
+          format: newReportFormat
+        });
+        await loadReportsData();
+      }
+      setIsCreateOpen(false);
+      setNewReportName('');
+    } catch (err) {
+      console.error('Report generation failed:', err);
+      alert('Report generation failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const filteredReports = reportList.filter(rep => {
+    const matchesSearch = rep.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          rep.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === 'All' || rep.type === typeFilter;
+    const matchesFormat = formatFilter === 'All' || rep.format === formatFilter;
+    return matchesSearch && matchesType && matchesFormat;
+  });
+
+  const isLoading = isPageLoading;
 
   return (
     <motion.div 
@@ -80,7 +156,10 @@ const ReportsPage = () => {
             <Clock size={18} />
             History
           </button>
-          <button className="btn-primary group shadow-xl shadow-primary/20">
+          <button 
+            onClick={() => setIsCreateOpen(true)}
+            className="btn-primary group shadow-xl shadow-primary/20"
+          >
             <FileCheck2 size={20} className="group-hover:scale-110 transition-transform" />
             Generate Intelligence
           </button>
@@ -129,21 +208,33 @@ const ReportsPage = () => {
           <input 
             type="text" 
             placeholder="Search documentation, metadata, or report ID..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
           />
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-          <select className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all">
-            <option>Classification: All</option>
-            <option>Payroll & Taxes</option>
-            <option>Revenue Assets</option>
-            <option>Compliance Audit</option>
+          <select 
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all"
+          >
+            <option value="All">Classification: All</option>
+            <option value="Payroll">Payroll</option>
+            <option value="Financial">Financial</option>
+            <option value="Attendance">Attendance</option>
+            <option value="System">System</option>
+            <option value="Compliance">Compliance</option>
           </select>
-          <select className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all">
-            <option>Format: All</option>
-            <option>PDF Document</option>
-            <option>Excel Ledger</option>
-            <option>JSON Dataset</option>
+          <select 
+            value={formatFilter}
+            onChange={(e) => setFormatFilter(e.target.value)}
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all"
+          >
+            <option value="All">Format: All</option>
+            <option value="PDF">PDF</option>
+            <option value="Excel">Excel</option>
+            <option value="CSV">CSV</option>
           </select>
           <button className="flex items-center gap-2 px-5 py-3.5 bg-surface-variant rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all border border-transparent hover:border-primary/10 flex-grow sm:flex-grow-0 justify-center">
             <Filter size={18} />
@@ -159,7 +250,7 @@ const ReportsPage = () => {
             <TableSkeleton rows={5} columns={4} />
           </div>
         ) : (
-          reports.map((report) => (
+          filteredReports.map((report) => (
             <motion.div 
               key={report.id}
               variants={itemVariants}
@@ -239,6 +330,69 @@ const ReportsPage = () => {
           <button className="px-5 py-2.5 bg-surface-variant rounded-xl text-xs font-black text-text-secondary hover:text-primary transition-all">NEXT</button>
         </div>
       </motion.div>
+
+      {/* Create Report Modal */}
+      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Generate Custom Intelligence Blueprint">
+        <form onSubmit={handleGenerateReport} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Report Blueprint Name</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Q2 Compliance Audit Ledger"
+              value={newReportName}
+              onChange={(e) => setNewReportName(e.target.value)}
+              required
+              className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary transition-all placeholder:text-muted/60"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Classification Category</label>
+              <select 
+                value={newReportType}
+                onChange={(e) => setNewReportType(e.target.value)}
+                className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
+              >
+                <option value="Payroll">Payroll & Taxes</option>
+                <option value="Financial">Financial Assets</option>
+                <option value="Attendance">Attendance Ledger</option>
+                <option value="System">System Metrics</option>
+                <option value="Compliance">Compliance Audit</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Output Format</label>
+              <select 
+                value={newReportFormat}
+                onChange={(e) => setNewReportFormat(e.target.value)}
+                className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
+              >
+                <option value="PDF">PDF Document</option>
+                <option value="Excel">Excel Ledger</option>
+                <option value="CSV">CSV Dataset</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button 
+              type="button" 
+              onClick={() => setIsCreateOpen(false)}
+              className="flex-1 px-6 py-4 bg-surface-variant rounded-[20px] text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-border transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={isGenerating}
+              className="flex-1 btn-primary py-4 rounded-[20px] shadow-lg shadow-primary/25 disabled:opacity-50 cursor-pointer"
+            >
+              {isGenerating ? 'Generating...' : 'Confirm Generation'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </motion.div>
   );
 };

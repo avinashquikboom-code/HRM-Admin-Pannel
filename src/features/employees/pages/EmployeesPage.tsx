@@ -3,15 +3,14 @@
 import { useMemo, useState } from 'react';
 import { 
   Search, 
-  Filter, 
   MoreVertical, 
   Mail,
   Building2,
   Calendar,
-  Download,
   Users,
   UserPlus,
-  RefreshCw
+  RefreshCw,
+  UserCheck
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
@@ -90,83 +89,96 @@ const EmployeesPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-6 sm:space-y-8 pb-10"
+      className="space-y-6 sm:space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="heading-1">Global Employee Directory</h1>
-          <p className="text-page-desc mt-1">Monitor and manage all employees across the platform ecosystem.</p>
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
+            <Users size={12} className="text-primary animate-pulse" />
+            Active employee registry
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
+            Employee <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Directory</span>
+          </h1>
+          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
+            Monitor and manage all employees across the platform ecosystem.
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+
+        <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button
             type="button"
             onClick={() => refetch()}
-            className="p-3 bg-surface-variant hover:bg-border text-text-primary rounded-2xl transition-all shadow-sm active:scale-95"
-            title="Refresh employees"
+            className="p-4 bg-slate-900/50 hover:bg-slate-800 text-slate-350 hover:text-white rounded-2xl border border-white/5 transition-all shadow-sm active:scale-95 cursor-pointer"
+            title="Refresh employees list"
           >
             <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
           </button>
-          <Link href="/users/register" className="btn-primary shadow-lg shadow-primary/20 w-full sm:w-auto justify-center">
-            <UserPlus size={20} />
+          <Link href="/users/register" className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center">
+            <UserPlus size={18} />
             Register User
           </Link>
         </div>
       </motion.div>
 
       {error && (
-        <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
           <span>{error}</span>
           <button
             type="button"
             onClick={() => refetch()}
-            className="text-xs font-bold uppercase tracking-widest hover:underline shrink-0"
+            className="text-[10px] font-black uppercase tracking-widest hover:text-white shrink-0"
           >
             Retry
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {[
-          { label: 'Total Employees', value: employees.length, border: 'border-primary', icon: Users },
-          { label: 'Currently Active', value: activeCount, border: 'border-success', icon: Users },
-          { label: 'Assigned Offices', value: employees.filter((e) => e.office).length, border: 'border-accent', icon: Calendar },
+          { label: 'Total Employees', value: employees.length, color: 'from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-400', glow: 'rgba(59,130,246,0.15)', icon: Users },
+          { label: 'Currently Active', value: activeCount, color: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-450', glow: 'rgba(16,185,129,0.15)', icon: UserCheck },
+          { label: 'Assigned Offices', value: employees.filter((e) => e.office).length, color: 'from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-400', glow: 'rgba(245,158,11,0.15)', icon: Building2 },
         ].map((stat, i) => (
           <motion.div 
             key={i}
             variants={itemVariants}
             whileHover={{ y: -5, transition: { duration: 0.2 } }}
-            className={cn("glass-card p-6 border-l-4 relative overflow-hidden group", stat.border)}
+            className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-6 flex items-center gap-5 shadow-2xl backdrop-blur-xl group hover:border-white/10 transition-all duration-300"
           >
-            <div className="relative z-10">
-              <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">{stat.label}</p>
-              <h3 className="text-stat-value mt-1">{stat.value}</h3>
+            <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+            <div 
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
+              style={{ boxShadow: `0 8px 24px -6px ${stat.glow}` }}
+            >
+              <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
+            </div>
+            <div>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-3xl font-black text-white mt-1.5 tracking-tight">{stat.value}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      <motion.div variants={itemVariants} className="flex flex-col xl:flex-row gap-4 items-center justify-between glass-card p-4">
-        <div className="relative w-full xl:w-96">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
+      <motion.div variants={itemVariants} className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-3xl shadow-2xl backdrop-blur-xl">
+        <div className="relative w-full xl:w-96 group">
+          <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
           <input 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, email, role..." 
-            className="w-full pl-12 pr-4 py-3 bg-surface-variant border border-transparent focus:border-primary/20 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+            className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
           />
-        </div>
-        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-          <button className="flex items-center gap-2 px-4 py-3 bg-surface-variant rounded-2xl text-sm font-medium text-text-secondary hover:text-primary transition-all border border-transparent hover:border-primary/10 flex-grow sm:flex-grow-0 justify-center">
-            <Filter size={18} />
-            More Filters
-          </button>
         </div>
       </motion.div>
 
       {isLoading ? (
-        <div className="glass-card p-8">
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-8 shadow-2xl backdrop-blur-xl">
           <TableSkeleton rows={5} columns={6} />
         </div>
       ) : (
@@ -180,40 +192,45 @@ const EmployeesPage = () => {
               const statusLabel = formatStatus(employee.status);
 
               return (
-                <div key={employee.id} className="glass-card p-4 space-y-3">
+                <div key={employee.id} className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 space-y-4 shadow-2xl backdrop-blur-xl">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10 shrink-0">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-black text-primary border border-primary/20 shrink-0" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                         {initials}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-text-primary truncate">{fullName}</p>
-                        <p className="text-xs text-text-secondary truncate mt-0.5">
+                        <p className="font-bold text-white truncate">{fullName}</p>
+                        <p className="text-xs text-slate-450 truncate mt-0.5">
                           {employee.user?.email ?? employee.employeeCode}
                         </p>
                       </div>
                     </div>
-                    <button className="p-2 hover:bg-surface-variant rounded-xl text-text-secondary shrink-0">
+                    <button className="p-2 hover:bg-slate-950 rounded-xl text-slate-400 shrink-0 cursor-pointer">
                       <MoreVertical size={18} />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-surface-variant/60 rounded-xl p-2.5">
-                      <p className="text-muted uppercase tracking-wide text-[10px] font-bold">Office</p>
-                      <p className="font-semibold text-text-primary mt-1 truncate">{employee.office?.name ?? 'Unassigned'}</p>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="bg-slate-950/30 rounded-2xl p-3 border border-white/5">
+                      <p className="text-slate-500 uppercase tracking-widest text-[9px] font-black">Office</p>
+                      <p className="font-bold text-white mt-1.5 truncate">{employee.office?.name ?? 'Unassigned'}</p>
                     </div>
-                    <div className="bg-surface-variant/60 rounded-xl p-2.5">
-                      <p className="text-muted uppercase tracking-wide text-[10px] font-bold">Role</p>
-                      <p className="font-semibold text-text-primary mt-1 truncate">{employee.designation ?? '—'}</p>
+                    <div className="bg-slate-950/30 rounded-2xl p-3 border border-white/5">
+                      <p className="text-slate-500 uppercase tracking-widest text-[9px] font-black">Role</p>
+                      <p className="font-bold text-white mt-1.5 truncate">{employee.designation ?? '—'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-text-secondary truncate">{employee.department?.name ?? 'No department'}</span>
+                  <div className="flex items-center justify-between gap-3 pt-2">
+                    <span className="text-xs text-slate-400 font-semibold truncate">{employee.department?.name ?? 'No department'}</span>
                     <span className={cn(
-                      "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shrink-0",
-                      statusLabel === 'Active' ? 'bg-success/10 text-success' :
-                      statusLabel === 'On Leave' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'
+                      "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 border inline-flex items-center gap-1.5",
+                      statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20' :
+                      statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                     )}>
+                      <span className={cn(
+                        "w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]",
+                        statusLabel === 'Active' ? "bg-emerald-450" : 
+                        statusLabel === 'On Leave' ? "bg-amber-400" : "bg-rose-400"
+                      )} />
                       {statusLabel}
                     </span>
                   </div>
@@ -221,31 +238,31 @@ const EmployeesPage = () => {
               );
             })
           ) : (
-            <div className="glass-card p-8 text-center text-sm font-medium text-text-secondary">
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-8 text-center text-xs font-bold text-slate-500 uppercase tracking-widest shadow-2xl backdrop-blur-xl">
               No employees found.
             </div>
           )}
-          <div className="p-4 bg-surface-variant/50 rounded-2xl border border-border text-sm text-text-secondary font-medium text-center">
-            Showing <span className="text-text-primary font-bold">{filteredEmployees.length}</span> of{' '}
-            <span className="text-text-primary font-bold">{employees.length}</span> employees
+          <div className="p-4.5 bg-slate-950/20 rounded-2xl border border-white/5 text-xs text-slate-400 font-semibold text-center">
+            Showing <span className="text-white font-bold">{filteredEmployees.length}</span> of{' '}
+            <span className="text-white font-bold">{employees.length}</span> employees
           </div>
         </motion.div>
 
         {/* Desktop table */}
-        <motion.div variants={itemVariants} className="glass-card overflow-hidden hidden md:block">
+        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-xl hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-variant/50 border-b border-border">
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Employee</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Office</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Department</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-slate-950/30 border-b border-white/5">
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Office</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-white/5">
                 {filteredEmployees.length > 0 ? (
                   filteredEmployees.map((employee) => {
                     const fullName = `${employee.firstName} ${employee.lastName}`;
@@ -256,47 +273,52 @@ const EmployeesPage = () => {
                       <motion.tr 
                         key={employee.id}
                         variants={itemVariants}
-                        className="hover:bg-surface-variant transition-colors group cursor-pointer"
+                        className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
                       >
-                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
+                        <td className="px-6 py-4.5">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10 shadow-sm group-hover:scale-110 transition-transform">
+                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-black text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                               {initials}
                             </div>
                             <div>
-                              <p className="font-bold text-text-primary group-hover:text-primary transition-colors">{fullName}</p>
-                              <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5">
-                                <Mail size={12} className="text-muted" />
+                              <p className="font-bold text-white group-hover:text-primary transition-colors">{fullName}</p>
+                              <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
+                                <Mail size={12} className="text-slate-500" />
                                 {employee.user?.email ?? employee.employeeCode}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
+                        <td className="px-6 py-4.5">
                           <div className="flex items-center gap-2">
-                            <Building2 size={16} className="text-muted" />
-                            <span className="text-sm font-semibold text-text-secondary group-hover:text-text-primary transition-colors">
+                            <Building2 size={16} className="text-slate-500" />
+                            <span className="text-sm font-semibold text-slate-400 group-hover:text-white transition-colors">
                               {employee.office?.name ?? 'Unassigned'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
-                          <span className="text-sm font-medium text-text-secondary">{employee.designation ?? '—'}</span>
+                        <td className="px-6 py-4.5">
+                          <span className="text-sm font-medium text-slate-400">{employee.designation ?? '—'}</span>
                         </td>
-                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
-                          <span className="text-sm font-medium text-text-secondary">{employee.department?.name ?? '—'}</span>
+                        <td className="px-6 py-4.5">
+                          <span className="text-sm font-medium text-slate-400">{employee.department?.name ?? '—'}</span>
                         </td>
-                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
+                        <td className="px-6 py-4.5">
                           <span className={cn(
-                            "px-4 py-1.5 rounded-full text-micro font-bold uppercase tracking-widest inline-flex items-center gap-2",
-                            statusLabel === 'Active' ? 'bg-success/10 text-success' : 
-                            statusLabel === 'On Leave' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'
+                            "px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border",
+                            statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20' : 
+                            statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                           )}>
+                            <span className={cn(
+                              "w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]",
+                              statusLabel === 'Active' ? "bg-emerald-455" : 
+                              statusLabel === 'On Leave' ? "bg-amber-400" : "bg-rose-400"
+                            )} />
                             {statusLabel}
                           </span>
                         </td>
-                        <td className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-right">
-                          <button className="p-2.5 hover:bg-surface rounded-xl text-text-secondary hover:text-primary transition-all duration-300 shadow-sm border border-transparent hover:border-border">
+                        <td className="px-6 py-4.5 text-right">
+                          <button className="p-2.5 hover:bg-slate-900 rounded-xl text-slate-400 hover:text-white transition-all duration-300 shadow-sm border border-white/5 active:scale-95 cursor-pointer">
                             <MoreVertical size={18} />
                           </button>
                         </td>
@@ -305,7 +327,7 @@ const EmployeesPage = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
+                    <td colSpan={6} className="px-6 py-12 text-center text-xs font-bold text-slate-500 uppercase tracking-widest bg-slate-900/20">
                       No employees found.
                     </td>
                   </tr>
@@ -313,10 +335,10 @@ const EmployeesPage = () => {
               </tbody>
             </table>
           </div>
-          <div className="p-4 sm:p-6 bg-surface-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border">
-            <p className="text-sm text-text-secondary font-medium">
-              Showing <span className="text-text-primary font-bold">{filteredEmployees.length}</span> of{' '}
-              <span className="text-text-primary font-bold">{employees.length}</span> employees
+          <div className="p-5.5 bg-slate-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-white/5">
+            <p className="text-sm text-slate-400 font-semibold">
+              Showing <span className="text-white font-bold">{filteredEmployees.length}</span> of{' '}
+              <span className="text-white font-bold">{employees.length}</span> employees
             </p>
           </div>
         </motion.div>

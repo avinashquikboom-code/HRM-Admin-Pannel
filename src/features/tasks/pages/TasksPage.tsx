@@ -345,11 +345,11 @@ const TasksPage = () => {
                         exit={{ opacity: 0, scale: 0.95 }}
                         key={task.id}
                         onClick={() => setSelectedTaskId(task.id)}
-                        className="glass-card p-5 border border-border/60 hover:border-primary/30 transition-all duration-300 group cursor-pointer relative overflow-hidden bg-surface"
+                        className="glass-card p-5 border border-border/60 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,163,139,0.12)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer relative overflow-hidden bg-surface"
                       >
                         {/* Background Overlay */}
                         <div className={cn(
-                          "absolute -right-12 -top-12 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-500",
+                          "absolute -right-12 -top-12 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-opacity duration-500",
                           task.priority === 'High' ? 'bg-error' : task.priority === 'Medium' ? 'bg-warning' : 'bg-success'
                         )} />
 

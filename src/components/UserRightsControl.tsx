@@ -39,25 +39,25 @@ const PORTAL_ICONS: Record<PortalType, typeof ShieldCheck> = {
 
 const ACCENT = {
   secondary: {
-    tab: 'bg-secondary text-white shadow-md shadow-secondary/20',
-    ring: 'ring-secondary/30',
-    badge: 'bg-secondary/10 text-secondary border-secondary/20',
-    progress: 'bg-secondary',
-    checkbox: 'accent-secondary',
+    tab: 'bg-violet-600 text-white shadow-lg shadow-violet-500/20 border-violet-500/30',
+    ring: 'ring-violet-500/30',
+    badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+    progress: 'bg-violet-500',
+    checkbox: 'accent-violet-500',
   },
   primary: {
-    tab: 'bg-primary text-white shadow-md shadow-primary/20',
+    tab: 'bg-primary text-white shadow-lg shadow-primary/20 border-primary/30',
     ring: 'ring-primary/30',
     badge: 'bg-primary/10 text-primary border-primary/20',
     progress: 'bg-primary',
     checkbox: 'accent-primary',
   },
   accent: {
-    tab: 'bg-accent text-secondary shadow-md shadow-accent/20',
-    ring: 'ring-accent/30',
-    badge: 'bg-accent/15 text-secondary border-accent/25',
-    progress: 'bg-accent',
-    checkbox: 'accent-accent',
+    tab: 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border-amber-400/30',
+    ring: 'ring-amber-500/30',
+    badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    progress: 'bg-amber-500',
+    checkbox: 'accent-amber-500',
   },
 };
 
@@ -87,11 +87,11 @@ function PermissionCheckbox({
   return (
     <label
       className={cn(
-        'flex items-start gap-4 p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer',
-        disabled && 'cursor-default opacity-80',
+        'flex items-start gap-4 p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer group',
+        disabled && 'cursor-default opacity-85',
         checked
-          ? cn('border-transparent shadow-sm', styles.badge)
-          : 'border-border/70 bg-surface/50 hover:border-border hover:bg-surface-variant/40'
+          ? 'border-primary/30 bg-primary/5 text-primary shadow-[0_8px_20px_-6px_rgba(59,163,139,0.15)]'
+          : 'border-white/5 bg-slate-950/30 hover:border-white/10 hover:bg-slate-950/50'
       )}
     >
       <input
@@ -100,23 +100,21 @@ function PermissionCheckbox({
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.checked)}
         className={cn(
-          'mt-0.5 w-5 h-5 rounded-md border-2 border-border shrink-0 cursor-pointer disabled:cursor-default',
+          'mt-0.5 w-5 h-5 rounded-md border-2 border-slate-650 shrink-0 cursor-pointer disabled:cursor-default',
           styles.checkbox
         )}
       />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-text-primary">{module.label}</p>
-        <p className="text-xs text-text-secondary mt-1 leading-relaxed">{module.description}</p>
+        <p className={cn(
+          "text-sm font-bold transition-colors",
+          checked ? "text-primary" : "text-white group-hover:text-primary-light"
+        )}>{module.label}</p>
+        <p className="text-xs text-slate-400 mt-1 leading-relaxed">{module.description}</p>
       </div>
       {checked && (
         <CheckCircle2
           size={18}
-          className={cn(
-            'shrink-0 mt-0.5',
-            accent === 'secondary' && 'text-secondary',
-            accent === 'primary' && 'text-primary',
-            accent === 'accent' && 'text-accent'
-          )}
+          className="shrink-0 mt-0.5 text-primary animate-scaleIn"
         />
       )}
     </label>
@@ -144,24 +142,24 @@ function ReadOnlyModuleList({
   );
 
   return (
-    <div className="rounded-[24px] border border-border/60 bg-surface-variant/25 p-5 sm:p-6">
+    <div className="rounded-[24px] border border-white/5 bg-slate-950/20 p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
           <div className={cn('p-2.5 rounded-xl border', styles.badge)}>
             <Icon size={18} />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-text-primary">{access.label}</h4>
-            <p className="text-xs text-text-secondary">{enabled}/{total} modules enabled</p>
+            <h4 className="text-sm font-bold text-white">{access.label}</h4>
+            <p className="text-xs text-slate-400 mt-0.5">{enabled}/{total} modules enabled</p>
           </div>
         </div>
       </div>
       {managedBy && (
-        <p className="text-xs font-medium text-warning mb-4 rounded-xl bg-warning/10 border border-warning/20 px-3 py-2">
+        <p className="text-xs font-semibold text-amber-400 mb-4 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2 leading-relaxed">
           {managedBy}
         </p>
       )}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {visibleModules.map((module) => (
           <PermissionCheckbox
             key={module.id}
@@ -300,7 +298,7 @@ export default function UserRightsControl({
       {showRolePicker && roleOptions.length > 1 && (
         <div
           className={cn(
-            'grid gap-2 p-2 rounded-[20px] bg-surface-variant/80 max-w-xl',
+            'grid gap-2 p-2 rounded-[1.5rem] bg-slate-950/40 border border-white/5 max-w-xl',
             roleOptions.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
           )}
         >
@@ -308,26 +306,27 @@ export default function UserRightsControl({
             const role = ROLE_ACCESS[roleId];
             const roleStyles = ACCENT[role.accent];
             const counts = countEnabledModules(roleId, permissions, managerPortal);
+            const isSelected = selectedRole === roleId;
             return (
               <button
                 key={roleId}
                 type="button"
                 onClick={() => setSelectedRole(roleId)}
                 className={cn(
-                  'flex flex-col items-start px-4 py-3.5 rounded-2xl text-left transition-all',
-                  selectedRole === roleId
+                  'flex flex-col items-start px-4.5 py-3.5 rounded-2xl text-left transition-all duration-300 cursor-pointer',
+                  isSelected
                     ? roleStyles.tab
-                    : 'text-text-secondary hover:text-text-primary hover:bg-surface/70'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                 )}
               >
-                <span className="text-sm font-bold">{role.label}</span>
+                <span className="text-xs font-black uppercase tracking-wider">{role.label}</span>
                 <span
                   className={cn(
-                    'text-[11px] mt-1 font-medium',
-                    selectedRole === roleId ? 'text-white/75' : 'text-text-secondary'
+                    'text-[10px] mt-1 font-bold',
+                    isSelected ? 'text-white/75' : 'text-slate-500'
                   )}
                 >
-                  {counts.enabled}/{counts.total} active
+                  {counts.enabled} of {counts.total} modules active
                 </span>
               </button>
             );
@@ -344,14 +343,14 @@ export default function UserRightsControl({
           transition={{ duration: 0.2 }}
           className="space-y-5"
         >
-          <div className={cn('rounded-[28px] border p-5 sm:p-7', styles.badge)}>
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
+          <div className="rounded-[2rem] border border-white/5 bg-slate-950/20 p-5 sm:p-7">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6">
               <div>
-                <p className="text-micro font-black uppercase tracking-[0.2em] text-text-secondary mb-1">
-                  {access.label} permissions
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
+                  {access.label} permissions matrix
                 </p>
-                <h4 className="text-lg font-bold text-text-primary">
-                  {enabled} of {total} modules enabled
+                <h4 className="text-lg font-black text-white">
+                  {enabled} of {total} operational modules enabled
                 </h4>
               </div>
               {canEditSelected && showSaveActions && (
@@ -359,41 +358,41 @@ export default function UserRightsControl({
                   <button
                     type="button"
                     onClick={selectAll}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-primary/30 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
-                    <CheckSquare size={14} />
-                    Select all
+                    <CheckSquare size={14} className="text-slate-400" />
+                    Select All
                   </button>
                   <button
                     type="button"
                     onClick={deselectAll}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-primary/30 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
-                    <Square size={14} />
-                    Clear all
+                    <Square size={14} className="text-slate-400" />
+                    Clear All
                   </button>
                   <button
                     type="button"
                     onClick={resetRole}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-bold text-text-secondary hover:text-primary transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
-                    <RotateCcw size={14} />
+                    <RotateCcw size={14} className="text-slate-400" />
                     Reset
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 cursor-pointer"
                   >
                     <Save size={14} />
-                    {isSaving ? 'Saving...' : 'Save'}
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="h-2 w-full rounded-full bg-surface/80 overflow-hidden mb-6">
+            <div className="h-2 w-full rounded-full bg-slate-950/40 overflow-hidden mb-6">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -402,18 +401,18 @@ export default function UserRightsControl({
             </div>
 
             {savedMessage && (
-              <div className="mb-5 rounded-2xl bg-success/10 border border-success/20 px-4 py-3 text-sm font-medium text-success">
+              <div className="mb-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4.5 py-3.5 text-xs font-semibold text-emerald-400">
                 {savedMessage}
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-7">
               {Object.entries(groupedModules).map(([group, modules]) => (
                 <div key={group}>
-                  <p className="text-label text-text-secondary uppercase tracking-[0.18em] mb-3 ml-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-3.5 ml-1">
                     {group}
                   </p>
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5">
                     {modules.map((module) => (
                       <PermissionCheckbox
                         key={module.id}
@@ -431,16 +430,16 @@ export default function UserRightsControl({
           </div>
 
           {hierarchyPreview.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-5 pt-4">
               <div>
-                <p className="text-micro font-black text-text-secondary uppercase tracking-[0.2em]">
-                  Hierarchy preview
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                  Hierarchy preview flow
                 </p>
-                <p className="text-sm text-text-secondary mt-1">
-                  See how permissions flow to the next role level.
+                <p className="text-xs text-slate-500 mt-1 font-semibold leading-relaxed">
+                  Verify down-stream permission delegation parameters.
                 </p>
               </div>
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                 {hierarchyPreview.map((preview) => (
                   <ReadOnlyModuleList
                     key={preview.access.portal}
@@ -457,6 +456,7 @@ export default function UserRightsControl({
     </div>
   );
 }
+
 
 export function UserRightsPreview({ portal }: { portal: PortalType }) {
   const access = ROLE_ACCESS[portal];
