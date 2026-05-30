@@ -10,7 +10,6 @@ import {
   Sun, 
   Moon, 
   Search, 
-  Bell, 
   ChevronDown,
   Settings,
   User,
@@ -44,11 +43,6 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
       ? `${EMPLOYEE_PREFIX}/profile`
       : '/profile';
   const settingsPath = `${SUPER_ADMIN_PREFIX}/settings`;
-  const notificationsPath = isSuperAdmin
-    ? `${SUPER_ADMIN_PREFIX}`
-    : isEmployee
-      ? `${EMPLOYEE_PREFIX}/notifications`
-      : '/notifications';
   const roleLabel = PORTAL_AUTH_KEYS[portal].displayName;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -267,15 +261,6 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
           className="p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary transition-colors"
         >
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
-
-        {/* Notifications */}
-        <button 
-          onClick={() => router.push(notificationsPath)}
-          className="relative p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary transition-colors"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
         </button>
 
         {/* Divider */}

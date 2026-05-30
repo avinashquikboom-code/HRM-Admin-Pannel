@@ -5,7 +5,6 @@ import Head from 'next/head';
 import PremiumButton from '@/components/PremiumButton';
 import FloatingLabelInput from '@/components/FloatingLabelInput';
 import { useForm } from 'react-hook-form';
-import { fetchEmployees, type AdminEmployee } from '@/services/employeeService';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -40,44 +39,6 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
-function EmployeeListSection() {
-  const [employees, setEmployees] = useState<AdminEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-
-  useEffect(() => {
-    fetchEmployees()
-      .then((data) => {
-        setEmployees(data.employees);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Failed to load employees');
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return <p className="text-sm text-text-secondary">Loading employees...</p>;
-  }
-  if (error) {
-    return <p className="text-sm text-error">{error}</p>;
-  }
-  return (
-    <div className="space-y-4">
-      <h2 className="heading-2">Employee Directory</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {employees.map((emp) => (
-          <PremiumCard key={emp.id} className="p-4">
-            <p className="font-bold text-text-primary">{emp.firstName} {emp.lastName}</p>
-            <p className="text-text-secondary">{emp.user?.email ?? emp.employeeCode}</p>
-            <p className="text-text-secondary">{emp.designation ?? '—'}</p>
-          </PremiumCard>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 const EditProfilePage = () => {
   const router = useRouter();
@@ -87,14 +48,14 @@ const EditProfilePage = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { profile, isLoading } = useAdminProfile();
-const { offices, isLoading: officesLoading, error: officesError } = useOffices();
+  const { offices, isLoading: officesLoading, error: officesError } = useOffices();
   const [submitError, setSubmitError] = useState('');
   const [avatarError, setAvatarError] = useState('');
   const [avatarMessage, setAvatarMessage] = useState('');
   const [isAvatarLoading, setIsAvatarLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const hasCustomAvatar = Boolean(profile?.avatarUrl ?? user?.profile?.avatarUrl);
-  const avatarSrc = hasCustomAvatar ? user?.avatar : null;
+  const resolvedAvatarSrc = user?.avatar && user.avatar !== '/favicon.svg' ? user.avatar : null;
+  const hasCustomAvatar = Boolean(resolvedAvatarSrc);
 
   const {
     register,
@@ -301,8 +262,8 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
                     whileHover={{ scale: 1.02 }}
                     className="w-48 h-48 rounded-full bg-surface-variant border-4 border-surface shadow-2xl flex items-center justify-center overflow-hidden relative"
                   >
-                    {avatarSrc ? (
-                      <img src={avatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover" />
+                    {resolvedAvatarSrc ? (
+                      <img src={resolvedAvatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover" />
                     ) : (
                       <User size={100} className="text-muted" />
                     )}
@@ -375,10 +336,10 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
                     <span className="text-success uppercase">{security?.twoFactorStatus || 'Active'}</span>
                   </li>
                   {!hideLoginTracking && (
-                  <li className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-text-secondary">Last Login</span>
-                    <span className="text-text-primary">{security?.lastLoginLocation || '—'}</span>
-                  </li>
+                    <li className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-text-secondary">Last Login</span>
+                      <span className="text-text-primary">{security?.lastLoginLocation || '—'}</span>
+                    </li>
                   )}
                   <li className="flex items-center justify-between text-xs font-bold">
                     <span className="text-text-secondary">Clearance Level</span>
@@ -401,19 +362,19 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                  <div className="space-y-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                  <div>
                     <FloatingLabelInput
                       id="name"
                       label="Full Name"
-                      placeholder="e.g. Avinash Magar"
+                      placeholder="e.g. Rohan Roy"
                       register={register}
                       error={errors.name}
                       required={true}
                     />
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div>
                     <FloatingLabelInput
                       id="email"
                       label="Email"
@@ -424,7 +385,7 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
                     />
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div>
                     <FloatingLabelInput
                       id="phone"
                       label="Phone"
@@ -433,18 +394,30 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
                       error={errors.phone}
                       required={true}
                     />
-                    <div className="w-full px-6 py-4.5 bg-surface-variant/30 border-2 border-border rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
-                      <Globe size={20} className="text-primary" />
-                      {profile?.timezoneLabel || 'Asia/Kolkata (IST)'}
+                  </div>
+
+                  <div className="relative">
+                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
+                      Time Zone
+                    </label>
+                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border-2 border-transparent rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
+                      <Globe size={18} className="text-primary/70" />
+                      <span className="truncate">{profile?.timezoneLabel || 'Asia/Kolkata (IST)'}</span>
                     </div>
-                    {officesLoading && <p className="text-sm text-text-secondary">Loading offices…</p>}
-                    {officesError && <p className="text-sm text-error">{officesError}</p>}
+                  </div>
+
+                  <div className="relative md:col-span-2">
+                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
+                      Linked Office
+                    </label>
+                    {officesLoading && <p className="px-6 pt-7 pb-3 text-sm font-bold text-text-secondary">Loading offices…</p>}
+                    {officesError && <p className="px-6 pt-7 pb-3 text-sm font-bold text-error">{officesError}</p>}
                     {!officesLoading && !officesError && (
                       <select
                         {...register('officeId')}
-                        className="w-full px-4 py-2 bg-surface-variant/30 border-2 border-border rounded-[24px] text-text-primary"
+                        className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border-2 border-transparent rounded-[24px] outline-none focus:bg-surface focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-text-primary text-sm font-bold appearance-none cursor-pointer"
                       >
-                        <option value="">Select Office</option>
+                        <option value="">System Default</option>
                         {offices.map((office) => (
                           <option key={office.id} value={office.id}>{office.name}</option>
                         ))}
@@ -469,31 +442,29 @@ const { offices, isLoading: officesLoading, error: officesError } = useOffices()
               </div>
 
 
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-5">
-              <PremiumButton
-                onClick={() => router.push(profileBasePath)}
-                type="button"
-                variant="secondary"
-                className="flex-1"
-              >
-                Discard Changes
-              </PremiumButton>
-              <PremiumButton
-                type="submit"
-                disabled={isSubmitting}
-                loading={isSubmitting}
-                variant="primary"
-                className="flex-[2]"
-              >
-                <Save size={20} />
-                Synchronize Profile
-              </PremiumButton>
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-5">
+                <PremiumButton
+                  onClick={() => router.push(profileBasePath)}
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  Discard Changes
+                </PremiumButton>
+                <PremiumButton
+                  type="submit"
+                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                  variant="primary"
+                  className="flex-[2]"
+                >
+                  <Save size={20} />
+                  Synchronize Profile
+                </PremiumButton>
+              </motion.div>
             </motion.div>
-          </motion.div>
           </div>
         </form>
-
-        <EmployeeListSection />
       </motion.div>
     </>
   );

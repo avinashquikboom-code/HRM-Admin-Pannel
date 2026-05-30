@@ -5,14 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ShieldCheck, CheckCircle2, Save, X, RotateCcw, CheckSquare, Square } from 'lucide-react';
 import { ROLE_ACCESS, getModuleDefsForManager } from '@/lib/roleAccess';
 import { cn } from '@/utils/cn';
+import { api, getApiErrorMessage } from '@/lib/api';
 import {
-  getUserPermissionRecord,
-  saveUserPermissionRecord,
   buildInitialUserPermissions,
 } from '@/lib/userPermissions';
 import type { PlatformUser } from '@/services/userService';
 import type { PortalType } from '@/lib/portals';
-import type { RegisterRole } from '@/services/authService';
 
 interface ManageUserPermissionsModalProps {
   isOpen: boolean;
@@ -39,6 +37,8 @@ export default function ManageUserPermissionsModal({
 }: ManageUserPermissionsModalProps) {
   const [permissions, setPermissions] = useState<Record<string, boolean>>({});
   const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const targetPortal = useMemo<PortalType | null>(() => {
     if (!user) return null;
@@ -54,14 +54,37 @@ export default function ManageUserPermissionsModal({
 
   // Load existing or default permissions
   useEffect(() => {
-    if (!user || !targetPortal) return;
-    const existing = getUserPermissionRecord(user.email);
-    if (existing) {
-      setPermissions(existing.permissions);
-    } else {
-      setPermissions(buildInitialUserPermissions(targetPortal));
+    let isMounted = true;
+
+    async function loadPermissions() {
+      if (!user || !targetPortal) return;
+      
+      setIsLoading(true);
+      try {
+        const { data } = await api.get(`/api/permissions/user/${user.id}`);
+        if (isMounted) {
+          if (data && Object.keys(data).length > 0) {
+            setPermissions(data);
+          } else {
+            setPermissions(buildInitialUserPermissions(targetPortal));
+          }
+          setSuccess('');
+        }
+      } catch (error) {
+        console.error('Failed to load user permissions', error);
+        if (isMounted) {
+          setPermissions(buildInitialUserPermissions(targetPortal));
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     }
-    setSuccess('');
+
+    loadPermissions();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user, targetPortal]);
 
   const visibleModules = useMemo(() => {
@@ -105,23 +128,19 @@ export default function ManageUserPermissionsModal({
     setPermissions(buildInitialUserPermissions(targetPortal));
   };
 
-  const handleSave = () => {
-    const roleMapping: Record<string, RegisterRole> = {
-      ADMIN: 'HR',
-      HR: 'HR',
-      EMPLOYEE: 'EMPLOYEE',
-    };
-
-    saveUserPermissionRecord({
-      email: user.email.toLowerCase(),
-      role: roleMapping[user.role] || 'EMPLOYEE',
-      portal: targetPortal,
-      permissions,
-      updatedAt: new Date().toISOString(),
-    });
-
-    onSaved(`Custom rights for ${user.email} saved successfully!`);
-    onClose();
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      await api.put(`/api/permissions/user/${user.id}`, { permissions });
+      onSaved(`Custom rights for ${user.email} saved successfully!`);
+      onClose();
+    } catch (error) {
+      alert(getApiErrorMessage(error, 'Failed to save user permissions'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -280,16 +299,27 @@ export default function ManageUserPermissionsModal({
           <div className="flex items-center justify-end gap-3 p-6 sm:p-8 bg-surface-variant/30 border-t border-border/60">
             <button
               onClick={onClose}
-              className="btn-secondary py-3 px-5 text-sm rounded-xl font-bold"
+              disabled={isSaving}
+              className="btn-secondary py-3 px-5 text-sm rounded-xl font-bold disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="btn-primary shadow-lg shadow-primary/20 py-3 px-6 text-sm rounded-xl font-bold"
+              disabled={isSaving || isLoading}
+              className="btn-primary shadow-lg shadow-primary/20 py-3 px-6 text-sm rounded-xl font-bold disabled:opacity-50 flex items-center gap-2"
             >
-              <Save size={16} />
-              Save Custom Rights
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  Save Custom Rights
+                </>
+              )}
             </button>
           </div>
         </motion.div>

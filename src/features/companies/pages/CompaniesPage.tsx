@@ -22,11 +22,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
+import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
 import { useCompanyStats } from '@/hooks/useCompanyStats';
-import { isDevAuthSession } from '@/lib/devAuth';
-
-import { mockCompanies as companies } from '@/data/mockData';
 
 const companySchema = z.object({
   name: z.string().min(2, 'Company name must be at least 2 characters'),
@@ -67,11 +65,10 @@ const CompaniesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingCompany, setDeletingCompany] = useState<any>(null);
 
   // Live Integration States
-  const [localCompanies, setLocalCompanies] = useState<any[]>(companies);
-  const [realCompanies, setRealCompanies] = useState<any[]>([]);
-  const [isDevSession, setIsDevSession] = useState(true);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,7 +107,7 @@ const CompaniesPage = () => {
     },
   ];
 
-  const loadRealCompanies = useCallback(async () => {
+  const loadCompanies = useCallback(async () => {
     setIsLoading(true);
     try {
       const { fetchOffices } = await import('@/services/officeService');
@@ -135,7 +132,7 @@ const CompaniesPage = () => {
         invoiceStatus: off.invoiceStatus,
         code: off.code
       }));
-      setRealCompanies(mapped);
+      setCompanies(mapped);
     } catch (err) {
       console.error('Failed to load real companies:', err);
     } finally {
@@ -144,15 +141,8 @@ const CompaniesPage = () => {
   }, []);
 
   useEffect(() => {
-    const devSession = isDevAuthSession();
-    setIsDevSession(devSession);
-    if (!devSession) {
-      loadRealCompanies();
-    } else {
-      const timer = setTimeout(() => setIsLoading(false), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [loadRealCompanies]);
+    loadCompanies();
+  }, [loadCompanies]);
 
   const {
     register,
@@ -185,63 +175,28 @@ const CompaniesPage = () => {
 
   const onSubmit = async (data: CompanyFormData) => {
     try {
-      if (isDevSession) {
-        if (editingCompany) {
-          setLocalCompanies((prev) =>
-            prev.map((c) =>
-              c.id === editingCompany.id
-                ? {
-                    ...c,
-                    name: data.name,
-                    plan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1),
-                    employees: data.employeeCount,
-                    website: data.website,
-                    adminEmail: data.adminEmail,
-                  }
-                : c
-            )
-          );
-        } else {
-          const newId = localCompanies.length > 0 ? Math.max(...localCompanies.map((c) => c.id)) + 1 : 1;
-          setLocalCompanies((prev) => [
-            ...prev,
-            {
-              id: newId,
-              name: data.name,
-              employees: data.employeeCount,
-              plan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1),
-              status: 'Active',
-              joiningDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-              logo: data.name.substring(0, 2).toUpperCase(),
-              website: data.website || `https://${data.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-              adminEmail: data.adminEmail,
-            },
-          ]);
-        }
-      } else {
-        const payload = {
-          name: data.name,
-          code: data.website ? data.website.replace('https://', '').replace('http://', '').split('.')[0] : data.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
-          address: editingCompany?.address || 'Primary Business Address',
-          latitude: editingCompany?.latitude || 19.0760,
-          longitude: editingCompany?.longitude || 72.8777,
-          idealRadiusMeters: editingCompany?.idealRadiusMeters || 50,
-          maxPunchRadiusMeters: editingCompany?.maxPunchRadiusMeters || 50,
-          isActive: editingCompany ? editingCompany.status === 'Active' : true,
-          subscriptionPlan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1).toLowerCase(),
-          billingCycle: editingCompany?.billingCycle || 'monthly',
-          invoiceStatus: editingCompany?.invoiceStatus || 'Paid',
-        };
+      const payload = {
+        name: data.name,
+        code: data.website ? data.website.replace('https://', '').replace('http://', '').split('.')[0] : data.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+        address: editingCompany?.address || 'Primary Business Address',
+        latitude: editingCompany?.latitude || 19.0760,
+        longitude: editingCompany?.longitude || 72.8777,
+        idealRadiusMeters: editingCompany?.idealRadiusMeters || 50,
+        maxPunchRadiusMeters: editingCompany?.maxPunchRadiusMeters || 50,
+        isActive: editingCompany ? editingCompany.status === 'Active' : true,
+        subscriptionPlan: data.plan.charAt(0).toUpperCase() + data.plan.slice(1).toLowerCase(),
+        billingCycle: editingCompany?.billingCycle || 'monthly',
+        invoiceStatus: editingCompany?.invoiceStatus || 'Paid',
+      };
 
-        if (editingCompany) {
-          const { updateOffice } = await import('@/services/officeService');
-          await updateOffice(editingCompany.id.toString(), payload);
-        } else {
-          const { createOffice } = await import('@/services/officeService');
-          await createOffice(payload);
-        }
-        await loadRealCompanies();
+      if (editingCompany) {
+        const { updateOffice } = await import('@/services/officeService');
+        await updateOffice(editingCompany.id.toString(), payload);
+      } else {
+        const { createOffice } = await import('@/services/officeService');
+        await createOffice(payload);
       }
+      await loadCompanies();
 
       setIsModalOpen(false);
       setEditingCompany(null);
@@ -255,50 +210,44 @@ const CompaniesPage = () => {
   const handleToggleStatus = async (company: any) => {
     try {
       const newStatus = company.status === 'Active' ? 'Suspended' : 'Active';
-      if (isDevSession) {
-        setLocalCompanies((prev) =>
-          prev.map((c) => (c.id === company.id ? { ...c, status: newStatus } : c))
-        );
-      } else {
-        const { updateOffice } = await import('@/services/officeService');
-        await updateOffice(company.id.toString(), {
-          name: company.name,
-          code: company.code || undefined,
-          address: company.address || 'Primary Business Address',
-          latitude: company.latitude || 19.0760,
-          longitude: company.longitude || 72.8777,
-          idealRadiusMeters: company.idealRadiusMeters || 50,
-          maxPunchRadiusMeters: company.maxPunchRadiusMeters || 50,
-          isActive: newStatus === 'Active',
-          subscriptionPlan: company.subscriptionPlan,
-          billingCycle: company.billingCycle,
-          invoiceStatus: company.invoiceStatus,
-        });
-        await loadRealCompanies();
-      }
+      const { updateOffice } = await import('@/services/officeService');
+      await updateOffice(company.id.toString(), {
+        name: company.name,
+        code: company.code || undefined,
+        address: company.address || 'Primary Business Address',
+        latitude: company.latitude || 19.0760,
+        longitude: company.longitude || 72.8777,
+        idealRadiusMeters: company.idealRadiusMeters || 50,
+        maxPunchRadiusMeters: company.maxPunchRadiusMeters || 50,
+        isActive: newStatus === 'Active',
+        subscriptionPlan: company.subscriptionPlan,
+        billingCycle: company.billingCycle,
+        invoiceStatus: company.invoiceStatus,
+      });
+      await loadCompanies();
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
-  const handleDelete = async (company: any) => {
-    if (!confirm(`Are you sure you want to delete ${company.name}?`)) return;
+  const confirmDelete = (company: any) => {
+    setDeletingCompany(company);
+  };
+
+  const executeDelete = async () => {
+    if (!deletingCompany) return;
     try {
-      if (isDevSession) {
-        setLocalCompanies((prev) => prev.filter((c) => c.id !== company.id));
-      } else {
-        const { deleteOffice } = await import('@/services/officeService');
-        await deleteOffice(company.id.toString());
-        await loadRealCompanies();
-      }
+      const { deleteOffice } = await import('@/services/officeService');
+      await deleteOffice(deletingCompany.id.toString());
+      await loadCompanies();
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
-  const filteredCompanies = (isDevSession ? localCompanies : realCompanies).filter((company) => {
+  const filteredCompanies = companies.filter((company) => {
     const matchesSearch =
       searchQuery === '' ||
       company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -536,7 +485,7 @@ const CompaniesPage = () => {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(company);
+                            confirmDelete(company);
                           }}
                           title="Delete Company"
                           className="p-2.5 bg-surface border border-border text-muted hover:text-error hover:border-error/50 rounded-xl transition-all shadow-sm"
@@ -564,7 +513,7 @@ const CompaniesPage = () => {
         )}
         {!isLoading && (
           <div className="p-6 bg-surface-variant border-t border-border flex items-center justify-between">
-            <p className="text-label text-text-secondary">Showing {filteredCompanies.length} of {(isDevSession ? localCompanies : realCompanies).length} Managed Entities</p>
+            <p className="text-label text-text-secondary">Showing {filteredCompanies.length} of {companies.length} Managed Entities</p>
             <div className="flex items-center gap-2">
               <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-sm transition-all" disabled>Previous</button>
               <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary hover:shadow-sm hover:text-primary transition-all">Next</button>
@@ -701,6 +650,17 @@ const CompaniesPage = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deletingCompany}
+        onClose={() => setDeletingCompany(null)}
+        onConfirm={executeDelete}
+        title={`Delete ${deletingCompany?.name}?`}
+        message={`Are you sure you want to delete ${deletingCompany?.name}? This action cannot be undone.`}
+        confirmText="Delete Entity"
+        cancelText="Cancel"
+      />
     </motion.div>
   );
 };

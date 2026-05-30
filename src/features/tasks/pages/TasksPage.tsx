@@ -19,6 +19,7 @@ import {
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
+import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
 import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 
@@ -59,6 +60,7 @@ const TasksPage = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDevSession, setIsDevSession] = useState(false);
 
@@ -194,20 +196,25 @@ const TasksPage = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('Are you sure you want to delete this task?')) return;
+  const handleDeleteTask = (taskId: string) => {
+    setDeletingTaskId(taskId);
+  };
+
+  const executeDeleteTask = async () => {
+    if (!deletingTaskId) return;
 
     if (isDevSession) {
-      setTasks(prev => prev.filter(t => t.id !== taskId));
+      setTasks(prev => prev.filter(t => t.id !== deletingTaskId));
     } else {
       try {
-        await api.delete(`/api/admin/tasks/${taskId}`);
+        await api.delete(`/api/admin/tasks/${deletingTaskId}`);
         await loadTasks();
       } catch (err) {
         console.error('Failed to delete task:', err);
         alert(err instanceof Error ? err.message : 'Failed to delete task');
       }
     }
+    setDeletingTaskId(null);
   };
 
   // KPIs Calculations
@@ -551,6 +558,16 @@ const TasksPage = () => {
           />
         )}
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deletingTaskId}
+        onClose={() => setDeletingTaskId(null)}
+        onConfirm={executeDeleteTask}
+        title="Delete Task?"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete Task"
+      />
     </motion.div>
   );
 };

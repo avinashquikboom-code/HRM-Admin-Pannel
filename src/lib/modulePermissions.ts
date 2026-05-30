@@ -9,7 +9,6 @@ import {
   ROLE_ACCESS,
   type RolePermissionsMap,
 } from '@/lib/roleAccess';
-import { getUserPermissionRecord } from '@/lib/userPermissions';
 
 /** Default route for each permission module */
 export const MODULE_PATHS: Record<PortalType, Record<string, string>> = {
@@ -108,15 +107,7 @@ export function getEffectivePermissions(
     return full;
   }
 
-  const rolePermissions = { ...loadRolePermissions()[portal] };
-  if (!email) return rolePermissions;
-
-  const userRecord = getUserPermissionRecord(email);
-  if (userRecord && userRecord.portal === portal) {
-    return { ...rolePermissions, ...userRecord.permissions };
-  }
-
-  return rolePermissions;
+  return { ...loadRolePermissions()[portal] };
 }
 
 export function isModuleEnabled(

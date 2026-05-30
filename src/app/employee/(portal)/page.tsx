@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, CheckSquare, CreditCard, Bell } from 'lucide-react';
+import { Calendar, CheckSquare, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { EMPLOYEE_PREFIX } from '@/lib/portals';
 
@@ -9,7 +9,6 @@ const quickLinks = [
   { label: 'Attendance', icon: CreditCard, path: `${EMPLOYEE_PREFIX}/attendance` },
   { label: 'Leave', icon: Calendar, path: `${EMPLOYEE_PREFIX}/leave` },
   { label: 'Tasks', icon: CheckSquare, path: `${EMPLOYEE_PREFIX}/tasks` },
-  { label: 'Notifications', icon: Bell, path: `${EMPLOYEE_PREFIX}/notifications` },
 ];
 
 export default function EmployeeHomePage() {

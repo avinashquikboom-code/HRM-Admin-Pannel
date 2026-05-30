@@ -6,7 +6,6 @@ import {
   Globe,
   Key,
   Shield,
-  Users,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { api, getApiErrorMessage } from '@/lib/api';
@@ -16,7 +15,7 @@ import SettingsSidebar, {
   type SettingsTabId,
 } from '@/features/settings/components/SettingsSidebar';
 import GeneralSettingsPanel from '@/features/settings/panels/GeneralSettingsPanel';
-import AccessSettingsPanel from '@/features/settings/panels/AccessSettingsPanel';
+
 import SecuritySettingsPanel from '@/features/settings/panels/SecuritySettingsPanel';
 import NotificationsSettingsPanel, {
   defaultNotificationPreferences,
@@ -30,12 +29,7 @@ const tabs: SettingsTab[] = [
     description: 'Platform name, email, and locale',
     icon: Globe,
   },
-  {
-    id: 'access',
-    label: 'Access & roles',
-    description: 'Admin users and permissions',
-    icon: Users,
-  },
+
   {
     id: 'security',
     label: 'Security',
@@ -127,7 +121,18 @@ export default function SettingsPage() {
     setIsSaving(true);
     setSaveMessage('');
     try {
-      await api.put('/api/settings', {
+      console.log('Saving settings payload:', {
+        platformName,
+        supportEmail,
+        currency,
+        locale,
+        twoFactor,
+        sessionLock,
+        auditLogs,
+        ipRestriction,
+        notifications,
+      });
+      const { data } = await api.put('/api/settings', {
         platformName,
         supportEmail,
         currency,
@@ -176,8 +181,6 @@ export default function SettingsPage() {
             onLocaleChange={setLocale}
           />
         );
-      case 'access':
-        return <AccessSettingsPanel />;
       case 'security':
         return (
           <SecuritySettingsPanel

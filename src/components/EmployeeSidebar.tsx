@@ -12,7 +12,6 @@ import {
   CreditCard,
   Calendar,
   CheckSquare,
-  Bell,
   User,
   ChevronLeft,
   ChevronRight,
@@ -42,7 +41,6 @@ const employeeMenuItems: MenuItem[] = [
   { name: 'My Attendance', icon: CreditCard, path: `${EMPLOYEE_PREFIX}/attendance`, moduleId: 'em-attendance' },
   { name: 'My Leave', icon: Calendar, path: `${EMPLOYEE_PREFIX}/leave`, moduleId: 'em-leave' },
   { name: 'My Tasks', icon: CheckSquare, path: `${EMPLOYEE_PREFIX}/tasks`, moduleId: 'em-tasks' },
-  { name: 'Notifications', icon: Bell, path: `${EMPLOYEE_PREFIX}/notifications`, moduleId: 'em-notifications' },
 ];
 
 function NavItem({

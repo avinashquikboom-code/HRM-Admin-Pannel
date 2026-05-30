@@ -5,48 +5,9 @@ import {
   ROLE_ACCESS,
 } from '@/lib/roleAccess';
 
-export const USER_PERMISSIONS_STORAGE_KEY = 'hrm_user_permissions';
+// This file provides utilities for building and counting permissions.
+// The actual saving and loading of user permissions is handled via the backend API.
 
-export interface UserPermissionRecord {
-  email: string;
-  role: RegisterRole;
-  portal: PortalType;
-  permissions: Record<string, boolean>;
-  updatedAt: string;
-}
-
-export type UserPermissionsStore = Record<string, UserPermissionRecord>;
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
-
-export function loadAllUserPermissions(): UserPermissionsStore {
-  if (typeof window === 'undefined') return {};
-
-  try {
-    const raw = localStorage.getItem(USER_PERMISSIONS_STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as UserPermissionsStore;
-  } catch {
-    return {};
-  }
-}
-
-export function saveUserPermissionRecord(record: UserPermissionRecord) {
-  if (typeof window === 'undefined') return;
-
-  const store = loadAllUserPermissions();
-  store[normalizeEmail(record.email)] = record;
-  localStorage.setItem(USER_PERMISSIONS_STORAGE_KEY, JSON.stringify(store));
-  window.dispatchEvent(new Event('hrm-permissions-updated'));
-}
-
-export function getUserPermissionRecord(
-  email: string
-): UserPermissionRecord | null {
-  return loadAllUserPermissions()[normalizeEmail(email)] ?? null;
-}
 
 export function getDefaultPermissionsForPortal(portal: PortalType) {
   const rolePermissions = loadRolePermissions();

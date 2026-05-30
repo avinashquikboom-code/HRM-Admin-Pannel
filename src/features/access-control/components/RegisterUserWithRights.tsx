@@ -11,7 +11,6 @@ import type { PortalType } from '@/lib/portals';
 import { ROLE_ACCESS, getModuleDefsForManager } from '@/lib/roleAccess';
 import {
   buildInitialUserPermissions,
-  saveUserPermissionRecord,
 } from '@/lib/userPermissions';
 import { cn } from '@/utils/cn';
 
@@ -114,25 +113,15 @@ export default function RegisterUserWithRights({
           role: registerRole,
         });
 
-        saveUserPermissionRecord({
-          email: normalizedEmail,
-          role: registerRole,
-          portal: targetPortal,
-          permissions,
-          updatedAt: new Date().toISOString(),
-        });
+        // TODO: Save user permissions via backend API
+        // saveUserPermissionRecord(...)
 
         setSuccess(
           `${result.user.email} registered with ${enabled} module rights assigned.`
         );
       } else {
-        saveUserPermissionRecord({
-          email: normalizedEmail,
-          role: registerRole,
-          portal: targetPortal,
-          permissions,
-          updatedAt: new Date().toISOString(),
-        });
+        // TODO: Save user permissions via backend API
+        // saveUserPermissionRecord(...)
 
         setSuccess(
           `${normalizedEmail} registered with ${enabled} module rights assigned.`

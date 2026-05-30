@@ -1,11 +1,12 @@
 import { api, getApiErrorMessage } from '@/lib/api';
-import { getAuthSession } from '@/lib/authStorage';
+import { getAuthSession, setAuthSession } from '@/lib/authStorage';
 import { isDevAuthSession } from '@/lib/devAuth';
 import {
   ApiProfile,
   ApiProfileUser,
   mapApiProfileResponse,
   mapUpdatedProfile,
+  resolveAvatarUrl,
 } from '@/lib/profileMapper';
 import type { User } from '@/store/slices/authSlice';
 
@@ -79,11 +80,34 @@ export async function uploadAdminAvatar(
       payload
     );
 
-    return {
-      message: data.message,
-      user: mapUpdatedProfile(data.profile, currentUser),
-    };
+    const updatedUser = mapUpdatedProfile(data.profile, currentUser);
+
+    // Persist to localStorage so the avatar survives page refreshes
+    if (isDevAuthSession()) {
+      const session = getAuthSession();
+      if (session) {
+        setAuthSession({ ...session, user: updatedUser });
+      }
+    }
+
+    return { message: data.message, user: updatedUser };
   } catch (error) {
+    // Offline fallback: persist the base64 avatar directly to the local session
+    if (isDevAuthSession() && payload.imageBase64) {
+      const session = getAuthSession();
+      if (session?.user) {
+        const resolvedAvatar = resolveAvatarUrl(payload.imageBase64);
+        const updatedUser: User = {
+          ...session.user,
+          avatar: resolvedAvatar,
+          profile: session.user.profile
+            ? { ...session.user.profile, avatarUrl: payload.imageBase64 }
+            : session.user.profile,
+        };
+        setAuthSession({ ...session, user: updatedUser });
+        return { message: 'Avatar updated (offline mode).', user: updatedUser };
+      }
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to upload avatar. Please try again.')
     );
@@ -98,11 +122,33 @@ export async function removeAdminAvatar(
       '/api/admin/profile/avatar'
     );
 
-    return {
-      message: data.message,
-      user: mapUpdatedProfile(data.profile, currentUser),
-    };
+    const updatedUser = mapUpdatedProfile(data.profile, currentUser);
+
+    // Persist removal to localStorage so it survives page refreshes
+    if (isDevAuthSession()) {
+      const session = getAuthSession();
+      if (session) {
+        setAuthSession({ ...session, user: updatedUser });
+      }
+    }
+
+    return { message: data.message, user: updatedUser };
   } catch (error) {
+    // Offline fallback: clear avatar from local session
+    if (isDevAuthSession()) {
+      const session = getAuthSession();
+      if (session?.user) {
+        const updatedUser: User = {
+          ...session.user,
+          avatar: '/favicon.svg',
+          profile: session.user.profile
+            ? { ...session.user.profile, avatarUrl: null }
+            : session.user.profile,
+        };
+        setAuthSession({ ...session, user: updatedUser });
+        return { message: 'Avatar removed (offline mode).', user: updatedUser };
+      }
+    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to remove avatar. Please try again.')
     );

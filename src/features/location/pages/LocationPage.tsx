@@ -21,6 +21,7 @@ import { fetchLiveLocationLogs, clearLiveLocationLogs } from '@/services/locatio
 import CreateOfficeModal from '@/features/location/components/CreateOfficeModal';
 import EditOfficeModal from '@/features/location/components/EditOfficeModal';
 import AssignEmployeeModal from '@/features/location/components/AssignEmployeeModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import LocationStatsBar from '@/features/location/components/LocationStatsBar';
 import OfficeSidebar from '@/features/location/components/OfficeSidebar';
 import LocationMapView from '@/features/location/components/LocationMapView';
@@ -85,6 +86,8 @@ export default function LocationPage() {
   const [isCreateOfficeOpen, setIsCreateOfficeOpen] = useState(false);
   const [editingOffice, setEditingOffice] = useState<Office | null>(null);
   const [isAssignEmployeeOpen, setIsAssignEmployeeOpen] = useState(false);
+  const [unassigningEmployee, setUnassigningEmployee] = useState<{id: string, name: string} | null>(null);
+  const [deletingOffice, setDeletingOffice] = useState<Office | null>(null);
   const [unassigningEmployeeId, setUnassigningEmployeeId] = useState<
     string | null
   >(null);
@@ -116,7 +119,7 @@ export default function LocationPage() {
   const [siteNameInput, setSiteNameInput] = useState('');
   const [latInput, setLatInput] = useState('19.187053');
   const [lngInput, setLngInput] = useState('72.977937');
-  const [radiusInput, setRadiusInput] = useState(250);
+  const [radiusInput, setRadiusInput] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -258,8 +261,9 @@ export default function LocationPage() {
       zoomControl: false
     }).setView([defaultLat, defaultLng], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+    L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      attribution: '&copy; Google Maps'
     }).addTo(map);
 
     L.control.zoom({
@@ -408,7 +412,7 @@ export default function LocationPage() {
     setSiteNameInput('');
     setLatInput('19.187053');
     setLngInput('72.977937');
-    setRadiusInput(250);
+    setRadiusInput(25);
     setSearchQuery('');
     setOfficeActionMessage('');
     setOfficeActionError('');
@@ -417,7 +421,7 @@ export default function LocationPage() {
       mapInstance.setView([19.187053, 72.977937], 13);
       markerInstance.setLatLng([19.187053, 72.977937]);
       circleInstance.setLatLng([19.187053, 72.977937]);
-      circleInstance.setRadius(250);
+      circleInstance.setRadius(25);
     }
   };
 
@@ -520,11 +524,13 @@ export default function LocationPage() {
     await refetchOfficeDetail(officeId);
   };
 
-  const handleDeleteOffice = async (office: Office) => {
-    const confirmed = window.confirm(
-      `Delete ${office.name}? This cannot be undone.`
-    );
-    if (!confirmed) return;
+  const handleDeleteOffice = (office: Office) => {
+    setDeletingOffice(office);
+  };
+
+  const executeDeleteOffice = async () => {
+    if (!deletingOffice) return;
+    const office = deletingOffice;
 
     setOfficeActionError('');
     setOfficeActionMessage('');
@@ -546,6 +552,7 @@ export default function LocationPage() {
       );
     } finally {
       setIsDeletingOfficeId(null);
+      setDeletingOffice(null);
     }
   };
 
@@ -556,14 +563,16 @@ export default function LocationPage() {
     await refetchOfficeDetail(officeId);
   };
 
-  const handleUnassignEmployee = async (
+  const handleUnassignEmployee = (
     employeeId: string,
     employeeName: string
   ) => {
-    const confirmed = window.confirm(
-      `Unassign ${employeeName} from this office?`
-    );
-    if (!confirmed) return;
+    setUnassigningEmployee({ id: employeeId, name: employeeName });
+  };
+
+  const executeUnassignEmployee = async () => {
+    if (!unassigningEmployee) return;
+    const { id: employeeId } = unassigningEmployee;
 
     setOfficeActionError('');
     setOfficeActionMessage('');
@@ -580,6 +589,7 @@ export default function LocationPage() {
       );
     } finally {
       setUnassigningEmployeeId(null);
+      setUnassigningEmployee(null);
     }
   };
 
@@ -635,26 +645,7 @@ export default function LocationPage() {
 
         {/* Tab switcher & refreshing */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="bg-surface-variant p-1 rounded-2xl border border-border flex">
-            <button
-              onClick={() => setActiveTab('editor')}
-              className={cn(
-                "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                activeTab === 'editor' ? "bg-surface text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
-              )}
-            >
-              Perimeter Editor
-            </button>
-            <button
-              onClick={() => setActiveTab('tracker')}
-              className={cn(
-                "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                activeTab === 'tracker' ? "bg-surface text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
-              )}
-            >
-              Live Tracker
-            </button>
-          </div>
+          {/* Tab switcher removed as requested */}
 
           {activeTab === 'tracker' && (
             <>
@@ -1008,6 +999,24 @@ export default function LocationPage() {
             officeName={selectedOffice?.name ?? 'Selected office'}
             onClose={() => setIsAssignEmployeeOpen(false)}
             onAssigned={handleEmployeeAssigned}
+          />
+
+          <ConfirmModal
+            isOpen={!!deletingOffice}
+            onClose={() => setDeletingOffice(null)}
+            onConfirm={executeDeleteOffice}
+            title={`Delete ${deletingOffice?.name}?`}
+            message={`Are you sure you want to delete ${deletingOffice?.name}? This action cannot be undone.`}
+            confirmText="Delete Office"
+          />
+
+          <ConfirmModal
+            isOpen={!!unassigningEmployee}
+            onClose={() => setUnassigningEmployee(null)}
+            onConfirm={executeUnassignEmployee}
+            title={`Unassign ${unassigningEmployee?.name}?`}
+            message={`Are you sure you want to unassign ${unassigningEmployee?.name} from this office?`}
+            confirmText="Unassign"
           />
         </>
       )}

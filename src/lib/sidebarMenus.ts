@@ -13,7 +13,6 @@ import {
   Wallet,
   BarChart3,
   FileText,
-  Bell,
   User,
   Navigation,
 } from 'lucide-react';
@@ -50,7 +49,6 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
   { name: 'Analytics', icon: BarChart3, path: '/analytics', moduleId: 'pa-analytics' },
   { name: 'Reports', icon: FileText, path: '/reports', moduleId: 'pa-reports' },
-  { name: 'Notifications', icon: Bell, path: '/notifications', moduleId: 'pa-notifications' },
 ];
 
 export const PLATFORM_ADMIN_ACCOUNT_ITEMS: SidebarMenuItem[] = [

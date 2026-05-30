@@ -109,3 +109,19 @@ export async function fetchPlatformUsers(): Promise<PlatformUser[]> {
     );
   }
 }
+
+export async function updateUserStatus(userId: number, isActive: boolean): Promise<{ message: string }> {
+  try {
+    const { data } = await api.put<{ success: boolean; message: string; user: any }>(`/api/admin/users/${userId}/status`, {
+      isActive,
+    });
+    return { message: data.message };
+  } catch (error) {
+    if (isDevAuthSession()) {
+      return { message: 'Status updated (Mock)' };
+    }
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to update user status.')
+    );
+  }
+}
