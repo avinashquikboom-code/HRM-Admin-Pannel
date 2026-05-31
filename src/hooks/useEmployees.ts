@@ -1,23 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useAppSelector } from '@/store/hooks';
 import { fetchEmployees, type AdminEmployee } from '@/services/employeeService';
 
 export function useEmployees() {
-  const token = useAppSelector((state) => state.auth.token);
   const [employees, setEmployees] = useState<AdminEmployee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   const loadEmployees = useCallback(async () => {
-    if (!token) {
-      setEmployees([]);
-      setError('');
-      setIsLoading(false);
-      return [];
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -34,7 +25,7 @@ export function useEmployees() {
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     loadEmployees();
