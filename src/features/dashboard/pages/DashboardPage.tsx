@@ -174,7 +174,7 @@ const DashboardPage = () => {
         badgeText="Admin Dashboard"
         badgeIcon={Activity}
         stats={[
-          { label: 'Total Revenue', value: data ? `₹${(data.totalRevenue / 1000000).toFixed(1)}M` : '₹0', icon: IndianRupee },
+          { label: 'Total Revenue', value: data ? `₹${(data.monthlyRevenue / 1000000).toFixed(1)}M` : '₹0', icon: IndianRupee },
           { label: 'Active Companies', value: data ? data.totalCompanies.toString() : '0', icon: Building2 },
           { label: 'Total Employees', value: data ? data.totalEmployees.toString() : '0', icon: Users },
           { label: 'System Health', value: '98.5%', icon: ShieldCheck }
