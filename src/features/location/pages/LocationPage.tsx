@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Pause, Play, RefreshCw, Building2, MapPin, Globe, ShieldAlert, ShieldCheck, Search, Sliders, Navigation, Activity } from 'lucide-react';
+import { Pause, Play, RefreshCw, Building2, MapPin, Globe, ShieldAlert, ShieldCheck, Search, Sliders, Navigation, Activity, Users } from 'lucide-react';
 import { motion, type Variants } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { useOffices } from '@/hooks/useOffices';

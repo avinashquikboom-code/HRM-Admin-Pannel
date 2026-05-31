@@ -228,7 +228,7 @@ const EditProfilePage = () => {
           stats={[
             { label: 'Profile Status', value: 'Active', icon: ShieldCheck },
             { label: 'Security Level', value: 'Maximum', icon: Globe },
-            { label: 'Last Updated', value: profile?.lastUpdated || 'Today', icon: Info },
+            { label: 'Last Updated', value: profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : 'Today', icon: Info },
             { label: 'Account Type', value: 'Super Admin', icon: User }
           ]}
         >
