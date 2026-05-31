@@ -113,60 +113,43 @@ const ProfilePage = () => {
         </div>
       )}
 
-      {/* Hero Header Section */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 animate-fadeIn">
-        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 w-full">
+      <SuperAdminHeader
+          title={user?.name || profile?.fullName || 'Administrator'}
+          subtitle={user?.bio || profile?.bio || 'Overseeing system architecture, managing global entity provisions, and maintaining network security protocols.'}
+          badgeText={user?.role?.replace('_', ' ') || 'Super Administrator'}
+          badgeIcon={Shield}
+          stats={quickStats.map(stat => ({
+            label: stat.label,
+            value: stat.value,
+            icon: stat.icon
+          }))}
+        >
           <div className="relative group/avatar">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full p-2 bg-white/10 backdrop-blur-md shadow-2xl border border-white/20 relative overflow-hidden group-hover/avatar:border-primary/40 transition-colors duration-500">
+            <div className="w-16 h-16 rounded-full p-1 bg-white/10 backdrop-blur-md shadow-xl border border-white/20 relative overflow-hidden group-hover/avatar:border-primary/40 transition-colors duration-500">
               <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
                 {user?.avatar && user.avatar !== '/favicon.svg' ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-700" />
                 ) : (
-                  <UserIcon size={70} className="text-slate-400" />
+                  <UserIcon size={32} className="text-slate-400" />
                 )}
               </div>
             </div>
             <button
               onClick={() => router.push(`${profileBasePath}/edit`)}
-              className="absolute -bottom-1 -right-1 p-3.5 rounded-2xl bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 transition-transform active:scale-95 cursor-pointer"
+              className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-white text-slate-900 shadow-lg border border-white/40 hover:scale-110 transition-transform active:scale-95 cursor-pointer"
               title="Change Avatar"
             >
-              <Camera size={18} />
+              <Camera size={14} />
             </button>
           </div>
-
-          <div className="flex-1 text-center md:text-left space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary/20 backdrop-blur-md text-primary text-[10px] font-black uppercase tracking-widest border border-primary/30 shadow-inner">
-              <Shield size={12} className="animate-pulse" />
-              {user?.role?.replace('_', ' ') || 'Super Administrator'}
-            </span>
-            <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-none">
-              {user?.name || profile?.fullName || 'Administrator'}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
-              {user?.bio || profile?.bio || 'Overseeing system architecture, managing global entity provisions, and maintaining network security protocols.'}
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto shrink-0 relative z-20">
-            <button
-              onClick={() => router.push(`${profileBasePath}/edit`)}
-              className="flex-grow py-4 px-6 bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-white cursor-pointer"
-            >
-              Edit Configuration
-            </button>
-            <button
-              onClick={() => setIsSignOutModalOpen(true)}
-              className="flex-grow py-4 px-6 bg-error/20 hover:bg-error/30 text-error border border-error/20 hover:border-error/45 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center cursor-pointer"
-            >
-              Terminate Session
-            </button>
-          </div>
-        </div>
-      </motion.div>
+          <button
+            onClick={() => router.push(`${profileBasePath}/edit`)}
+            className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
+          >
+            <Lock size={18} className="group-hover:rotate-12 transition-transform" />
+            Edit Profile
+          </button>
+        </SuperAdminHeader>
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
