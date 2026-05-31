@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { EmployeeLiveLocation } from '@/services/locationService';
 import type { LocationLog, MapBounds, MapCenter } from '../types';
-import { mockLocationLogs as initialLogs } from '@/data/mockData';
+
 
 function formatLogTime() {
   const now = new Date();
@@ -38,7 +38,7 @@ export function useLocationSimulation({
   setLocations,
   initialLocations,
 }: UseLocationSimulationOptions) {
-  const [logs, setLogs] = useState<LocationLog[]>(initialLogs);
+  const [logs, setLogs] = useState<LocationLog[]>([]);
   const prevLocationsRef = useRef<EmployeeLiveLocation[]>(initialLocations);
 
   useEffect(() => {

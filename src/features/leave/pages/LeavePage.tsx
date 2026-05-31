@@ -41,11 +41,7 @@ import {
   Area 
 } from 'recharts';
 
-import { 
-  mockLeaveRequests as initialLeaveRequests, 
-  mockLeaveBalances, 
-  mockHolidays 
-} from '@/data/mockData';
+
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -84,14 +80,14 @@ const LEAVE_TYPES_CONFIG = [
 export default function LeavePage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'requests' | 'balances' | 'policies' | 'calendar'>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
-  const [leaveRequests, setLeaveRequests] = useState(initialLeaveRequests);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
 
   // Live Integration States
-  const [leaveBalances, setLeaveBalances] = useState<any[]>(mockLeaveBalances);
+  const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
   const [realEmployees, setRealEmployees] = useState<any[]>([]);
 
   // Remarks drawer state
@@ -294,7 +290,7 @@ export default function LeavePage() {
         days.push({ day: 0, date: '', isHoliday: false, leaves: [] });
       } else {
         const dateStr = `2026-05-${i.toString().padStart(2, '0')}`;
-        const holiday = mockHolidays.find(h => h.date.includes(dateStr) || h.date.includes(`${i} May`));
+        const holiday = undefined;
         const activeLeaves = leaveRequests.filter(req => {
           if (req.status !== 'Approved') return false;
           const s = new Date(req.startDate).getDate();
@@ -394,7 +390,7 @@ export default function LeavePage() {
                 { label: 'Total Leave Requests', value: totalRequests, icon: FileText, color: 'from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-400', glow: 'rgba(59,130,246,0.15)' },
                 { label: 'Pending Approvals', value: pendingRequests, icon: Clock, color: 'from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-400', glow: 'rgba(245,158,11,0.15)' },
                 { label: 'Approved Requests', value: approvedRequests, icon: CheckCircle2, color: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-450', glow: 'rgba(16,185,129,0.15)' },
-                { label: 'Upcoming Holidays', value: mockHolidays.length, icon: CalendarIcon, color: 'from-violet-500/20 to-purple-500/10 border-violet-500/30 text-violet-400', glow: 'rgba(139,92,246,0.15)' },
+                { label: 'Upcoming Holidays', value: 0, icon: CalendarIcon, color: 'from-violet-500/20 to-purple-500/10 border-violet-500/30 text-violet-400', glow: 'rgba(139,92,246,0.15)' },
               ].map((stat, i) => (
                 <div 
                   key={i}
@@ -456,25 +452,7 @@ export default function LeavePage() {
                   </div>
 
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                    {mockHolidays.slice(0, 3).map((hol, idx) => (
-                      <div 
-                        key={idx}
-                        className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/20 border border-white/5 group hover:border-white/10 hover:bg-slate-950/40 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-white/5 text-slate-350 rounded-xl group-hover:text-primary transition-all">
-                            <CalendarIcon size={16} />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-white group-hover:text-primary transition-colors">{hol.name}</p>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">{hol.date}</p>
-                          </div>
-                        </div>
-                        <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase border border-white/5 bg-white/5 text-slate-400 group-hover:text-white transition-colors">
-                          {hol.type}
-                        </span>
-                      </div>
-                    ))}
+                    {[]}
                   </div>
                 </div>
 

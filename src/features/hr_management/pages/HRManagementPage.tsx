@@ -73,19 +73,10 @@ const itemVariants: Variants = {
   }
 };
 
-// Micro-graphs mock points to draw glowing trendlines inside metrics cards
-const totalAdminsTrend = [
-  { val: 30 }, { val: 45 }, { val: 35 }, { val: 60 }, { val: 40 }, { val: 75 }, { val: 70 }
-];
-const activeSessionsTrend = [
-  { val: 20 }, { val: 30 }, { val: 50 }, { val: 40 }, { val: 60 }, { val: 80 }, { val: 95 }
-];
-const hiresTrend = [
-  { val: 10 }, { val: 25 }, { val: 20 }, { val: 45 }, { val: 30 }, { val: 55 }, { val: 48 }
-];
-const onboardingTrend = [
-  { val: 90 }, { val: 92 }, { val: 91 }, { val: 93 }, { val: 92.5 }, { val: 94 }, { val: 94.2 }
-];
+const totalAdminsTrend: any[] = [];
+const activeSessionsTrend: any[] = [];
+const hiresTrend: any[] = [];
+const onboardingTrend: any[] = [];
 
 const HRManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);

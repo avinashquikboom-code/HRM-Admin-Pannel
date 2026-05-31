@@ -19,10 +19,6 @@ import {
   MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { mockCompanies, mockEmployees } from '../data/mockData';
-import { toggleSidebar } from '../store/slices/sidebarSlice';
-import type { PortalType } from '@/lib/portals';
-import { PORTAL_AUTH_KEYS } from '@/lib/authStorage';
 import { getLoginPathForPortal, SUPER_ADMIN_PREFIX, EMPLOYEE_PREFIX } from '@/lib/portals';
 
 interface HeaderProps {
@@ -57,13 +53,8 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
 
   const loginLocation = user?.profile?.security?.lastLoginLocation;
 
-  const filteredCompanies = searchQuery
-    ? mockCompanies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3)
-    : [];
-  
-  const filteredEmployees = searchQuery 
-    ? mockEmployees.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3)
-    : [];
+  const filteredCompanies: any[] = [];
+  const filteredEmployees: any[] = [];
 
   const hasResults = filteredCompanies.length > 0 || filteredEmployees.length > 0;
 
