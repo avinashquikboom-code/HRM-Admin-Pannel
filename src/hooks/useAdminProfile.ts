@@ -8,18 +8,12 @@ import type { User } from '@/store/slices/authSlice';
 
 export function useAdminProfile() {
   const dispatch = useAppDispatch();
-  const { user, token } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
   const hasCachedProfile = Boolean(user?.profile);
   const [isLoading, setIsLoading] = useState(!hasCachedProfile);
   const [error, setError] = useState('');
 
   const loadProfile = useCallback(async () => {
-    if (!token) {
-      setError('Not authenticated');
-      setIsLoading(false);
-      return null;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -35,17 +29,11 @@ export function useAdminProfile() {
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, token, user]);
+  }, [dispatch, user]);
 
   useEffect(() => {
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
     loadProfile();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [loadProfile]);
 
   return {
     user: user as User | null,
