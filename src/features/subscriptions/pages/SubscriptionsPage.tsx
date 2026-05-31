@@ -38,6 +38,7 @@ import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
 import TableSkeleton from '@/components/TableSkeleton';
 import Modal from '@/components/Modal';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useLoadingData } from '@/hooks/useLoadingData';
 import { useCompanyStats } from '@/hooks/useCompanyStats';
 import {
@@ -412,60 +413,36 @@ const SubscriptionsPage = () => {
       animate="visible"
       className="space-y-8 pb-12 max-w-7xl mx-auto"
     >
-      <motion.div 
-        variants={itemVariants}
-        className="relative overflow-hidden rounded-[36px] border border-border/50 bg-gradient-to-br from-primary/15 via-surface to-amber-500/10 p-6 sm:p-8 shadow-sm"
+      <SuperAdminHeader
+        title="Subscription Control Center"
+        subtitle="Monitor recurring revenue, manage platform tiers, track invoices, and identify expansion opportunities across all companies."
+        badgeText="Super Admin Billing Console"
+        badgeIcon={Sparkles}
+        stats={[
+          { label: 'Collections', value: '98.7%', icon: ShieldCheck },
+          { label: 'Companies', value: stats ? stats.totalEntities.toString() : '445', icon: Building2 },
+          { label: 'Renewals Due', value: '28', icon: CalendarClock },
+          { label: 'ARR Run Rate', value: stats ? `₹${(stats.monthlyRevenue * 12 / 100000).toFixed(1)}L` : '₹1.01Cr', icon: TrendingUp }
+        ]}
       >
-        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="relative z-10 grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
-          <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-2 text-xs font-black uppercase tracking-widest text-primary">
-              <Sparkles size={14} />
-              Super Admin Billing Console
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text-primary animate-text-reveal">
-              Subscription Control Center
-            </h1>
-            <p className="text-page-desc mt-3 max-w-2xl">
-              Monitor recurring revenue, manage platform tiers, track invoices, and identify expansion opportunities across all companies.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button 
-                onClick={() => {
-                  if (subscriptions.length > 0) {
-                    handleOpenConfigure(subscriptions[0]);
-                  } else {
-                    setIsModalOpen(true);
-                  }
-                }}
-                className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
-              >
-                <WalletCards size={18} className="group-hover:rotate-12 transition-transform" />
-                Manage Billing
-              </button>
-              <button className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
-                <Download size={18} />
-                Export Report
-              </button>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Collections', value: '98.7%', icon: ShieldCheck },
-              { label: 'Companies', value: stats ? stats.totalEntities.toString() : '445', icon: Building2 },
-              { label: 'Renewals Due', value: '28', icon: CalendarClock },
-              { label: 'ARR Run Rate', value: stats ? `₹${(stats.monthlyRevenue * 12 / 100000).toFixed(1)}L` : '₹1.01Cr', icon: TrendingUp },
-            ].map((item) => (
-              <div key={item.label} className="rounded-3xl border border-border/50 bg-surface/70 p-4 shadow-sm backdrop-blur-xl">
-                <item.icon size={20} className="mb-4 text-primary" />
-                <p className="text-2xl font-black text-text-primary tracking-tight">{item.value}</p>
-                <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-text-secondary">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
+        <button 
+          onClick={() => {
+            if (subscriptions.length > 0) {
+              handleOpenConfigure(subscriptions[0]);
+            } else {
+              setIsModalOpen(true);
+            }
+          }}
+          className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
+        >
+          <WalletCards size={18} className="group-hover:rotate-12 transition-transform" />
+          Manage Billing
+        </button>
+        <button className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
+          <Download size={18} />
+          Export Report
+        </button>
+      </SuperAdminHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {summaryCards.map((stat) => (

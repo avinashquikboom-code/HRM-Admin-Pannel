@@ -10,12 +10,15 @@ import {
   ShieldCheck,
   TrendingUp,
   Users,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import { motion, type Variants } from 'framer-motion';
 import { useAppSelector } from '@/store/hooks';
 import { useCompanyStats } from '@/hooks/useCompanyStats';
 import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
-import DashboardHero from '@/features/dashboard/components/DashboardHero';
+import { cn } from '@/utils/cn';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import StatCard from '@/features/dashboard/components/StatCard';
 import QuickAccessGrid, {
   type QuickAccessItem,
@@ -132,13 +135,28 @@ export default function SuperAdminDashboardPage() {
       className="space-y-6 pb-10"
     >
       <motion.div variants={itemVariants}>
-        <DashboardHero
-          greeting={getGreeting()}
-          displayName={displayName}
-          isLoading={isLoading}
-          onRefresh={refetch}
-          highlights={heroHighlights}
-        />
+        <SuperAdminHeader
+          title={`${getGreeting()}, ${displayName}`}
+          subtitle="Track live locations, subscriptions, admin access, and platform activity from one place."
+          badgeText="Super HRM Control Center"
+          badgeIcon={Sparkles}
+          stats={heroHighlights.map(h => ({
+            label: h.label,
+            value: h.value,
+            icon: h.label === 'Revenue' ? IndianRupee : 
+                  h.label === 'Companies' ? Building2 : 
+                  ShieldCheck
+          }))}
+        >
+          <button 
+            onClick={refetch}
+            disabled={isLoading}
+            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95 disabled:opacity-60"
+          >
+            <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
+            Refresh
+          </button>
+        </SuperAdminHeader>
       </motion.div>
 
       {error && (

@@ -25,6 +25,7 @@ import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 
 import { api } from '@/lib/api';
 import { useEmployees } from '@/hooks/useEmployees';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -189,78 +190,28 @@ const TasksPage = () => {
       variants={containerVariants}
       className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
-      {/* Title Header Command hub */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-accent/5 rounded-full filter blur-3xl pointer-events-none" />
+      <SuperAdminHeader
+        title="Task Orchestration"
+        subtitle="Assign deliverable tasks, track real-time project velocities, manage employee capacities, and monitor deadlines."
+        badgeText="Corporate Velocity & Execution"
+        badgeIcon={CheckSquare}
+        stats={[
+          { label: 'Total Sprint Deliverables', value: totalTasks.toString(), icon: CheckSquare },
+          { label: 'Active Sprint Tasks', value: activeSprintCount.toString(), icon: Play },
+          { label: 'Completed Deliverables', value: completedCount.toString(), icon: CheckCircle2 },
+          { label: 'Sprint Completion Velocity', value: `${completionRate}%`, icon: SlidersHorizontal }
+        ]}
+      >
+        <button 
+          onClick={() => setIsAssignModalOpen(true)}
+          className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
+        >
+          <Plus size={18} className="group-hover:rotate-12 transition-transform" />
+          Assign Task
+        </button>
+      </SuperAdminHeader>
 
-        <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-accent/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
-            <CheckSquare size={12} className="text-primary animate-pulse" />
-            Corporate Velocity & Execution
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
-            Task <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-accent">Orchestration</span>
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
-            Assign deliverable tasks, track real-time project velocities, manage employee capacities, and monitor deadlines.
-          </p>
-        </div>
-
-        <div className="relative z-10 shrink-0 flex items-center gap-3">
-          <button 
-            onClick={() => setIsAssignModalOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
-          >
-            <Plus size={18} />
-            Assign Task
-          </button>
-        </div>
-      </motion.div>
-
-      {/* KPIs Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Total Sprint Deliverables', value: totalTasks, icon: CheckSquare, color: 'primary', trend: '+8.2%', glowColor: 'rgba(59, 163, 139, 0.25)' },
-          { label: 'Active Sprint Tasks', value: activeSprintCount, icon: Play, color: 'secondary', trend: '+15%', glowColor: 'rgba(96, 165, 250, 0.25)' },
-          { label: 'Completed Deliverables', value: completedCount, icon: CheckCircle2, color: 'success', trend: '+24%', glowColor: 'rgba(34, 197, 94, 0.25)' },
-          { label: 'Sprint Completion Velocity', value: `${completionRate}%`, icon: SlidersHorizontal, color: 'accent', trend: '+4.1%', glowColor: 'rgba(167, 139, 250, 0.25)' },
-        ].map((stat, i) => (
-          <motion.div 
-            key={i}
-            variants={itemVariants}
-            whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
-            className="glass-card p-6 group hover:border-primary/50 transition-all cursor-default relative overflow-hidden shadow-premium"
-          >
-            {/* Radial Glow Effect */}
-            <div 
-              className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"
-              style={{ background: stat.glowColor }}
-            />
-            
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className={cn(
-                "p-3.5 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
-                stat.color === 'primary' ? 'bg-primary/10 text-primary' :
-                stat.color === 'secondary' ? 'bg-blue-400/10 text-blue-400' :
-                stat.color === 'success' ? 'bg-success/10 text-success' : 'bg-accent/10 text-accent'
-              )}>
-                <stat.icon size={22} />
-              </div>
-              <span className={cn(
-                "text-micro font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm bg-success/10 text-success border-success/10"
-              )}>
-                {stat.trend}
-              </span>
-            </div>
-            <div className="relative z-10">
-              <p className="text-micro font-black text-text-secondary uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-              <h3 className="text-stat-value tabular-nums">{stat.value}</h3>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
+      
       {/* Search Bar */}
       <motion.div variants={itemVariants} className="flex flex-col xl:flex-row gap-4 items-center justify-between glass-card p-4">
         <div className="relative w-full xl:w-96">
