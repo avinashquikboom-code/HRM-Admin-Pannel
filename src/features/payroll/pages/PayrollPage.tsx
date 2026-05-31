@@ -134,13 +134,28 @@ const PayrollPage = () => {
   const [isDisbursing, setIsDisbursing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // New Payslips states
+  const [activeSubTab, setActiveSubTab] = useState<'batches' | 'slips'>('batches');
+  const [slipsList, setSlipsList] = useState<any[]>([]);
+  const [isSlipsLoading, setIsSlipsLoading] = useState(false);
+  const [selectedSlip, setSelectedSlip] = useState<any | null>(null);
+  const [isSlipModalOpen, setIsSlipModalOpen] = useState(false);
+
   const loadPayrollData = useCallback(async () => {
     setIsPageLoading(true);
+    setIsSlipsLoading(true);
     try {
       if (isDevAuthSession()) {
         setStats({ mtdVolume: 4128400, disbursed: 3842100, pending: 210450, errors: 0 });
         setTrendData(payrollStats);
         setRunsList(recentPayrollRuns);
+        
+        // Mock slips list in dev mode
+        setSlipsList([
+          { id: 1, employeeCode: 'EMP-01', name: 'Sarah Johnson', designation: 'Senior Engineer', department: 'Technology', office: 'Headquarters', baseSalary: 85000, allowance: 12750, deductions: 8500, netSalary: 89250, status: 'Pending Approval' },
+          { id: 2, employeeCode: 'EMP-02', name: 'Michael Chen', designation: 'Designer', department: 'Design', office: 'Mumbai Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Approved' },
+          { id: 3, employeeCode: 'EMP-03', name: 'David Miller', designation: 'Operations Associate', department: 'Operations', office: 'Delhi Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Pending Approval' },
+        ]);
       } else {
         const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/admin/payroll/stats');
         if (statsRes.data.success) {
@@ -152,11 +167,17 @@ const PayrollPage = () => {
         if (runsRes.data.success) {
           setRunsList(runsRes.data.runs);
         }
+
+        const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
+        if (slipsRes.data.success) {
+          setSlipsList(slipsRes.data.slips);
+        }
       }
     } catch (err) {
       console.error('Failed to load payroll data:', err);
     } finally {
       setIsPageLoading(false);
+      setIsSlipsLoading(false);
     }
   }, []);
 
@@ -181,9 +202,35 @@ const PayrollPage = () => {
     }
   };
 
+  const handleApproveSlip = async (employeeId: number) => {
+    try {
+      if (isDevAuthSession()) {
+        setSlipsList(prev => prev.map(slip => 
+          slip.id === employeeId ? { ...slip, status: 'Approved' } : slip
+        ));
+      } else {
+        await api.post('/api/admin/payroll/slips/approve', { employeeId });
+        const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
+        if (slipsRes.data.success) {
+          setSlipsList(slipsRes.data.slips);
+        }
+      }
+      alert('Salary slip approved and generated successfully!');
+    } catch (err) {
+      console.error('Failed to approve slip:', err);
+      alert('Failed to approve salary slip.');
+    }
+  };
+
   const filteredRuns = runsList.filter(run => 
     run.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
     run.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredSlips = slipsList.filter(slip => 
+    slip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    slip.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    slip.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const isLoading = isPageLoading;
@@ -193,40 +240,60 @@ const PayrollPage = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
-      {/* Header Section */}
-      <motion.div 
-        variants={itemVariants}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
-      >
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary shadow-sm">
-              <Wallet size={18} />
-            </div>
-            <span className="text-micro font-black uppercase tracking-[0.2em] text-primary">Disbursement Center</span>
+      {/* Title Header Command hub */}
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
+            <Wallet size={12} className="text-primary animate-pulse" />
+            Corporate Treasury & Remuneration
           </div>
-          <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-muted">
-            Payroll Monitoring
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
+            Payroll <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Governance</span>
           </h1>
-          <p className="text-page-desc mt-1 max-w-2xl">
-            Strategic oversight of fund flows, compliance healthy, and ecosystem-wide disbursement performance.
+          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
+            Strategic oversight of fund flows, compliance standards, salary slips generation, and platform-wide disbursement operations.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-5 py-3 bg-surface-variant border border-border rounded-2xl text-xs font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95">
-            <Download size={18} />
-            Audit Ledger
-          </button>
+
+        <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
             onClick={() => setIsProcessModalOpen(true)}
-            className="btn-primary group shadow-xl shadow-primary/20 px-8 py-3.5"
+            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
           >
-            <Wallet size={20} className="group-hover:rotate-12 transition-transform" />
+            <Wallet size={18} />
             Bulk Process
           </button>
         </div>
+      </motion.div>
+
+      {/* Tab Navigation Controls */}
+      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-2xl no-scrollbar max-w-lg">
+        {[
+          { id: 'batches', label: 'Disbursement Batches', icon: Wallet },
+          { id: 'slips', label: 'Employee Payslips', icon: Users },
+        ].map((tab) => {
+          const isSelected = activeSubTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveSubTab(tab.id as any)}
+              className={cn(
+                "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
+                isSelected 
+                  ? "bg-primary text-white shadow-lg shadow-primary/25 border-primary/30" 
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              <tab.icon size={14} />
+              {tab.label}
+            </button>
+          );
+        })}
       </motion.div>
 
       {/* Top Stats */}
@@ -406,128 +473,319 @@ const PayrollPage = () => {
         </div>
       </div>
 
-      {/* Recent Payroll Runs */}
-      <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
-        <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <h3 className="heading-2">Recent Payroll Cycles</h3>
-            <p className="text-sm text-page-desc mt-1">Global audit stream of recent disbursement batches</p>
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-grow sm:flex-grow-0 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="Search batches..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
-              />
+      {/* Tab Content selection */}
+      {activeSubTab === 'batches' ? (
+        <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
+          <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div>
+              <h3 className="heading-2">Recent Payroll Cycles</h3>
+              <p className="text-sm text-page-desc mt-1">Global audit stream of recent disbursement batches</p>
             </div>
-            <button className="p-3.5 bg-surface-variant hover:bg-surface border border-border rounded-2xl text-text-secondary transition-all active:scale-95 hover:border-primary/30 shadow-sm">
-              <Filter size={20} />
-            </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-grow sm:flex-grow-0 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-4 h-4" />
+                <input 
+                  type="text" 
+                  placeholder="Search batches..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
+                />
+              </div>
+              <button className="p-3.5 bg-surface-variant hover:bg-surface border border-border rounded-2xl text-text-secondary transition-all active:scale-95 hover:border-primary/30 shadow-sm">
+                <Filter size={20} />
+              </button>
+            </div>
           </div>
-        </div>
-        
-        {isLoading ? (
-          <div className="p-8">
-            <TableSkeleton rows={5} columns={6} />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-variant/50">
-                  <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Batch Identity</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Company</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Operational Scale</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Total Volume</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Status</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredRuns.map((run) => (
-                  <motion.tr 
-                    key={run.id}
-                    variants={itemVariants}
-                    className="hover:bg-surface-variant transition-colors group cursor-pointer"
-                  >
-                    <td className="px-8 py-7">
-                      <span className="font-mono text-micro font-black text-muted bg-surface-variant px-3 py-1.5 rounded-xl border border-border shadow-sm group-hover:border-primary/30 transition-colors">
-                        {run.id}
-                      </span>
-                    </td>
-                    <td className="px-8 py-7">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xs group-hover:scale-110 transition-all duration-500 shadow-sm border border-primary/10">
-                          {run.company.substring(0, 2)}
+          
+          {isLoading ? (
+            <div className="p-8">
+              <TableSkeleton rows={5} columns={6} />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-variant/50">
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Batch Identity</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Company</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Operational Scale</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Total Volume</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Status</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredRuns.map((run) => (
+                    <motion.tr 
+                      key={run.id}
+                      variants={itemVariants}
+                      className="hover:bg-surface-variant transition-colors group cursor-pointer"
+                    >
+                      <td className="px-8 py-7">
+                        <span className="font-mono text-micro font-black text-muted bg-surface-variant px-3 py-1.5 rounded-xl border border-border shadow-sm group-hover:border-primary/30 transition-colors">
+                          {run.id}
+                        </span>
+                      </td>
+                      <td className="px-8 py-7">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xs group-hover:scale-110 transition-all duration-500 shadow-sm border border-primary/10">
+                            {run.company.substring(0, 2)}
+                          </div>
+                          <div>
+                            <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block">{run.company}</span>
+                            <span className="text-label font-bold text-text-secondary">{run.date}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block">{run.company}</span>
-                          <span className="text-label font-bold text-text-secondary">{run.date}</span>
+                      </td>
+                      <td className="px-8 py-7">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2">
+                            <Users size={14} className="text-primary" />
+                            <span className="text-sm font-black text-text-primary">{run.employees}</span>
+                          </div>
+                          <span className="text-micro font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">Managed Seats</span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-7">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <Users size={14} className="text-primary" />
-                          <span className="text-sm font-black text-text-primary">{run.employees}</span>
+                      </td>
+                      <td className="px-8 py-7">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-text-primary tracking-tighter">{run.totalAmount}</span>
+                          <span className="text-label font-bold text-text-secondary mt-1">Disbursed</span>
                         </div>
-                        <span className="text-micro font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">Managed Seats</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-7">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black text-text-primary tracking-tighter">{run.totalAmount}</span>
-                        <span className="text-label font-bold text-text-secondary mt-1">Disbursed</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-7">
-                      <span className={cn(
-                        "px-4 py-2 rounded-2xl text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
-                        run.status === 'Completed' ? "bg-success/10 text-success border-success/10" : 
-                        run.status === 'Failed' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
-                      )}>
+                      </td>
+                      <td className="px-8 py-7">
                         <span className={cn(
-                          "w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]",
-                          run.status === 'Completed' ? "bg-success" : 
-                          run.status === 'Failed' ? "bg-error animate-pulse" : "bg-warning"
-                        )} />
-                        {run.status}
-                      </span>
-                    </td>
-                    <td className="px-8 py-7 text-right">
-                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                        <button className="p-3 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-2xl transition-all shadow-sm hover:shadow-md">
-                          <Download size={18} />
-                        </button>
-                        <button className="p-3 bg-surface border border-border text-muted hover:text-text-primary rounded-2xl transition-all shadow-sm">
-                          <MoreVertical size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+                          "px-4 py-2 rounded-2xl text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
+                          run.status === 'Completed' ? "bg-success/10 text-success border-success/10" : 
+                          run.status === 'Failed' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
+                        )}>
+                          <span className={cn(
+                            "w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]",
+                            run.status === 'Completed' ? "bg-success" : 
+                            run.status === 'Failed' ? "bg-error animate-pulse" : "bg-warning"
+                          )} />
+                          {run.status}
+                        </span>
+                      </td>
+                      <td className="px-8 py-7 text-right">
+                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                          <button className="p-3 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-2xl transition-all shadow-sm hover:shadow-md">
+                            <Download size={18} />
+                          </button>
+                          <button className="p-3 bg-surface border border-border text-muted hover:text-text-primary rounded-2xl transition-all shadow-sm">
+                            <MoreVertical size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {!isLoading && (
+            <div className="p-8 bg-surface-variant/50 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                <p className="text-label text-text-secondary tracking-[0.2em]">Global Audit Stream Live</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
+                <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
+          <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div>
+              <h3 className="heading-2">Employee Payslips Manager</h3>
+              <p className="text-sm text-page-desc mt-1">Generate, approve, and track salary slips for individual workforce members</p>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-grow sm:flex-grow-0 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-4 h-4" />
+                <input 
+                  type="text" 
+                  placeholder="Search employees..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {isSlipsLoading ? (
+            <div className="p-8">
+              <TableSkeleton rows={5} columns={6} />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-variant/50">
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Employee Code</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Employee Name</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Designation & Dept</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Net Salary</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Status</th>
+                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredSlips.map((slip) => (
+                    <motion.tr 
+                      key={slip.id}
+                      variants={itemVariants}
+                      className="hover:bg-surface-variant/30 transition-colors group cursor-pointer"
+                    >
+                      <td className="px-8 py-7">
+                        <span className="font-mono text-micro font-black text-muted bg-slate-900 px-3 py-1.5 rounded-xl border border-white/5 shadow-sm group-hover:border-primary/30 transition-colors">
+                          {slip.employeeCode}
+                        </span>
+                      </td>
+                      <td className="px-8 py-7">
+                        <div>
+                          <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block">{slip.name}</span>
+                          <span className="text-label font-bold text-text-secondary">{slip.office}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-7">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-text-primary">{slip.designation}</span>
+                          <span className="text-micro font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">{slip.department}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-7">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-primary tracking-tighter">₹{slip.netSalary.toLocaleString('en-IN')}</span>
+                          <span className="text-label font-bold text-text-secondary mt-1">₹{slip.baseSalary.toLocaleString('en-IN')} Base</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-7">
+                        <span className={cn(
+                          "px-4 py-2 rounded-2xl text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
+                          slip.status === 'Approved' ? "bg-success/10 text-success border-success/10" : "bg-warning/10 text-warning border-warning/10"
+                        )}>
+                          <span className={cn(
+                            "w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]",
+                            slip.status === 'Approved' ? "bg-success animate-pulse" : "bg-warning"
+                          )} />
+                          {slip.status}
+                        </span>
+                      </td>
+                      <td className="px-8 py-7 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          {slip.status === 'Pending Approval' ? (
+                            <button 
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleApproveSlip(slip.id); }}
+                              className="px-4 py-2 bg-primary/20 text-primary border border-primary/20 hover:bg-primary hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                            >
+                              Approve & Generate
+                            </button>
+                          ) : (
+                            <button 
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setSelectedSlip(slip); setIsSlipModalOpen(true); }}
+                              className="px-4 py-2 bg-success/20 text-success border border-success/20 hover:bg-success hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                            >
+                              View & Download
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* View Payslip Modal */}
+      <Modal 
+        isOpen={isSlipModalOpen} 
+        onClose={() => setIsSlipModalOpen(false)}
+        title="Employee Salary Slip"
+      >
+        {selectedSlip && (
+          <div className="space-y-8 p-4 text-slate-100">
+            <div className="border border-white/10 rounded-3xl p-8 bg-slate-950/60 shadow-inner space-y-6">
+              {/* Header */}
+              <div className="flex justify-between items-start border-b border-white/5 pb-6">
+                <div>
+                  <h4 className="text-xl font-black text-white">QUICKBOOM</h4>
+                  <p className="text-xs text-slate-400 font-medium">Remuneration & Treasury Division</p>
+                </div>
+                <div className="text-right col-span-2">
+                  <span className="px-3 py-1 bg-success/15 text-success text-micro font-black rounded-full uppercase border border-success/25">Approved Ledger</span>
+                  <p className="text-xs text-slate-400 mt-2 font-mono">ID: QB-2026-{selectedSlip.id}</p>
+                </div>
+              </div>
+
+              {/* Employee info */}
+              <div className="grid grid-cols-2 gap-6 text-sm border-b border-white/5 pb-6">
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-400 font-bold uppercase">Employee Name</p>
+                  <p className="font-bold text-white">{selectedSlip.name}</p>
+                  <p className="text-xs text-slate-400 font-mono">{selectedSlip.employeeCode}</p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-xs text-slate-400 font-bold uppercase">Designation</p>
+                  <p className="font-bold text-white">{selectedSlip.designation}</p>
+                  <p className="text-xs text-slate-400 font-medium">{selectedSlip.department} · {selectedSlip.office}</p>
+                </div>
+              </div>
+
+              {/* Salary Breakdown grid */}
+              <div className="grid grid-cols-2 gap-8 border-b border-white/5 pb-6">
+                <div className="space-y-4">
+                  <h5 className="text-xs font-black uppercase text-emerald-450 tracking-wider">Earnings</h5>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-450 font-medium">Basic Salary</span>
+                    <span className="font-bold text-white">₹{selectedSlip.baseSalary.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-455 font-medium">House Rent Allowance (HRA)</span>
+                    <span className="font-bold text-white">₹{selectedSlip.allowance.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+                <div className="space-y-4 border-l border-white/5 pl-8">
+                  <h5 className="text-xs font-black uppercase text-rose-450 tracking-wider">Deductions</h5>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-450 font-medium">Provident Fund (PF)</span>
+                    <span className="font-bold text-white">₹{Math.round(selectedSlip.deductions * 0.6).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-455 font-medium">Professional Tax (PT)</span>
+                    <span className="font-bold text-white">₹{Math.round(selectedSlip.deductions * 0.4).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Totals */}
+              <div className="flex justify-between items-center pt-4">
+                <div>
+                  <p className="text-xs text-slate-400 font-bold uppercase">Net Payable Amount</p>
+                  <p className="text-3xl font-black text-primary">₹{selectedSlip.netSalary.toLocaleString('en-IN')}</p>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-6 py-3 bg-white/10 hover:bg-white/15 border border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2"
+                >
+                  <Download size={14} />
+                  Print Payslip
+                </button>
+              </div>
+            </div>
           </div>
         )}
-        {!isLoading && (
-          <div className="p-8 bg-surface-variant/50 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-              <p className="text-label text-text-secondary tracking-[0.2em]">Global Audit Stream Live</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
-              <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
-            </div>
-          </div>
-        )}
-      </motion.div>
+      </Modal>
 
       {/* Process Payroll Modal */}
       <Modal 

@@ -139,28 +139,32 @@ const ReportsPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-10"
+      className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
-      {/* Header Section */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-primary to-primary-light">
-            Intelligence Center
+      {/* Title Header Command hub */}
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
+            <FileSpreadsheet size={12} className="text-primary animate-pulse" />
+            Corporate Audit & Compliance Center
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
+            Intelligence <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Center</span>
           </h1>
-          <p className="text-page-desc mt-1 max-w-2xl">
-            Access, generate, and manage platform-wide analytics and compliance documentation.
+          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
+            Access, generate, and manage platform-wide compliance audits, financial velocity files, and custom blueprints.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-5 py-3 bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95">
-            <Clock size={18} />
-            History
-          </button>
+
+        <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
             onClick={() => setIsCreateOpen(true)}
-            className="btn-primary group shadow-xl shadow-primary/20"
+            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center animate-transition"
           >
-            <FileCheck2 size={20} className="group-hover:scale-110 transition-transform" />
+            <FileCheck2 size={18} />
             Generate Intelligence
           </button>
         </div>
