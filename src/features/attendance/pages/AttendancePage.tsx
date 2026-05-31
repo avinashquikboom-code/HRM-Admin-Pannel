@@ -291,21 +291,21 @@ const AttendancePage = () => {
               </PieChart>
           </ChartContainer>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <span className="text-stat-value">92%</span>
-              <p className="text-label text-text-secondary">Active</p>
+              <span className="text-stat-value">{distribution.length > 0 ? Math.round((distribution.filter((d: { name: string }) => d.name === 'PRESENT').reduce((a: number, c: { value: number }) => a + c.value, 0) / distribution.reduce((a: number, c: { value: number }) => a + c.value, 0)) * 100) : 0}%</span>
+              <p className="text-label text-text-secondary">Present</p>
             </div>
           </div>
           
           <div className="mt-8 space-y-3 relative z-10">
-            {attendanceStats.map((item, index) => (
+            {distribution.map((item: { name: string; value: number; color: string }) => (
               <div key={item.name} className="flex items-center justify-between p-3 rounded-2xl hover:bg-surface-variant transition-colors border border-transparent hover:border-border shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: COLORS[index] }} />
+                  <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
                   <span className="text-sm font-bold text-text-primary">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-text-secondary">
-                    {Math.round((item.value / attendanceStats.reduce((a, b) => a + b.value, 0)) * 100)}%
+                    {Math.round((item.value / Math.max(1, distribution.reduce((a: number, c: { value: number }) => a + c.value, 0))) * 100)}%
                   </span>
                   <span className="text-sm font-black text-text-primary tracking-tight">{item.value.toLocaleString()}</span>
                 </div>
