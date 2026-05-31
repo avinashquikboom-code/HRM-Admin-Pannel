@@ -902,19 +902,19 @@ const PayrollPage = () => {
 
                 {/* Attendance Details Summary */}
                 {slipAttendance && (
-                  <div className="bg-white/3 border border-white/8 rounded-2xl p-5 space-y-3">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendance Details</h4>
-                    <div className="grid grid-cols-5 gap-3">
+                  <div className="border border-white/10 rounded-2xl overflow-hidden">
+                    <div className="grid grid-cols-6 divide-x divide-white/10">
                       {[
-                        { label: 'Working Days', value: slipAttendance.workingDays, color: 'text-white bg-white/5 border-white/10' },
-                        { label: 'Present Days', value: slipAttendance.present,     color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-                        { label: 'Absent Days',  value: slipAttendance.absent,      color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
-                        { label: 'Half Days',    value: slipAttendance.halfDay,     color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
-                        { label: 'Leaves',       value: slipAttendance.leave,       color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-                      ].map(({ label, value, color }) => (
-                        <div key={label} className={`flex flex-col items-center justify-center p-3 rounded-xl border ${color} transition-all`}>
-                          <span className="text-lg font-black font-mono">{value}</span>
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-1 text-center whitespace-nowrap">{label}</span>
+                        { label: 'Working Days', value: slipAttendance.workingDays, numColor: 'text-slate-100' },
+                        { label: 'Present',      value: slipAttendance.present,     numColor: 'text-emerald-400' },
+                        { label: 'Absent',       value: slipAttendance.absent,      numColor: 'text-rose-400' },
+                        { label: 'Half Day',     value: slipAttendance.halfDay,     numColor: 'text-blue-400' },
+                        { label: 'Late',         value: slipAttendance.late,        numColor: 'text-amber-400' },
+                        { label: 'Leave',        value: slipAttendance.leave,       numColor: 'text-purple-400' },
+                      ].map(({ label, value, numColor }) => (
+                        <div key={label} className="flex flex-col items-center justify-center py-5 px-3 bg-white/3 hover:bg-white/6 transition-colors">
+                          <span className={`text-2xl font-black font-mono leading-none ${numColor}`}>{value}</span>
+                          <span className="text-[10px] font-bold text-slate-400 mt-2 text-center tracking-wide">{label}</span>
                         </div>
                       ))}
                     </div>
