@@ -7,7 +7,6 @@ import {
   SUPER_ADMIN_LOGIN_PATH,
   type PortalType,
 } from '@/lib/portals';
-import { DEV_AUTH_TOKEN } from '@/lib/devAuth';
 
 export const PORTAL_AUTH_KEYS = {
   super_admin: {
@@ -183,7 +182,7 @@ function readPortalSession(portal: PortalType): AuthSession | null {
   }
 
   const cookieToken = readTokenCookie(portal);
-  if (cookieToken && cookieToken !== DEV_AUTH_TOKEN) {
+  if (cookieToken) {
     const session = buildSessionFromJwt(cookieToken, portal);
     if (session) {
       localStorage.setItem(storageKey, JSON.stringify(session));

@@ -11,6 +11,10 @@ import {
   type PortalType,
 } from '@/lib/portals';
 import type { User } from '@/store/slices/authSlice';
+import {
+  matchesDevCredentialsForPortal,
+  createDevAuthSession,
+} from '@/lib/devAuth';
 
 export interface LoginRequest {
   email: string;
@@ -95,6 +99,12 @@ export async function loginRequest(
   try {
     return await tryApiLogin(credentials, portal);
   } catch (apiError) {
+    // Fallback to dev auth for local development
+    if (matchesDevCredentialsForPortal(credentials.email, credentials.password, portal)) {
+      const devSession = createDevAuthSession(portal);
+      return devSession;
+    }
+
     throw new Error(
       getApiErrorMessage(
         apiError,

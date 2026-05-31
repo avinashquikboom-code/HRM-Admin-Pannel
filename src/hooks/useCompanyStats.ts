@@ -1,23 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useAppSelector } from '@/store/hooks';
 import { fetchCompanyStats, type CompanyStats } from '@/services/companyService';
 
 export function useCompanyStats() {
-  const token = useAppSelector((state) => state.auth.token);
   const [stats, setStats] = useState<CompanyStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   const loadStats = useCallback(async () => {
-    if (!token) {
-      setStats(null);
-      setError('');
-      setIsLoading(false);
-      return null;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -34,7 +25,7 @@ export function useCompanyStats() {
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     loadStats();
