@@ -127,7 +127,7 @@ const MiniCalendar = () => {
 };
 
 const AttendancePage = () => {
-  const { records, isLoading, error, refetch } = useTodayAttendance();
+  const { records, distribution, isLoading, error, refetch } = useTodayAttendance();
   const [isHolidaysOpen, setIsHolidaysOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -265,7 +265,7 @@ const AttendancePage = () => {
           <ChartContainer heightClassName="h-[250px]">
               <PieChart>
                 <Pie
-                  data={attendanceStats}
+                  data={distribution.length > 0 ? distribution : [{ name: 'No Data', value: 1, color: '#64748B' }]}
                   innerRadius={70}
                   outerRadius={90}
                   paddingAngle={8}
@@ -273,8 +273,8 @@ const AttendancePage = () => {
                   animationDuration={1500}
                   stroke="none"
                 >
-                  {attendanceStats.map((_entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="outline-none" />
+                  {(distribution.length > 0 ? distribution : [{ name: 'No Data', value: 1, color: '#64748B' }]).map((entry: { color: string }, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} className="outline-none" />
                   ))}
                 </Pie>
                 <Tooltip 

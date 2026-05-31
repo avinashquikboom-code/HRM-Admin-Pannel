@@ -23,10 +23,17 @@ export interface AttendanceRecord {
   office: AttendanceOffice | null;
 }
 
-interface TodayAttendanceResponse {
+export interface AttendanceDistributionItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface TodayAttendanceResponse {
   date: string;
   count: number;
   attendances: AttendanceRecord[];
+  attendanceDistribution: AttendanceDistributionItem[];
 }
 
 interface AttendanceHistoryResponse {
@@ -38,12 +45,12 @@ interface AttendanceHistoryResponse {
   records: AttendanceRecord[];
 }
 
-export async function fetchTodayAttendance(): Promise<AttendanceRecord[]> {
+export async function fetchTodayAttendance(): Promise<TodayAttendanceResponse> {
   try {
     const { data } = await api.get<TodayAttendanceResponse>(
       '/api/admin/attendance/today'
     );
-    return data.attendances;
+    return data;
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load today attendance. Please try again.')
