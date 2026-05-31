@@ -900,26 +900,24 @@ const PayrollPage = () => {
                   ))}
                 </div>
 
-                {/* Attendance Details Summary */}
-                {slipAttendance && (
-                  <div className="border border-white/10 rounded-2xl overflow-hidden">
-                    <div className="grid grid-cols-6 divide-x divide-white/10">
-                      {[
-                        { label: 'Working Days', value: slipAttendance.workingDays, numColor: 'text-slate-100' },
-                        { label: 'Present',      value: slipAttendance.present,     numColor: 'text-emerald-400' },
-                        { label: 'Absent',       value: slipAttendance.absent,      numColor: 'text-rose-400' },
-                        { label: 'Half Day',     value: slipAttendance.halfDay,     numColor: 'text-blue-400' },
-                        { label: 'Late',         value: slipAttendance.late,        numColor: 'text-amber-400' },
-                        { label: 'Leave',        value: slipAttendance.leave,       numColor: 'text-purple-400' },
-                      ].map(({ label, value, numColor }) => (
-                        <div key={label} className="flex flex-col items-center justify-center py-5 px-3 bg-white/3 hover:bg-white/6 transition-colors">
-                          <span className={`text-2xl font-black font-mono leading-none ${numColor}`}>{value}</span>
-                          <span className="text-[10px] font-bold text-slate-400 mt-2 text-center tracking-wide">{label}</span>
-                        </div>
-                      ))}
-                    </div>
+                {/* Attendance Details Summary — always visible, ?? 0 fallback until data loads */}
+                <div className="border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="grid grid-cols-6 divide-x divide-white/10">
+                    {[
+                      { label: 'Working Days', value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100' },
+                      { label: 'Present',      value: slipAttendance?.present     ?? 0, numColor: 'text-emerald-400' },
+                      { label: 'Absent',       value: slipAttendance?.absent      ?? 0, numColor: 'text-rose-400' },
+                      { label: 'Half Day',     value: slipAttendance?.halfDay     ?? 0, numColor: 'text-blue-400' },
+                      { label: 'Late',         value: slipAttendance?.late        ?? 0, numColor: 'text-amber-400' },
+                      { label: 'Leave',        value: slipAttendance?.leave       ?? 0, numColor: 'text-purple-400' },
+                    ].map(({ label, value, numColor }) => (
+                      <div key={label} className="flex flex-col items-center justify-center py-5 px-3 bg-white/3 hover:bg-white/6 transition-colors">
+                        <span className={`text-2xl font-black font-mono leading-none ${numColor}`}>{value}</span>
+                        <span className="text-[10px] font-bold text-slate-400 mt-2 text-center tracking-wide">{label}</span>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
 
                 {/* Earnings & Deductions side-by-side */}
                 <div className="grid grid-cols-2 gap-6">
