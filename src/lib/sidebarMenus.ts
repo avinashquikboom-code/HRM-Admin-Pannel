@@ -35,6 +35,7 @@ export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Live Location New', icon: Navigation, path: `${SUPER_ADMIN_PREFIX}/location?tab=tracker`, moduleId: 'sa-location-new' },
   { name: 'Companies', icon: Building2, path: `${SUPER_ADMIN_PREFIX}/companies`, moduleId: 'sa-companies' },
   { name: 'Subscriptions', icon: CreditCard, path: `${SUPER_ADMIN_PREFIX}/subscriptions`, moduleId: 'sa-subscriptions' },
+  { name: 'Task Management', icon: CheckSquare, path: `${SUPER_ADMIN_PREFIX}/tasks`, moduleId: 'sa-tasks' },
   { name: 'Admin Rights', icon: ShieldCheck, path: `${SUPER_ADMIN_PREFIX}/user-rights`, moduleId: 'sa-user-rights' },
   { name: 'Settings', icon: Settings, path: `${SUPER_ADMIN_PREFIX}/settings`, moduleId: 'sa-settings' },
 ];
@@ -44,7 +45,6 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
   { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
-  { name: 'Task Management', icon: CheckSquare, path: '/tasks', moduleId: 'pa-tasks' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
   { name: 'Analytics', icon: BarChart3, path: '/analytics', moduleId: 'pa-analytics' },
