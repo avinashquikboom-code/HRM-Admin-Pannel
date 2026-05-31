@@ -1,56 +1,98 @@
 "use client";
 
+import { useState, useEffect, useCallback } from 'react';
 import { 
   CheckCircle2, 
   Settings, 
   MoreVertical,
   Trash2,
   Building2,
-  Wallet
+  Wallet,
+  RefreshCw,
+  Bell
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import {
+  fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  type AdminNotification,
+} from '@/services/notificationService';
 
-const notifications = [
-  { 
-    id: 1, 
-    title: 'New Company Registered', 
-    description: 'TechVibe Inc. has successfully completed their enterprise onboarding.', 
-    type: 'success', 
-    icon: Building2,
-    time: '2 mins ago', 
-    unread: true 
-  },
-  { 
-    id: 2, 
-    title: 'Payroll Failure Alert', 
-    description: 'Disbursement for EcoWare Solutions failed due to banking API timeout.', 
-    type: 'error', 
-    icon: Wallet,
-    time: '45 mins ago', 
-    unread: true 
-  },
-  { 
-    id: 3, 
-    title: 'System Maintenance', 
-    description: 'Platform will be down for scheduled maintenance on Sunday, 12 AM.', 
-    type: 'info', 
-    icon: Settings,
-    time: '2 hours ago', 
-    unread: false 
-  },
-  { 
-    id: 4, 
-    title: 'Subscription Renewal', 
-    description: 'Innovate Digital has renewed their Professional plan for another year.', 
-    type: 'success', 
-    icon: CheckCircle2,
-    time: '5 hours ago', 
-    unread: false 
-  },
-];
+const getIconForType = (type: string) => {
+  switch (type) {
+    case 'success': return CheckCircle2;
+    case 'error': return Wallet;
+    case 'warning': return Settings;
+    default: return Bell;
+  }
+};
+
+const formatTimeAgo = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 60) return `${diffMins} mins ago`;
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  return `${diffDays} days ago`;
+};
 
 const NotificationsPage = () => {
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const loadNotifications = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetchNotifications();
+      setNotifications(response.notifications);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+      );
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, isRead: true }))
+      );
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err);
+    }
+  };
+
+  const filteredNotifications = notifications.filter(notif => {
+    if (selectedCategory === 'All') return true;
+    return notif.type === selectedCategory.toLowerCase();
+  });
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header Section */}
@@ -60,23 +102,37 @@ const NotificationsPage = () => {
           <p className="text-page-desc mt-1">Stay updated with platform activity and critical system alerts.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="text-sm font-bold text-primary hover:bg-primary/5 px-4 py-2 rounded-xl transition-colors">
+          <button 
+            onClick={handleMarkAllAsRead}
+            disabled={unreadCount === 0}
+            className={cn(
+              "text-sm font-bold px-4 py-2 rounded-xl transition-colors",
+              unreadCount > 0 
+                ? "text-primary hover:bg-primary/5" 
+                : "text-muted cursor-not-allowed"
+            )}
+          >
             Mark all as read
           </button>
-          <button className="p-2.5 bg-surface-variant text-muted hover:text-error rounded-xl transition-colors">
-            <Trash2 size={20} />
+          <button 
+            onClick={loadNotifications}
+            className="p-2.5 bg-surface-variant text-muted hover:text-primary rounded-xl transition-colors"
+            title="Refresh notifications"
+          >
+            <RefreshCw size={20} className={cn(isLoading && 'animate-spin')} />
           </button>
         </div>
       </div>
 
       {/* Categories */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-        {['All', 'Critical', 'Onboarding', 'Payroll', 'System'].map((cat, i) => (
+        {['All', 'Success', 'Error', 'Warning', 'Info'].map((cat) => (
           <button 
             key={cat}
+            onClick={() => setSelectedCategory(cat)}
             className={cn(
               "px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all",
-              i === 0 
+              selectedCategory === cat 
                 ? "bg-primary text-white shadow-lg shadow-primary/20" 
                 : "bg-surface border border-border text-text-secondary hover:border-primary/30 font-medium"
             )}
@@ -86,47 +142,88 @@ const NotificationsPage = () => {
         ))}
       </div>
 
-      {/* Notifications List */}
-      <div className="space-y-4">
-        {notifications.map((notif, index) => (
-          <motion.div 
-            key={notif.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className={cn(
-              "glass-card p-6 flex gap-6 relative transition-all group hover:border-primary/20",
-              notif.unread && "border-l-4 border-l-primary bg-primary/[0.02]"
-            )}
+      {/* Error State */}
+      {error && (
+        <div className="glass-card p-6 text-center">
+          <p className="text-error mb-4">{error}</p>
+          <button 
+            onClick={loadNotifications}
+            className="text-primary font-bold hover:underline"
           >
-            <div className={cn(
-              "w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0",
-              notif.type === 'success' ? 'bg-success/10 text-success' :
-              notif.type === 'error' ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary'
-            )}>
-              <notif.icon size={24} />
-            </div>
-            
-            <div className="flex-grow space-y-1">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-text-primary tracking-tight">{notif.title}</h4>
-                <span className="text-xs text-text-secondary font-medium">{notif.time}</span>
-              </div>
-              <p className="text-sm text-text-secondary leading-relaxed max-w-2xl font-medium">
-                {notif.description}
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && !error && (
+        <div className="glass-card p-12 text-center">
+          <RefreshCw size={32} className="animate-spin mx-auto mb-4 text-muted" />
+          <p className="text-muted">Loading notifications...</p>
+        </div>
+      )}
+
+      {/* Notifications List */}
+      {!isLoading && !error && (
+        <div className="space-y-4">
+          {filteredNotifications.length > 0 ? (
+            filteredNotifications.map((notif, index) => {
+              const Icon = getIconForType(notif.type);
+              return (
+                <motion.div 
+                  key={notif.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={cn(
+                    "glass-card p-6 flex gap-6 relative transition-all group hover:border-primary/20 cursor-pointer",
+                    !notif.isRead && "border-l-4 border-l-primary bg-primary/[0.02]"
+                  )}
+                  onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
+                >
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+                    notif.type === 'success' && "bg-emerald-500/10 text-emerald-500",
+                    notif.type === 'error' && "bg-rose-500/10 text-rose-500",
+                    notif.type === 'warning' && "bg-amber-500/10 text-amber-500",
+                    notif.type === 'info' && "bg-blue-500/10 text-blue-500"
+                  )}>
+                    <Icon size={24} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                      <h3 className="font-bold text-text-primary group-hover:text-primary transition-colors">
+                        {notif.title}
+                      </h3>
+                      <span className="text-xs text-muted whitespace-nowrap">
+                        {formatTimeAgo(notif.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-text-secondary leading-relaxed">
+                      {notif.message}
+                    </p>
+                    {notif.employee && (
+                      <p className="text-xs text-muted mt-2">
+                        Employee: {notif.employee.name} ({notif.employee.employeeCode})
+                      </p>
+                    )}
+                  </div>
+                  {!notif.isRead && (
+                    <div className="absolute top-6 right-6 w-2 h-2 bg-primary rounded-full" />
+                  )}
+                </motion.div>
+              );
+            })
+          ) : (
+            <div className="glass-card p-12 text-center">
+              <Bell size={48} className="mx-auto mb-4 text-muted" />
+              <p className="text-text-secondary font-medium">
+                {selectedCategory === 'All' ? 'No notifications' : `No ${selectedCategory.toLowerCase()} notifications`}
               </p>
             </div>
-
-            <button className="opacity-0 group-hover:opacity-100 p-2 hover:bg-surface-variant rounded-xl transition-all h-fit">
-              <MoreVertical size={18} className="text-muted" />
-            </button>
-          </motion.div>
-        ))}
-      </div>
-
-      <button className="w-full py-4 text-sm font-bold text-text-secondary hover:text-primary transition-colors">
-        Load Older Notifications
-      </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

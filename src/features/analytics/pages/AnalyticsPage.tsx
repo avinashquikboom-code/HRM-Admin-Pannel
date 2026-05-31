@@ -30,28 +30,15 @@ import {
   UserPlus, 
   Activity,
   ArrowUpRight,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
-
-const data = [
-  { name: 'Week 1', revenue: 4000, employees: 2400, companies: 2400 },
-  { name: 'Week 2', revenue: 3000, employees: 3398, companies: 2210 },
-  { name: 'Week 3', revenue: 2000, employees: 5800, companies: 2290 },
-  { name: 'Week 4', revenue: 2780, employees: 3908, companies: 2000 },
-  { name: 'Week 5', revenue: 1890, employees: 4800, companies: 2181 },
-  { name: 'Week 6', revenue: 2390, employees: 6800, companies: 2500 },
-  { name: 'Week 7', revenue: 3490, employees: 8300, companies: 2100 },
-];
-
-const employeeRetentionData = [
-  { name: 'Active', value: 85 },
-  { name: 'Probation', value: 10 },
-  { name: 'Offboarding', value: 5 },
-];
-
-const COLORS = ['#3BA38B', '#F4B860', '#EF4444'];
+import {
+  fetchAnalyticsOverview,
+  type AnalyticsOverview,
+} from '@/services/analyticsService';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -78,46 +65,20 @@ const itemVariants: Variants = {
 };
 
 const AnalyticsPage = () => {
-  const [stats, setStats] = useState<any>({
-    totalEmployees: 84942,
-    activeEmployees: 80000,
-    onLeaveEmployees: 4942,
-    averageRetention: '94.2%',
-    totalPresentToday: 4281,
-  });
-  const [chartData, setChartData] = useState<any[]>(data);
-  const [retentionData, setRetentionData] = useState<any[]>(employeeRetentionData);
-  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsOverview | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const loadAnalyticsData = useCallback(async () => {
-    setIsPageLoading(true);
+    setIsLoading(true);
+    setError('');
     try {
-      const res = await api.get<{
-        success: boolean;
-        totalEmployees: number;
-        activeEmployees: number;
-        onLeaveEmployees: number;
-        averageRetention: string;
-        presentToday: number;
-        data: any[];
-        employeeRetentionData: any[];
-      }>('/api/admin/analytics/overview');
-      
-      if (res.data.success) {
-        setStats({
-          totalEmployees: res.data.totalEmployees,
-          activeEmployees: res.data.activeEmployees,
-          onLeaveEmployees: res.data.onLeaveEmployees,
-          averageRetention: res.data.averageRetention,
-          totalPresentToday: res.data.presentToday,
-        });
-        setChartData(res.data.data);
-        setRetentionData(res.data.employeeRetentionData);
-      }
+      const response = await fetchAnalyticsOverview();
+      setAnalyticsData(response.data);
     } catch (err) {
-      console.error('Failed to load analytics overview:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load analytics data');
     } finally {
-      setIsPageLoading(false);
+      setIsLoading(false);
     }
   }, []);
 
@@ -125,7 +86,7 @@ const AnalyticsPage = () => {
     loadAnalyticsData();
   }, [loadAnalyticsData]);
 
-  if (isPageLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-8 pb-10">
         <div className="h-20 w-1/3 bg-surface-variant rounded-2xl animate-pulse" />
@@ -182,12 +143,27 @@ const AnalyticsPage = () => {
         </div>
       </motion.div>
 
+      {/* Error State */}
+      {error && (
+        <motion.div variants={itemVariants} className="glass-card p-6 text-center">
+          <p className="text-error mb-4">{error}</p>
+          <button 
+            onClick={loadAnalyticsData}
+            className="text-primary font-bold hover:underline flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw size={16} />
+            Try Again
+          </button>
+        </motion.div>
+      )}
+
       {/* High-Level Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: 'Total Active Workforce', value: stats.totalEmployees.toLocaleString(), trend: '+12.5%', icon: Users, color: 'primary' },
-          { label: 'Average Retention', value: stats.averageRetention, trend: '+2.1%', icon: UserCheck, color: 'success' },
-          { label: 'New Seats (MTD)', value: stats.totalPresentToday.toLocaleString(), trend: '+18.7%', icon: UserPlus, color: 'accent' },
+      {analyticsData && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { label: 'Total Active Workforce', value: analyticsData.totalEmployees.toLocaleString(), trend: '+12.5%', icon: Users, color: 'primary' },
+          { label: 'Average Retention', value: analyticsData.averageRetention, trend: '+2.1%', icon: UserCheck, color: 'success' },
+          { label: 'New Seats (MTD)', value: analyticsData.totalPresentToday.toLocaleString(), trend: '+18.7%', icon: UserPlus, color: 'accent' },
         ].map((stat) => (
           <motion.div key={stat.label} variants={itemVariants} className="glass-card p-8 group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -224,7 +200,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
           <ChartContainer heightClassName="h-[350px]" className="relative z-10">
-              <AreaChart data={chartData}>
+              <AreaChart data={analyticsData.weeklyData}>
                 <defs>
                   <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3BA38B" stopOpacity={0.4}/>
@@ -265,7 +241,7 @@ const AnalyticsPage = () => {
           <ChartContainer heightClassName="h-[250px]" className="mb-8">
               <PieChart>
                 <Pie
-                  data={retentionData}
+                  data={analyticsData.retentionData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -274,7 +250,7 @@ const AnalyticsPage = () => {
                   dataKey="value"
                   stroke="none"
                 >
-                  {retentionData.map((entry, index) => (
+                  {analyticsData.retentionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -283,7 +259,7 @@ const AnalyticsPage = () => {
           </ChartContainer>
 
           <div className="space-y-4 mt-auto">
-            {retentionData.map((item, index) => (
+            {analyticsData.retentionData.map((item, index) => (
               <div key={item.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-2xl border border-border/50 group hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
@@ -309,7 +285,7 @@ const AnalyticsPage = () => {
           </div>
           
           <ChartContainer heightClassName="h-[400px]">
-              <BarChart data={chartData}>
+              <BarChart data={analyticsData.weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} dy={15} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} />
@@ -319,6 +295,7 @@ const AnalyticsPage = () => {
               </BarChart>
           </ChartContainer>
         </motion.div>
+      )}
       </div>
 
       <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 bg-gradient-to-br from-primary to-primary-dark text-white border-none overflow-hidden relative group">

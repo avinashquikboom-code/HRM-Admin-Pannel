@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Bell,
   Globe,
   Key,
   Shield,
+  RefreshCw,
+  Save,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { api, getApiErrorMessage } from '@/lib/api';
@@ -15,12 +17,16 @@ import SettingsSidebar, {
   type SettingsTabId,
 } from '@/features/settings/components/SettingsSidebar';
 import GeneralSettingsPanel from '@/features/settings/panels/GeneralSettingsPanel';
-
 import SecuritySettingsPanel from '@/features/settings/panels/SecuritySettingsPanel';
 import NotificationsSettingsPanel, {
   defaultNotificationPreferences,
 } from '@/features/settings/panels/NotificationsSettingsPanel';
 import ApiSettingsPanel from '@/features/settings/panels/ApiSettingsPanel';
+import {
+  fetchSettings,
+  updateSettings,
+  type AdminSettings,
+} from '@/services/settingsService';
 
 const tabs: SettingsTab[] = [
   {
@@ -70,135 +76,126 @@ const itemVariants: Variants = {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTabId>('general');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
 
-  const [platformName, setPlatformName] = useState('Super HRM');
-  const [supportEmail, setSupportEmail] = useState('admin@hrm.com');
-  const [currency, setCurrency] = useState('INR');
-  const [locale, setLocale] = useState('en');
+  const [settings, setSettings] = useState<AdminSettings | null>(null);
 
-  const [twoFactor, setTwoFactor] = useState(true);
-  const [sessionLock, setSessionLock] = useState(true);
-  const [auditLogs, setAuditLogs] = useState(true);
-  const [ipRestriction, setIpRestriction] = useState(false);
-
-  const [notifications, setNotifications] = useState(
-    defaultNotificationPreferences
-  );
-
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await api.get('/api/settings');
-        if (response.data?.success && response.data?.data) {
-          const settings = response.data.data;
-          setPlatformName(settings.platformName ?? 'Super HRM');
-          setSupportEmail(settings.supportEmail ?? 'admin@hrm.com');
-          setCurrency(settings.currency ?? 'INR');
-          setLocale(settings.locale ?? 'en');
-          
-          setTwoFactor(settings.twoFactor ?? true);
-          setSessionLock(settings.sessionLock ?? true);
-          setAuditLogs(settings.auditLogs ?? true);
-          setIpRestriction(settings.ipRestriction ?? false);
-          
-          if (settings.notifications) {
-            setNotifications(settings.notifications);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch settings:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSettings();
+  const loadSettings = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetchSettings();
+      setSettings(response.settings);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load settings');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const handleSave = async () => {
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const handleSaveSettings = async (category: string, updatedSettings: any) => {
     setIsSaving(true);
     setSaveMessage('');
     try {
-      console.log('Saving settings payload:', {
-        platformName,
-        supportEmail,
-        currency,
-        locale,
-        twoFactor,
-        sessionLock,
-        auditLogs,
-        ipRestriction,
-        notifications,
-      });
-      const { data } = await api.put('/api/settings', {
-        platformName,
-        supportEmail,
-        currency,
-        locale,
-        twoFactor,
-        sessionLock,
-        auditLogs,
-        ipRestriction,
-        notifications,
-      });
-      setSaveMessage('Your settings were saved successfully.');
-    } catch (error) {
-      setSaveMessage(getApiErrorMessage(error, 'Failed to save settings.'));
+      const response = await updateSettings(category, updatedSettings);
+      setSaveMessage(response.message);
+      // Refresh settings to get the latest data
+      await loadSettings();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update settings');
     } finally {
       setIsSaving(false);
-      setTimeout(() => setSaveMessage(''), 4000);
     }
   };
 
-  const handleNotificationToggle = (
-    eventKey: string,
-    channel: 'email' | 'push',
-    enabled: boolean
-  ) => {
-    setNotifications((prev) => ({
-      ...prev,
-      [eventKey]: {
-        ...prev[eventKey],
-        [channel]: enabled,
-      },
-    }));
+  // Helper functions to update specific settings
+  const updateCompanySettings = (updates: Partial<AdminSettings['company']>) => {
+    if (!settings) return;
+    const newSettings = { ...settings, company: { ...settings.company, ...updates } };
+    setSettings(newSettings);
+    handleSaveSettings('company', newSettings.company);
+  };
+
+  const updateAttendanceSettings = (updates: Partial<AdminSettings['attendance']>) => {
+    if (!settings) return;
+    const newSettings = { ...settings, attendance: { ...settings.attendance, ...updates } };
+    setSettings(newSettings);
+    handleSaveSettings('attendance', newSettings.attendance);
+  };
+
+  const updateLeaveSettings = (updates: Partial<AdminSettings['leave']>) => {
+    if (!settings) return;
+    const newSettings = { ...settings, leave: { ...settings.leave, ...updates } };
+    setSettings(newSettings);
+    handleSaveSettings('leave', newSettings.leave);
+  };
+
+  const updateNotificationSettings = (updates: Partial<AdminSettings['notifications']>) => {
+    if (!settings) return;
+    const newSettings = { ...settings, notifications: { ...settings.notifications, ...updates } };
+    setSettings(newSettings);
+    handleSaveSettings('notifications', newSettings.notifications);
+  };
+
+  const updatePayrollSettings = (updates: Partial<AdminSettings['payroll']>) => {
+    if (!settings) return;
+    const newSettings = { ...settings, payroll: { ...settings.payroll, ...updates } };
+    setSettings(newSettings);
+    handleSaveSettings('payroll', newSettings.payroll);
   };
 
   const renderPanel = () => {
+    if (!settings) return null;
+
     switch (activeTab) {
       case 'general':
         return (
           <GeneralSettingsPanel
-            platformName={platformName}
-            supportEmail={supportEmail}
-            currency={currency}
-            locale={locale}
-            onPlatformNameChange={setPlatformName}
-            onSupportEmailChange={setSupportEmail}
-            onCurrencyChange={setCurrency}
-            onLocaleChange={setLocale}
+            platformName={settings.company.name}
+            supportEmail="" // This would come from settings in a real implementation
+            currency={settings.payroll.currency}
+            locale="en" // This would come from settings in a real implementation
+            onPlatformNameChange={(value) => updateCompanySettings({ name: value })}
+            onSupportEmailChange={(value) => console.log('Support email update:', value)}
+            onCurrencyChange={(value) => updatePayrollSettings({ currency: value })}
+            onLocaleChange={(value) => console.log('Locale update:', value)}
           />
         );
       case 'security':
         return (
           <SecuritySettingsPanel
-            twoFactor={twoFactor}
-            sessionLock={sessionLock}
-            auditLogs={auditLogs}
-            ipRestriction={ipRestriction}
-            onTwoFactorChange={setTwoFactor}
-            onSessionLockChange={setSessionLock}
-            onAuditLogsChange={setAuditLogs}
-            onIpRestrictionChange={setIpRestriction}
+            twoFactor={true} // This would come from settings in a real implementation
+            sessionLock={true} // This would come from settings in a real implementation
+            auditLogs={true} // This would come from settings in a real implementation
+            ipRestriction={false} // This would come from settings in a real implementation
+            onTwoFactorChange={(value) => console.log('2FA update:', value)}
+            onSessionLockChange={(value) => console.log('Session lock update:', value)}
+            onAuditLogsChange={(value) => console.log('Audit logs update:', value)}
+            onIpRestrictionChange={(value) => console.log('IP restriction update:', value)}
           />
         );
       case 'notifications':
         return (
           <NotificationsSettingsPanel
-            preferences={notifications}
-            onToggle={handleNotificationToggle}
+            preferences={{
+              login: { email: settings.notifications.emailEnabled, push: settings.notifications.pushEnabled },
+              payroll: { email: settings.notifications.emailEnabled, push: false },
+              leave: { email: settings.notifications.emailEnabled, push: settings.notifications.pushEnabled },
+              reports: { email: settings.notifications.dailyReports, push: false },
+            }}
+            onToggle={(eventKey, channel, enabled) => {
+              if (channel === 'email') {
+                updateNotificationSettings({ emailEnabled: enabled });
+              } else if (channel === 'push') {
+                updateNotificationSettings({ pushEnabled: enabled });
+              }
+            }}
           />
         );
       case 'api':
@@ -221,16 +218,35 @@ export default function SettingsPage() {
         </div>
       ) : (
         <>
+          {error && (
+            <motion.div variants={itemVariants} className="glass-card p-6 text-center">
+              <p className="text-error mb-4">{error}</p>
+              <button 
+                onClick={loadSettings}
+                className="text-primary font-bold hover:underline flex items-center gap-2 mx-auto"
+              >
+                <RefreshCw size={16} />
+                Try Again
+              </button>
+            </motion.div>
+          )}
+
+          {saveMessage && (
+            <motion.div variants={itemVariants} className="glass-card p-4 text-center bg-emerald-500/10 border-emerald-500/20">
+              <p className="text-emerald-600 font-medium">{saveMessage}</p>
+            </motion.div>
+          )}
+
           <motion.div variants={itemVariants}>
             <SettingsHero
-          onSave={handleSave}
-          isSaving={isSaving}
-          saveMessage={saveMessage}
-        />
-      </motion.div>
+              onSave={() => console.log('Save triggered from hero')}
+              isSaving={isSaving}
+              saveMessage={saveMessage}
+            />
+          </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <motion.div variants={itemVariants} className="lg:col-span-4 xl:col-span-3">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <motion.div variants={itemVariants} className="lg:col-span-4 xl:col-span-3">
           <SettingsSidebar
             tabs={tabs}
             activeTab={activeTab}
