@@ -1,12 +1,4 @@
 import { api, getApiErrorMessage } from '@/lib/api';
-import {
-  createDevAuthSession,
-  isDevAuthSession,
-  matchesDevCredentialsForPortal,
-  matchesEmployeeDevCredentials,
-  matchesPlatformDevCredentials,
-  matchesSuperAdminDevCredentials,
-} from '@/lib/devAuth';
 import { getAuthSession, getAuthToken, writeTokenCookie } from '@/lib/authStorage';
 import { mapApiProfileResponse } from '@/lib/profileMapper';
 import {
@@ -96,69 +88,13 @@ async function tryApiLogin(
   };
 }
 
-function tryDevLogin(portal: PortalType) {
-  const session = createDevAuthSession(portal);
-  if (portal !== 'super_admin') {
-    const loginLocation = 'Local device';
-    setLoginLocationBanner(loginLocation);
-    if (session.user.profile?.security) {
-      session.user.profile.security.lastLoginLocation = loginLocation;
-    }
-  }
-  return session;
-}
-
-function getPortalMismatchMessage(
-  credentials: LoginRequest,
-  portal: PortalType
-): string | null {
-  if (
-    portal !== 'super_admin' &&
-    matchesSuperAdminDevCredentials(credentials.email, credentials.password)
-  ) {
-    return 'This account is for Super Admin. Switch to the Super Admin tab.';
-  }
-
-  if (
-    portal !== 'platform_admin' &&
-    matchesPlatformDevCredentials(credentials.email, credentials.password)
-  ) {
-    return 'This account is for Admin Panel. Switch to the Admin Panel tab.';
-  }
-
-  if (
-    portal !== 'employee' &&
-    matchesEmployeeDevCredentials(credentials.email, credentials.password)
-  ) {
-    return 'This account is for Employee Portal.';
-  }
-
-  return null;
-}
-
 export async function loginRequest(
   credentials: LoginRequest,
   portal: PortalType
 ) {
-  const portalMismatch = getPortalMismatchMessage(credentials, portal);
-  if (portalMismatch) {
-    throw new Error(portalMismatch);
-  }
-
   try {
     return await tryApiLogin(credentials, portal);
   } catch (apiError) {
-    const canUseDevLogin = matchesDevCredentialsForPortal(
-      credentials.email,
-      credentials.password,
-      portal
-    );
-
-    if (canUseDevLogin) {
-      console.info('[HRM] API login unavailable — using offline demo session');
-      return tryDevLogin(portal);
-    }
-
     throw new Error(
       getApiErrorMessage(
         apiError,
@@ -190,10 +126,6 @@ export interface RegisterResponse {
 }
 
 function assertRegisterAuthToken() {
-  if (isDevAuthSession()) {
-    throw new Error('Registration is unavailable. Please sign in again.');
-  }
-
   const token = getAuthToken();
   if (!token) {
     throw new Error('Please sign in again.');

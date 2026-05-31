@@ -47,9 +47,6 @@ export async function fetchTodayAttendance(): Promise<AttendanceRecord[]> {
     );
     return data.attendances;
   } catch (error) {
-    if (isDevAuthSession()) {
-      return [];
-    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load today attendance. Please try again.')
     );
