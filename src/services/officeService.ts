@@ -54,10 +54,12 @@ export interface OfficeDetail extends Office {
 }
 
 interface OfficesResponse {
+  success: boolean;
   offices: ApiOffice[];
 }
 
 interface OfficeDetailResponse {
+  success: boolean;
   office: ApiOffice & { employees?: OfficeEmployee[] };
 }
 
@@ -158,6 +160,9 @@ export async function fetchOffices(): Promise<Office[]> {
 
   try {
     const { data } = await api.get<OfficesResponse>('/api/admin/offices');
+    if (!data.success) {
+      throw new Error('Failed to load offices');
+    }
     return data.offices.map(mapOffice);
   } catch (error) {
     throw new Error(
@@ -173,6 +178,9 @@ export async function fetchOfficeById(id: string): Promise<OfficeDetail> {
     const { data } = await api.get<OfficeDetailResponse>(
       `/api/admin/offices/${id}`
     );
+    if (!data.success) {
+      throw new Error('Failed to load office details');
+    }
     return mapOfficeDetail(data.office);
   } catch (error) {
     throw new Error(
