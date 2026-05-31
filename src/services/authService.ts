@@ -96,15 +96,15 @@ export async function loginRequest(
   credentials: LoginRequest,
   portal: PortalType
 ) {
+  // Use dev auth for local development when credentials match
+  if (matchesDevCredentialsForPortal(credentials.email, credentials.password, portal)) {
+    const devSession = createDevAuthSession(portal);
+    return devSession;
+  }
+
   try {
     return await tryApiLogin(credentials, portal);
   } catch (apiError) {
-    // Fallback to dev auth for local development
-    if (matchesDevCredentialsForPortal(credentials.email, credentials.password, portal)) {
-      const devSession = createDevAuthSession(portal);
-      return devSession;
-    }
-
     throw new Error(
       getApiErrorMessage(
         apiError,
