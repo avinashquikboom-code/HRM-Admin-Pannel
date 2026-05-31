@@ -54,11 +54,7 @@ const revenueData = [
   { name: 'Jul', value: 700000, active: 680000 },
 ];
 
-const subscriptionData = [
-  { name: 'Enterprise', value: 450, color: '#1E293B' },
-  { name: 'Pro', value: 380, color: '#F4B860' },
-  { name: 'Basic', value: 220, color: '#3BA38B' },
-];
+// subscriptionData now comes from useDashboardStats hook
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -358,7 +354,7 @@ const DashboardPage = () => {
           <ChartContainer heightClassName="h-64">
               <PieChart>
                 <Pie
-                  data={subscriptionData}
+                  data={data?.subscriptionDistribution || []}
                   cx="50%"
                   cy="50%"
                   innerRadius={70}
@@ -368,7 +364,7 @@ const DashboardPage = () => {
                   stroke="none"
                   animationDuration={1500}
                 >
-                  {subscriptionData.map((entry, index) => (
+                  {(data?.subscriptionDistribution || []).map((entry: { color: string }, index: number) => (
                     <Cell 
                       key={`cell-${index}`} 
                       fill={entry.color} 
@@ -380,13 +376,13 @@ const DashboardPage = () => {
               </PieChart>
           </ChartContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-stat-value">1,050</span>
+              <span className="text-stat-value">{(data?.subscriptionDistribution || []).reduce((acc: number, curr: { value: number }) => acc + curr.value, 0).toLocaleString()}</span>
               <span className="text-label text-text-secondary">Active Plans</span>
             </div>
           </div>
 
           <div className="space-y-4 mt-auto">
-            {subscriptionData.map((item) => (
+            {(data?.subscriptionDistribution || []).map((item: { name: string; value: number; color: string }) => (
               <div key={item.name} className="flex items-center justify-between p-4 rounded-2xl bg-surface-variant group/item hover:bg-surface transition-all border border-transparent hover:border-border shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }}></div>

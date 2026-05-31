@@ -1,10 +1,17 @@
 import { getAuthToken } from '@/lib/authStorage';
 
+export interface SubscriptionPlan {
+  name: string;
+  value: number;
+  color: string;
+}
+
 export interface DashboardStats {
   totalEmployees: number;
   presentToday: number;
   onLeave: number;
   newHires: number;
+  subscriptionDistribution: SubscriptionPlan[];
 }
 
 export async function fetchDashboardStats(): Promise<DashboardStats> {

@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { fetchDashboardStats, type DashboardStats } from '@/services/dashboardService';
+import { fetchDashboardStats, type DashboardStats, type SubscriptionPlan } from '@/services/dashboardService';
 
 export interface DashboardData extends DashboardStats {
   totalCompanies: number;
   platformWorkforce: number;
   manualAudits: number;
   monthlyRevenue: number;
+  subscriptionDistribution: SubscriptionPlan[];
 }
 
 export function useDashboardStats() {
@@ -36,6 +37,7 @@ export function useDashboardStats() {
         platformWorkforce: apiData.totalEmployees ?? 0,
         manualAudits: apiData.onLeave ?? 0,
         monthlyRevenue: (apiData.presentToday ?? 0) * 5000 + 1200000,
+        subscriptionDistribution: apiData.subscriptionDistribution || [],
       });
       return apiData;
     } catch (err) {
