@@ -102,7 +102,7 @@ export interface HRActivityItem {
   date: string;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5003';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://quickboom-hrm-backend-gjch.onrender.com';
 
 async function getHeaders() {
   const token = await getAuthToken();
