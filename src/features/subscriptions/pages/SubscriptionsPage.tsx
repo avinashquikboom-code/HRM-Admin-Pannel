@@ -54,11 +54,7 @@ const revenueData = [
   { name: 'Jun', value: 850000, churn: 9000 },
 ];
 
-const planDistribution = [
-  { name: 'Enterprise', value: 45, color: '#6366F1' },
-  { name: 'Pro', value: 35, color: '#F59E0B' },
-  { name: 'Basic', value: 20, color: '#10B981' },
-];
+// planDistribution is now computed dynamically from subscriptions data below
 
 const recentInvoices = [
   { 
@@ -381,11 +377,23 @@ const SubscriptionsPage = () => {
     return matchesSearch && matchesPlan && matchesStatus;
   });
 
-  const activePlanMix = stats?.planMix?.map((p) => ({
+  const activePlanMix = stats?.planMix?.map((p: { name: string; percent: number; color: string }) => ({
     name: p.name,
     value: p.percent,
     color: p.color === 'bg-primary' ? '#6366F1' : p.color === 'bg-accent' ? '#F59E0B' : '#10B981'
-  })) ?? planDistribution;
+  })) ?? (() => {
+    const counts: Record<string, number> = {};
+    subscriptions.forEach((s) => {
+      counts[s.plan] = (counts[s.plan] || 0) + 1;
+    });
+    const total = subscriptions.length || 1;
+    const colors: Record<string, string> = { Enterprise: '#6366F1', Pro: '#F59E0B', Basic: '#10B981' };
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value: Math.round((value / total) * 100),
+      color: colors[name] || '#64748B',
+    }));
+  })();
 
   const revenueVal = stats ? `₹${stats.monthlyRevenue.toLocaleString('en-IN')}` : '₹8,42,500';
   const seatsVal = stats ? stats.globalSeats.toLocaleString('en-IN') : '1,284';
@@ -579,7 +587,7 @@ const SubscriptionsPage = () => {
                   animationDuration={1500}
                   stroke="none"
                 >
-                  {activePlanMix.map((entry, index) => (
+                  {activePlanMix.map((entry: { color: string }, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} className="outline-none hover:opacity-85 transition-opacity" />
                   ))}
                 </Pie>
@@ -602,7 +610,7 @@ const SubscriptionsPage = () => {
           </div>
 
           <div className="space-y-3 relative z-10 mt-auto">
-            {activePlanMix.map((plan) => (
+            {activePlanMix.map((plan: { name: string; value: number; color: string }) => (
               <div 
                 key={plan.name} 
                 className="flex items-center justify-between p-3.5 rounded-2xl bg-surface-variant/30 hover:bg-surface-variant/70 border border-border/40 hover:border-border transition-all duration-300 group/item cursor-default shadow-sm"

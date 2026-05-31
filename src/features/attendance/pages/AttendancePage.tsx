@@ -36,13 +36,6 @@ import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
 
-const attendanceStats = [
-  { name: 'On-time', value: 38500 },
-  { name: 'Late', value: 4200 },
-  { name: 'Absent', value: 3220 },
-];
-
-const COLORS = ['#3BA38B', '#F4B860', '#EF4444'];
 
 function formatCheckInTime(value: string | null) {
   if (!value) return '—';
