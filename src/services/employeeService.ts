@@ -127,3 +127,36 @@ export async function unassignEmployeeFromOffice(
     );
   }
 }
+
+export interface RegisterUserRequest {
+  email: string;
+  password: string;
+  role: 'EMPLOYEE' | 'HR';
+}
+
+export interface RegisterUserResponse {
+  success: boolean;
+  message: string;
+  user: {
+    id: number;
+    email: string;
+    role: string;
+    createdAt: string;
+  };
+}
+
+export async function registerUser(
+  credentials: RegisterUserRequest
+): Promise<RegisterUserResponse> {
+  try {
+    const { data } = await api.post<RegisterUserResponse>(
+      '/api/auth/register',
+      credentials
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to register user. Please try again.')
+    );
+  }
+}
