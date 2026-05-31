@@ -220,19 +220,20 @@ const EditProfilePage = () => {
         className="max-w-5xl mx-auto space-y-8 pb-10"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex items-center justify-between bg-surface/50 backdrop-blur-xl p-6 rounded-[32px] border border-border/50 shadow-sm">
-          <div className="flex items-center gap-5">
+        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 shadow-2xl flex items-center justify-between gap-6 animate-fadeIn">
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+          <div className="relative z-10 flex items-center gap-5">
             <motion.button
               whileHover={{ scale: 1.05, x: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push(profileBasePath)}
-              className="p-3.5 bg-surface border border-border rounded-2xl text-text-secondary hover:text-primary transition-all shadow-sm group"
+              className="p-3.5 bg-white/5 border border-white/10 rounded-2xl text-slate-400 hover:text-primary hover:bg-white/10 transition-all shadow-sm group"
             >
               <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
             </motion.button>
             <div>
-              <h1 className="heading-2">System Identity Configuration</h1>
-              <p className="text-sm text-text-secondary font-medium">Update your administrative credentials and public profile.</p>
+              <h1 className="text-3xl font-black text-white tracking-tight leading-none">System Identity Configuration</h1>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-2">Update your administrative credentials and public profile.</p>
             </div>
           </div>
         </motion.div>
@@ -247,8 +248,8 @@ const EditProfilePage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Avatar & Quick Info */}
             <motion.div variants={itemVariants} className="space-y-8">
-              <div className="glass-card p-6 sm:p-8 md:p-10 flex flex-col items-center text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+              <div className="bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-8 flex flex-col items-center text-center relative overflow-hidden">
+                <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full filter blur-2xl pointer-events-none" />
 
                 <div className="relative group mb-6">
                   <input
@@ -260,23 +261,25 @@ const EditProfilePage = () => {
                   />
                   <motion.div
                     whileHover={{ scale: 1.02 }}
-                    className="w-48 h-48 rounded-full bg-surface-variant border-4 border-surface shadow-2xl flex items-center justify-center overflow-hidden relative"
+                    className="w-44 h-44 rounded-full p-2 bg-white/10 backdrop-blur-md shadow-2xl border border-white/20 relative overflow-hidden group-hover:border-primary/40 transition-colors duration-500 flex items-center justify-center"
                   >
-                    {resolvedAvatarSrc ? (
-                      <img src={resolvedAvatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={100} className="text-muted" />
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      {isAvatarLoading ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                          className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full"
-                        />
+                    <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden relative">
+                      {resolvedAvatarSrc ? (
+                        <img src={resolvedAvatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover animate-fadeIn" />
                       ) : (
-                        <Camera size={32} className="text-white" />
+                        <User size={90} className="text-slate-400" />
                       )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                        {isAvatarLoading ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                            className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full"
+                          />
+                        ) : (
+                          <Camera size={28} className="text-white" />
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                   <motion.button
@@ -285,14 +288,14 @@ const EditProfilePage = () => {
                     type="button"
                     disabled={isAvatarLoading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-2 right-2 p-4 bg-primary text-white rounded-2xl shadow-xl border-4 border-surface active:scale-95 disabled:opacity-60"
+                    className="absolute -bottom-1 -right-1 p-3.5 rounded-2xl bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 transition-transform active:scale-95 disabled:opacity-60 cursor-pointer"
                   >
-                    <Camera size={20} />
+                    <Camera size={16} />
                   </motion.button>
                 </div>
 
-                <h3 className="text-lg font-black text-text-primary mb-1">Administrator Avatar</h3>
-                <p className="text-xs text-text-secondary font-medium px-4">
+                <h3 className="text-lg font-black text-white mb-1">Administrator Avatar</h3>
+                <p className="text-xs text-slate-400 font-medium px-4">
                   This image will be visible across the system for all verified entities.
                 </p>
 
@@ -308,7 +311,7 @@ const EditProfilePage = () => {
                     type="button"
                     disabled={isAvatarLoading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-3 text-xs font-black text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/10 uppercase tracking-widest disabled:opacity-60"
+                    className="flex-1 py-3.5 text-[10px] font-black text-primary bg-primary/10 hover:bg-primary/15 rounded-xl transition-all border border-primary/20 hover:border-primary/30 uppercase tracking-widest disabled:opacity-60 active:scale-95 cursor-pointer"
                   >
                     {isAvatarLoading ? 'Processing...' : 'Upload'}
                   </button>
@@ -316,34 +319,35 @@ const EditProfilePage = () => {
                     type="button"
                     disabled={isAvatarLoading || !hasCustomAvatar}
                     onClick={handleAvatarRemove}
-                    className="flex-1 py-3 text-xs font-black text-error bg-error/5 hover:bg-error/10 rounded-xl transition-all border border-error/10 uppercase tracking-widest disabled:opacity-60"
+                    className="flex-1 py-3.5 text-[10px] font-black text-error bg-error/10 hover:bg-error/15 rounded-xl transition-all border border-error/20 hover:border-error/30 uppercase tracking-widest disabled:opacity-60 active:scale-95 cursor-pointer"
                   >
                     Remove
                   </button>
                 </div>
               </div>
 
-              <div className="glass-card p-8 bg-surface-variant/30 border-dashed border-2 border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-secondary/10 text-secondary rounded-lg">
+              <div className="bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-6 relative overflow-hidden">
+                <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-emerald-500/5 rounded-full filter blur-2xl pointer-events-none" />
+                <div className="flex items-center gap-3 mb-5 relative z-10">
+                  <div className="p-2.5 bg-primary/10 text-primary rounded-xl border border-primary/10">
                     <ShieldCheck size={18} />
                   </div>
-                  <h4 className="text-sm font-black text-text-primary uppercase tracking-tight">Security Status</h4>
+                  <h4 className="text-xs font-black text-white uppercase tracking-widest">Security Telemetry</h4>
                 </div>
-                <ul className="space-y-3">
-                  <li className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-text-secondary">2FA Authentication</span>
-                    <span className="text-success uppercase">{security?.twoFactorStatus || 'Active'}</span>
+                <ul className="space-y-4 relative z-10">
+                  <li className="flex items-center justify-between text-[11px] font-bold border-b border-white/5 pb-2">
+                    <span className="text-slate-400">2FA Authentication</span>
+                    <span className="text-emerald-400 uppercase tracking-wider">{security?.twoFactorStatus || 'Active'}</span>
                   </li>
                   {!hideLoginTracking && (
-                    <li className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-text-secondary">Last Login</span>
-                      <span className="text-text-primary">{security?.lastLoginLocation || '—'}</span>
+                    <li className="flex items-center justify-between text-[11px] font-bold border-b border-white/5 pb-2">
+                      <span className="text-slate-400">Last Node Access</span>
+                      <span className="text-white">{security?.lastLoginLocation || '—'}</span>
                     </li>
                   )}
-                  <li className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-text-secondary">Clearance Level</span>
-                    <span className="text-primary uppercase">{security?.clearanceLabel || 'Level 5'}</span>
+                  <li className="flex items-center justify-between text-[11px] font-bold">
+                    <span className="text-slate-400">Clearance Level</span>
+                    <span className="text-primary uppercase tracking-wider">{security?.clearanceLabel || 'Level 5'}</span>
                   </li>
                 </ul>
               </div>
@@ -351,14 +355,14 @@ const EditProfilePage = () => {
 
             {/* Right Column: Form Fields */}
             <motion.div variants={itemVariants} className="lg:col-span-2 space-y-8">
-              <div className="glass-card p-6 sm:p-8 md:p-10 space-y-10">
-                <div className="flex items-center gap-4 border-b border-border/50 pb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              <div className="bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-6 sm:p-8 space-y-8">
+                <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <Info size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-text-primary tracking-tight">Registry Details</h3>
-                    <p className="text-xs text-text-secondary font-medium">Verified system information for the controller account.</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">Registry Details</h3>
+                    <p className="text-xs text-slate-400 font-medium">Verified system information for the controller account.</p>
                   </div>
                 </div>
 
@@ -397,70 +401,71 @@ const EditProfilePage = () => {
                   </div>
 
                   <div className="relative">
-                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
+                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-slate-400 z-10">
                       Time Zone
                     </label>
-                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border-2 border-transparent rounded-[24px] flex items-center gap-3 text-text-primary font-bold text-sm">
+                    <div className="w-full px-6 pt-7 pb-3 bg-slate-950/40 border border-white/5 hover:border-white/10 rounded-[24px] flex items-center gap-3 text-white font-bold text-sm transition-all">
                       <Globe size={18} className="text-primary/70" />
                       <span className="truncate">{profile?.timezoneLabel || 'Asia/Kolkata (IST)'}</span>
                     </div>
                   </div>
 
                   <div className="relative md:col-span-2">
-                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
+                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-slate-400 z-10">
                       Linked Office
                     </label>
-                    {officesLoading && <p className="px-6 pt-7 pb-3 text-sm font-bold text-text-secondary">Loading offices…</p>}
+                    {officesLoading && <p className="px-6 pt-7 pb-3 text-sm font-bold text-slate-400">Loading offices…</p>}
                     {officesError && <p className="px-6 pt-7 pb-3 text-sm font-bold text-error">{officesError}</p>}
                     {!officesLoading && !officesError && (
-                      <select
-                        {...register('officeId')}
-                        className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border-2 border-transparent rounded-[24px] outline-none focus:bg-surface focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-text-primary text-sm font-bold appearance-none cursor-pointer"
-                      >
-                        <option value="">System Default</option>
-                        {offices.map((office) => (
-                          <option key={office.id} value={office.id}>{office.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          {...register('officeId')}
+                          className="w-full px-5 pt-7 pb-3 bg-slate-950/40 border border-white/5 hover:border-white/10 rounded-[24px] outline-none focus:bg-slate-900 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-white text-sm font-bold appearance-none cursor-pointer"
+                        >
+                          <option value="" className="bg-slate-950 text-white">System Default</option>
+                          {offices.map((office) => (
+                            <option key={office.id} value={office.id} className="bg-slate-950 text-white">{office.name}</option>
+                          ))}
+                        </select>
+                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          ▼
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2.5">
-                <label className="text-micro font-black text-muted uppercase tracking-[0.2em] ml-1">Administrative Bio</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Administrative Bio</label>
                 <textarea
                   {...register('bio')}
-                  rows={5}
+                  rows={4}
                   placeholder="Describe your role and focus areas..."
                   className={cn(
-                    "w-full px-6 py-5 bg-surface-variant/50 border-2 border-transparent rounded-[32px] outline-none focus:bg-surface focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-text-primary resize-none",
-                    errors.bio && "border-error/50 bg-error/5 focus:ring-error/5"
+                    "w-full px-6 py-5 bg-slate-950/40 border border-white/5 hover:border-white/10 rounded-[32px] outline-none focus:bg-slate-900 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-white resize-none shadow-inner",
+                    errors.bio && "border-error/40 bg-error/5 focus:ring-error/5 text-white"
                   )}
                 />
-                {errors.bio && <p className="text-micro text-error font-black uppercase tracking-wider ml-1">{errors.bio.message}</p>}
+                {errors.bio && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-2">{errors.bio.message}</p>}
               </div>
 
-
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-5">
-                <PremiumButton
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
+                <button
                   onClick={() => router.push(profileBasePath)}
                   type="button"
-                  variant="secondary"
-                  className="flex-1"
+                  className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-white cursor-pointer"
                 >
                   Discard Changes
-                </PremiumButton>
-                <PremiumButton
+                </button>
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  loading={isSubmitting}
-                  variant="primary"
-                  className="flex-[2]"
+                  className="flex-[2] flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-primary to-primary-hover text-slate-900 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 cursor-pointer"
                 >
-                  <Save size={20} />
+                  <Save size={16} />
                   Synchronize Profile
-                </PremiumButton>
+                </button>
               </motion.div>
             </motion.div>
           </div>

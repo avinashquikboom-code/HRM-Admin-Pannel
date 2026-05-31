@@ -29,6 +29,7 @@ import { formatLastLogin } from '@/lib/profileMapper';
 import { getProfileBasePath, isSuperAdminPath, getLoginPathForPortal } from '@/lib/portals';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
+import { cn } from '@/utils/cn';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
