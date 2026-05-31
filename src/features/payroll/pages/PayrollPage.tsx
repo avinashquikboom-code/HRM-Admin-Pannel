@@ -125,6 +125,40 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// ─── Module-level salary helpers ──────────────────────────────────────────
+const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+function numToWords(n: number): string {
+  if (n === 0) return 'Zero';
+  if (n < 0)   return 'Minus ' + numToWords(-n);
+  if (n < 20)  return ones[n];
+  if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+  if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + numToWords(n % 100) : '');
+  if (n < 100000) return numToWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + numToWords(n % 1000) : '');
+  if (n < 10000000) return numToWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + numToWords(n % 100000) : '');
+  return numToWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + numToWords(n % 10000000) : '');
+}
+
+function computeSlipData(slip: any, slipMonth: string) {
+  const basic         = slip.baseSalary;
+  const hra           = Math.round(basic * 0.40);
+  const ta            = Math.round(basic * 0.10);
+  const special       = Math.max(0, slip.allowance - hra - ta);
+  const grossEarnings = basic + hra + ta + special;
+  const pf            = Math.round(basic * 0.12);
+  const pt            = 200;
+  const tds           = Math.max(0, slip.deductions - pf - pt);
+  const totalDeductions = pf + pt + tds;
+  const netPay        = grossEarnings - totalDeductions;
+  const [yr, mo]      = slipMonth.split('-').map(Number);
+  const monthLabel    = new Date(yr, mo - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  const monthShort    = new Date(yr, mo - 1, 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }).replace(' ', '-');
+  const netInWords    = numToWords(netPay) + ' Rupees Only';
+  return { basic, hra, ta, special, grossEarnings, pf, pt, tds, totalDeductions, netPay, yr, mo, monthLabel, monthShort, netInWords };
+}
+// ───────────────────────────────────────────────────────────────────────────
+
 const PayrollPage = () => {
   const [stats, setStats] = useState<any>({ mtdVolume: 4128400, disbursed: 3842100, pending: 210450, errors: 0 });
   const [trendData, setTrendData] = useState<any[]>(payrollStats);
@@ -140,6 +174,20 @@ const PayrollPage = () => {
   const [isSlipsLoading, setIsSlipsLoading] = useState(false);
   const [selectedSlip, setSelectedSlip] = useState<any | null>(null);
   const [isSlipModalOpen, setIsSlipModalOpen] = useState(false);
+  // Default slip month = current month
+  const [slipMonth, setSlipMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  const [slipAttendance, setSlipAttendance] = useState<{
+    workingDays: number;
+    present: number;
+    absent: number;
+    halfDay: number;
+    late: number;
+    leave: number;
+  } | null>(null);
 
   const loadPayrollData = useCallback(async () => {
     setIsPageLoading(true);
@@ -184,6 +232,61 @@ const PayrollPage = () => {
   useEffect(() => {
     loadPayrollData();
   }, [loadPayrollData]);
+
+  useEffect(() => {
+    if (!selectedSlip) {
+      setSlipAttendance(null);
+      return;
+    }
+
+    const fetchAttendance = async () => {
+      try {
+        if (isDevAuthSession()) {
+          // Mock data in dev mode matching the screenshot
+          setSlipAttendance({
+            workingDays: 26,
+            present: 26,
+            absent: 0,
+            halfDay: 1,
+            late: 0,
+            leave: 3,
+          });
+        } else {
+          const res = await api.get<{ success: boolean; details: any[] }>(
+            `/api/admin/reports/attendance-details?month=${slipMonth}`
+          );
+          if (res.data.success) {
+            const empRecord = res.data.details.find(
+              (d: any) => d.employeeCode === selectedSlip.employeeCode
+            );
+            if (empRecord) {
+              setSlipAttendance({
+                workingDays: empRecord.totalDays || 26,
+                present: empRecord.present || 0,
+                absent: empRecord.absent || 0,
+                halfDay: empRecord.halfDay || 0,
+                late: empRecord.late || 0,
+                leave: empRecord.leave || 0,
+              });
+            } else {
+              setSlipAttendance({
+                workingDays: 26,
+                present: 26,
+                absent: 0,
+                halfDay: 0,
+                late: 0,
+                leave: 0,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch slip attendance details:', err);
+      }
+    };
+
+    fetchAttendance();
+  }, [selectedSlip, slipMonth]);
 
   const handleBulkDisburse = async () => {
     setIsDisbursing(true);
@@ -234,6 +337,36 @@ const PayrollPage = () => {
   );
 
   const isLoading = isPageLoading;
+
+  // Pre-compute slip data outside JSX (avoids function declarations in JSX expressions)
+  const slipData = selectedSlip ? computeSlipData(selectedSlip, slipMonth) : null;
+  const {
+    basic = 0,
+    hra = 0,
+    ta = 0,
+    special = 0,
+    grossEarnings = 0,
+    pf = 0,
+    pt = 0,
+    tds = 0,
+    totalDeductions = 0,
+    netPay = 0,
+    yr = 0,
+    mo = 0,
+    monthLabel = '',
+    monthShort = '',
+    netInWords = ''
+  } = slipData || {};
+
+  // Print handler — sets document.title to drive PDF filename
+  const handlePrintSlip = () => {
+    if (!selectedSlip || !slipData) return;
+    const prev = document.title;
+    const safeName = selectedSlip.name.replace(/\s+/g, '-');
+    document.title = `SalarySlip_${selectedSlip.employeeCode}_${safeName}_${monthShort}`;
+    window.print();
+    setTimeout(() => { document.title = prev; }, 1500);
+  };
 
   return (
     <motion.div 
@@ -707,85 +840,194 @@ const PayrollPage = () => {
       )}
 
       {/* View Payslip Modal */}
-      <Modal 
-        isOpen={isSlipModalOpen} 
+      <Modal
+        isOpen={isSlipModalOpen}
         onClose={() => setIsSlipModalOpen(false)}
         title="Employee Salary Slip"
       >
-        {selectedSlip && (
-          <div className="space-y-8 p-4 text-slate-100">
-            <div className="border border-white/10 rounded-3xl p-8 bg-slate-950/60 shadow-inner space-y-6">
-              {/* Header */}
-              <div className="flex justify-between items-start border-b border-white/5 pb-6">
-                <div>
-                  <h4 className="text-xl font-black text-white">QUICKBOOM</h4>
-                  <p className="text-xs text-slate-400 font-medium">Remuneration & Treasury Division</p>
+        {selectedSlip && slipData && (
+          <div className="space-y-6 p-2 text-slate-100 print:text-black" id="salary-slip-print">
+            {/* Month selector (hidden on print) */}
+            <div className="flex items-center gap-4 print:hidden">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Salary Month</label>
+              <input
+                type="month"
+                value={slipMonth}
+                onChange={e => setSlipMonth(e.target.value)}
+                className="px-4 py-2 bg-slate-800/80 border border-white/10 rounded-xl text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+              />
+            </div>
+
+            {/* ── SALARY SLIP DOCUMENT ── */}
+            <div className="border border-white/10 rounded-3xl overflow-hidden bg-slate-950/60 shadow-2xl">
+
+              {/* Company Header */}
+              <div className="bg-gradient-to-r from-primary/25 via-teal-500/15 to-emerald-500/10 border-b border-white/10 px-8 py-6 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/40">
+                    <Wallet size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-white tracking-tight">HRM</h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Human Resources · Payroll Division</p>
+                  </div>
                 </div>
-                <div className="text-right col-span-2">
-                  <span className="px-3 py-1 bg-success/15 text-success text-micro font-black rounded-full uppercase border border-success/25">Approved Ledger</span>
-                  <p className="text-xs text-slate-400 mt-2 font-mono">ID: QB-2026-{selectedSlip.id}</p>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Salary Slip</p>
+                  <p className="text-sm font-black text-primary mt-0.5">{monthLabel}</p>
+                  <p className="text-[10px] font-mono text-slate-500 mt-1">
+                    DOC: QB-PAY-{selectedSlip.employeeCode}-{yr}{String(mo).padStart(2, '0')}
+                  </p>
                 </div>
               </div>
 
-              {/* Employee info */}
-              <div className="grid grid-cols-2 gap-6 text-sm border-b border-white/5 pb-6">
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-400 font-bold uppercase">Employee Name</p>
-                  <p className="font-bold text-white">{selectedSlip.name}</p>
-                  <p className="text-xs text-slate-400 font-mono">{selectedSlip.employeeCode}</p>
-                </div>
-                <div className="space-y-1 text-right">
-                  <p className="text-xs text-slate-400 font-bold uppercase">Designation</p>
-                  <p className="font-bold text-white">{selectedSlip.designation}</p>
-                  <p className="text-xs text-slate-400 font-medium">{selectedSlip.department} · {selectedSlip.office}</p>
-                </div>
-              </div>
+              <div className="p-8 space-y-6">
 
-              {/* Salary Breakdown grid */}
-              <div className="grid grid-cols-2 gap-8 border-b border-white/5 pb-6">
-                <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase text-emerald-450 tracking-wider">Earnings</h5>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-450 font-medium">Basic Salary</span>
-                    <span className="font-bold text-white">₹{selectedSlip.baseSalary.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-455 font-medium">House Rent Allowance (HRA)</span>
-                    <span className="font-bold text-white">₹{selectedSlip.allowance.toLocaleString('en-IN')}</span>
-                  </div>
+                {/* Employee Info Grid */}
+                <div className="grid grid-cols-2 gap-x-12 gap-y-4 border border-white/8 rounded-2xl p-6">
+                  {([
+                    ['Employee Name',   selectedSlip.name],
+                    ['Employee Code',   selectedSlip.employeeCode],
+                    ['Designation',     selectedSlip.designation],
+                    ['Department',      selectedSlip.department],
+                    ['Office / Branch', selectedSlip.office],
+                    ['Pay Period',      monthLabel],
+                  ] as [string, string][]).map(([label, value]) => (
+                    <div key={label} className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
+                      <span className="text-sm font-bold text-white">{value}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-4 border-l border-white/5 pl-8">
-                  <h5 className="text-xs font-black uppercase text-rose-450 tracking-wider">Deductions</h5>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-450 font-medium">Provident Fund (PF)</span>
-                    <span className="font-bold text-white">₹{Math.round(selectedSlip.deductions * 0.6).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-455 font-medium">Professional Tax (PT)</span>
-                    <span className="font-bold text-white">₹{Math.round(selectedSlip.deductions * 0.4).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Totals */}
-              <div className="flex justify-between items-center pt-4">
-                <div>
-                  <p className="text-xs text-slate-400 font-bold uppercase">Net Payable Amount</p>
-                  <p className="text-3xl font-black text-primary">₹{selectedSlip.netSalary.toLocaleString('en-IN')}</p>
+                {/* Attendance Details Summary */}
+                {slipAttendance && (
+                  <div className="bg-white/3 border border-white/8 rounded-2xl p-5 space-y-3">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendance Details</h4>
+                    <div className="grid grid-cols-5 gap-3">
+                      {[
+                        { label: 'Working Days', value: slipAttendance.workingDays, color: 'text-white bg-white/5 border-white/10' },
+                        { label: 'Present Days', value: slipAttendance.present,     color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                        { label: 'Absent Days',  value: slipAttendance.absent,      color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+                        { label: 'Half Days',    value: slipAttendance.halfDay,     color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+                        { label: 'Leaves',       value: slipAttendance.leave,       color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className={`flex flex-col items-center justify-center p-3 rounded-xl border ${color} transition-all`}>
+                          <span className="text-lg font-black font-mono">{value}</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-1 text-center whitespace-nowrap">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Earnings & Deductions side-by-side */}
+                <div className="grid grid-cols-2 gap-6">
+
+                  {/* Earnings */}
+                  <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-2xl overflow-hidden">
+                    <div className="bg-emerald-500/10 px-5 py-3 border-b border-emerald-500/15">
+                      <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Earnings</h4>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      {([
+                        ['Basic Salary',              basic],
+                        ['House Rent Allowance (HRA)', hra],
+                        ['Transport Allowance (TA)',   ta],
+                        ['Special Allowance',          special],
+                      ] as [string, number][]).map(([label, amt]) => (
+                        <div key={label} className="flex justify-between items-center px-5 py-3">
+                          <span className="text-xs font-medium text-slate-400">{label}</span>
+                          <span className="text-xs font-black text-white font-mono">₹ {amt.toLocaleString('en-IN')}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center px-5 py-3 bg-emerald-500/10">
+                        <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">Gross Earnings</span>
+                        <span className="text-sm font-black text-emerald-400 font-mono">₹ {grossEarnings.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deductions */}
+                  <div className="bg-rose-500/5 border border-rose-500/15 rounded-2xl overflow-hidden">
+                    <div className="bg-rose-500/10 px-5 py-3 border-b border-rose-500/15">
+                      <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Deductions</h4>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      {([
+                        ['Provident Fund (EPF 12%)', pf],
+                        ['Professional Tax (PT)',    pt],
+                        ['TDS / Income Tax',         tds],
+                      ] as [string, number][]).map(([label, amt]) => (
+                        <div key={label} className="flex justify-between items-center px-5 py-3">
+                          <span className="text-xs font-medium text-slate-400">{label}</span>
+                          <span className="text-xs font-black text-white font-mono">₹ {amt.toLocaleString('en-IN')}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center px-5 py-3 bg-rose-500/10">
+                        <span className="text-xs font-black text-rose-400 uppercase tracking-wider">Total Deductions</span>
+                        <span className="text-sm font-black text-rose-400 font-mono">₹ {totalDeductions.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <button 
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-6 py-3 bg-white/10 hover:bg-white/15 border border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2"
-                >
-                  <Download size={14} />
-                  Print Payslip
-                </button>
+
+                {/* Net Pay Banner */}
+                <div className="bg-gradient-to-r from-primary/20 to-teal-500/10 border border-primary/25 rounded-2xl px-7 py-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Payable Amount</p>
+                    <p className="text-3xl font-black text-primary mt-1 font-mono">₹ {netPay.toLocaleString('en-IN')}</p>
+                    <p className="text-[10px] font-medium text-slate-400 mt-1 italic">{netInWords}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-3 py-1.5 bg-success/15 text-success text-[10px] font-black rounded-full uppercase border border-success/25">Approved</span>
+                    <p className="text-[10px] font-mono text-slate-500 mt-2">Paid via: Bank Transfer</p>
+                  </div>
+                </div>
+
+                {/* Signature lines */}
+                <div className="grid grid-cols-2 gap-8 pt-4 border-t border-white/5">
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Employee Acknowledgement</p>
+                    <div className="h-8 border-b border-dashed border-white/10" />
+                    <p className="text-[10px] text-slate-600">{selectedSlip.name} · {selectedSlip.employeeCode}</p>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Authorised Signatory</p>
+                    <div className="h-8 border-b border-dashed border-white/10" />
+                    <p className="text-[10px] text-slate-600">HR Department · HRM</p>
+                  </div>
+                </div>
+
+                <p className="text-center text-[9px] text-slate-600 pt-2">
+                  This is a computer-generated salary slip and does not require a physical signature. · {monthLabel}
+                </p>
               </div>
+            </div>
+
+            {/* Action buttons (hidden on print) */}
+            <div className="flex justify-end gap-3 print:hidden">
+              <button
+                type="button"
+                onClick={() => setIsSlipModalOpen(false)}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={handlePrintSlip}
+                className="px-7 py-3 bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-primary/25"
+              >
+                <Download size={14} />
+                Download PDF
+              </button>
             </div>
           </div>
         )}
       </Modal>
+
+
 
       {/* Process Payroll Modal */}
       <Modal 
