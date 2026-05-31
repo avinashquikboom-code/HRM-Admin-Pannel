@@ -72,7 +72,7 @@ const TasksPage = () => {
   const loadTasks = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await api.get<{ success: boolean; tasks: any[] }>('/api/admin/tasks');
+      const res = await api.get<{ success: boolean; tasks: any[] }>('/api/super-admin/tasks');
       if (res.data.success) {
         setTasks(res.data.tasks);
       }
@@ -104,7 +104,7 @@ const TasksPage = () => {
   const handleStatusChange = async (taskId: string, nextStatus: TaskStatus) => {
     try {
       const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
-      await api.put(`/api/admin/tasks/${taskId}`, {
+      await api.put(`/api/super-admin/tasks/${taskId}`, {
         status: nextStatus,
         progress: nextProgress
       });
@@ -126,7 +126,7 @@ const TasksPage = () => {
         return;
       }
 
-      await api.post('/api/admin/tasks', {
+      await api.post('/api/super-admin/tasks', {
         title,
         description,
         assigneeId: selectedEmp.id,
@@ -157,7 +157,7 @@ const TasksPage = () => {
     if (!deletingTaskId) return;
 
     try {
-      await api.delete(`/api/admin/tasks/${deletingTaskId}`);
+      await api.delete(`/api/super-admin/tasks/${deletingTaskId}`);
       await loadTasks();
     } catch (err) {
       console.error('Failed to delete task:', err);
