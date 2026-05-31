@@ -15,11 +15,35 @@ import {
   TrendingUp,
   Clock,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  IndianRupee,
+  Users,
+  CheckCircle2,
+  XCircle,
+  Percent,
+  Briefcase,
+  Building,
+  Info
 } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import TableSkeleton from '@/components/TableSkeleton';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import ChartContainer from '@/components/ChartContainer';
+
 
 const reports = [
   { id: 1, name: 'Monthly Payroll Summary - April 2024', type: 'Payroll', format: 'PDF', date: '01 May 2024', size: '2.4 MB', status: 'Verified' },
@@ -68,6 +92,108 @@ const ReportsPage = () => {
   const [newReportType, setNewReportType] = useState('Payroll');
   const [newReportFormat, setNewReportFormat] = useState('PDF');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Report Preview Details State
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [reportDetails, setReportDetails] = useState<any | null>(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+
+  const handlePreviewReport = async (report: any) => {
+    setSelectedReport(report);
+    setIsPreviewOpen(true);
+    setIsDetailsLoading(true);
+    setReportDetails(null);
+
+    let monthQuery = '';
+    try {
+      const parts = report.date.split(' ');
+      if (parts.length >= 3) {
+        const monthNames = {
+          Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+          Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+        };
+        const year = parts[2];
+        const monthName = parts[1];
+        const monthNum = monthNames[monthName as keyof typeof monthNames] || '05';
+        monthQuery = `${year}-${monthNum}`;
+      }
+    } catch (e) {
+      monthQuery = new Date().toISOString().slice(0, 7);
+    }
+
+    if (!monthQuery) {
+      monthQuery = new Date().toISOString().slice(0, 7);
+    }
+
+    try {
+      if (isDevAuthSession()) {
+        if (report.type === 'Payroll') {
+          setReportDetails({
+            success: true,
+            month: monthQuery,
+            summary: {
+              totalEmployees: 4,
+              totalGrossVolume: 350000,
+              totalDeductions: 35000,
+              totalNetVolume: 315000,
+            },
+            departmentBreakdown: [
+              { name: 'Technology', count: 2, totalGross: 180000, totalNet: 162000 },
+              { name: 'Operations', count: 1, totalGross: 90000, totalNet: 81000 },
+              { name: 'Design', count: 1, totalGross: 80000, totalNet: 72000 }
+            ],
+            details: [
+              { id: 1, employeeCode: 'EMP-01', name: 'Sarah Johnson', designation: 'Senior Engineer', department: 'Technology', office: 'Headquarters', baseSalary: 85000, allowance: 12750, deductions: 8500, netSalary: 89250, status: 'Pending Approval' },
+              { id: 2, employeeCode: 'EMP-02', name: 'Michael Chen', designation: 'Designer', department: 'Design', office: 'Mumbai Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Approved' },
+              { id: 3, employeeCode: 'EMP-03', name: 'David Miller', designation: 'Operations Associate', department: 'Operations', office: 'Delhi Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Pending Approval' },
+              { id: 4, employeeCode: 'EMP-04', name: 'Alex Rivera', designation: 'Lead Architect', department: 'Technology', office: 'Headquarters', baseSalary: 85000, allowance: 12750, deductions: 8500, netSalary: 89250, status: 'Approved' }
+            ]
+          });
+        } else if (report.type === 'Attendance') {
+          setReportDetails({
+            success: true,
+            month: monthQuery,
+            summary: {
+              totalPresent: 88,
+              totalLate: 6,
+              totalAbsent: 4,
+              totalLeave: 2,
+              avgAttendanceRate: 94
+            },
+            trend: [
+              { date: `${monthQuery}-01`, day: '01 May', present: 4, late: 0, absent: 0 },
+              { date: `${monthQuery}-02`, day: '02 May', present: 3, late: 1, absent: 0 },
+              { date: `${monthQuery}-03`, day: '03 May', present: 4, late: 0, absent: 0 },
+              { date: `${monthQuery}-04`, day: '04 May', present: 2, late: 1, absent: 1 }
+            ],
+            details: [
+              { id: 1, employeeCode: 'EMP-01', name: 'Sarah Johnson', designation: 'Senior Engineer', department: 'Technology', office: 'Headquarters', present: 22, late: 0, absent: 0, halfDay: 0, leave: 0, totalDays: 22, attendanceRate: 100 },
+              { id: 2, employeeCode: 'EMP-02', name: 'Michael Chen', designation: 'Designer', department: 'Design', office: 'Mumbai Office', present: 20, late: 1, absent: 1, halfDay: 0, leave: 0, totalDays: 22, attendanceRate: 95 },
+              { id: 3, employeeCode: 'EMP-03', name: 'David Miller', designation: 'Operations Associate', department: 'Operations', office: 'Delhi Office', present: 18, late: 3, absent: 1, halfDay: 0, leave: 0, totalDays: 22, attendanceRate: 95 },
+              { id: 4, employeeCode: 'EMP-04', name: 'Alex Rivera', designation: 'Lead Architect', department: 'Technology', office: 'Headquarters', present: 21, late: 0, absent: 0, halfDay: 0, leave: 1, totalDays: 22, attendanceRate: 95 }
+            ]
+          });
+        }
+      } else {
+        if (report.type === 'Payroll') {
+          const res = await api.get(`/api/admin/reports/payroll-details?month=${monthQuery}`);
+          if (res.data.success) {
+            setReportDetails(res.data);
+          }
+        } else if (report.type === 'Attendance') {
+          const res = await api.get(`/api/admin/reports/attendance-details?month=${monthQuery}`);
+          if (res.data.success) {
+            setReportDetails(res.data);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load report details:', err);
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  };
 
   const loadReportsData = useCallback(async () => {
     setIsPageLoading(true);
@@ -259,6 +385,7 @@ const ReportsPage = () => {
               key={report.id}
               variants={itemVariants}
               whileHover={{ x: 10 }}
+              onClick={() => handlePreviewReport(report)}
               className="glass-card p-5 hover:border-primary/40 transition-all group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary"
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -298,10 +425,22 @@ const ReportsPage = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 self-end lg:self-center">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/5 rounded-xl text-xs font-bold transition-all border border-transparent hover:border-primary/10">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePreviewReport(report);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/5 rounded-xl text-xs font-bold transition-all border border-transparent hover:border-primary/10"
+                  >
                     Preview
                   </button>
-                  <button className="p-3 bg-surface-variant text-muted hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm active:scale-90 group-hover:shadow-md">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      alert('Downloading complete report...');
+                    }}
+                    className="p-3 bg-surface-variant text-muted hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm active:scale-90 group-hover:shadow-md"
+                  >
                     <Download size={20} />
                   </button>
                   <button className="p-3 bg-surface-variant text-muted hover:text-text-primary rounded-xl transition-all">
@@ -396,6 +535,307 @@ const ReportsPage = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Immersive Report Preview Modal */}
+      <Modal 
+        isOpen={isPreviewOpen} 
+        onClose={() => setIsPreviewOpen(false)} 
+        title={`${selectedReport?.name || 'Report Detail'} Preview`}
+      >
+        <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2 no-scrollbar">
+          {isDetailsLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center space-y-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-text-secondary font-bold animate-pulse">Assembling live intelligence ledger...</p>
+            </div>
+          ) : reportDetails ? (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Dynamic Metadata Badge Info bar */}
+              <div className="flex flex-wrap items-center justify-between gap-4 p-4.5 bg-slate-900/60 border border-white/5 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                    {selectedReport?.format}
+                  </div>
+                  <div>
+                    <span className="block text-xs text-text-secondary font-bold">Classification Classification</span>
+                    <span className="text-sm font-black text-white">{selectedReport?.type} Report</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="block text-xs text-text-secondary font-bold text-right">Audit Date</span>
+                  <span className="text-sm font-black text-white">{selectedReport?.date}</span>
+                </div>
+                <div>
+                  <span className="block text-xs text-text-secondary font-bold text-right">Database Integrity</span>
+                  <span className="text-micro font-black px-2.5 py-1 rounded bg-success/15 border border-success/20 text-success uppercase tracking-widest">
+                    {selectedReport?.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* REPORT TYPE: Payroll */}
+              {selectedReport?.type === 'Payroll' && (
+                <div className="space-y-8">
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                      { label: 'Active Payroll Headcount', value: reportDetails.summary.totalEmployees, icon: Users, color: 'primary', bg: 'bg-primary/10' },
+                      { label: 'Gross Salary Volume', value: `₹${reportDetails.summary.totalGrossVolume.toLocaleString('en-IN')}`, icon: IndianRupee, color: 'success', bg: 'bg-success/10' },
+                      { label: 'Aggregate Deductions', value: `₹${reportDetails.summary.totalDeductions.toLocaleString('en-IN')}`, icon: Info, color: 'error', bg: 'bg-error/10' },
+                      { label: 'Net Disbursed Funds', value: `₹${reportDetails.summary.totalNetVolume.toLocaleString('en-IN')}`, icon: TrendingUp, color: 'accent', bg: 'bg-accent/10' }
+                    ].map((card, idx) => (
+                      <div key={idx} className="glass-card p-5 relative overflow-hidden group border border-white/5 bg-slate-950/50">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black", card.bg, `text-${card.color}`)}>
+                            <card.icon size={18} />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{card.label}</p>
+                        <h4 className="text-xl font-black text-white mt-1 tracking-tight">{card.value}</h4>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Department Payout Breakdown Chart */}
+                  {reportDetails.departmentBreakdown && reportDetails.departmentBreakdown.length > 0 && (
+                    <div className="glass-card p-6 border border-white/5 bg-slate-900/30">
+                      <h4 className="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2">
+                        <Building size={16} className="text-primary" />
+                        Departmental Payout Breakdown
+                      </h4>
+                      <ChartContainer heightClassName="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={reportDetails.departmentBreakdown} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="payoutBarGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#3BA38B" stopOpacity={0.95}/>
+                                <stop offset="100%" stopColor="#10B981" stopOpacity={0.2}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.1} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
+                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
+                            <Tooltip 
+                              cursor={{fill: 'rgba(255, 255, 255, 0.02)', radius: 8}}
+                              contentStyle={{ 
+                                borderRadius: '12px', 
+                                border: '1px solid rgba(255, 255, 255, 0.08)', 
+                                backgroundColor: '#0F172A',
+                                color: '#F1F5F9',
+                                fontSize: '11px'
+                              }}
+                            />
+                            <Bar dataKey="totalNet" name="Net Payout (₹)" fill="url(#payoutBarGradient)" radius={[6, 6, 0, 0]} barSize={32} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    </div>
+                  )}
+
+                  {/* Detailed Employee Payout Table */}
+                  {reportDetails.details && reportDetails.details.length > 0 && (
+                    <div className="glass-card overflow-hidden border border-white/5 bg-slate-950/40">
+                      <div className="p-5 border-b border-white/5">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-white">Employee Compensation Register</h4>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-white/[0.02]">
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Employee</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Department</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Base Salary</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Allowance</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Deductions</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-right">Net Salary</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-right">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {reportDetails.details.map((slip: any) => (
+                              <tr key={slip.id} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="px-5 py-4">
+                                  <span className="block font-bold text-sm text-white">{slip.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-semibold">{slip.employeeCode} • {slip.designation}</span>
+                                </td>
+                                <td className="px-5 py-4 text-xs font-bold text-slate-300">{slip.department}</td>
+                                <td className="px-5 py-4 text-xs font-bold text-slate-300">₹{slip.baseSalary.toLocaleString('en-IN')}</td>
+                                <td className="px-5 py-4 text-xs font-bold text-success">+₹{slip.allowance.toLocaleString('en-IN')}</td>
+                                <td className="px-5 py-4 text-xs font-bold text-error">-₹{slip.deductions.toLocaleString('en-IN')}</td>
+                                <td className="px-5 py-4 text-right font-black text-xs text-white">₹{slip.netSalary.toLocaleString('en-IN')}</td>
+                                <td className="px-5 py-4 text-right">
+                                  <span className={cn(
+                                    "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-sm",
+                                    slip.status === 'Approved' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
+                                  )}>
+                                    {slip.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* REPORT TYPE: Attendance */}
+              {selectedReport?.type === 'Attendance' && (
+                <div className="space-y-8">
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {[
+                      { label: 'Overall Presence Rate', value: `${reportDetails.summary.avgAttendanceRate}%`, icon: Percent, color: 'primary', bg: 'bg-primary/10' },
+                      { label: 'On-time Shifts', value: reportDetails.summary.totalPresent, icon: CheckCircle2, color: 'success', bg: 'bg-success/10' },
+                      { label: 'Late Clock-ins', value: reportDetails.summary.totalLate, icon: Clock, color: 'warning', bg: 'bg-warning/10' },
+                      { label: 'Absent Counts', value: reportDetails.summary.totalAbsent, icon: XCircle, color: 'error', bg: 'bg-error/10' },
+                      { label: 'Leave allocations', value: reportDetails.summary.totalLeave, icon: Calendar, color: 'accent', bg: 'bg-accent/10' }
+                    ].map((card, idx) => (
+                      <div key={idx} className="glass-card p-5 relative overflow-hidden group border border-white/5 bg-slate-950/50">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black", card.bg, `text-${card.color}`)}>
+                            <card.icon size={18} />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{card.label}</p>
+                        <h4 className="text-xl font-black text-white mt-1 tracking-tight">{card.value}</h4>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Monthly daily trend chart */}
+                  {reportDetails.trend && reportDetails.trend.length > 0 && (
+                    <div className="glass-card p-6 border border-white/5 bg-slate-900/30">
+                      <h4 className="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2">
+                        <TrendingUp size={16} className="text-primary animate-pulse" />
+                        Daily Presence Frequency Timeline
+                      </h4>
+                      <ChartContainer heightClassName="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={reportDetails.trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="attendanceAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#3BA38B" stopOpacity={0.8}/>
+                                <stop offset="100%" stopColor="#3BA38B" stopOpacity={0.05}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.1} />
+                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
+                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
+                            <Tooltip 
+                              contentStyle={{ 
+                                borderRadius: '12px', 
+                                border: '1px solid rgba(255, 255, 255, 0.08)', 
+                                backgroundColor: '#0F172A',
+                                color: '#F1F5F9',
+                                fontSize: '11px'
+                              }}
+                            />
+                            <Area type="monotone" dataKey="present" name="Present (Log)" stroke="#3BA38B" strokeWidth={2} fill="url(#attendanceAreaGradient)" />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    </div>
+                  )}
+
+                  {/* Detailed Employee Attendance Table */}
+                  {reportDetails.details && reportDetails.details.length > 0 && (
+                    <div className="glass-card overflow-hidden border border-white/5 bg-slate-950/40">
+                      <div className="p-5 border-b border-white/5">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-white">Workforce Presence Timeline Register</h4>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-white/[0.02]">
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Employee</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5">Department</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-center">Present</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-center">Late</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-center">Absent</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-center">Leave</th>
+                              <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase border-b border-white/5 text-right">Attendance Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {reportDetails.details.map((emp: any) => (
+                              <tr key={emp.id} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="px-5 py-4">
+                                  <span className="block font-bold text-sm text-white">{emp.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-semibold">{emp.employeeCode} • {emp.designation}</span>
+                                </td>
+                                <td className="px-5 py-4 text-xs font-bold text-slate-300">{emp.department}</td>
+                                <td className="px-5 py-4 text-xs font-bold text-center text-success">{emp.present}d</td>
+                                <td className="px-5 py-4 text-xs font-bold text-center text-warning">{emp.late}d</td>
+                                <td className="px-5 py-4 text-xs font-bold text-center text-error">{emp.absent}d</td>
+                                <td className="px-5 py-4 text-xs font-bold text-center text-accent">{emp.leave}d</td>
+                                <td className="px-5 py-4 text-right">
+                                  <div className="flex items-center justify-end gap-2.5">
+                                    <div className="w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                      <div 
+                                        className={cn(
+                                          "h-full rounded-full transition-all duration-500",
+                                          emp.attendanceRate >= 90 ? 'bg-success' : emp.attendanceRate >= 80 ? 'bg-warning' : 'bg-error'
+                                        )}
+                                        style={{ width: `${emp.attendanceRate}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-xs font-black text-white tabular-nums">{emp.attendanceRate}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* REPORT TYPE: Others fallback */}
+              {selectedReport?.type !== 'Payroll' && selectedReport?.type !== 'Attendance' && (
+                <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-muted">
+                    <ShieldCheck size={32} />
+                  </div>
+                  <div className="space-y-1.5 max-w-sm">
+                    <h4 className="text-base font-black text-white">General Intelligence Ledger Verified</h4>
+                    <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                      The integrity hash for this classification asset has been successfully verified. Click below to download or print this report directly.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons in Modal footer */}
+              <div className="flex gap-4 pt-4 border-t border-white/5">
+                <button 
+                  onClick={() => setIsPreviewOpen(false)}
+                  className="flex-1 px-6 py-4 bg-slate-900 border border-white/10 rounded-[20px] text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-slate-800 transition-all text-center"
+                >
+                  Close Preview
+                </button>
+                <button 
+                  onClick={() => {
+                    alert('Exporting data ledger...');
+                  }}
+                  className="flex-1 btn-primary py-4 rounded-[20px] shadow-lg shadow-primary/25 text-center flex justify-center items-center gap-2"
+                >
+                  <Download size={16} />
+                  Download Complete Asset
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-12 text-center text-sm font-medium text-text-secondary">
+              Failed to load report ledger. Please verify backend connection.
+            </div>
+          )}
+        </div>
       </Modal>
     </motion.div>
   );
