@@ -30,6 +30,7 @@ import { getProfileBasePath, isSuperAdminPath, getLoginPathForPortal } from '@/l
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import { cn } from '@/utils/cn';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },

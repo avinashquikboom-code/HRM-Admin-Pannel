@@ -220,24 +220,28 @@ const EditProfilePage = () => {
         variants={containerVariants}
         className="max-w-5xl mx-auto space-y-8 pb-10"
       >
-        {/* Header */}
-        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 shadow-2xl flex items-center justify-between gap-6 animate-fadeIn">
-          <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-          <div className="relative z-10 flex items-center gap-5">
-            <motion.button
-              whileHover={{ scale: 1.05, x: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => router.push(profileBasePath)}
-              className="p-3.5 bg-white/5 border border-white/10 rounded-2xl text-slate-400 hover:text-primary hover:bg-white/10 transition-all shadow-sm group"
-            >
-              <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-            </motion.button>
-            <div>
-              <h1 className="text-3xl font-black text-white tracking-tight leading-none">System Identity Configuration</h1>
-              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-2">Update your administrative credentials and public profile.</p>
-            </div>
-          </div>
-        </motion.div>
+        <SuperAdminHeader
+          title="System Identity Configuration"
+          subtitle="Update your administrative credentials and public profile."
+          badgeText="Profile Management"
+          badgeIcon={User}
+          stats={[
+            { label: 'Profile Status', value: 'Active', icon: ShieldCheck },
+            { label: 'Security Level', value: 'Maximum', icon: Globe },
+            { label: 'Last Updated', value: profile?.lastUpdated || 'Today', icon: Info },
+            { label: 'Account Type', value: 'Super Admin', icon: User }
+          ]}
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.push(profileBasePath)}
+            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95"
+          >
+            <ArrowLeft size={18} />
+            Back to Profile
+          </motion.button>
+        </SuperAdminHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {submitError && (
