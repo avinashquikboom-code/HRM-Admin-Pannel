@@ -153,15 +153,52 @@ export default function SettingsPage() {
   };
 
   const renderPanel = () => {
-    if (!settings) return null;
+    // Use default values if settings haven't loaded yet
+    const defaultSettings: AdminSettings = {
+      company: {
+        name: settings?.company.name || 'QuickBoom HRM',
+        logo: settings?.company.logo || '',
+        timezone: settings?.company.timezone || 'Asia/Kolkata',
+        workingDays: settings?.company.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        workingHours: settings?.company.workingHours || { start: '09:00', end: '18:00' },
+      },
+      attendance: {
+        lateThreshold: settings?.attendance.lateThreshold || 10,
+        halfDayThreshold: settings?.attendance.halfDayThreshold || 180,
+        autoMarkAbsent: settings?.attendance.autoMarkAbsent ?? true,
+        absentThreshold: settings?.attendance.absentThreshold || 240,
+      },
+      leave: {
+        casualLeavePerYear: settings?.leave.casualLeavePerYear || 12,
+        sickLeavePerYear: settings?.leave.sickLeavePerYear || 10,
+        earnedLeavePerYear: settings?.leave.earnedLeavePerYear || 15,
+        requireApproval: settings?.leave.requireApproval ?? true,
+        maxConsecutiveDays: settings?.leave.maxConsecutiveDays || 5,
+      },
+      notifications: {
+        emailEnabled: settings?.notifications.emailEnabled ?? true,
+        smsEnabled: settings?.notifications.smsEnabled ?? false,
+        pushEnabled: settings?.notifications.pushEnabled ?? true,
+        dailyReports: settings?.notifications.dailyReports ?? true,
+        weeklyReports: settings?.notifications.weeklyReports ?? true,
+      },
+      payroll: {
+        processingDay: settings?.payroll.processingDay || 25,
+        currency: settings?.payroll.currency || 'INR',
+        includeTax: settings?.payroll.includeTax ?? true,
+        includeProvidentFund: settings?.payroll.includeProvidentFund ?? true,
+      },
+    };
+
+    const currentSettings = settings || defaultSettings;
 
     switch (activeTab) {
       case 'general':
         return (
           <GeneralSettingsPanel
-            platformName={settings.company.name}
+            platformName={currentSettings.company.name}
             supportEmail="" // This would come from settings in a real implementation
-            currency={settings.payroll.currency}
+            currency={currentSettings.payroll.currency}
             locale="en" // This would come from settings in a real implementation
             onPlatformNameChange={(value) => updateCompanySettings({ name: value })}
             onSupportEmailChange={(value) => console.log('Support email update:', value)}
@@ -186,10 +223,10 @@ export default function SettingsPage() {
         return (
           <NotificationsSettingsPanel
             preferences={{
-              login: { email: settings.notifications.emailEnabled, push: settings.notifications.pushEnabled },
-              payroll: { email: settings.notifications.emailEnabled, push: false },
-              leave: { email: settings.notifications.emailEnabled, push: settings.notifications.pushEnabled },
-              reports: { email: settings.notifications.dailyReports, push: false },
+              login: { email: currentSettings.notifications.emailEnabled, push: currentSettings.notifications.pushEnabled },
+              payroll: { email: currentSettings.notifications.emailEnabled, push: false },
+              leave: { email: currentSettings.notifications.emailEnabled, push: currentSettings.notifications.pushEnabled },
+              reports: { email: currentSettings.notifications.dailyReports, push: false },
             }}
             onToggle={(eventKey, channel, enabled) => {
               if (channel === 'email') {

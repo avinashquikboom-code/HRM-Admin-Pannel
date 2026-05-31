@@ -293,12 +293,13 @@ export function getAuthToken(portal?: PortalType): string | null {
   const targetPortal = portal ?? resolvePortalFromWindow();
   const sessionToken = getAuthSession(targetPortal)?.token ?? null;
 
-  if (sessionToken && sessionToken !== DEV_AUTH_TOKEN) {
+  // Allow dev tokens for local development
+  if (sessionToken) {
     return sessionToken;
   }
 
   const cookieToken = readTokenCookie(targetPortal);
-  if (cookieToken && cookieToken !== DEV_AUTH_TOKEN) {
+  if (cookieToken) {
     return cookieToken;
   }
 
