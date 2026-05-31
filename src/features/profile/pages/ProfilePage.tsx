@@ -9,7 +9,6 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
-  Smartphone,
   Mail,
   Phone,
   Globe,
@@ -19,7 +18,10 @@ import {
   Key,
   Calendar,
   MapPin,
-  Cpu
+  Cpu,
+  Pencil,
+  Fingerprint,
+  ShieldAlert
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
@@ -77,9 +79,7 @@ const ProfilePage = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <Loader2 size={40} className="animate-spin text-primary" />
-        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
-          Loading identity...
-        </p>
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">Loading identity...</p>
       </div>
     );
   }
@@ -95,9 +95,19 @@ const ProfilePage = () => {
   const security = profile?.security;
 
   const quickStats = [
-    { label: 'Security Clearance', value: security?.clearanceLabel || 'Level 1', icon: ShieldCheck, color: 'primary' },
+    { label: 'Security Clearance', value: security?.clearanceLabel || 'Level 5', icon: ShieldCheck, color: 'primary' },
     { label: '2FA Status', value: security?.twoFactorEnabled ? 'Active' : 'Inactive', icon: Lock, color: security?.twoFactorEnabled ? 'success' : 'warning' },
     { label: 'Network Zone', value: profile?.timezoneLabel || 'Global', icon: Globe, color: 'accent' },
+    { label: 'Last Login', value: security?.lastLoginAt ? formatLastLogin(security.lastLoginAt) : 'No logs', icon: Activity, color: 'primary' },
+  ];
+
+  const identityFields = [
+    { label: 'Full Name', value: user?.name || profile?.fullName || 'Administrator', icon: UserIcon },
+    { label: 'Email Address', value: user?.email || profile?.email || 'N/A', icon: Mail },
+    { label: 'Phone Number', value: user?.phone || profile?.phone || 'Not set', icon: Phone },
+    { label: 'Time Zone', value: profile?.timezoneLabel || 'Asia/Kolkata', icon: Globe },
+    { label: 'Account Role', value: user?.role?.replace('_', ' ') || 'Super Administrator', icon: Shield },
+    { label: 'Member Since', value: '2024', icon: Calendar },
   ];
 
   return (
@@ -105,7 +115,7 @@ const ProfilePage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="max-w-7xl mx-auto space-y-6 pb-12"
+      className="max-w-7xl mx-auto space-y-8 pb-12"
     >
       {error && (
         <div className="rounded-2xl bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-medium text-warning">
@@ -114,181 +124,210 @@ const ProfilePage = () => {
       )}
 
       <SuperAdminHeader
-          title={user?.name || profile?.fullName || 'Administrator'}
-          subtitle={user?.bio || profile?.bio || 'Overseeing system architecture, managing global entity provisions, and maintaining network security protocols.'}
-          badgeText={user?.role?.replace('_', ' ') || 'Super Administrator'}
-          badgeIcon={Shield}
-          stats={quickStats.map(stat => ({
-            label: stat.label,
-            value: stat.value,
-            icon: stat.icon
-          }))}
+        title={user?.name || profile?.fullName || 'Administrator'}
+        subtitle={user?.bio || profile?.bio || 'Overseeing system architecture, managing global entity provisions, and maintaining network security protocols.'}
+        badgeText={user?.role?.replace('_', ' ') || 'Super Administrator'}
+        badgeIcon={Shield}
+        stats={quickStats.map(stat => ({
+          label: stat.label,
+          value: stat.value,
+          icon: stat.icon
+        }))}
+      >
+        <button
+          onClick={() => router.push(`${profileBasePath}/edit`)}
+          className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
         >
-          <div className="relative group/avatar">
-            <div className="w-16 h-16 rounded-full p-1 bg-white/10 backdrop-blur-md shadow-xl border border-white/20 relative overflow-hidden group-hover/avatar:border-primary/40 transition-colors duration-500">
-              <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                {user?.avatar && user.avatar !== '/favicon.svg' ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-700" />
-                ) : (
-                  <UserIcon size={32} className="text-slate-400" />
-                )}
-              </div>
-            </div>
-            <button
-              onClick={() => router.push(`${profileBasePath}/edit`)}
-              className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-white text-slate-900 shadow-lg border border-white/40 hover:scale-110 transition-transform active:scale-95 cursor-pointer"
-              title="Change Avatar"
-            >
-              <Camera size={14} />
-            </button>
-          </div>
-          <button
-            onClick={() => router.push(`${profileBasePath}/edit`)}
-            className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
-          >
-            <Lock size={18} className="group-hover:rotate-12 transition-transform" />
-            Edit Profile
-          </button>
-        </SuperAdminHeader>
+          <Pencil size={18} className="group-hover:rotate-12 transition-transform" />
+          Edit Profile
+        </button>
+      </SuperAdminHeader>
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Quick Stats - Span full width on small, 1 col on large */}
-        <motion.div variants={itemVariants} className="md:col-span-3 lg:col-span-1 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6">
-          {quickStats.map((stat, idx) => (
-            <div key={idx} className="glass-card p-6 flex items-center gap-5 group hover:border-primary/50 transition-all relative overflow-hidden shadow-premium cursor-default">
-              <div 
-                className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"
-                style={{ background: 'rgba(59, 163, 139, 0.25)' }}
-              />
-              <div className={cn(
-                "p-3.5 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
-                stat.color === 'primary' ? 'bg-primary/10 text-primary' :
-                stat.color === 'success' ? 'bg-success/10 text-success' :
-                stat.color === 'warning' ? 'bg-warning/10 text-warning' : 'bg-accent/10 text-accent'
-              )}>
-                <stat.icon size={22} />
-              </div>
-              <div className="relative z-10">
-                <p className="text-micro font-black uppercase tracking-widest text-text-secondary">{stat.label}</p>
-                <p className="text-lg font-bold text-white mt-0.5">{stat.value}</p>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Identity Module */}
-        <motion.div variants={itemVariants} className="md:col-span-2 lg:col-span-2 bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-8 group relative overflow-hidden">
-          <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="flex items-center justify-between mb-8 relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm border border-primary/10">
-                <UserIcon size={20} />
-              </div>
-              <h2 className="text-xl font-black text-white">Identity Matrix</h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-6 relative z-10">
-            <div className="space-y-1 p-4 rounded-2xl bg-slate-950/40 border border-white/5 hover:border-primary/20 transition-all shadow-sm group/item">
-              <div className="flex items-center gap-2 text-slate-400 mb-1">
-                <Mail size={14} className="group-hover/item:text-primary transition-colors" />
-                <span className="text-micro font-black uppercase tracking-widest">Email Vector</span>
-              </div>
-              <div className="text-sm font-bold text-white break-all">{user?.email || profile?.email}</div>
-            </div>
-
-            <div className="space-y-1 p-4 rounded-2xl bg-slate-950/40 border border-white/5 hover:border-primary/20 transition-all shadow-sm group/item">
-              <div className="flex items-center gap-2 text-slate-400 mb-1">
-                <Phone size={14} className="group-hover/item:text-primary transition-colors" />
-                <span className="text-micro font-black uppercase tracking-widest">Comms Link</span>
-              </div>
-              <div className="text-sm font-bold text-white">{user?.phone || profile?.phone || 'Encrypted (Not set)'}</div>
-            </div>
-
-            <div className="space-y-1 p-4 rounded-2xl bg-slate-950/40 border border-white/5 hover:border-primary/20 transition-all shadow-sm group/item">
-              <div className="flex items-center gap-2 text-slate-400 mb-1">
-                <Globe size={14} className="group-hover/item:text-primary transition-colors" />
-                <span className="text-micro font-black uppercase tracking-widest">Time Zone</span>
-              </div>
-              <div className="text-sm font-bold text-white">{profile?.timezoneLabel || 'Asia/Kolkata'}</div>
-            </div>
-
-            <div className="space-y-1 p-4 rounded-2xl bg-slate-950/40 border border-white/5 hover:border-primary/20 transition-all shadow-sm group/item">
-              <div className="flex items-center gap-2 text-slate-400 mb-1">
-                <Calendar size={14} className="group-hover/item:text-primary transition-colors" />
-                <span className="text-micro font-black uppercase tracking-widest">Creation Date</span>
-              </div>
-              <div className="text-sm font-bold text-white">Epoch Origins (Legacy)</div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Security Telemetry */}
-        <motion.div variants={itemVariants} className="md:col-span-1 lg:col-span-1 bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-8 flex flex-col group relative overflow-hidden">
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
-          <div className="flex items-center gap-3 mb-8 relative z-10">
-            <div className="p-2.5 rounded-xl bg-accent/10 text-accent shadow-sm border border-accent/10">
-              <Activity size={20} />
-            </div>
-            <h2 className="text-xl font-black text-white">Telemetry</h2>
-          </div>
-
-          <div className="flex-1 space-y-6 relative z-10">
-            <div className="relative pl-6 border-l-2 border-white/10 pb-6 group-hover:border-primary/20 transition-colors">
-              <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 ${security?.twoFactorEnabled ? 'bg-success shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-warning shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`} />
-              <p className="text-micro font-black uppercase tracking-widest text-slate-400 mb-1">Authentication</p>
-              <p className="text-sm font-bold text-white">{security?.twoFactorEnabled ? '2FA Enforced' : 'Vulnerable (2FA Off)'}</p>
-            </div>
-
-            <div className="relative pl-6 border-l-2 border-white/10 pb-6">
-              <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-primary shadow-[0_0_10px_rgba(59,163,139,0.5)]" />
-              <p className="text-micro font-black uppercase tracking-widest text-slate-400 mb-1">Last Login Date</p>
-              <p className="text-sm font-bold text-white">
-                {security?.lastLoginAt ? formatLastLogin(security.lastLoginAt) : 'No logs recorded'}
-              </p>
-            </div>
-
-            <div className="relative pl-6">
-              <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-slate-600" />
-              <p className="text-micro font-black uppercase tracking-widest text-slate-400 mb-1">Access Vector</p>
-              <p className="text-sm font-bold text-white flex items-center gap-2">
-                <MapPin size={14} className="text-slate-400" />
-                {security?.lastLoginLocation || 'Unknown Node'}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Command Line / Action Center */}
-        <motion.div variants={itemVariants} className="md:col-span-3 lg:col-span-2 bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-8 overflow-hidden relative group">
-          <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700 pointer-events-none" />
+        {/* Left Column - Avatar & Security */}
+        <div className="lg:col-span-4 space-y-6">
           
-          <div className="relative z-10 flex flex-col h-full justify-between space-y-6">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-primary shadow-sm group-hover:scale-110 transition-transform">
-                  <Cpu size={20} />
+          {/* Avatar Card */}
+          <motion.div variants={itemVariants} className="glass-card p-8 text-center relative overflow-hidden group">
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
+            
+            <div className="relative inline-block mb-6">
+              <div className="w-32 h-32 rounded-full p-1.5 bg-gradient-to-br from-primary/20 to-transparent shadow-2xl border border-white/10 relative overflow-hidden">
+                <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
+                  {user?.avatar && user.avatar !== '/favicon.svg' ? (
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  ) : (
+                    <UserIcon size={60} className="text-slate-400" />
+                  )}
                 </div>
-                <h3 className="text-lg font-black text-white">System Integrity</h3>
               </div>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-lg">
-                Your administrative privileges grant full access to infrastructure parameters. Use caution when modifying core tables or suspending active entities.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 pt-2">
-              <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider text-white hover:text-primary transition-all shadow-sm active:scale-95 cursor-pointer">
-                <Key size={14} /> Update Passkey
-              </button>
-              <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider text-white hover:text-primary transition-all shadow-sm active:scale-95 cursor-pointer">
-                <History size={14} /> Audit Logs
+              <button
+                onClick={() => router.push(`${profileBasePath}/edit`)}
+                className="absolute -bottom-1 -right-1 p-2.5 rounded-xl bg-primary text-white shadow-lg border border-primary/30 hover:scale-110 transition-transform active:scale-95 cursor-pointer"
+                title="Change Avatar"
+              >
+                <Camera size={16} />
               </button>
             </div>
-          </div>
-        </motion.div>
 
+            <h3 className="text-xl font-black text-white mb-1">{user?.name || profile?.fullName}</h3>
+            <p className="text-sm text-text-secondary font-medium mb-4">{user?.email || profile?.email}</p>
+            
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest">
+              <ShieldCheck size={12} />
+              {security?.clearanceLabel || 'Level 5 Clearance'}
+            </div>
+          </motion.div>
+
+          {/* Security Status Card */}
+          <motion.div variants={itemVariants} className="glass-card p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-xl bg-accent/10 text-accent border border-accent/10">
+                <ShieldAlert size={18} />
+              </div>
+              <h3 className="text-sm font-black text-white uppercase tracking-widest">Security Status</h3>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                <div className="flex items-center gap-3">
+                  <Fingerprint size={16} className="text-primary" />
+                  <span className="text-sm font-bold text-white">2FA Authentication</span>
+                </div>
+                <span className={cn(
+                  "text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider",
+                  security?.twoFactorEnabled ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                )}>
+                  {security?.twoFactorEnabled ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                <div className="flex items-center gap-3">
+                  <Key size={16} className="text-primary" />
+                  <span className="text-sm font-bold text-white">Passkey Age</span>
+                </div>
+                <span className="text-xs font-black text-text-secondary">{security?.lastPasswordChange || '30 days'}</span>
+              </div>
+
+              {!hideLoginTracking && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <MapPin size={16} className="text-primary" />
+                    <span className="text-sm font-bold text-white">Last Access</span>
+                  </div>
+                  <span className="text-xs font-black text-text-secondary">{security?.lastLoginLocation || 'Unknown'}</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right Column - Identity & Actions */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Identity Information */}
+          <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden">
+            <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-6 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm border border-primary/10">
+                  <UserIcon size={20} />
+                </div>
+                <h2 className="text-xl font-black text-white">Identity Information</h2>
+              </div>
+              <button
+                onClick={() => router.push(`${profileBasePath}/edit`)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider text-white hover:text-primary transition-all active:scale-95"
+              >
+                <Pencil size={14} /> Edit
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+              {identityFields.map((field, idx) => (
+                <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl bg-surface-variant/30 border border-border/30 hover:border-primary/20 transition-all group/item">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm group-hover/item:scale-110 transition-transform">
+                    <field.icon size={18} />
+                  </div>
+                  <div>
+                    <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">{field.label}</p>
+                    <p className="text-sm font-bold text-white">{field.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Activity Timeline */}
+          <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden">
+            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
+            
+            <div className="flex items-center gap-3 mb-6 relative z-10">
+              <div className="p-2.5 rounded-xl bg-accent/10 text-accent shadow-sm border border-accent/10">
+                <Activity size={20} />
+              </div>
+              <h2 className="text-xl font-black text-white">Recent Activity</h2>
+            </div>
+
+            <div className="space-y-6 relative z-10">
+              <div className="relative pl-6 border-l-2 border-white/10 pb-6">
+                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-success shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">Profile Updated</p>
+                <p className="text-sm font-bold text-white">{profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : 'Recently'}</p>
+              </div>
+
+              <div className="relative pl-6 border-l-2 border-white/10 pb-6">
+                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-primary shadow-[0_0_10px_rgba(59,163,139,0.5)]" />
+                <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">Last Login</p>
+                <p className="text-sm font-bold text-white">{security?.lastLoginAt ? formatLastLogin(security.lastLoginAt) : 'No logs recorded'}</p>
+              </div>
+
+              <div className="relative pl-6">
+                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-slate-600" />
+                <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">Account Created</p>
+                <p className="text-sm font-bold text-white">Epoch Origins (Legacy)</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Action Center */}
+          <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden group">
+            <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700 pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-primary shadow-sm">
+                    <Cpu size={20} />
+                  </div>
+                  <h3 className="text-lg font-black text-white">System Actions</h3>
+                </div>
+                <p className="text-sm text-text-secondary max-w-lg">
+                  Manage your account security, view audit logs, or sign out from all devices.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button 
+                  onClick={() => router.push(`${profileBasePath}/edit`)}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/20 text-xs font-black uppercase tracking-wider text-primary transition-all active:scale-95"
+                >
+                  <Key size={14} /> Update Password
+                </button>
+                <button 
+                  onClick={() => setIsSignOutModalOpen(true)}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-error/10 hover:bg-error/15 border border-error/20 text-xs font-black uppercase tracking-wider text-error transition-all active:scale-95"
+                >
+                  <LogOut size={14} /> Sign Out
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <SignOutModal 
