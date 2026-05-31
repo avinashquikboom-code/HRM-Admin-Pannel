@@ -27,6 +27,7 @@ import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { updateAdminProfile, uploadAdminAvatar, removeAdminAvatar, fileToDataUrl } from '@/services/profileService';
 import { useOffices } from '@/hooks/useOffices';
 import { getProfileBasePath, isSuperAdminPath } from '@/lib/portals';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import PremiumCard from '@/components/PremiumCard';
 
 const profileSchema = z.object({

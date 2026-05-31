@@ -8,10 +8,12 @@ import {
   Shield,
   RefreshCw,
   Save,
+  Settings,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { api, getApiErrorMessage } from '@/lib/api';
-import SettingsHero from '@/features/settings/components/SettingsHero';
+import { cn } from '@/utils/cn';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import SettingsSidebar, {
   type SettingsTab,
   type SettingsTabId,
@@ -237,13 +239,27 @@ export default function SettingsPage() {
             </motion.div>
           )}
 
-          <motion.div variants={itemVariants}>
-            <SettingsHero
-              onSave={() => console.log('Save triggered from hero')}
-              isSaving={isSaving}
-              saveMessage={saveMessage}
-            />
-          </motion.div>
+          <SuperAdminHeader
+            title="Platform Settings"
+            subtitle="Configure system-wide preferences, security policies, notification rules, and API configurations."
+            badgeText="System Configuration"
+            badgeIcon={Settings}
+            stats={[
+              { label: 'Configured Modules', value: '4', icon: Globe },
+              { label: 'Active Policies', value: settings ? '12' : '0', icon: Shield },
+              { label: 'Notification Channels', value: settings ? '2' : '0', icon: Bell },
+              { label: 'API Endpoints', value: '8', icon: Key }
+            ]}
+          >
+            <button 
+              onClick={() => console.log('Save all settings')}
+              disabled={isSaving}
+              className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2 disabled:opacity-60"
+            >
+              <Save size={18} className={cn(isSaving && 'animate-spin')} />
+              {isSaving ? 'Saving...' : 'Save All Settings'}
+            </button>
+          </SuperAdminHeader>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <motion.div variants={itemVariants} className="lg:col-span-4 xl:col-span-3">
