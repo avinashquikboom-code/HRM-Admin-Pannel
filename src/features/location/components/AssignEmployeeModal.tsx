@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, UserCheck } from 'lucide-react';
 import Modal from '@/components/Modal';
 import {
-  assignEmployeeToOffice,
-  fetchEmployees,
-  type AdminEmployee,
+  assignUserToOffice,
 } from '@/services/employeeService';
+import {
+  fetchPlatformUsers,
+  type PlatformUser,
+} from '@/services/userService';
 import { cn } from '@/utils/cn';
 
 interface AssignEmployeeModalProps {
@@ -25,9 +27,9 @@ export default function AssignEmployeeModal({
   onClose,
   onAssigned,
 }: AssignEmployeeModalProps) {
-  const [employees, setEmployees] = useState<AdminEmployee[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
-  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  const [users, setUsers] = useState<PlatformUser[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,15 +37,15 @@ export default function AssignEmployeeModal({
     if (!isOpen) return;
 
     setError('');
-    setSelectedEmployeeId('');
-    setIsLoadingEmployees(true);
+    setSelectedUserId(null);
+    setIsLoadingUsers(true);
 
-    fetchEmployees()
-      .then((data) => setEmployees(data.employees))
+    fetchPlatformUsers()
+      .then((data) => setUsers(data))
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Failed to load employees.');
+        setError(err instanceof Error ? err.message : 'Failed to load users.');
       })
-      .finally(() => setIsLoadingEmployees(false));
+      .finally(() => setIsLoadingUsers(false));
   }, [isOpen]);
 
   const handleClose = () => {
@@ -54,16 +56,13 @@ export default function AssignEmployeeModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!officeId || !selectedEmployeeId) return;
+    if (!officeId || selectedUserId === null) return;
 
     setError('');
     setIsSubmitting(true);
 
     try {
-      const result = await assignEmployeeToOffice(
-        selectedEmployeeId,
-        officeId
-      );
+      const result = await assignUserToOffice(selectedUserId, officeId);
       onAssigned(result.message, officeId);
       onClose();
     } catch (err) {
@@ -73,15 +72,20 @@ export default function AssignEmployeeModal({
     }
   };
 
-  const availableEmployees = employees.filter(
-    (employee) => employee.officeId !== officeId
-  );
+  // Filter out users already assigned to this office
+  const availableUsers = users.filter((user) => {
+    if (!user.employee) return true;
+    return user.employee.office?.id.toString() !== officeId;
+  });
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Assign Employee to Office">
       <form onSubmit={handleSubmit} className="space-y-5">
         <p className="text-sm text-text-secondary">
           Assign an employee to <span className="font-bold text-text-primary">{officeName}</span>.
+          <span className="block mt-1 text-xs text-muted">
+            Users without an employee profile will have one auto-created.
+          </span>
         </p>
 
         {error && (
@@ -94,32 +98,69 @@ export default function AssignEmployeeModal({
           <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
             Employee
           </label>
-          {isLoadingEmployees ? (
+          {isLoadingUsers ? (
             <div className="flex items-center gap-2 px-4 py-3 text-sm text-text-secondary">
               <Loader2 size={16} className="animate-spin" />
-              Loading employees...
+              Loading users...
             </div>
           ) : (
-            <select
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
-            >
-              <option value="">Select employee</option>
-              {availableEmployees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.firstName} {employee.lastName} ({employee.employeeCode})
-                  {employee.office ? ` — currently at ${employee.office.name}` : ' — unassigned'}
-                </option>
+            <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+              {availableUsers.map((user) => (
+                <label
+                  key={user.id}
+                  className={cn(
+                    'flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all',
+                    selectedUserId === user.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border/60 hover:border-primary/30 bg-surface-variant/30'
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="selectedUser"
+                    value={user.id}
+                    checked={selectedUserId === user.id}
+                    onChange={() => setSelectedUserId(user.id)}
+                    className="sr-only"
+                  />
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-black shrink-0">
+                    {user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-text-primary truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-text-secondary truncate">
+                      {user.email} · {user.role}
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    {user.hasEmployeeProfile ? (
+                      user.employee?.office ? (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
+                          {user.employee.office.name}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+                          <UserCheck size={10} />
+                          Unassigned
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted bg-muted/10 px-2 py-1 rounded-full">
+                        No profile
+                      </span>
+                    )}
+                  </div>
+                </label>
               ))}
-            </select>
+            </div>
           )}
         </div>
 
-        {!isLoadingEmployees && availableEmployees.length === 0 && (
-          <p className="text-sm text-text-secondary">
-            All employees are already assigned to this office.
+        {!isLoadingUsers && availableUsers.length === 0 && (
+          <p className="text-sm text-text-secondary text-center py-4">
+            All users are already assigned to this office.
           </p>
         )}
 
@@ -134,7 +175,7 @@ export default function AssignEmployeeModal({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || !selectedEmployeeId || isLoadingEmployees}
+            disabled={isSubmitting || selectedUserId === null || isLoadingUsers}
             className={cn(
               'flex-[2] py-3 rounded-2xl bg-primary text-white font-bold uppercase tracking-widest text-xs',
               'shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-70',
