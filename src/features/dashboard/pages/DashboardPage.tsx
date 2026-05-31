@@ -43,6 +43,7 @@ import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import ChartContainer from '@/components/ChartContainer';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 
 const revenueData = [
   { name: 'Jan', value: 400000, active: 380000 },
@@ -167,20 +168,21 @@ const DashboardPage = () => {
       variants={containerVariants}
       className="space-y-8 pb-10"
     >
-      {/* Header Section */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-muted">
-            Platform Intelligence
-          </h1>
-          <p className="text-page-desc mt-1 max-w-2xl">
-            Global ecosystem overview: Real-time monitoring of companies, workforce, and financial health.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <button 
-              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+      <SuperAdminHeader
+        title="Platform Intelligence"
+        subtitle="Global ecosystem overview: Real-time monitoring of companies, workforce, and financial health."
+        badgeText="Admin Dashboard"
+        badgeIcon={Activity}
+        stats={[
+          { label: 'Total Revenue', value: data ? `₹${(data.totalRevenue / 1000000).toFixed(1)}M` : '₹0', icon: IndianRupee },
+          { label: 'Active Companies', value: data ? data.totalCompanies.toString() : '0', icon: Building2 },
+          { label: 'Total Employees', value: data ? data.totalEmployees.toString() : '0', icon: Users },
+          { label: 'System Health', value: '98.5%', icon: ShieldCheck }
+        ]}
+      >
+        <div className="relative">
+          <button 
+            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
               className="flex items-center gap-2 px-4 py-2.5 bg-surface-variant border border-border rounded-2xl text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95"
             >
               <CalendarIcon size={18} />
@@ -226,8 +228,7 @@ const DashboardPage = () => {
             <Zap size={18} className="group-hover:fill-current transition-all" />
             Quick Action
           </button>
-        </div>
-      </motion.div>
+      </SuperAdminHeader>
 
       {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

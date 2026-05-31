@@ -16,6 +16,7 @@ import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/utils/cn';
 import TableSkeleton from '@/components/TableSkeleton';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useEmployees } from '@/hooks/useEmployees';
 
 const containerVariants: Variants = {
@@ -91,25 +92,19 @@ const EmployeesPage = () => {
       variants={containerVariants}
       className="space-y-6 sm:space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
-            <Users size={12} className="text-primary animate-pulse" />
-            Active employee registry
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
-            Employee <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Directory</span>
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
-            Monitor and manage all employees across the platform ecosystem.
-          </p>
-        </div>
-
-        <div className="relative z-10 shrink-0 flex items-center gap-3">
-          <button
+      <SuperAdminHeader
+        title="Employee Directory"
+        subtitle="Monitor and manage all employees across the platform ecosystem."
+        badgeText="Active Employee Registry"
+        badgeIcon={Users}
+        stats={[
+          { label: 'Total Employees', value: employees.length.toString(), icon: Users },
+          { label: 'Active Now', value: activeCount.toString(), icon: UserCheck },
+          { label: 'Departments', value: '8', icon: Building2 },
+          { label: 'New Hires', value: '12', icon: UserPlus }
+        ]}
+      >
+        <button
             type="button"
             onClick={() => refetch()}
             className="p-4 bg-slate-900/50 hover:bg-slate-800 text-slate-350 hover:text-white rounded-2xl border border-white/5 transition-all shadow-sm active:scale-95 cursor-pointer"
@@ -121,8 +116,7 @@ const EmployeesPage = () => {
             <UserPlus size={18} />
             Register User
           </Link>
-        </div>
-      </motion.div>
+      </SuperAdminHeader>
 
       {error && (
         <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">

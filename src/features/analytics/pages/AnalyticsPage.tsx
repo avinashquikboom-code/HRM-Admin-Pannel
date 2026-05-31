@@ -35,10 +35,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import {
   fetchAnalyticsOverview,
   type AnalyticsOverview,
 } from '@/services/analyticsService';
+
+const COLORS = ['#3BAF8B', '#10B981', '#06B6D4', '#8B5CF6', '#F59E0B'];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -117,31 +120,23 @@ const AnalyticsPage = () => {
       variants={containerVariants}
       className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
-      {/* Title Header Command hub */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
-            <TrendingUp size={12} className="text-primary animate-pulse" />
-            Ecosystem Intelligence & Analytics
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
-            Ecosystem <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Intelligence</span>
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
-            Deep dive into platform growth, workforce constraints, active retention curves, and revenue patterns.
-          </p>
-        </div>
-
-        <div className="relative z-10 shrink-0 flex items-center gap-3">
-          <button className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center">
-            <Download size={18} />
-            Export Data
-          </button>
-        </div>
-      </motion.div>
+      <SuperAdminHeader
+        title="Ecosystem Intelligence"
+        subtitle="Deep dive into platform growth, workforce constraints, active retention curves, and revenue patterns."
+        badgeText="Ecosystem Intelligence & Analytics"
+        badgeIcon={TrendingUp}
+        stats={[
+          { label: 'Total Active Workforce', value: analyticsData ? analyticsData.totalEmployees.toLocaleString() : '0', icon: Users },
+          { label: 'Average Retention', value: analyticsData ? analyticsData.averageRetention : '0%', icon: UserCheck },
+          { label: 'New Seats (MTD)', value: analyticsData ? analyticsData.totalPresentToday.toLocaleString() : '0', icon: UserPlus },
+          { label: 'Growth Rate', value: '+12.5%', icon: Activity }
+        ]}
+      >
+        <button className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center">
+          <Download size={18} />
+          Export Data
+        </button>
+      </SuperAdminHeader>
 
       {/* Error State */}
       {error && (
@@ -162,9 +157,9 @@ const AnalyticsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { label: 'Total Active Workforce', value: analyticsData.totalEmployees.toLocaleString(), trend: '+12.5%', icon: Users, color: 'primary' },
-          { label: 'Average Retention', value: analyticsData.averageRetention, trend: '+2.1%', icon: UserCheck, color: 'success' },
-          { label: 'New Seats (MTD)', value: analyticsData.totalPresentToday.toLocaleString(), trend: '+18.7%', icon: UserPlus, color: 'accent' },
-        ].map((stat) => (
+            { label: 'Average Retention', value: analyticsData.averageRetention, trend: '+2.1%', icon: UserCheck, color: 'success' },
+            { label: 'New Seats (MTD)', value: analyticsData.totalPresentToday.toLocaleString(), trend: '+18.7%', icon: UserPlus, color: 'accent' },
+          ].map((stat) => (
           <motion.div key={stat.label} variants={itemVariants} className="glass-card p-8 group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <stat.icon size={64} />
