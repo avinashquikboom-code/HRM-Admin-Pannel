@@ -290,7 +290,7 @@ export default function LeavePage() {
         days.push({ day: 0, date: '', isHoliday: false, leaves: [] });
       } else {
         const dateStr = `2026-05-${i.toString().padStart(2, '0')}`;
-        const holiday = undefined;
+        let holiday: any = undefined;
         const activeLeaves = leaveRequests.filter(req => {
           if (req.status !== 'Approved') return false;
           const s = new Date(req.startDate).getDate();

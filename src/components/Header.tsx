@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleDarkMode } from '../store/slices/themeSlice';
 import { logout } from '../store/slices/authSlice';
 import SignOutModal from './SignOutModal';
+import { toggleSidebar } from '../store/slices/sidebarSlice';
 import { 
   Sun, 
   Moon, 
@@ -19,7 +20,8 @@ import {
   MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLoginPathForPortal, SUPER_ADMIN_PREFIX, EMPLOYEE_PREFIX } from '@/lib/portals';
+import { PortalType, getLoginPathForPortal, SUPER_ADMIN_PREFIX, EMPLOYEE_PREFIX } from '@/lib/portals';
+import { PORTAL_AUTH_KEYS } from '@/lib/authStorage';
 
 interface HeaderProps {
   portal?: PortalType;
