@@ -2,7 +2,6 @@
 
 import { useRef, useState, useEffect } from 'react';
 import Head from 'next/head';
-import PremiumButton from '@/components/PremiumButton';
 import FloatingLabelInput from '@/components/FloatingLabelInput';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +15,12 @@ import {
   ArrowLeft,
   ShieldCheck,
   Globe,
-  Info
+  Info,
+  Pencil,
+  Shield,
+  Fingerprint,
+  Loader2,
+  X
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
@@ -28,7 +32,6 @@ import { updateAdminProfile, uploadAdminAvatar, removeAdminAvatar, fileToDataUrl
 import { useOffices } from '@/hooks/useOffices';
 import { getProfileBasePath, isSuperAdminPath } from '@/lib/portals';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
-import PremiumCard from '@/components/PremiumCard';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -195,14 +198,8 @@ const EditProfilePage = () => {
   if (isLoading && !user?.profile) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full"
-        />
-        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
-          Loading profile...
-        </p>
+        <Loader2 size={40} className="animate-spin text-primary" />
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">Loading profile...</p>
       </div>
     );
   }
@@ -221,42 +218,45 @@ const EditProfilePage = () => {
         className="max-w-5xl mx-auto space-y-8 pb-10"
       >
         <SuperAdminHeader
-          title="System Identity Configuration"
-          subtitle="Update your administrative credentials and public profile."
-          badgeText="Profile Management"
-          badgeIcon={User}
+          title="Edit Profile"
+          subtitle="Update your administrative credentials and public profile information."
+          badgeText="Profile Editor"
+          badgeIcon={Pencil}
           stats={[
             { label: 'Profile Status', value: 'Active', icon: ShieldCheck },
-            { label: 'Security Level', value: 'Maximum', icon: Globe },
-            { label: 'Last Updated', value: profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : 'Today', icon: Info },
-            { label: 'Account Type', value: 'Super Admin', icon: User }
+            { label: 'Security Level', value: 'Maximum', icon: Shield },
+            { label: '2FA Status', value: security?.twoFactorEnabled ? 'Active' : 'Inactive', icon: Fingerprint },
+            { label: 'Account Type', value: user?.role?.replace('_', ' ') || 'Super Admin', icon: User }
           ]}
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => router.push(profileBasePath)}
             className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95"
           >
             <ArrowLeft size={18} />
             Back to Profile
-          </motion.button>
+          </button>
         </SuperAdminHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {submitError && (
-            <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex items-center gap-3"
+            >
+              <X size={18} />
               {submitError}
-            </div>
+            </motion.div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Avatar & Quick Info */}
-            <motion.div variants={itemVariants} className="space-y-8">
-              <div className="bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-8 flex flex-col items-center text-center relative overflow-hidden">
-                <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full filter blur-2xl pointer-events-none" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column: Avatar & Security */}
+            <motion.div variants={itemVariants} className="lg:col-span-4 space-y-6">
+              <div className="glass-card p-8 flex flex-col items-center text-center relative overflow-hidden group">
+                <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
 
-                <div className="relative group mb-6">
+                <div className="relative mb-6">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -264,110 +264,111 @@ const EditProfilePage = () => {
                     className="hidden"
                     onChange={handleAvatarSelect}
                   />
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="w-44 h-44 rounded-full p-2 bg-white/10 backdrop-blur-md shadow-2xl border border-white/20 relative overflow-hidden group-hover:border-primary/40 transition-colors duration-500 flex items-center justify-center"
-                  >
+                  <div className="w-36 h-36 rounded-full p-1.5 bg-gradient-to-br from-primary/20 to-transparent shadow-2xl border border-white/10 relative overflow-hidden">
                     <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden relative">
                       {resolvedAvatarSrc ? (
-                        <img src={resolvedAvatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover animate-fadeIn" />
+                        <img src={resolvedAvatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                       ) : (
-                        <User size={90} className="text-slate-400" />
+                        <User size={60} className="text-slate-400" />
                       )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                         {isAvatarLoading ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                            className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full"
-                          />
+                          <Loader2 size={28} className="text-white animate-spin" />
                         ) : (
                           <Camera size={28} className="text-white" />
                         )}
                       </div>
                     </div>
-                  </motion.div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    type="button"
-                    disabled={isAvatarLoading}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 p-3.5 rounded-2xl bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 transition-transform active:scale-95 disabled:opacity-60 cursor-pointer"
-                  >
-                    <Camera size={16} />
-                  </motion.button>
-                </div>
-
-                <h3 className="text-lg font-black text-white mb-1">Administrator Avatar</h3>
-                <p className="text-xs text-slate-400 font-medium px-4">
-                  This image will be visible across the system for all verified entities.
-                </p>
-
-                {avatarError && (
-                  <p className="mt-4 text-xs font-bold text-error">{avatarError}</p>
-                )}
-                {avatarMessage && (
-                  <p className="mt-4 text-xs font-bold text-success">{avatarMessage}</p>
-                )}
-
-                <div className="flex gap-4 mt-8 w-full">
+                  </div>
                   <button
                     type="button"
                     disabled={isAvatarLoading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-3.5 text-[10px] font-black text-primary bg-primary/10 hover:bg-primary/15 rounded-xl transition-all border border-primary/20 hover:border-primary/30 uppercase tracking-widest disabled:opacity-60 active:scale-95 cursor-pointer"
+                    className="absolute -bottom-1 -right-1 p-2.5 rounded-xl bg-primary text-white shadow-lg border border-primary/30 hover:scale-110 transition-transform active:scale-95 disabled:opacity-60 cursor-pointer"
                   >
-                    {isAvatarLoading ? 'Processing...' : 'Upload'}
+                    <Camera size={16} />
+                  </button>
+                </div>
+
+                <h3 className="text-lg font-black text-white mb-1">{user?.name || 'Administrator'}</h3>
+                <p className="text-sm text-text-secondary font-medium mb-4">{user?.email || 'admin@example.com'}</p>
+                
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest mb-6">
+                  <ShieldCheck size={12} />
+                  {security?.clearanceLabel || 'Level 5 Clearance'}
+                </div>
+
+                {avatarError && (
+                  <p className="mb-3 text-xs font-bold text-error">{avatarError}</p>
+                )}
+                {avatarMessage && (
+                  <p className="mb-3 text-xs font-bold text-success">{avatarMessage}</p>
+                )}
+
+                <div className="flex gap-3 w-full">
+                  <button
+                    type="button"
+                    disabled={isAvatarLoading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 py-3 text-xs font-black text-primary bg-primary/10 hover:bg-primary/15 rounded-xl transition-all border border-primary/20 uppercase tracking-wider disabled:opacity-60 active:scale-95 cursor-pointer"
+                  >
+                    {isAvatarLoading ? 'Processing...' : 'Upload New'}
                   </button>
                   <button
                     type="button"
                     disabled={isAvatarLoading || !hasCustomAvatar}
                     onClick={handleAvatarRemove}
-                    className="flex-1 py-3.5 text-[10px] font-black text-error bg-error/10 hover:bg-error/15 rounded-xl transition-all border border-error/20 hover:border-error/30 uppercase tracking-widest disabled:opacity-60 active:scale-95 cursor-pointer"
+                    className="flex-1 py-3 text-xs font-black text-error bg-error/10 hover:bg-error/15 rounded-xl transition-all border border-error/20 uppercase tracking-wider disabled:opacity-60 active:scale-95 cursor-pointer"
                   >
                     Remove
                   </button>
                 </div>
               </div>
 
-              <div className="bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-6 relative overflow-hidden">
-                <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-emerald-500/5 rounded-full filter blur-2xl pointer-events-none" />
-                <div className="flex items-center gap-3 mb-5 relative z-10">
-                  <div className="p-2.5 bg-primary/10 text-primary rounded-xl border border-primary/10">
-                    <ShieldCheck size={18} />
+              <div className="glass-card p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-accent/10 text-accent border border-accent/10">
+                    <Shield size={18} />
                   </div>
-                  <h4 className="text-xs font-black text-white uppercase tracking-widest">Security Telemetry</h4>
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Security Info</h3>
                 </div>
-                <ul className="space-y-4 relative z-10">
-                  <li className="flex items-center justify-between text-[11px] font-bold border-b border-white/5 pb-2">
-                    <span className="text-slate-400">2FA Authentication</span>
-                    <span className="text-emerald-400 uppercase tracking-wider">{security?.twoFactorStatus || 'Active'}</span>
-                  </li>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                    <span className="text-sm font-bold text-white">2FA Authentication</span>
+                    <span className={cn(
+                      "text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider",
+                      security?.twoFactorEnabled ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                    )}>
+                      {security?.twoFactorEnabled ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  
                   {!hideLoginTracking && (
-                    <li className="flex items-center justify-between text-[11px] font-bold border-b border-white/5 pb-2">
-                      <span className="text-slate-400">Last Node Access</span>
-                      <span className="text-white">{security?.lastLoginLocation || '—'}</span>
-                    </li>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                      <span className="text-sm font-bold text-white">Last Access</span>
+                      <span className="text-xs font-black text-text-secondary">{security?.lastLoginLocation || 'Unknown'}</span>
+                    </div>
                   )}
-                  <li className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-slate-400">Clearance Level</span>
-                    <span className="text-primary uppercase tracking-wider">{security?.clearanceLabel || 'Level 5'}</span>
-                  </li>
-                </ul>
+                  
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                    <span className="text-sm font-bold text-white">Clearance</span>
+                    <span className="text-xs font-black text-primary uppercase tracking-wider">{security?.clearanceLabel || 'Level 5'}</span>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
             {/* Right Column: Form Fields */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 space-y-8">
-              <div className="bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-6 sm:p-8 space-y-8">
-                <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+            <motion.div variants={itemVariants} className="lg:col-span-8 space-y-6">
+              <div className="glass-card p-6 sm:p-8 space-y-6">
+                <div className="flex items-center gap-4 border-b border-border/30 pb-6">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <Info size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Registry Details</h3>
-                    <p className="text-xs text-slate-400 font-medium">Verified system information for the controller account.</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">Personal Information</h3>
+                    <p className="text-xs text-text-secondary font-medium">Update your profile details and preferences.</p>
                   </div>
                 </div>
 
@@ -376,7 +377,7 @@ const EditProfilePage = () => {
                     <FloatingLabelInput
                       id="name"
                       label="Full Name"
-                      placeholder="e.g. Rohan Roy"
+                      placeholder="e.g. John Doe"
                       register={register}
                       error={errors.name}
                       required={true}
@@ -386,8 +387,8 @@ const EditProfilePage = () => {
                   <div>
                     <FloatingLabelInput
                       id="email"
-                      label="Email"
-                      placeholder="admin@hrm.ai"
+                      label="Email Address"
+                      placeholder="admin@company.com"
                       register={register}
                       error={errors.email}
                       required={true}
@@ -397,8 +398,8 @@ const EditProfilePage = () => {
                   <div>
                     <FloatingLabelInput
                       id="phone"
-                      label="Phone"
-                      placeholder="+91 00000 00000"
+                      label="Phone Number"
+                      placeholder="+91 98765 43210"
                       register={register}
                       error={errors.phone}
                       required={true}
@@ -406,33 +407,33 @@ const EditProfilePage = () => {
                   </div>
 
                   <div className="relative">
-                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-slate-400 z-10">
+                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
                       Time Zone
                     </label>
-                    <div className="w-full px-6 pt-7 pb-3 bg-slate-950/40 border border-white/5 hover:border-white/10 rounded-[24px] flex items-center gap-3 text-white font-bold text-sm transition-all">
+                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-2xl flex items-center gap-3 text-white font-bold text-sm">
                       <Globe size={18} className="text-primary/70" />
                       <span className="truncate">{profile?.timezoneLabel || 'Asia/Kolkata (IST)'}</span>
                     </div>
                   </div>
 
                   <div className="relative md:col-span-2">
-                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-slate-400 z-10">
+                    <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
                       Linked Office
                     </label>
-                    {officesLoading && <p className="px-6 pt-7 pb-3 text-sm font-bold text-slate-400">Loading offices…</p>}
+                    {officesLoading && <p className="px-6 pt-7 pb-3 text-sm font-bold text-text-secondary">Loading offices…</p>}
                     {officesError && <p className="px-6 pt-7 pb-3 text-sm font-bold text-error">{officesError}</p>}
                     {!officesLoading && !officesError && (
                       <div className="relative">
                         <select
                           {...register('officeId')}
-                          className="w-full px-5 pt-7 pb-3 bg-slate-950/40 border border-white/5 hover:border-white/10 rounded-[24px] outline-none focus:bg-slate-900 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-white text-sm font-bold appearance-none cursor-pointer"
+                          className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-2xl outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-white text-sm font-bold appearance-none cursor-pointer"
                         >
-                          <option value="" className="bg-slate-950 text-white">System Default</option>
+                          <option value="" className="bg-surface text-white">System Default</option>
                           {offices.map((office) => (
-                            <option key={office.id} value={office.id} className="bg-slate-950 text-white">{office.name}</option>
+                            <option key={office.id} value={office.id} className="bg-surface text-white">{office.name}</option>
                           ))}
                         </select>
-                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary">
                           ▼
                         </div>
                       </div>
@@ -441,35 +442,44 @@ const EditProfilePage = () => {
                 </div>
               </div>
 
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Administrative Bio</label>
-                <textarea
-                  {...register('bio')}
-                  rows={4}
-                  placeholder="Describe your role and focus areas..."
-                  className={cn(
-                    "w-full px-6 py-5 bg-slate-950/40 border border-white/5 hover:border-white/10 rounded-[32px] outline-none focus:bg-slate-900 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-white resize-none shadow-inner",
-                    errors.bio && "border-error/40 bg-error/5 focus:ring-error/5 text-white"
-                  )}
-                />
-                {errors.bio && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-2">{errors.bio.message}</p>}
+              <div className="glass-card p-6 sm:p-8 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-xl bg-accent/10 text-accent border border-accent/10">
+                    <Mail size={18} />
+                  </div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">About</h3>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-2">Bio</label>
+                  <textarea
+                    {...register('bio')}
+                    rows={4}
+                    placeholder="Tell us about yourself..."
+                    className={cn(
+                      "w-full px-6 py-4 bg-surface-variant/50 border border-border/30 rounded-2xl outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-white resize-none",
+                      errors.bio && "border-error/40 bg-error/5 focus:ring-error/5"
+                    )}
+                  />
+                  {errors.bio && <p className="text-[10px] text-error font-black uppercase tracking-wider ml-2">{errors.bio.message}</p>}
+                </div>
               </div>
 
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={() => router.push(profileBasePath)}
                   type="button"
                   className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-white cursor-pointer"
                 >
-                  Discard Changes
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-[2] flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-primary to-primary-hover text-slate-900 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 cursor-pointer"
+                  className="flex-[2] flex items-center justify-center gap-2 py-4 px-6 btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60"
                 >
                   <Save size={16} />
-                  Synchronize Profile
+                  Save Changes
                 </button>
               </motion.div>
             </motion.div>

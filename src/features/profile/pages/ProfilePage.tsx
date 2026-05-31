@@ -204,14 +204,6 @@ const ProfilePage = () => {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
-                <div className="flex items-center gap-3">
-                  <Key size={16} className="text-primary" />
-                  <span className="text-sm font-bold text-white">Passkey Age</span>
-                </div>
-                <span className="text-xs font-black text-text-secondary">{security?.lastPasswordChange || '30 days'}</span>
-              </div>
-
               {!hideLoginTracking && (
                 <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
                   <div className="flex items-center gap-3">
