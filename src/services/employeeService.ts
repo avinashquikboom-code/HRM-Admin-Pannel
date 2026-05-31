@@ -87,6 +87,27 @@ export async function assignEmployeeToOffice(
   }
 }
 
+export async function assignUserToOffice(
+  userId: number,
+  officeId: string
+): Promise<{ message: string; employee: AssignedEmployeeResult }> {
+  try {
+    const { data } = await api.post<AssignEmployeeResponse>(
+      '/api/admin/employees/assign',
+      { userId, officeId }
+    );
+
+    return {
+      message: data.message,
+      employee: data.employee,
+    };
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to assign employee. Please try again.')
+    );
+  }
+}
+
 export async function unassignEmployeeFromOffice(
   employeeId: string
 ): Promise<{ message: string; employee: AssignedEmployeeResult }> {
