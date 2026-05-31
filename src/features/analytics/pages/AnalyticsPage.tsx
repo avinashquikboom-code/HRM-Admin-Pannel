@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import TableSkeleton from '@/components/TableSkeleton';
 
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   LineChart,
   Line,
   AreaChart,
@@ -20,14 +20,14 @@ import {
   Cell
 } from 'recharts';
 import { motion, Variants } from 'framer-motion';
-import { 
-  Download, 
-  Calendar, 
-  Filter, 
-  TrendingUp, 
-  Users, 
-  UserCheck, 
-  UserPlus, 
+import {
+  Download,
+  Calendar,
+  Filter,
+  TrendingUp,
+  Users,
+  UserCheck,
+  UserPlus,
   Activity,
   ArrowUpRight,
   ChevronRight,
@@ -114,7 +114,7 @@ const AnalyticsPage = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -142,7 +142,7 @@ const AnalyticsPage = () => {
       {error && (
         <motion.div variants={itemVariants} className="glass-card p-6 text-center">
           <p className="text-error mb-4">{error}</p>
-          <button 
+          <button
             onClick={loadAnalyticsData}
             className="text-primary font-bold hover:underline flex items-center gap-2 mx-auto"
           >
@@ -160,27 +160,27 @@ const AnalyticsPage = () => {
             { label: 'Average Retention', value: analyticsData.averageRetention, trend: '+2.1%', icon: UserCheck, color: 'success' },
             { label: 'New Seats (MTD)', value: analyticsData.totalPresentToday.toLocaleString(), trend: '+18.7%', icon: UserPlus, color: 'accent' },
           ].map((stat) => (
-          <motion.div key={stat.label} variants={itemVariants} className="glass-card p-8 group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
-            <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <stat.icon size={64} />
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-3 rounded-2xl", `bg-${stat.color}/10 text-${stat.color}`)}>
-                <stat.icon size={22} />
+            <motion.div key={stat.label} variants={itemVariants} className="glass-card p-8 group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
+              <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <stat.icon size={64} />
               </div>
-              <span className="text-xs font-black text-success bg-success/10 px-2.5 py-1 rounded-full">{stat.trend}</span>
-            </div>
-            <p className="text-label text-text-secondary tracking-[0.2em] mb-1">{stat.label}</p>
-            <h3 className="text-stat-value">{stat.value}</h3>
-          </motion.div>
-        ))}
-      </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className={cn("p-3 rounded-2xl", `bg-${stat.color}/10 text-${stat.color}`)}>
+                  <stat.icon size={22} />
+                </div>
+                <span className="text-xs font-black text-success bg-success/10 px-2.5 py-1 rounded-full">{stat.trend}</span>
+              </div>
+              <p className="text-label text-text-secondary tracking-[0.2em] mb-1">{stat.label}</p>
+              <h3 className="text-stat-value">{stat.value}</h3>
+
+            </motion.div>))}
+        </div>)}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Employee Trend */}
         <motion.div variants={itemVariants} className="lg:col-span-2 glass-card p-6 sm:p-8 md:p-10 group relative overflow-hidden">
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-          
+
           <div className="flex items-center justify-between mb-10 relative z-10">
             <div>
               <h3 className="heading-2">Workforce Expansion</h3>
@@ -194,67 +194,67 @@ const AnalyticsPage = () => {
               <button className="p-3 bg-surface-variant rounded-xl text-muted hover:text-primary transition-colors"><Filter size={18} /></button>
             </div>
           </div>
-          <ChartContainer heightClassName="h-[350px]" className="relative z-10">
+          {analyticsData?.weeklyData && (
+            <ChartContainer heightClassName="h-[350px]" className="relative z-10">
               <AreaChart data={analyticsData.weeklyData}>
                 <defs>
                   <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3BA38B" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#3BA38B" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3BA38B" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#3BA38B" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} dy={15} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} />
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '24px', 
-                    border: 'none', 
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} dy={15} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: '24px',
+                    border: 'none',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
                     backgroundColor: 'rgba(255, 255, 255, 0.9)',
                     backdropFilter: 'blur(20px)',
                     padding: '16px'
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="employees" 
-                  stroke="#3BA38B" 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
+                  }} />
+                <Area
+                  type="monotone"
+                  dataKey="employees"
+                  stroke="#3BA38B"
+                  strokeWidth={4}
+                  fillOpacity={1}
                   fill="url(#colorEmployees)"
-                  animationDuration={2500}
-                />
+                  animationDuration={2500} />
               </AreaChart>
-          </ChartContainer>
+            </ChartContainer>
+          )}
         </motion.div>
 
         {/* Workforce Health - Pie Chart */}
         <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 flex flex-col">
           <h3 className="text-xl font-black text-text-primary tracking-tight mb-2">Workforce Lifecycle</h3>
           <p className="text-xs text-text-secondary font-medium mb-10">Employee health & state distribution</p>
-          
+
           <ChartContainer heightClassName="h-[250px]" className="mb-8">
-              <PieChart>
-                <Pie
-                  data={analyticsData.retentionData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={8}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {analyticsData.retentionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+            <PieChart>
+              <Pie
+                data={analyticsData?.retentionData || []}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={8}
+                dataKey="value"
+                stroke="none"
+              >
+                {(analyticsData?.retentionData || []).map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
           </ChartContainer>
 
           <div className="space-y-4 mt-auto">
-            {analyticsData.retentionData.map((item, index) => (
+            {(analyticsData?.retentionData || []).map((item, index) => (
               <div key={item.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-2xl border border-border/50 group hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
@@ -278,25 +278,25 @@ const AnalyticsPage = () => {
               <button className="px-6 py-3 bg-primary text-white text-label rounded-xl shadow-lg shadow-primary/20">Weekly</button>
             </div>
           </div>
-          
-          <ChartContainer heightClassName="h-[400px]">
+
+          {analyticsData?.weeklyData && (
+            <ChartContainer heightClassName="h-[400px]">
               <BarChart data={analyticsData.weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} dy={15} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 900}} />
-                <Tooltip cursor={{fill: 'rgba(59, 163, 139, 0.05)', radius: 16}} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} dy={15} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} />
+                <Tooltip cursor={{ fill: 'rgba(59, 163, 139, 0.05)', radius: 16 }} />
                 <Bar dataKey="employees" fill="#3BA38B" radius={[12, 12, 0, 0]} barSize={40} />
                 <Bar dataKey="revenue" fill="#F4B860" radius={[12, 12, 0, 0]} barSize={40} />
               </BarChart>
-          </ChartContainer>
+            </ChartContainer>
+          )}
         </motion.div>
-</div>
-      )}
       </div>
 
       <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 md:p-10 bg-gradient-to-br from-primary to-primary-dark text-white border-none overflow-hidden relative group">
         <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-white/10 rounded-full blur-[120px] group-hover:bg-white/20 transition-all duration-700" />
-        
+
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-4 text-center md:text-left">
             <div className="w-16 h-16 rounded-[28px] bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20 mx-auto md:mx-0">

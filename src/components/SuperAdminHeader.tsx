@@ -2,17 +2,17 @@
 
 import { motion, Variants } from 'framer-motion';
 import { cn } from '@/utils/cn';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, type LucideIcon } from 'lucide-react';
 
 interface SuperAdminHeaderProps {
   title: string;
   subtitle: string;
   badgeText?: string;
-  badgeIcon?: React.ComponentType<{ size?: number }>;
+  badgeIcon?: LucideIcon;
   stats?: Array<{
     label: string;
     value: string;
-    icon: React.ComponentType<{ size?: number }>;
+    icon: LucideIcon;
   }>;
   children?: React.ReactNode;
 }
