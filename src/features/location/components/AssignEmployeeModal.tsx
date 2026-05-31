@@ -66,7 +66,9 @@ export default function AssignEmployeeModal({
       onAssigned(result.message, officeId);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to assign employee.');
+      console.error('[AssignEmployeeModal] Assignment failed:', err);
+      const message = err instanceof Error ? err.message : 'Failed to assign employee.';
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
