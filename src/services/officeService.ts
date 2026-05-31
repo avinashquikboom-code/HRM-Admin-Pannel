@@ -1,6 +1,5 @@
 import { api, getApiErrorMessage } from '@/lib/api';
 import { getAuthToken } from '@/lib/authStorage';
-import { isDevAuthSession } from '@/lib/devAuth';
 
 interface ApiOffice {
   id: string;
@@ -122,49 +121,7 @@ function mapOfficeDetail(api: OfficeDetailResponse['office']): OfficeDetail {
   };
 }
 
-const demoOfficesList: Office[] = [
-  {
-    id: '1',
-    name: 'Delhi HQ',
-    code: 'OFF-DEL-01',
-    address: 'Connaught Place, New Delhi, Delhi 110001',
-    latitude: 28.6139,
-    longitude: 77.2090,
-    idealRadiusMeters: 50,
-    maxPunchRadiusMeters: 100,
-    isActive: true,
-    subscriptionPlan: 'Enterprise',
-    billingCycle: 'yearly',
-    invoiceStatus: 'Paid',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    _count: { employees: 2 }
-  },
-  {
-    id: '2',
-    name: 'Mumbai Branch',
-    code: 'OFF-BOM-02',
-    address: 'Bandra Kurla Complex, Mumbai, Maharashtra 400051',
-    latitude: 19.0760,
-    longitude: 72.8777,
-    idealRadiusMeters: 50,
-    maxPunchRadiusMeters: 100,
-    isActive: true,
-    subscriptionPlan: 'Pro',
-    billingCycle: 'monthly',
-    invoiceStatus: 'Paid',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    _count: { employees: 1 }
-  }
-];
-
 function assertOfficeAuthToken() {
-  if (isDevAuthSession()) {
-    // Gracefully handle dev session by bypassing this assertion instead of throwing.
-    return;
-  }
-
   if (!getAuthToken()) {
     throw new Error(
       'Admin token not found. Sign in first — token is stored in hrm_auth / hrm_token (HRM Admin) or super_hrm_auth / super_hrm_token (Super HRM).'

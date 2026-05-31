@@ -1,7 +1,5 @@
 import { api, getApiErrorMessage } from '@/lib/api';
 import { getAuthSession } from '@/lib/authStorage';
-import { isDevAuthSession } from '@/lib/devAuth';
-
 export interface AdminEmployeeOffice {
   id: string;
   name: string;
@@ -62,9 +60,6 @@ export async function fetchEmployees(): Promise<EmployeesResponse> {
     const { data } = await api.get<EmployeesResponse>('/api/admin/employees');
     return data;
   } catch (error) {
-    if (isDevAuthSession()) {
-      return { count: 0, registeredCount: 0, employees: [] };
-    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load employees. Please try again.')
     );

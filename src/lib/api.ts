@@ -13,12 +13,6 @@ import {
   getAuthToken,
   resolvePortalFromWindow,
 } from '@/lib/authStorage';
-import {
-  DEV_AUTH_TOKEN,
-  DEV_EMPLOYEE_AUTH_TOKEN,
-  DEV_PLATFORM_AUTH_TOKEN,
-  isDevAuthSession,
-} from '@/lib/devAuth';
 import { getLoginPathForPortal } from '@/lib/portals';
 import { store } from '@/store';
 import { logout } from '@/store/slices/authSlice';
@@ -66,10 +60,6 @@ api.interceptors.response.use(
 
     if (axios.isAxiosError(error)) {
       logApiError(error);
-    }
-
-    if (isDevAuthSession(resolvePortalFromWindow())) {
-      return Promise.reject(error);
     }
 
     if (!axios.isAxiosError(error) || error.response?.status !== 401) {

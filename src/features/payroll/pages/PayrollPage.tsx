@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { isDevAuthSession } from '@/lib/devAuth';
 import { 
   Wallet, 
   TrendingUp, 
@@ -193,33 +192,20 @@ const PayrollPage = () => {
     setIsPageLoading(true);
     setIsSlipsLoading(true);
     try {
-      if (isDevAuthSession()) {
-        setStats({ mtdVolume: 4128400, disbursed: 3842100, pending: 210450, errors: 0 });
-        setTrendData(payrollStats);
-        setRunsList(recentPayrollRuns);
-        
-        // Mock slips list in dev mode
-        setSlipsList([
-          { id: 1, employeeCode: 'EMP-01', name: 'Sarah Johnson', designation: 'Senior Engineer', department: 'Technology', office: 'Headquarters', baseSalary: 85000, allowance: 12750, deductions: 8500, netSalary: 89250, status: 'Pending Approval' },
-          { id: 2, employeeCode: 'EMP-02', name: 'Michael Chen', designation: 'Designer', department: 'Design', office: 'Mumbai Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Approved' },
-          { id: 3, employeeCode: 'EMP-03', name: 'David Miller', designation: 'Operations Associate', department: 'Operations', office: 'Delhi Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Pending Approval' },
-        ]);
-      } else {
-        const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/admin/payroll/stats');
-        if (statsRes.data.success) {
-          setStats(statsRes.data.stats);
-          setTrendData(statsRes.data.trend);
-        }
+      const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/admin/payroll/stats');
+      if (statsRes.data.success) {
+        setStats(statsRes.data.stats);
+        setTrendData(statsRes.data.trend);
+      }
 
-        const runsRes = await api.get<{ success: boolean; runs: any[] }>('/api/admin/payroll/runs');
-        if (runsRes.data.success) {
-          setRunsList(runsRes.data.runs);
-        }
+      const runsRes = await api.get<{ success: boolean; runs: any[] }>('/api/admin/payroll/runs');
+      if (runsRes.data.success) {
+        setRunsList(runsRes.data.runs);
+      }
 
-        const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
-        if (slipsRes.data.success) {
-          setSlipsList(slipsRes.data.slips);
-        }
+      const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
+      if (slipsRes.data.success) {
+        setSlipsList(slipsRes.data.slips);
       }
     } catch (err) {
       console.error('Failed to load payroll data:', err);
@@ -241,43 +227,31 @@ const PayrollPage = () => {
 
     const fetchAttendance = async () => {
       try {
-        if (isDevAuthSession()) {
-          // Mock data in dev mode matching the screenshot
-          setSlipAttendance({
-            workingDays: 26,
-            present: 26,
-            absent: 0,
-            halfDay: 1,
-            late: 0,
-            leave: 3,
-          });
-        } else {
-          const res = await api.get<{ success: boolean; details: any[] }>(
-            `/api/admin/reports/attendance-details?month=${slipMonth}`
+        const res = await api.get<{ success: boolean; details: any[] }>(
+          `/api/admin/reports/attendance-details?month=${slipMonth}`
+        );
+        if (res.data.success) {
+          const empRecord = res.data.details.find(
+            (d: any) => d.employeeCode === selectedSlip.employeeCode
           );
-          if (res.data.success) {
-            const empRecord = res.data.details.find(
-              (d: any) => d.employeeCode === selectedSlip.employeeCode
-            );
-            if (empRecord) {
-              setSlipAttendance({
-                workingDays: empRecord.totalDays || 26,
-                present: empRecord.present || 0,
-                absent: empRecord.absent || 0,
-                halfDay: empRecord.halfDay || 0,
-                late: empRecord.late || 0,
-                leave: empRecord.leave || 0,
-              });
-            } else {
-              setSlipAttendance({
-                workingDays: 26,
-                present: 26,
-                absent: 0,
-                halfDay: 0,
-                late: 0,
-                leave: 0,
-              });
-            }
+          if (empRecord) {
+            setSlipAttendance({
+              workingDays: empRecord.totalDays || 26,
+              present: empRecord.present || 0,
+              absent: empRecord.absent || 0,
+              halfDay: empRecord.halfDay || 0,
+              late: empRecord.late || 0,
+              leave: empRecord.leave || 0,
+            });
+          } else {
+            setSlipAttendance({
+              workingDays: 26,
+              present: 26,
+              absent: 0,
+              halfDay: 0,
+              late: 0,
+              leave: 0,
+            });
           }
         }
       } catch (err) {
@@ -291,9 +265,7 @@ const PayrollPage = () => {
   const handleBulkDisburse = async () => {
     setIsDisbursing(true);
     try {
-      if (!isDevAuthSession()) {
-        await api.post('/api/admin/payroll/disburse');
-      }
+      await api.post('/api/admin/payroll/disburse');
       alert('Disbursement completed successfully!');
       setIsProcessModalOpen(false);
       await loadPayrollData();
@@ -307,16 +279,10 @@ const PayrollPage = () => {
 
   const handleApproveSlip = async (employeeId: number) => {
     try {
-      if (isDevAuthSession()) {
-        setSlipsList(prev => prev.map(slip => 
-          slip.id === employeeId ? { ...slip, status: 'Approved' } : slip
-        ));
-      } else {
-        await api.post('/api/admin/payroll/slips/approve', { employeeId });
-        const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
-        if (slipsRes.data.success) {
-          setSlipsList(slipsRes.data.slips);
-        }
+      await api.post('/api/admin/payroll/slips/approve', { employeeId });
+      const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
+      if (slipsRes.data.success) {
+        setSlipsList(slipsRes.data.slips);
       }
       alert('Salary slip approved and generated successfully!');
     } catch (err) {

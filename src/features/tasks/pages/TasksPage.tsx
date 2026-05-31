@@ -23,8 +23,6 @@ import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
 import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 
-import { mockTasks as initialTasks, mockEmployees } from '@/data/mockData';
-import { isDevAuthSession } from '@/lib/devAuth';
 import { api } from '@/lib/api';
 import { useEmployees } from '@/hooks/useEmployees';
 
@@ -62,7 +60,6 @@ const TasksPage = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDevSession, setIsDevSession] = useState(false);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -87,29 +84,16 @@ const TasksPage = () => {
   }, []);
 
   useEffect(() => {
-    const dev = isDevAuthSession();
-    setIsDevSession(dev);
-    if (!dev) {
-      loadTasks();
-    } else {
-      setTasks(initialTasks);
-      setIsLoading(false);
-    }
+    loadTasks();
   }, [loadTasks]);
 
   const displayEmployees = useMemo(() => {
-    return isDevSession 
-      ? mockEmployees.map(emp => ({
-          id: String(emp.id),
-          name: emp.name,
-          code: `EMP-0${emp.id}`
-        }))
-      : employees.map(emp => ({
-          id: String(emp.id),
-          name: `${emp.firstName} ${emp.lastName}`,
-          code: emp.employeeCode
-        }));
-  }, [isDevSession, employees]);
+    return employees.map(emp => ({
+      id: String(emp.id),
+      name: `${emp.firstName} ${emp.lastName}`,
+      code: emp.employeeCode
+    }));
+  }, [employees]);
 
   useEffect(() => {
     if (displayEmployees.length > 0 && !assigneeId) {
@@ -118,24 +102,16 @@ const TasksPage = () => {
   }, [displayEmployees, assigneeId]);
 
   const handleStatusChange = async (taskId: string, nextStatus: TaskStatus) => {
-    if (isDevSession) {
-      setTasks(prev => prev.map(t => 
-        t.id === taskId 
-          ? { ...t, status: nextStatus, progress: nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0 } 
-          : t
-      ));
-    } else {
-      try {
-        const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
-        await api.put(`/api/admin/tasks/${taskId}`, {
-          status: nextStatus,
-          progress: nextProgress
-        });
-        await loadTasks();
-      } catch (err) {
-        console.error('Failed to update task status:', err);
-        alert(err instanceof Error ? err.message : 'Operation failed');
-      }
+    try {
+      const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
+      await api.put(`/api/admin/tasks/${taskId}`, {
+        status: nextStatus,
+        progress: nextProgress
+      });
+      await loadTasks();
+    } catch (err) {
+      console.error('Failed to update task status:', err);
+      alert(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
@@ -143,20 +119,23 @@ const TasksPage = () => {
     e.preventDefault();
     if (!title || !deadline || !description || !assigneeId) return;
 
-    if (isDevSession) {
+    try {
       const selectedEmp = displayEmployees.find(emp => emp.id === assigneeId);
-      const newTask = {
-        id: `TSK-${Math.floor(200 + Math.random() * 800)}`,
+      if (!selectedEmp) {
+        alert('Please select an assignee.');
+        return;
+      }
+
+      await api.post('/api/admin/tasks', {
         title,
         description,
-        assignee: selectedEmp ? selectedEmp.name : 'Sarah Johnson',
-        priority,
-        status: 'To Do' as TaskStatus,
+        assigneeId: selectedEmp.id,
+        priority: priority.toLowerCase(),
         deadline,
-        progress: 0
-      };
+        projectName: 'General'
+      });
 
-      setTasks(prev => [...prev, newTask]);
+      await loadTasks();
       setIsAssignModalOpen(false);
 
       // Reset Form
@@ -164,35 +143,9 @@ const TasksPage = () => {
       setDescription('');
       setDeadline('');
       setPriority('High');
-    } else {
-      try {
-        const selectedEmp = displayEmployees.find(emp => emp.id === assigneeId);
-        if (!selectedEmp) {
-          alert('Please select an assignee.');
-          return;
-        }
-
-        await api.post('/api/admin/tasks', {
-          title,
-          description,
-          assigneeId: selectedEmp.id,
-          priority: priority.toLowerCase(),
-          deadline,
-          projectName: 'General'
-        });
-
-        await loadTasks();
-        setIsAssignModalOpen(false);
-
-        // Reset Form
-        setTitle('');
-        setDescription('');
-        setDeadline('');
-        setPriority('High');
-      } catch (err) {
-        console.error('Failed to assign task:', err);
-        alert(err instanceof Error ? err.message : 'Failed to assign task');
-      }
+    } catch (err) {
+      console.error('Failed to assign task:', err);
+      alert(err instanceof Error ? err.message : 'Failed to assign task');
     }
   };
 
@@ -203,16 +156,12 @@ const TasksPage = () => {
   const executeDeleteTask = async () => {
     if (!deletingTaskId) return;
 
-    if (isDevSession) {
-      setTasks(prev => prev.filter(t => t.id !== deletingTaskId));
-    } else {
-      try {
-        await api.delete(`/api/admin/tasks/${deletingTaskId}`);
-        await loadTasks();
-      } catch (err) {
-        console.error('Failed to delete task:', err);
-        alert(err instanceof Error ? err.message : 'Failed to delete task');
-      }
+    try {
+      await api.delete(`/api/admin/tasks/${deletingTaskId}`);
+      await loadTasks();
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+      alert(err instanceof Error ? err.message : 'Failed to delete task');
     }
     setDeletingTaskId(null);
   };

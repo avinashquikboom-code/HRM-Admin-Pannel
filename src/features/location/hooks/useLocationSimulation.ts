@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { EmployeeLiveLocation } from '@/services/locationService';
-import { isDevAuthSession } from '@/lib/devAuth';
 import type { LocationLog, MapBounds, MapCenter } from '../types';
 import { mockLocationLogs as initialLogs } from '@/data/mockData';
 
@@ -43,7 +42,7 @@ export function useLocationSimulation({
   const prevLocationsRef = useRef<EmployeeLiveLocation[]>(initialLocations);
 
   useEffect(() => {
-    if (!isAutoRefreshing || !isDevAuthSession()) return;
+    if (!isAutoRefreshing) return;
 
     const intervalId = setInterval(() => {
       setLocations((prevLocs) => {

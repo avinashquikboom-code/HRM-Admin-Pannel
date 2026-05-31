@@ -1,6 +1,4 @@
 import { api, getApiErrorMessage } from '@/lib/api';
-import { isDevAuthSession } from '@/lib/devAuth';
-
 export interface AttendanceEmployee {
   id: number;
   employeeCode: string;

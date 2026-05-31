@@ -4,7 +4,6 @@ import { Battery, MapPin, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import type { EmployeeLiveLocation } from '@/services/locationService';
-import { isDevAuthSession } from '@/lib/devAuth';
 
 interface EmployeeDetailCardProps {
   employee: EmployeeLiveLocation | null;
@@ -19,7 +18,7 @@ export default function EmployeeDetailCard({
   onForceBreach,
   onRecallToOffice,
 }: EmployeeDetailCardProps) {
-  const showDevControls = isDevAuthSession();
+  const showDevControls = false;
 
   return (
     <AnimatePresence mode="wait">

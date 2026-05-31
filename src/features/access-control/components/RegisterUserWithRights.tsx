@@ -6,7 +6,6 @@ import { Mail, UserPlus, Loader2, CheckSquare, Square, RotateCcw } from 'lucide-
 import PasswordInput from '@/components/PasswordInput';
 import { registerUser, type RegisterRole } from '@/services/authService';
 import { getAuthSession } from '@/lib/authStorage';
-import { isDevAuthSession } from '@/lib/devAuth';
 import type { PortalType } from '@/lib/portals';
 import { ROLE_ACCESS, getModuleDefsForManager } from '@/lib/roleAccess';
 import {
@@ -106,27 +105,18 @@ export default function RegisterUserWithRights({
     const normalizedEmail = email.trim().toLowerCase();
 
     try {
-      if (adminSession && !isDevAuthSession()) {
-        const result = await registerUser({
-          email: normalizedEmail,
-          password,
-          role: registerRole,
-        });
+      const result = await registerUser({
+        email: normalizedEmail,
+        password,
+        role: registerRole,
+      });
 
-        // TODO: Save user permissions via backend API
-        // saveUserPermissionRecord(...)
+      // TODO: Save user permissions via backend API
+      // saveUserPermissionRecord(...)
 
-        setSuccess(
-          `${result.user.email} registered with ${enabled} module rights assigned.`
-        );
-      } else {
-        // TODO: Save user permissions via backend API
-        // saveUserPermissionRecord(...)
-
-        setSuccess(
-          `${normalizedEmail} registered with ${enabled} module rights assigned.`
-        );
-      }
+      setSuccess(
+        `${result.user.email} registered with ${enabled} module rights assigned.`
+      );
 
       setEmail('');
       setPassword('');

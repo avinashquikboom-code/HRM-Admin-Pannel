@@ -30,7 +30,6 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import { api } from '@/lib/api';
-import { isDevAuthSession } from '@/lib/devAuth';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -92,7 +91,6 @@ export default function LeavePage() {
   const [filterStatus, setFilterStatus] = useState('All');
 
   // Live Integration States
-  const [isDevSession, setIsDevSession] = useState(true);
   const [leaveBalances, setLeaveBalances] = useState<any[]>(mockLeaveBalances);
   const [realEmployees, setRealEmployees] = useState<any[]>([]);
 
@@ -146,13 +144,7 @@ export default function LeavePage() {
   }, []);
 
   useEffect(() => {
-    const dev = isDevAuthSession();
-    setIsDevSession(dev);
-    if (!dev) {
-      loadData();
-    } else {
-      setIsLoading(false);
-    }
+    loadData();
   }, [loadData]);
 
   // Handlers
@@ -164,14 +156,8 @@ export default function LeavePage() {
     const apiStatus = remarksAction === 'approve' ? 'APPROVED' : 'REJECTED';
 
     try {
-      if (isDevSession) {
-        setLeaveRequests(prev => prev.map(req => 
-          req.id === selectedRequest.id ? { ...req, status: actionStatus, remarks } : req
-        ));
-      } else {
-        await api.put(`/api/admin/leaves/${selectedRequest.id}`, { status: apiStatus, remarks });
-        await loadData();
-      }
+      await api.put(`/api/admin/leaves/${selectedRequest.id}`, { status: apiStatus, remarks });
+      await loadData();
       setIsRemarksModalOpen(false);
       setSelectedRequest(null);
       setRemarks('');
@@ -192,32 +178,18 @@ export default function LeavePage() {
     if (!startDate || !endDate || !reason) return;
 
     try {
-      if (isDevSession) {
-        const newRequest = {
-          id: `LR-${Math.floor(100 + Math.random() * 900)}`,
-          employeeName,
-          type: leaveType,
-          startDate,
-          endDate,
-          reason,
-          status: 'Pending',
-          remarks: ''
-        };
-        setLeaveRequests(prev => [newRequest, ...prev]);
-      } else {
-        const targetEmp = realEmployees.find(emp => `${emp.firstName} ${emp.lastName}` === employeeName) || realEmployees[0];
-        if (!targetEmp) throw new Error('No registered employee found.');
+      const targetEmp = realEmployees.find(emp => `${emp.firstName} ${emp.lastName}` === employeeName) || realEmployees[0];
+      if (!targetEmp) throw new Error('No registered employee found.');
 
-        await api.post('/api/admin/leaves', {
-          employeeId: targetEmp.id,
-          type: leaveType,
-          fromDate: startDate,
-          toDate: endDate,
-          reason,
-        });
+      await api.post('/api/admin/leaves', {
+        employeeId: targetEmp.id,
+        type: leaveType,
+        fromDate: startDate,
+        toDate: endDate,
+        reason,
+      });
 
-        await loadData();
-      }
+      await loadData();
 
       setIsApplyModalOpen(false);
       setStartDate('');

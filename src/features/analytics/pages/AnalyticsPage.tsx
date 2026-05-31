@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { isDevAuthSession } from '@/lib/devAuth';
 import TableSkeleton from '@/components/TableSkeleton';
 
 import { 
@@ -93,39 +92,27 @@ const AnalyticsPage = () => {
   const loadAnalyticsData = useCallback(async () => {
     setIsPageLoading(true);
     try {
-      if (isDevAuthSession()) {
+      const res = await api.get<{
+        success: boolean;
+        totalEmployees: number;
+        activeEmployees: number;
+        onLeaveEmployees: number;
+        averageRetention: string;
+        presentToday: number;
+        data: any[];
+        employeeRetentionData: any[];
+      }>('/api/admin/analytics/overview');
+      
+      if (res.data.success) {
         setStats({
-          totalEmployees: 84942,
-          activeEmployees: 80000,
-          onLeaveEmployees: 4942,
-          averageRetention: '94.2%',
-          totalPresentToday: 4281,
+          totalEmployees: res.data.totalEmployees,
+          activeEmployees: res.data.activeEmployees,
+          onLeaveEmployees: res.data.onLeaveEmployees,
+          averageRetention: res.data.averageRetention,
+          totalPresentToday: res.data.presentToday,
         });
-        setChartData(data);
-        setRetentionData(employeeRetentionData);
-      } else {
-        const res = await api.get<{
-          success: boolean;
-          totalEmployees: number;
-          activeEmployees: number;
-          onLeaveEmployees: number;
-          averageRetention: string;
-          presentToday: number;
-          data: any[];
-          employeeRetentionData: any[];
-        }>('/api/admin/analytics/overview');
-        
-        if (res.data.success) {
-          setStats({
-            totalEmployees: res.data.totalEmployees,
-            activeEmployees: res.data.activeEmployees,
-            onLeaveEmployees: res.data.onLeaveEmployees,
-            averageRetention: res.data.averageRetention,
-            totalPresentToday: res.data.presentToday,
-          });
-          setChartData(res.data.data);
-          setRetentionData(res.data.employeeRetentionData);
-        }
+        setChartData(res.data.data);
+        setRetentionData(res.data.employeeRetentionData);
       }
     } catch (err) {
       console.error('Failed to load analytics overview:', err);

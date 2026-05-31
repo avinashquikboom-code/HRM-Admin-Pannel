@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { isDevAuthSession } from '@/lib/devAuth';
 import Modal from '@/components/Modal';
 import { 
   FileText, 
@@ -127,65 +126,15 @@ const ReportsPage = () => {
     }
 
     try {
-      if (isDevAuthSession()) {
-        if (report.type === 'Payroll') {
-          setReportDetails({
-            success: true,
-            month: monthQuery,
-            summary: {
-              totalEmployees: 4,
-              totalGrossVolume: 350000,
-              totalDeductions: 35000,
-              totalNetVolume: 315000,
-            },
-            departmentBreakdown: [
-              { name: 'Technology', count: 2, totalGross: 180000, totalNet: 162000 },
-              { name: 'Operations', count: 1, totalGross: 90000, totalNet: 81000 },
-              { name: 'Design', count: 1, totalGross: 80000, totalNet: 72000 }
-            ],
-            details: [
-              { id: 1, employeeCode: 'EMP-01', name: 'Sarah Johnson', designation: 'Senior Engineer', department: 'Technology', office: 'Headquarters', baseSalary: 85000, allowance: 12750, deductions: 8500, netSalary: 89250, status: 'Pending Approval' },
-              { id: 2, employeeCode: 'EMP-02', name: 'Michael Chen', designation: 'Designer', department: 'Design', office: 'Mumbai Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Approved' },
-              { id: 3, employeeCode: 'EMP-03', name: 'David Miller', designation: 'Operations Associate', department: 'Operations', office: 'Delhi Office', baseSalary: 45000, allowance: 6750, deductions: 4500, netSalary: 47250, status: 'Pending Approval' },
-              { id: 4, employeeCode: 'EMP-04', name: 'Alex Rivera', designation: 'Lead Architect', department: 'Technology', office: 'Headquarters', baseSalary: 85000, allowance: 12750, deductions: 8500, netSalary: 89250, status: 'Approved' }
-            ]
-          });
-        } else if (report.type === 'Attendance') {
-          setReportDetails({
-            success: true,
-            month: monthQuery,
-            summary: {
-              totalPresent: 88,
-              totalLate: 6,
-              totalAbsent: 4,
-              totalLeave: 2,
-              avgAttendanceRate: 94
-            },
-            trend: [
-              { date: `${monthQuery}-01`, day: '01 May', present: 4, late: 0, absent: 0 },
-              { date: `${monthQuery}-02`, day: '02 May', present: 3, late: 1, absent: 0 },
-              { date: `${monthQuery}-03`, day: '03 May', present: 4, late: 0, absent: 0 },
-              { date: `${monthQuery}-04`, day: '04 May', present: 2, late: 1, absent: 1 }
-            ],
-            details: [
-              { id: 1, employeeCode: 'EMP-01', name: 'Sarah Johnson', designation: 'Senior Engineer', department: 'Technology', office: 'Headquarters', present: 22, late: 0, absent: 0, halfDay: 0, leave: 0, totalDays: 22, attendanceRate: 100 },
-              { id: 2, employeeCode: 'EMP-02', name: 'Michael Chen', designation: 'Designer', department: 'Design', office: 'Mumbai Office', present: 20, late: 1, absent: 1, halfDay: 0, leave: 0, totalDays: 22, attendanceRate: 95 },
-              { id: 3, employeeCode: 'EMP-03', name: 'David Miller', designation: 'Operations Associate', department: 'Operations', office: 'Delhi Office', present: 18, late: 3, absent: 1, halfDay: 0, leave: 0, totalDays: 22, attendanceRate: 95 },
-              { id: 4, employeeCode: 'EMP-04', name: 'Alex Rivera', designation: 'Lead Architect', department: 'Technology', office: 'Headquarters', present: 21, late: 0, absent: 0, halfDay: 0, leave: 1, totalDays: 22, attendanceRate: 95 }
-            ]
-          });
+      if (report.type === 'Payroll') {
+        const res = await api.get(`/api/admin/reports/payroll-details?month=${monthQuery}`);
+        if (res.data.success) {
+          setReportDetails(res.data);
         }
-      } else {
-        if (report.type === 'Payroll') {
-          const res = await api.get(`/api/admin/reports/payroll-details?month=${monthQuery}`);
-          if (res.data.success) {
-            setReportDetails(res.data);
-          }
-        } else if (report.type === 'Attendance') {
-          const res = await api.get(`/api/admin/reports/attendance-details?month=${monthQuery}`);
-          if (res.data.success) {
-            setReportDetails(res.data);
-          }
+      } else if (report.type === 'Attendance') {
+        const res = await api.get(`/api/admin/reports/attendance-details?month=${monthQuery}`);
+        if (res.data.success) {
+          setReportDetails(res.data);
         }
       }
     } catch (err) {
@@ -198,13 +147,9 @@ const ReportsPage = () => {
   const loadReportsData = useCallback(async () => {
     setIsPageLoading(true);
     try {
-      if (isDevAuthSession()) {
-        setReportList(reports);
-      } else {
-        const res = await api.get<{ success: boolean; reports: any[] }>('/api/admin/reports');
-        if (res.data.success) {
-          setReportList(res.data.reports);
-        }
+      const res = await api.get<{ success: boolean; reports: any[] }>('/api/admin/reports');
+      if (res.data.success) {
+        setReportList(res.data.reports);
       }
     } catch (err) {
       console.error('Failed to load reports:', err);
@@ -221,25 +166,12 @@ const ReportsPage = () => {
     e.preventDefault();
     setIsGenerating(true);
     try {
-      if (isDevAuthSession()) {
-        const mockNew = {
-          id: reportList.length + 1,
-          name: newReportName || `Custom Generated ${newReportType} Report`,
-          type: newReportType,
-          format: newReportFormat,
-          date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-          size: `${(Math.random() * 4 + 1).toFixed(1)} MB`,
-          status: 'Verified'
-        };
-        setReportList(prev => [mockNew, ...prev]);
-      } else {
-        await api.post('/api/admin/reports/generate', {
-          name: newReportName,
-          type: newReportType,
-          format: newReportFormat
-        });
-        await loadReportsData();
-      }
+      await api.post('/api/admin/reports/generate', {
+        name: newReportName,
+        type: newReportType,
+        format: newReportFormat
+      });
+      await loadReportsData();
       setIsCreateOpen(false);
       setNewReportName('');
     } catch (err) {

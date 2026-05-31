@@ -1,6 +1,4 @@
 import { api, getApiErrorMessage } from '@/lib/api';
-import { isDevAuthSession } from '@/lib/devAuth';
-
 export interface CommentAuthor {
   id: number;
   email: string;
@@ -44,9 +42,6 @@ export async function fetchComments(
     });
     return data.comments;
   } catch (error) {
-    if (isDevAuthSession()) {
-      return [];
-    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to load comments. Please try again.')
     );
@@ -67,9 +62,6 @@ export async function createComment(
       comment: data.comment,
     };
   } catch (error) {
-    if (isDevAuthSession()) {
-      throw new Error('Comments are unavailable in offline demo mode.');
-    }
     throw new Error(
       getApiErrorMessage(error, 'Failed to add comment. Please try again.')
     );

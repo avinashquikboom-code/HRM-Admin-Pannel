@@ -35,7 +35,6 @@ import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
-import { isDevAuthSession } from '@/lib/devAuth';
 
 const attendanceStats = [
   { name: 'On-time', value: 38500 },
@@ -149,7 +148,7 @@ const AttendancePage = () => {
   const topStats = [
     { 
       label: 'Active Today', 
-      value: isDevAuthSession() ? '45,920' : activeTodayCount.toLocaleString(), 
+      value: activeTodayCount.toLocaleString(), 
       icon: Users, 
       color: 'primary', 
       trend: '+5.4%',
@@ -157,7 +156,7 @@ const AttendancePage = () => {
     },
     { 
       label: 'Average On-time', 
-      value: isDevAuthSession() ? '84.2%' : onTimePercentage, 
+      value: onTimePercentage, 
       icon: CheckCircle2, 
       color: 'success', 
       trend: '+2.1%',
@@ -165,7 +164,7 @@ const AttendancePage = () => {
     },
     { 
       label: 'Late Arrivals', 
-      value: isDevAuthSession() ? '4,200' : lateCount.toLocaleString(), 
+      value: lateCount.toLocaleString(), 
       icon: Clock, 
       color: 'warning', 
       trend: '+12%',
@@ -173,7 +172,7 @@ const AttendancePage = () => {
     },
     { 
       label: 'Absent Today', 
-      value: isDevAuthSession() ? '7.5%' : absentCount.toLocaleString(), 
+      value: absentCount.toLocaleString(), 
       icon: XCircle, 
       color: 'error', 
       trend: '-0.8%',
