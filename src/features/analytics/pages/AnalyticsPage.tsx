@@ -290,6 +290,7 @@ const AnalyticsPage = () => {
               </BarChart>
           </ChartContainer>
         </motion.div>
+</div>
       )}
       </div>
 
