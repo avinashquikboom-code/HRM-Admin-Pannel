@@ -24,6 +24,7 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useCompanyStats } from '@/hooks/useCompanyStats';
 
 const companySchema = z.object({
@@ -273,23 +274,21 @@ const CompaniesPage = () => {
       animate="visible"
       className="space-y-8 pb-10"
     >
-      {/* Header Section */}
-      <motion.div 
-        variants={itemVariants}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      <SuperAdminHeader
+        title="Company Ecosystem"
+        subtitle="Strategic oversight of all registered entities, their operational scale, and service utilization."
+        badgeText="Enterprise Management"
+        badgeIcon={Building2}
+        stats={[
+          { label: 'Total Companies', value: companies.length.toString(), icon: Building2 },
+          { label: 'Active Users', value: stats ? stats.globalSeats.toString() : '0', icon: UsersIcon },
+          { label: 'Monthly Revenue', value: stats ? `₹${(stats.monthlyRevenue / 1000000).toFixed(1)}M` : '₹0', icon: TrendingUp },
+          { label: 'Pending Verification', value: stats ? stats.pendingVerification.toString() : '0', icon: ShieldAlert }
+        ]}
       >
-        <div>
-          <h1 className="heading-1 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-primary to-primary-light">
-            Company Ecosystem
-          </h1>
-          <p className="text-page-desc mt-1 max-w-2xl">
-            Strategic oversight of all registered entities, their operational scale, and service utilization.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-md active:scale-95">
-            <Download size={18} />
-            Bulk Export
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-md active:scale-95">
+          <Download size={18} />
+          Bulk Export
           </button>
           <button 
             onClick={() => {
@@ -301,8 +300,7 @@ const CompaniesPage = () => {
             <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
             Provision Company
           </button>
-        </div>
-      </motion.div>
+      </SuperAdminHeader>
 
       {statsError ? (
         <motion.div

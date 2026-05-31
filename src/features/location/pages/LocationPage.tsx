@@ -30,6 +30,7 @@ import LocationRoster from '@/features/location/components/LocationRoster';
 import ActivityFeed from '@/features/location/components/ActivityFeed';
 import { useLocationSimulation } from '@/features/location/hooks/useLocationSimulation';
 import type { LocationStatusFilter } from '@/features/location/types';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 
 const DEFAULT_MAP_BOUNDS = {
   minLat: 19.05,
@@ -631,21 +632,18 @@ export default function LocationPage() {
         }
       `}} />
 
-      <motion.div
-        variants={itemVariants}
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+      <SuperAdminHeader
+        title="Live Location"
+        subtitle="Monitor employee locations, office geofences, and geofence activity across your organization in real time."
+        badgeText="Geofence Management"
+        badgeIcon={MapPin}
+        stats={[
+          { label: 'Total Offices', value: offices.length.toString(), icon: Building2 },
+          { label: 'Active Employees', value: locations.length.toString(), icon: Users },
+          { label: 'In Office', value: locations.filter(l => l.status === 'In Office').length.toString(), icon: ShieldCheck },
+          { label: 'Outside Geofence', value: locations.filter(l => l.status === 'Outside Geofence').length.toString(), icon: Activity }
+        ]}
       >
-        <div>
-          <h1 className="heading-1">Live Location</h1>
-          <p className="text-page-desc mt-1 max-w-2xl">
-            Monitor employee locations, office geofences, and geofence activity
-            across your organization in real time.
-          </p>
-        </div>
-
-        {/* Tab switcher & refreshing */}
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Tab switcher removed as requested */}
 
           {activeTab === 'tracker' && (
             <>
@@ -674,8 +672,7 @@ export default function LocationPage() {
               </button>
             </>
           )}
-        </div>
-      </motion.div>
+      </SuperAdminHeader>
 
       {/* Global alert feedback */}
       {(officeActionMessage || officeActionError || officesError || locationsError) && (
