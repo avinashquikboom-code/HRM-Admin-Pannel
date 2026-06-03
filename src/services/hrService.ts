@@ -102,55 +102,33 @@ export interface HRActivityItem {
   date: string;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://quickboom-hrm-backend-gjch.onrender.com';
-
-async function getHeaders() {
-  const token = await getAuthToken();
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
-}
+import { api, getApiErrorMessage } from '@/lib/api';
 
 export async function fetchHRStats(): Promise<HRStats> {
-  const response = await fetch(`${BASE_URL}/api/hr/stats`, {
-    method: 'GET',
-    headers: await getHeaders(),
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Failed to fetch HR stats: ${err}`);
+  try {
+    const { data } = await api.get<{ data: HRStats }>('/api/hr/stats');
+    return data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch HR stats.'));
   }
-  const res = await response.json();
-  return res.data;
 }
 
 export async function fetchDepartmentOverview(): Promise<HRDepartmentResponse> {
-  const response = await fetch(`${BASE_URL}/api/hr/departments`, {
-    method: 'GET',
-    headers: await getHeaders(),
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Failed to fetch department overview: ${err}`);
+  try {
+    const { data } = await api.get<HRDepartmentResponse>('/api/hr/departments');
+    return data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch department overview.'));
   }
-  return response.json();
 }
 
 export async function fetchLeaveOverview(): Promise<HRLeaveOverview> {
-  const response = await fetch(`${BASE_URL}/api/hr/leaves`, {
-    method: 'GET',
-    headers: await getHeaders(),
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Failed to fetch leave overview: ${err}`);
+  try {
+    const { data } = await api.get<{ data: HRLeaveOverview }>('/api/hr/leaves');
+    return data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch leave overview.'));
   }
-  const res = await response.json();
-  return res.data;
 }
 
 export async function fetchHREmployees(params: {
@@ -160,49 +138,29 @@ export async function fetchHREmployees(params: {
   page?: number;
   limit?: number;
 }): Promise<HREmployeesResponse> {
-  const query = new URLSearchParams();
-  if (params.search) query.append('search', params.search);
-  if (params.status) query.append('status', params.status);
-  if (params.department) query.append('department', params.department);
-  if (params.page) query.append('page', params.page.toString());
-  if (params.limit) query.append('limit', params.limit.toString());
-
-  const response = await fetch(`${BASE_URL}/api/hr/employees?${query.toString()}`, {
-    method: 'GET',
-    headers: await getHeaders(),
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Failed to fetch HR employees: ${err}`);
+  try {
+    const { data } = await api.get<HREmployeesResponse>('/api/hr/employees', { params });
+    return data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch HR employees.'));
   }
-  return response.json();
 }
 
 export async function fetchAttendanceTrend(): Promise<HRAttendanceDay[]> {
-  const response = await fetch(`${BASE_URL}/api/hr/attendance-trend`, {
-    method: 'GET',
-    headers: await getHeaders(),
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Failed to fetch attendance trend: ${err}`);
+  try {
+    const { data } = await api.get<{ data: HRAttendanceDay[] }>('/api/hr/attendance-trend');
+    return data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch attendance trend.'));
   }
-  const res = await response.json();
-  return res.data;
 }
 
 export async function fetchHRActivity(): Promise<HRActivityItem[]> {
-  const response = await fetch(`${BASE_URL}/api/hr/activity`, {
-    method: 'GET',
-    headers: await getHeaders(),
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Failed to fetch HR activity: ${err}`);
+  try {
+    const { data } = await api.get<{ activity: HRActivityItem[] }>('/api/hr/activity');
+    return data.activity;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch HR activity.'));
   }
-  const res = await response.json();
-  return res.activity;
 }
+
