@@ -2,12 +2,12 @@ import { initializeApp, getApp, getApps } from "firebase/app";
 import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBX3g0GGTv7KanU1FAQqJ9oNc6v0NugM9g",
-  authDomain: "quickboom-hrm.firebaseapp.com",
-  projectId: "quickboom-hrm",
-  storageBucket: "quickboom-hrm.firebasestorage.app",
-  messagingSenderId: "706418474557",
-  appId: "1:706418474557:web:08c4b5be6e1fcc389c7454"
+  apiKey: "AIzaSyAmZAV3atCPIIWcVlzQ4wlJf1IlAdaU1JM",
+  authDomain: "quickboom-notification.firebaseapp.com",
+  projectId: "quickboom-notification",
+  storageBucket: "quickboom-notification.firebasestorage.app",
+  messagingSenderId: "49476481566",
+  appId: "1:49476481566:web:96afd00ce63071a1df340f"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
