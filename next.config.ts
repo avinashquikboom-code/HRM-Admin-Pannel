@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const backendUrl =
   process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '') ||
-  'http://localhost:5003';
+  'https://quickboom-hrm-backend-gjch.onrender.com';
 
 const nextConfig: NextConfig = {
   async rewrites() {
