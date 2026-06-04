@@ -1,4 +1,4 @@
-const LOCAL_API_DEFAULT = 'https://quickboom-hrm-backend-gjch.onrender.com';
+const LOCAL_API_DEFAULT = 'https://quickboom-hrm-backend.onrender.com';
 
 /**
  * Backend base URL (no trailing slash).
