@@ -7,6 +7,7 @@ import { toggleDarkMode } from '../store/slices/themeSlice';
 import { logout } from '../store/slices/authSlice';
 import SignOutModal from './SignOutModal';
 import { toggleSidebar } from '../store/slices/sidebarSlice';
+import NotificationBell from './NotificationBell';
 import { 
   Sun, 
   Moon, 
@@ -248,6 +249,8 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
 
       {/* Right Actions */}
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        <NotificationBell />
+
         {/* Dark Mode Toggle */}
         <button
           onClick={() => dispatch(toggleDarkMode())}

@@ -56,3 +56,41 @@ export async function markAllNotificationsAsRead(): Promise<{ message: string }>
     );
   }
 }
+
+export async function sendNotificationToEmployee(payload: {
+  employeeId: number;
+  title: string;
+  body: string;
+  category?: string;
+  actionType?: string;
+}): Promise<{ message: string }> {
+  try {
+    const { data } = await api.post<{ message: string }>(
+      '/api/hr/notifications/send',
+      payload
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to send notification.')
+    );
+  }
+}
+
+export async function broadcastAnnouncement(payload: {
+  title: string;
+  body: string;
+  category?: string;
+}): Promise<{ message: string }> {
+  try {
+    const { data } = await api.post<{ message: string }>(
+      '/api/hr/announcements/broadcast',
+      payload
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to broadcast announcement.')
+    );
+  }
+}
