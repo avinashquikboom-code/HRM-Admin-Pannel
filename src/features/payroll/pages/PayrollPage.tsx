@@ -203,7 +203,7 @@ const PayrollPage = () => {
         setRunsList(runsRes.data.runs);
       }
 
-      const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
+      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/admin/payroll/slips?month=${slipMonth}`);
       if (slipsRes.data.success) {
         setSlipsList(slipsRes.data.slips);
       }
@@ -213,7 +213,7 @@ const PayrollPage = () => {
       setIsPageLoading(false);
       setIsSlipsLoading(false);
     }
-  }, []);
+  }, [slipMonth]);
 
   useEffect(() => {
     loadPayrollData();
@@ -279,8 +279,9 @@ const PayrollPage = () => {
 
   const handleApproveSlip = async (employeeId: number) => {
     try {
-      await api.post('/api/admin/payroll/slips/approve', { employeeId });
-      const slipsRes = await api.get<{ success: boolean; slips: any[] }>('/api/admin/payroll/slips');
+      const [year, month] = slipMonth.split('-').map(Number);
+      await api.post('/api/admin/payroll/slips/approve', { employeeId, month, year });
+      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/admin/payroll/slips?month=${slipMonth}`);
       if (slipsRes.data.success) {
         setSlipsList(slipsRes.data.slips);
       }
