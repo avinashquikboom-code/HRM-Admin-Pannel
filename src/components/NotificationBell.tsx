@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Circle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import api from '../services/api';
+import { api } from '@/lib/api';
 
 export interface Notification {
   id: string;
