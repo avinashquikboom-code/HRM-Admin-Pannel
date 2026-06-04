@@ -411,6 +411,7 @@ const AttendancePage = () => {
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Company</th>
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Log Time</th>
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Method</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Break Status</th>
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-right">Status</th>
                 </tr>
               </thead>
@@ -453,6 +454,20 @@ const AttendancePage = () => {
                         {record.status === 'REMOTE' ? 'Remote' : 'Office'}
                       </div>
                     </td>
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
+                      {record.isOnBreak ? (
+                        <span className="px-2.5 py-1 bg-amber-500/15 text-amber-500 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-ping" />
+                          On Break
+                        </span>
+                      ) : record.totalBreakSeconds && record.totalBreakSeconds > 0 ? (
+                        <span className="text-sm font-bold text-text-primary tabular-nums">
+                          {Math.floor(record.totalBreakSeconds / 60)}m {record.totalBreakSeconds % 60}s
+                        </span>
+                      ) : (
+                        <span className="text-sm font-bold text-muted">—</span>
+                      )}
+                    </td>
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                       <span className={cn(
                         "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
@@ -467,7 +482,7 @@ const AttendancePage = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
+                    <td colSpan={6} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
                       No attendance records for today yet.
                     </td>
                   </tr>

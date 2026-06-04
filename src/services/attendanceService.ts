@@ -21,6 +21,9 @@ export interface AttendanceRecord {
   notes: string | null;
   employee: AttendanceEmployee;
   office: AttendanceOffice | null;
+  isOnBreak?: boolean;
+  breakStartTime?: string | null;
+  totalBreakSeconds?: number;
 }
 
 export interface AttendanceDistributionItem {
