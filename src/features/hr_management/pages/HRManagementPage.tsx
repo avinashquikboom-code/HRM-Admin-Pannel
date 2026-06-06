@@ -47,6 +47,7 @@ import {
   HRAttendanceDay,
   HRActivityItem
 } from '@/services/hrService';
+import HREmployeeManagement from '../components/HREmployeeManagement';
 
 // Animation variants
 const containerVariants: Variants = {
@@ -621,6 +622,14 @@ const HRManagementPage = () => {
                 </span>
               </div>
             </div>
+
+            {/* 5. HR Employee Management Section */}
+            <motion.div
+              variants={itemVariants}
+              className="glass-card border border-white/5 bg-slate-900/40 shadow-2xl p-8"
+            >
+              <HREmployeeManagement />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

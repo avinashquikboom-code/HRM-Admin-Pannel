@@ -164,3 +164,81 @@ export async function fetchHRActivity(): Promise<HRActivityItem[]> {
   }
 }
 
+export interface HROffice {
+  id: number;
+  name: string;
+  code: string | null;
+  address: string;
+}
+
+export interface HRDepartment {
+  id: number;
+  name: string;
+  code: string | null;
+}
+
+export interface CreateHREmployeeRequest {
+  email: string;
+  firstName: string;
+  lastName?: string;
+  designation?: string;
+  status?: string;
+  officeId?: number;
+  departmentId?: number;
+  phone?: string;
+}
+
+export interface UpdateHREmployeeRequest {
+  firstName?: string;
+  lastName?: string;
+  designation?: string;
+  status?: string;
+  officeId?: number;
+  departmentId?: number;
+  phone?: string;
+}
+
+export async function fetchHROffices(): Promise<HROffice[]> {
+  try {
+    const { data } = await api.get<{ success: boolean; offices: HROffice[] }>('/api/hr/offices');
+    return data.offices;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch offices.'));
+  }
+}
+
+export async function fetchHRDepartments(): Promise<HRDepartment[]> {
+  try {
+    const { data } = await api.get<{ success: boolean; departments: HRDepartment[] }>('/api/hr/departments');
+    return data.departments;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch departments.'));
+  }
+}
+
+export async function createHREmployee(employeeData: CreateHREmployeeRequest): Promise<HREmployee> {
+  try {
+    const { data } = await api.post<{ success: boolean; employee: HREmployee }>('/api/hr/employees', employeeData);
+    return data.employee;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to create employee.'));
+  }
+}
+
+export async function updateHREmployee(id: number, employeeData: UpdateHREmployeeRequest): Promise<HREmployee> {
+  try {
+    const { data } = await api.put<{ success: boolean; employee: HREmployee }>(`/api/hr/employees/${id}`, employeeData);
+    return data.employee;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to update employee.'));
+  }
+}
+
+export async function deleteHREmployee(id: number): Promise<void> {
+  try {
+    await api.delete(`/api/hr/employees/${id}`);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to delete employee.'));
+  }
+}
+
