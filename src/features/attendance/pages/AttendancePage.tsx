@@ -36,6 +36,7 @@ import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
+import { api } from '@/lib/api';
 
 
 function formatCheckInTime(value: string | null) {
@@ -125,6 +126,40 @@ const AttendancePage = () => {
   const [isHolidaysOpen, setIsHolidaysOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Handle attendance PDF download
+  const handleDownloadAttendanceReport = async (employeeId?: number | string, employeeName?: string) => {
+    try {
+      // Get current month in YYYY-MM format
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      
+      // Show loading state
+      const response = await api.get('/api/mobile/attendance/report/download', {
+        params: {
+          month: currentMonth,
+          ...(employeeId && { employeeId })
+        },
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const namePart = employeeName ? employeeName.replace(/\s+/g, '-').toLowerCase() : 'all-employees';
+      link.setAttribute('download', `attendance-report-${namePart}-${currentMonth}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      alert('Attendance report downloaded successfully!');
+    } catch (error: any) {
+      console.error('Error downloading attendance report:', error);
+      alert('Failed to download attendance report. Please try again.');
+    }
+  };
+
   const presentCount = records.filter(r => r.status === 'PRESENT').length;
   const lateCount = records.filter(r => r.status === 'LATE').length;
   const absentCount = records.filter(r => r.status === 'ABSENT').length;
@@ -193,6 +228,13 @@ const AttendancePage = () => {
           { label: 'Absent', value: absentCount.toString(), icon: XCircle }
         ]}
       >
+        <button 
+            onClick={() => handleDownloadAttendanceReport()}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3"
+          >
+            <Download size={18} />
+            Download Monthly Report
+        </button>
         <button 
             onClick={() => setIsHolidaysOpen(true)}
             className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
@@ -413,6 +455,7 @@ const AttendancePage = () => {
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Method</th>
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Break Status</th>
                   <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-right">Status</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -477,12 +520,22 @@ const AttendancePage = () => {
                         {statusLabel}
                       </span>
                     </td>
+                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-center">
+                      <button
+                        onClick={() => handleDownloadAttendanceReport(record.employee.id, employeeName)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
+                        title={`Download attendance report for ${employeeName}`}
+                      >
+                        <Download size={13} />
+                        Download
+                      </button>
+                    </td>
                   </motion.tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
+                    <td colSpan={7} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
                       No attendance records for today yet.
                     </td>
                   </tr>

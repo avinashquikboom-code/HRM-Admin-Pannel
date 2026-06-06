@@ -169,10 +169,11 @@ export default function LeavePage() {
     setIsRemarksModalOpen(true);
   };
 
-  const handleDownloadLeaveReport = async () => {
+  const handleDownloadLeaveReport = async (employeeId?: number | string, employeeName?: string) => {
     try {
       // Show loading state
       const response = await api.get('/api/admin/leaves/report/download', {
+        params: employeeId ? { employeeId } : undefined,
         responseType: 'blob'
       });
       
@@ -180,7 +181,8 @@ export default function LeavePage() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `leave-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      const namePart = employeeName ? employeeName.replace(/\s+/g, '-').toLowerCase() : 'all-employees';
+      link.setAttribute('download', `leave-report-${namePart}-${new Date().toISOString().split('T')[0]}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -376,11 +378,11 @@ export default function LeavePage() {
 
         <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
-            onClick={handleDownloadLeaveReport}
+            onClick={() => handleDownloadLeaveReport()}
             className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300"
           >
             <Download size={18} />
-            Download Report
+            Download All Report
           </button>
           <button 
             onClick={() => setIsApplyModalOpen(true)}
@@ -718,6 +720,7 @@ export default function LeavePage() {
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Earned Leave</th>
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Paid Allowances</th>
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Report</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -740,6 +743,16 @@ export default function LeavePage() {
                             <UserCheck size={10} />
                             Compliant
                           </span>
+                        </td>
+                        <td className="px-6 py-4.5 text-center">
+                          <button
+                            onClick={() => handleDownloadLeaveReport(bal.employeeId, bal.name)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
+                            title={`Download leave report for ${bal.name}`}
+                          >
+                            <Download size={13} />
+                            Download
+                          </button>
                         </td>
                       </tr>
                     ))}
