@@ -169,6 +169,31 @@ export default function LeavePage() {
     setIsRemarksModalOpen(true);
   };
 
+  const handleDownloadLeaveReport = async () => {
+    try {
+      // Show loading state
+      const response = await api.get('/api/admin/leaves/report/download', {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `leave-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      alert('Leave report downloaded successfully!');
+    } catch (error) {
+      console.error('Failed to download leave report:', error);
+      alert('Failed to download leave report. Please try again.');
+    }
+  };
+
   const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!startDate || !endDate || !reason) return;
@@ -336,6 +361,13 @@ export default function LeavePage() {
         </div>
 
         <div className="relative z-10 shrink-0 flex items-center gap-3">
+          <button 
+            onClick={handleDownloadLeaveReport}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300"
+          >
+            <Download size={18} />
+            Download Report
+          </button>
           <button 
             onClick={() => setIsApplyModalOpen(true)}
             className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
