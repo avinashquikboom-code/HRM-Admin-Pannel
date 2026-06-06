@@ -30,6 +30,8 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
+import { io, Socket } from 'socket.io-client';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -78,6 +80,7 @@ const LEAVE_TYPES_CONFIG = [
 ];
 
 export default function LeavePage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'requests' | 'balances' | 'policies' | 'calendar'>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
@@ -89,6 +92,7 @@ export default function LeavePage() {
   // Live Integration States
   const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
   const [realEmployees, setRealEmployees] = useState<any[]>([]);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   // Remarks drawer state
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -142,6 +146,76 @@ export default function LeavePage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // WebSocket connection for real-time leave balance updates
+  useEffect(() => {
+    if (!user?.token) return;
+
+    const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001', {
+      auth: { token: user.token }
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to WebSocket for real-time leave balance updates');
+    });
+
+    newSocket.on('leaveBalanceUpdate', (data: any) => {
+      console.log('Received leave balance update:', data);
+      
+      // Update leave balances in real-time
+      if (data.type === 'LEAVE_BALANCE_UPDATED' && data.leaveBalance) {
+        setLeaveBalances(prev => {
+          const updatedBalances = [...prev];
+          const existingIndex = updatedBalances.findIndex(
+            bal => bal.employeeId === data.employeeId || bal.name === `${data.employee?.firstName || ''} ${data.employee?.lastName || ''}`.trim()
+          );
+          
+          if (existingIndex >= 0) {
+            // Update existing employee balance
+            updatedBalances[existingIndex] = {
+              ...updatedBalances[existingIndex],
+              casual: data.leaveBalance.casualRemaining,
+              sick: data.leaveBalance.sickRemaining,
+              earned: data.leaveBalance.earnedRemaining,
+              casualUsed: data.leaveBalance.casualUsed,
+              sickUsed: data.leaveBalance.sickUsed,
+              earnedUsed: data.leaveBalance.earnedUsed,
+              lastUpdated: data.timestamp
+            };
+          } else if (data.employee) {
+            // Add new employee balance if not exists
+            updatedBalances.push({
+              employeeId: data.employeeId,
+              name: `${data.employee.firstName} ${data.employee.lastName}`,
+              casual: data.leaveBalance.casualRemaining,
+              sick: data.leaveBalance.sickRemaining,
+              earned: data.leaveBalance.earnedRemaining,
+              casualUsed: data.leaveBalance.casualUsed,
+              sickUsed: data.leaveBalance.sickUsed,
+              earnedUsed: data.leaveBalance.earnedUsed,
+              lastUpdated: data.timestamp
+            });
+          }
+          
+          return updatedBalances;
+        });
+      }
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from WebSocket');
+    });
+
+    newSocket.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+    };
+  }, [user?.token]);
 
   // Handlers
   const handleRemarksAction = async (e: React.FormEvent) => {
