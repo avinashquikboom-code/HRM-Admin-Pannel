@@ -188,9 +188,23 @@ export default function LeavePage() {
       
       // Show success message
       alert('Leave report downloaded successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to download leave report:', error);
-      alert('Failed to download leave report. Please try again.');
+      // When responseType is 'blob', server JSON errors arrive as a Blob — parse it for a useful message
+      let message = 'Failed to download leave report. Please try again.';
+      const data = error?.response?.data;
+      if (data instanceof Blob) {
+        try {
+          const text = await data.text();
+          const parsed = JSON.parse(text);
+          if (parsed?.message) message = parsed.message;
+        } catch {
+          // keep default message
+        }
+      } else if (error instanceof Error && error.message) {
+        message = error.message;
+      }
+      alert(message);
     }
   };
 
