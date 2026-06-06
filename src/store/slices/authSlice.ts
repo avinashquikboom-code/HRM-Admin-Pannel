@@ -98,7 +98,7 @@ const authSlice = createSlice({
     logout: (state) => {
       const portal = state.portal ?? resolvePortalFromWindow();
       if (portal) {
-        clearAuthSession(portal);
+        clearAuthSession(portal, state.user?.role);
       }
       state.user = null;
       state.token = null;

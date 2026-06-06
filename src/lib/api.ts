@@ -38,7 +38,10 @@ api.interceptors.request.use((config) => {
   attachRequestMetadata(config);
 
   const activePortal = resolvePortalFromWindow();
-  const token = getAuthToken(activePortal);
+  // For the super_admin portal, SUPER_ADMIN and ADMIN have separate token
+  // buckets; use the currently logged-in role to target the right one.
+  const activeRole = store.getState().auth.user?.role;
+  const token = getAuthToken(activePortal, activeRole);
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
