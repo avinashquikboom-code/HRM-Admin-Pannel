@@ -9,7 +9,8 @@ import {
   Building2,
   Wallet,
   RefreshCw,
-  Bell
+  Bell,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -46,7 +47,13 @@ const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
 
   const loadNotifications = useCallback(async () => {
     setIsLoading(true);
@@ -71,6 +78,7 @@ const NotificationsPage = () => {
       setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
       );
+      showSuccessMessage('Notification marked as read');
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
@@ -82,6 +90,7 @@ const NotificationsPage = () => {
       setNotifications(prev =>
         prev.map(n => ({ ...n, isRead: true }))
       );
+      showSuccessMessage('All notifications marked as read');
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
     }
@@ -141,6 +150,29 @@ const NotificationsPage = () => {
           </button>
         ))}
       </div>
+
+      {/* Success Message Display */}
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm mb-4"
+          >
+            <div className="flex items-center gap-3">
+              <CheckCircle2 size={18} className="text-emerald-400" />
+              <span className="font-medium">{successMessage}</span>
+            </div>
+            <button 
+              onClick={() => setSuccessMessage(null)}
+              className="p-1 hover:bg-emerald-500/20 rounded-lg transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Error State */}
       {error && (
@@ -217,9 +249,23 @@ const NotificationsPage = () => {
           ) : (
             <div className="glass-card p-12 text-center">
               <Bell size={48} className="mx-auto mb-4 text-muted" />
-              <p className="text-text-secondary font-medium">
-                {selectedCategory === 'All' ? 'No notifications' : `No ${selectedCategory.toLowerCase()} notifications`}
+              <p className="text-text-primary font-medium text-lg">
+                {selectedCategory === 'All' ? 'All caught up!' : `No ${selectedCategory.toLowerCase()} notifications`}
               </p>
+              <p className="text-text-secondary text-sm mt-2">
+                {selectedCategory === 'All' 
+                  ? 'You have no new notifications at the moment.'
+                  : `There are no ${selectedCategory.toLowerCase()} notifications to display.`
+                }
+              </p>
+              {selectedCategory !== 'All' && (
+                <button 
+                  onClick={() => setSelectedCategory('All')}
+                  className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black hover:bg-primary/90 transition-colors"
+                >
+                  View All Notifications
+                </button>
+              )}
             </div>
           )}
         </div>

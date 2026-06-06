@@ -77,6 +77,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  
+  // Success message state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
 
   const loadEmployees = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setIsRefreshing(true);
@@ -135,6 +143,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
     try {
       await createHREmployee(formData);
+      showSuccessMessage('Employee created successfully!');
       setIsCreateModalOpen(false);
       setFormData({
         email: '',
@@ -173,6 +182,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       };
       
       await updateHREmployee(selectedEmployee.id, updateData);
+      showSuccessMessage('Employee updated successfully!');
       setIsEditModalOpen(false);
       setSelectedEmployee(null);
       loadEmployees();
@@ -191,6 +201,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     setIsDeleting(employeeId);
     try {
       await deleteHREmployee(employeeId);
+      showSuccessMessage('Employee deleted successfully!');
       loadEmployees();
     } catch (err: any) {
       setError(err?.message || 'Failed to delete employee.');
@@ -285,6 +296,29 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         </button>
       </div>
 
+      {/* Success Message Display */}
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm"
+          >
+            <div className="flex items-center gap-3">
+              <Check size={18} className="text-emerald-400" />
+              <span className="font-medium">{successMessage}</span>
+            </div>
+            <button 
+              onClick={() => setSuccessMessage(null)}
+              className="p-1 hover:bg-emerald-500/20 rounded-lg transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Error Display */}
       {error && (
         <motion.div 
@@ -347,8 +381,22 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-400">
                     <Users size={48} className="mx-auto mb-4 opacity-50" />
-                    <p className="text-sm font-medium">No employees found</p>
-                    <p className="text-xs mt-1">Try adjusting your search or filters</p>
+                    <p className="text-sm font-medium text-white">No employees found</p>
+                    <p className="text-xs mt-2 text-slate-400">
+                      {searchTerm || statusFilter || departmentFilter 
+                        ? 'Try adjusting your search or filters to see more results'
+                        : 'Start by adding your first employee to the system'
+                      }
+                    </p>
+                    {!searchTerm && !statusFilter && !departmentFilter && (
+                      <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black hover:bg-primary/90 transition-colors"
+                      >
+                        <UserPlus size={14} className="inline mr-2" />
+                        Add First Employee
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
