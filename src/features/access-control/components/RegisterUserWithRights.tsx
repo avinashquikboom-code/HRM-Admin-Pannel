@@ -223,25 +223,23 @@ export default function RegisterUserWithRights({
           </div>
         )}
 
-        {managerPortal === 'platform_admin' && (
-          <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Department</label>
-            <div className="relative group">
-              <Building className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
-              <select
-                value={departmentId || ''}
-                onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
-                disabled={isLoading}
-                className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
-              >
-                <option value="">Select Department (Optional)</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>{dept.name}</option>
-                ))}
-              </select>
-            </div>
+        <div>
+          <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Department</label>
+          <div className="relative group">
+            <Building className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
+            <select
+              value={departmentId || ''}
+              onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
+              disabled={isLoading}
+              className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+            >
+              <option value="">Select Department (Optional)</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>{dept.name}</option>
+              ))}
+            </select>
           </div>
-        )}
+        </div>
 
         <div className="rounded-[2rem] border border-white/5 bg-slate-950/20 p-5 sm:p-7 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
