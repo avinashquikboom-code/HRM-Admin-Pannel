@@ -16,7 +16,8 @@ import {
   Radio,
   Check,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { 
@@ -41,6 +42,8 @@ import {
   fetchLeaveOverview,
   fetchAttendanceTrend,
   fetchHRActivity,
+  downloadHRLeaveReport,
+  downloadHRAttendanceReport,
   HRStats,
   HRDepartmentOverview,
   HRLeaveOverview,
@@ -189,6 +192,22 @@ const HRManagementPage = () => {
     }, 1000);
   };
 
+  const handleDownloadLeaveReport = async () => {
+    try {
+      await downloadHRLeaveReport();
+    } catch (error) {
+      console.error('Failed to download leave report:', error);
+    }
+  };
+
+  const handleDownloadAttendanceReport = async () => {
+    try {
+      await downloadHRAttendanceReport();
+    } catch (error) {
+      console.error('Failed to download attendance report:', error);
+    }
+  };
+
   return (
     <motion.div 
       initial="hidden"
@@ -226,14 +245,30 @@ const HRManagementPage = () => {
               {currentTime || '00:00:00'}
             </span>
           </div>
-          <button 
-            onClick={handleRefresh} 
-            disabled={isLoading || isRefreshing}
-            className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50 shadow-inner shrink-0"
-            title="Refresh Operational Pulse"
-          >
-            <RefreshCw size={15} className={cn(isRefreshing && "animate-spin text-primary")} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleDownloadLeaveReport}
+              className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 shadow-inner shrink-0"
+              title="Download Leave Report"
+            >
+              <Download size={15} />
+            </button>
+            <button 
+              onClick={handleDownloadAttendanceReport}
+              className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 shadow-inner shrink-0"
+              title="Download Attendance Report"
+            >
+              <Download size={15} />
+            </button>
+            <button 
+              onClick={handleRefresh} 
+              disabled={isLoading || isRefreshing}
+              className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50 shadow-inner shrink-0"
+              title="Refresh Operational Pulse"
+            >
+              <RefreshCw size={15} className={cn(isRefreshing && "animate-spin text-primary")} />
+            </button>
+          </div>
         </div>
       </motion.div>
 

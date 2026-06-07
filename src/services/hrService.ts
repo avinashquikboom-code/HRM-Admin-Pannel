@@ -242,3 +242,47 @@ export async function deleteHREmployee(id: number): Promise<void> {
   }
 }
 
+export async function downloadHRLeaveReport(params?: {
+  employeeId?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<void> {
+  try {
+    const token = getAuthToken('super_admin');
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const queryParams = new URLSearchParams();
+    
+    if (params?.employeeId) queryParams.append('employeeId', params.employeeId);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    
+    const url = `${baseUrl}/api/admin/leaves/report/download?token=${token}&${queryParams.toString()}`;
+    window.open(url, '_blank');
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to download leave report.'));
+  }
+}
+
+export async function downloadHRAttendanceReport(params?: {
+  startDate?: string;
+  endDate?: string;
+  departmentId?: string;
+  officeId?: string;
+}): Promise<void> {
+  try {
+    const token = getAuthToken('super_admin');
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const queryParams = new URLSearchParams();
+    
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    if (params?.departmentId) queryParams.append('departmentId', params.departmentId);
+    if (params?.officeId) queryParams.append('officeId', params.officeId);
+    
+    const url = `${baseUrl}/api/admin/reports/attendance/download?token=${token}&${queryParams.toString()}`;
+    window.open(url, '_blank');
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to download attendance report.'));
+  }
+}
+
