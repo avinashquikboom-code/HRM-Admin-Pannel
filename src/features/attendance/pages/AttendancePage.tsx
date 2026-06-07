@@ -693,6 +693,9 @@ const AttendancePage = () => {
                       <div className="text-xs text-text-secondary space-y-1">
                         <p>Check-in: {att.checkIn ? new Date(att.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</p>
                         <p>Check-out: {att.checkOut ? new Date(att.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</p>
+                        <p>Break time: {att.totalBreakSeconds && att.totalBreakSeconds > 0 
+                          ? `${Math.floor(att.totalBreakSeconds / 60)}m ${att.totalBreakSeconds % 60}s` 
+                          : '—'}</p>
                       </div>
                     </div>
                   ))}
