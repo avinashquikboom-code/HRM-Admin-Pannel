@@ -19,8 +19,8 @@ const defaultForm: CreateOfficeRequest = {
   address: '',
   latitude: 0,
   longitude: 0,
-  idealRadiusMeters: 25,
-  maxPunchRadiusMeters: 25,
+  idealRadiusMeters: 100,
+  maxPunchRadiusMeters: 100,
   isActive: true,
 };
 
