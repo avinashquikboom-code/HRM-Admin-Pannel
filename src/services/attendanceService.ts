@@ -65,6 +65,7 @@ export async function fetchAttendanceHistory(params?: {
   from?: string;
   to?: string;
   limit?: number;
+  employeeId?: number;
 }): Promise<AttendanceRecord[]> {
   try {
     const { data } = await api.get<AttendanceHistoryResponse>(
