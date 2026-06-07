@@ -8,6 +8,7 @@ export interface EmployeeLiveLocation {
   status: string;
   speed: string;
   battery: string;
+  isLocationEnabled?: boolean;
 }
 
 export interface LiveLocationResponse {

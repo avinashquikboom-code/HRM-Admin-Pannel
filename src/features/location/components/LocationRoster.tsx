@@ -134,14 +134,21 @@ export default function LocationRoster({
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span
-                      className={cn(
-                        'inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border pointer-events-none',
-                        statusBadge(emp.status)
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border pointer-events-none',
+                          statusBadge(emp.status)
+                        )}
+                      >
+                        {displayStatus(emp.status)}
+                      </span>
+                      {emp.isLocationEnabled === false && (
+                        <span className="inline-flex px-2 py-0.5 rounded bg-error/10 text-error text-[9px] font-bold uppercase tracking-wide border border-error/20">
+                          Location Off
+                        </span>
                       )}
-                    >
-                      {displayStatus(emp.status)}
-                    </span>
+                    </div>
                   </td>
                   <td className="px-5 py-3.5 hidden md:table-cell font-mono text-xs text-text-secondary pointer-events-none">
                     {emp.status === 'On Leave'
