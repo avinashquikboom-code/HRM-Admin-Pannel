@@ -48,6 +48,7 @@ const RegisterUserPage = () => {
           registerRole={isSuperAdmin ? 'HR' : 'EMPLOYEE'}
           targetPortal={isSuperAdmin ? 'platform_admin' : 'employee'}
           compact
+          allowRoleSelection
         />
       </motion.div>
 

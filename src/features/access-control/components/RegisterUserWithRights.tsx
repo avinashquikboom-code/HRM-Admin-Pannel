@@ -20,6 +20,7 @@ interface RegisterUserWithRightsProps {
   /** Which module set to assign */
   targetPortal: PortalType;
   compact?: boolean;
+  allowRoleSelection?: boolean;
 }
 
 const CONFIG = {
@@ -50,6 +51,7 @@ export default function RegisterUserWithRights({
   registerRole,
   targetPortal,
   compact = false,
+  allowRoleSelection = false,
 }: RegisterUserWithRightsProps) {
   const copy = CONFIG[managerPortal];
   const access = ROLE_ACCESS[targetPortal];
@@ -61,6 +63,7 @@ export default function RegisterUserWithRights({
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<RegisterRole>(registerRole);
   const [permissions, setPermissions] = useState<Record<string, boolean>>(() =>
     buildInitialUserPermissions(targetPortal)
   );
@@ -108,14 +111,14 @@ export default function RegisterUserWithRights({
       const result = await registerUser({
         email: normalizedEmail,
         password,
-        role: registerRole,
+        role: selectedRole,
       });
 
       // TODO: Save user permissions via backend API
       // saveUserPermissionRecord(...)
 
       setSuccess(
-        `${result.user.email} registered with ${enabled} module rights assigned.`
+        `${result.user.email} registered as ${selectedRole} with ${enabled} module rights assigned.`
       );
 
       setEmail('');
@@ -179,6 +182,30 @@ export default function RegisterUserWithRights({
             />
           </div>
         </div>
+
+        {allowRoleSelection && (
+          <div>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">User Role</label>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value as RegisterRole)}
+              disabled={isLoading}
+              className="w-full px-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+            >
+              {managerPortal === 'super_admin' ? (
+                <>
+                  <option value="HR">HR Manager</option>
+                  <option value="ADMIN">Admin</option>
+                </>
+              ) : (
+                <>
+                  <option value="EMPLOYEE">Employee</option>
+                  <option value="HR">HR Manager</option>
+                </>
+              )}
+            </select>
+          </div>
+        )}
 
         <div className="rounded-[2rem] border border-white/5 bg-slate-950/20 p-5 sm:p-7 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
