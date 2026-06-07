@@ -7,6 +7,8 @@ export interface AdminNotification {
   type: 'info' | 'success' | 'warning' | 'error';
   isRead: boolean;
   createdAt: string;
+  actionId?: string;
+  actionType?: string;
   employee?: {
     id: string;
     employeeCode: string;

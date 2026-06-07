@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   CheckCircle2, 
   Settings, 
@@ -12,7 +13,7 @@ import {
   Bell,
   X
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import {
   fetchNotifications,
@@ -44,6 +45,7 @@ const formatTimeAgo = (dateString: string) => {
 };
 
 const NotificationsPage = () => {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -93,6 +95,45 @@ const NotificationsPage = () => {
       showSuccessMessage('All notifications marked as read');
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
+    }
+  };
+
+  const handleNotificationClick = async (notification: AdminNotification) => {
+    // Mark as read first
+    if (!notification.isRead) {
+      await handleMarkAsRead(notification.id);
+    }
+
+    // Navigate based on actionType
+    if (notification.actionType && notification.actionId) {
+      switch (notification.actionType) {
+        case 'LEAVE_APPLICATION':
+          router.push('/super-admin/leave');
+          break;
+        case 'LEAVE_APPROVED':
+        case 'LEAVE_REJECTED':
+          router.push('/super-admin/leave');
+          break;
+        case 'EXPENSE_REQUEST':
+          router.push('/super-admin/expenses');
+          break;
+        case 'EXPENSE_APPROVED':
+        case 'EXPENSE_REJECTED':
+          router.push('/super-admin/expenses');
+          break;
+        case 'ATTENDANCE_ALERT':
+          router.push('/super-admin/attendance');
+          break;
+        case 'TASK_ASSIGNED':
+          router.push('/super-admin/tasks');
+          break;
+        case 'PAYROLL_PROCESSED':
+          router.push('/super-admin/payroll');
+          break;
+        default:
+          // If no specific action, just mark as read
+          break;
+      }
     }
   };
 
@@ -211,7 +252,7 @@ const NotificationsPage = () => {
                     "glass-card p-6 flex gap-6 relative transition-all group hover:border-primary/20 cursor-pointer",
                     !notif.isRead && "border-l-4 border-l-primary bg-primary/[0.02]"
                   )}
-                  onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
+                  onClick={() => handleNotificationClick(notif)}
                 >
                   <div className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
