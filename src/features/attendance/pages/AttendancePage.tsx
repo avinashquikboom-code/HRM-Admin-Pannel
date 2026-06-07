@@ -37,7 +37,7 @@ import Modal from '@/components/Modal';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
 import { api } from '@/lib/api';
-import { fetchComprehensiveAttendanceReport, type ComprehensiveReportResponse } from '@/services/attendanceService';
+import { fetchComprehensiveAttendanceReport, downloadComprehensiveAttendanceReport, type ComprehensiveReportResponse } from '@/services/attendanceService';
 
 
 function formatCheckInTime(value: string | null) {
@@ -153,6 +153,19 @@ const AttendancePage = () => {
       alert('Failed to load comprehensive report. Please try again.');
     } finally {
       setIsLoadingReport(false);
+    }
+  };
+
+  // Handle download comprehensive report
+  const handleDownloadComprehensiveReport = async () => {
+    try {
+      await downloadComprehensiveAttendanceReport({
+        month: reportMonth,
+        year: reportYear,
+      });
+    } catch (error) {
+      console.error('Error downloading comprehensive report:', error);
+      alert('Failed to download comprehensive report. Please try again.');
     }
   };
 
@@ -760,8 +773,8 @@ const AttendancePage = () => {
             {/* Period Selector */}
             <div className="flex items-center gap-4 p-4 bg-surface-variant/50 rounded-2xl">
               <label className="text-sm font-bold text-text-primary">Month:</label>
-              <select 
-                value={reportMonth} 
+              <select
+                value={reportMonth}
                 onChange={(e) => setReportMonth(parseInt(e.target.value))}
                 className="px-4 py-2 bg-surface rounded-xl border border-border/50 text-sm font-bold"
               >
@@ -770,20 +783,27 @@ const AttendancePage = () => {
                 ))}
               </select>
               <label className="text-sm font-bold text-text-primary">Year:</label>
-              <select 
-                value={reportYear} 
+              <select
+                value={reportYear}
                 onChange={(e) => setReportYear(parseInt(e.target.value))}
                 className="px-4 py-2 bg-surface rounded-xl border border-border/50 text-sm font-bold"
               >
-                {[2023, 2024, 2025].map(y => (
+                {[2023, 2024, 2025, 2026].map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
-              <button 
+              <button
                 onClick={handleLoadComprehensiveReport}
                 className="px-4 py-2 bg-primary text-white text-xs font-bold uppercase rounded-xl hover:bg-primary-dark transition-all"
               >
                 Load Report
+              </button>
+              <button
+                onClick={handleDownloadComprehensiveReport}
+                className="px-4 py-2 bg-secondary text-white text-xs font-bold uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2"
+              >
+                <Download size={14} />
+                Download PDF
               </button>
             </div>
 
