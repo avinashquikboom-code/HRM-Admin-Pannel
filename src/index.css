@@ -32,15 +32,15 @@
 
 @layer base {
   :root {
-    --background: #FFFFFF;
+    --background: #F0FDFA;
     --surface: #FFFFFF;
     --surface-variant: #F8FAFC;
     --text-primary: #0F172A;
     --text-secondary: #475569;
     --border: #E2E8F0;
     --muted: #94A3B8;
-    --header-bg: #14B8A6;
-    --header-text: #FFFFFF;
+    --header-bg: #FFFFFF;
+    --header-text: #0F172A;
   }
 
   .dark {
