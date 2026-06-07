@@ -52,7 +52,7 @@ export function useLiveLocations(isAutoRefreshing = true) {
         .catch((err) => {
           console.error('[Telemetry Polling Error]:', err);
         });
-    }, 10000); // 10 seconds polling interval
+    }, 15000); // 15 seconds polling interval to match mobile app
 
     return () => clearInterval(intervalId);
   }, [isAutoRefreshing, token]);
