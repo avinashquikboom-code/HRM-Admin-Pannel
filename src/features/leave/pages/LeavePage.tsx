@@ -120,7 +120,7 @@ export default function LeavePage() {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const leavesRes = await api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves');
+      const leavesRes = await api.get<{ success: boolean; leaves: any[] }>('/api/mobile/leave/hr/requests');
       if (leavesRes.data.success) {
         setLeaveRequests(leavesRes.data.leaves);
       }

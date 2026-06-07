@@ -16,7 +16,7 @@ export interface DashboardStats {
 
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   try {
-    const { data } = await api.get<{ data: DashboardStats }>('/api/admin/dashboard/stats');
+    const { data } = await api.get<{ success: boolean; data: DashboardStats }>('/api/admin/dashboard/stats');
     return data.data;
   } catch (error) {
     throw new Error(
