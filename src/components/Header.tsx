@@ -205,20 +205,20 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         {!isEmployee && (
         <>
         <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-surface focus-within:shadow-lg focus-within:shadow-primary/5 transition-all group">
-          <Search className="w-5 h-5 text-muted group-focus-within:text-primary transition-colors shrink-0" />
-          <input 
+        <div className="flex items-center gap-3 w-full bg-transparent px-6 py-1.5 rounded-2xl border border-white/20 focus-within:border-white/40 focus-within:bg-white/10 focus-within:shadow-lg focus-within:shadow-primary/5 transition-all group">
+          <Search className="w-5 h-5 text-white/70 group-focus-within:text-white transition-colors shrink-0" />
+          <input
             id="global-search"
-            type="text" 
+            type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsSearchFocused(true)}
-            placeholder="Search analytics, companies..." 
-            className="bg-transparent border-none outline-none text-sm text-text-primary w-full min-w-0 placeholder:text-muted"
+            placeholder="Search analytics, companies..."
+            className="bg-transparent border-none outline-none text-sm text-white w-full min-w-0 placeholder:text-white/50"
           />
-          <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-surface border border-border rounded-lg shadow-sm shrink-0">
-            <span className="text-micro font-bold text-muted">⌘</span>
-            <span className="text-micro font-bold text-muted">K</span>
+          <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-lg shadow-sm shrink-0">
+            <span className="text-micro font-bold text-white/70">⌘</span>
+            <span className="text-micro font-bold text-white/70">K</span>
           </div>
         </div>
         <AnimatePresence>
