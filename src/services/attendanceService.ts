@@ -78,3 +78,83 @@ export async function fetchAttendanceHistory(params?: {
     );
   }
 }
+
+export interface ComprehensiveReportSummary {
+  totalDays: number;
+  fullDays: number;
+  halfDays: number;
+  absentDays: number;
+  lateDays: number;
+  presentDays: number;
+  totalWorkHours: number;
+  totalBreakTime: number;
+  locationTrackingDays: number;
+  locationTrackingPercentage: number;
+}
+
+export interface ComprehensiveAttendanceRecord {
+  date: string;
+  checkIn: string | null;
+  checkOut: string | null;
+  status: string;
+  attendanceType: string;
+  workHours: number;
+  breakMinutes: number;
+  hasLocation: boolean;
+  location: {
+    latitude: number;
+    longitude: number;
+    officeName: string;
+    officeRadius: number;
+  } | null;
+}
+
+export interface LocationTracking {
+  date: string;
+  latitude: number;
+  longitude: number;
+  officeName: string;
+  officeRadius: number;
+  locationStatus: string;
+}
+
+export interface BreakDetail {
+  date: string;
+  breakStartTime: string | null;
+  breakMinutes: number;
+  breakType: string;
+}
+
+export interface ComprehensiveReportResponse {
+  period: {
+    month: number;
+    year: number;
+    startDate: string;
+    endDate: string;
+  };
+  summary: ComprehensiveReportSummary;
+  attendanceRecords: ComprehensiveAttendanceRecord[];
+  locationTracking: LocationTracking[];
+  breakDetails: BreakDetail[];
+}
+
+export async function fetchComprehensiveAttendanceReport(params: {
+  month: number;
+  year: number;
+  employeeId?: number;
+  departmentId?: number;
+  includeLocationTracking?: boolean;
+  includeBreakDetails?: boolean;
+}): Promise<ComprehensiveReportResponse> {
+  try {
+    const { data } = await api.get<ComprehensiveReportResponse>(
+      '/api/attendance/comprehensive-report',
+      { params }
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to load comprehensive attendance report. Please try again.')
+    );
+  }
+}

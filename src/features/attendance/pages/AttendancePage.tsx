@@ -37,6 +37,7 @@ import Modal from '@/components/Modal';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
 import { api } from '@/lib/api';
+import { fetchComprehensiveAttendanceReport, type ComprehensiveReportResponse } from '@/services/attendanceService';
 
 
 function formatCheckInTime(value: string | null) {
@@ -125,6 +126,31 @@ const AttendancePage = () => {
   const { records, distribution, isLoading, error, refetch } = useTodayAttendance();
   const [isHolidaysOpen, setIsHolidaysOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isComprehensiveReportOpen, setIsComprehensiveReportOpen] = useState(false);
+  const [comprehensiveReport, setComprehensiveReport] = useState<ComprehensiveReportResponse | null>(null);
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [isLoadingReport, setIsLoadingReport] = useState(false);
+
+  // Handle comprehensive report
+  const handleLoadComprehensiveReport = async () => {
+    setIsLoadingReport(true);
+    try {
+      const report = await fetchComprehensiveAttendanceReport({
+        month: reportMonth,
+        year: reportYear,
+        includeLocationTracking: true,
+        includeBreakDetails: true,
+      });
+      setComprehensiveReport(report);
+      setIsComprehensiveReportOpen(true);
+    } catch (error) {
+      console.error('Error loading comprehensive report:', error);
+      alert('Failed to load comprehensive report. Please try again.');
+    } finally {
+      setIsLoadingReport(false);
+    }
+  };
 
   // Handle attendance PDF download
   const handleDownloadAttendanceReport = async (employeeId?: number | string, employeeName?: string) => {
@@ -234,6 +260,14 @@ const AttendancePage = () => {
           >
             <Download size={18} />
             Download Monthly Report
+        </button>
+        <button 
+            onClick={handleLoadComprehensiveReport}
+            disabled={isLoadingReport}
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-xl shadow-purple-600/20 hover:shadow-purple-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3 disabled:opacity-50"
+          >
+            <Activity size={18} />
+            {isLoadingReport ? 'Loading...' : 'Comprehensive Report'}
         </button>
         <button 
             onClick={() => setIsHolidaysOpen(true)}
@@ -585,6 +619,120 @@ const AttendancePage = () => {
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* Comprehensive Report Modal */}
+      <Modal 
+        isOpen={isComprehensiveReportOpen} 
+        onClose={() => setIsComprehensiveReportOpen(false)}
+        title="Comprehensive Attendance Report"
+        size="large"
+      >
+        {comprehensiveReport && (
+          <div className="space-y-6">
+            {/* Period Selector */}
+            <div className="flex items-center gap-4 p-4 bg-surface-variant/50 rounded-2xl">
+              <label className="text-sm font-bold text-text-primary">Month:</label>
+              <select 
+                value={reportMonth} 
+                onChange={(e) => setReportMonth(parseInt(e.target.value))}
+                className="px-4 py-2 bg-surface rounded-xl border border-border/50 text-sm font-bold"
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                  <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
+                ))}
+              </select>
+              <label className="text-sm font-bold text-text-primary">Year:</label>
+              <select 
+                value={reportYear} 
+                onChange={(e) => setReportYear(parseInt(e.target.value))}
+                className="px-4 py-2 bg-surface rounded-xl border border-border/50 text-sm font-bold"
+              >
+                {[2023, 2024, 2025].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <button 
+                onClick={handleLoadComprehensiveReport}
+                className="px-4 py-2 bg-primary text-white text-xs font-bold uppercase rounded-xl hover:bg-primary-dark transition-all"
+              >
+                Load Report
+              </button>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-green-500/10 rounded-2xl border border-green-500/20">
+                <p className="text-xs font-bold text-green-500 uppercase">Full Days</p>
+                <p className="text-2xl font-black text-green-500">{comprehensiveReport.summary.fullDays}</p>
+              </div>
+              <div className="p-4 bg-orange-500/10 rounded-2xl border border-orange-500/20">
+                <p className="text-xs font-bold text-orange-500 uppercase">Half Days</p>
+                <p className="text-2xl font-black text-orange-500">{comprehensiveReport.summary.halfDays}</p>
+              </div>
+              <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+                <p className="text-xs font-bold text-red-500 uppercase">Absent</p>
+                <p className="text-2xl font-black text-red-500">{comprehensiveReport.summary.absentDays}</p>
+              </div>
+              <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20">
+                <p className="text-xs font-bold text-purple-500 uppercase">Late</p>
+                <p className="text-2xl font-black text-purple-500">{comprehensiveReport.summary.lateDays}</p>
+              </div>
+            </div>
+
+            {/* Work & Break Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                <p className="text-xs font-bold text-blue-500 uppercase">Total Work Hours</p>
+                <p className="text-2xl font-black text-blue-500">{comprehensiveReport.summary.totalWorkHours.toFixed(1)}h</p>
+              </div>
+              <div className="p-4 bg-yellow-500/10 rounded-2xl border border-yellow-500/20">
+                <p className="text-xs font-bold text-yellow-500 uppercase">Total Break Time</p>
+                <p className="text-2xl font-black text-yellow-500">{comprehensiveReport.summary.totalBreakTime.toFixed(0)}m</p>
+              </div>
+            </div>
+
+            {/* Location Tracking */}
+            <div className="p-4 bg-surface-variant/50 rounded-2xl">
+              <h4 className="text-sm font-black uppercase tracking-widest text-text-primary mb-4">Location Tracking</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-text-secondary">Tracking Days</p>
+                  <p className="text-lg font-bold text-text-primary">{comprehensiveReport.summary.locationTrackingDays}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-secondary">Compliance</p>
+                  <p className="text-lg font-bold text-green-500">{comprehensiveReport.summary.locationTrackingPercentage.toFixed(0)}%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendance Records */}
+            <div>
+              <h4 className="text-sm font-black uppercase tracking-widest text-text-primary mb-4">Attendance Records</h4>
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {comprehensiveReport.attendanceRecords.slice(0, 10).map((record, idx) => (
+                  <div key={idx} className="p-3 bg-surface-variant/30 rounded-xl border border-border/30">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold">{record.date}</span>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        record.attendanceType === 'FULL_DAY' ? 'bg-green-500/20 text-green-500' :
+                        record.attendanceType === 'HALF_DAY' ? 'bg-orange-500/20 text-orange-500' :
+                        record.attendanceType === 'ABSENT' ? 'bg-red-500/20 text-red-500' :
+                        'bg-purple-500/20 text-purple-500'
+                      }`}>{record.attendanceType}</span>
+                    </div>
+                    <div className="flex gap-4 mt-2 text-xs text-text-secondary">
+                      <span>Work: {record.workHours.toFixed(1)}h</span>
+                      <span>Break: {record.breakMinutes}m</span>
+                      {record.hasLocation && <span className="text-blue-500">📍 Tracked</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </motion.div>
   );
