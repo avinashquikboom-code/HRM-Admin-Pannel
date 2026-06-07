@@ -158,3 +158,39 @@ export async function fetchComprehensiveAttendanceReport(params: {
     );
   }
 }
+
+export interface AllEmployeesAttendanceParams {
+  from?: string;
+  to?: string;
+  employeeId?: number;
+  departmentId?: number;
+  officeId?: number;
+  page?: number;
+  limit?: number;
+}
+
+export interface AllEmployeesAttendanceResponse {
+  success: boolean;
+  from: string | null;
+  to: string | null;
+  page: number;
+  limit: number;
+  total: number;
+  records: AttendanceRecord[];
+}
+
+export async function fetchAllEmployeesAttendance(
+  params?: AllEmployeesAttendanceParams
+): Promise<AllEmployeesAttendanceResponse> {
+  try {
+    const { data } = await api.get<AllEmployeesAttendanceResponse>(
+      '/api/mobile/attendance/all',
+      { params }
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to load all employees attendance. Please try again.')
+    );
+  }
+}
