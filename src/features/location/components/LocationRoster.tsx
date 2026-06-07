@@ -118,7 +118,7 @@ export default function LocationRoster({
                   )}
                 >
                   <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 pointer-events-none">
                       <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-black shrink-0">
                         {emp.name
                           .split(' ')
@@ -136,23 +136,23 @@ export default function LocationRoster({
                   <td className="px-5 py-3.5">
                     <span
                       className={cn(
-                        'inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border',
+                        'inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border pointer-events-none',
                         statusBadge(emp.status)
                       )}
                     >
                       {displayStatus(emp.status)}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 hidden md:table-cell font-mono text-xs text-text-secondary">
+                  <td className="px-5 py-3.5 hidden md:table-cell font-mono text-xs text-text-secondary pointer-events-none">
                     {emp.status === 'On Leave'
                       ? '—'
                       : `${emp.lat.toFixed(4)}, ${emp.lng.toFixed(4)}`}
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <p className="text-xs font-semibold text-primary">
+                    <p className="text-xs font-semibold text-primary pointer-events-none">
                       {emp.speed}
                     </p>
-                    <p className="text-[10px] text-text-secondary flex items-center justify-end gap-1 mt-0.5">
+                    <p className="text-[10px] text-text-secondary flex items-center justify-end gap-1 mt-0.5 pointer-events-none">
                       <Battery size={10} /> {emp.battery}
                     </p>
                   </td>
