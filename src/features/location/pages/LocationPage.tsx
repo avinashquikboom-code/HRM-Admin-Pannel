@@ -120,7 +120,7 @@ export default function LocationPage() {
   const [siteNameInput, setSiteNameInput] = useState('');
   const [latInput, setLatInput] = useState('19.187053');
   const [lngInput, setLngInput] = useState('72.977937');
-  const [radiusInput, setRadiusInput] = useState(100);
+  const [radiusInput, setRadiusInput] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
