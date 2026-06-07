@@ -190,7 +190,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
   ) : null;
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-16 md:h-20 px-3 sm:px-6 bg-surface/80 backdrop-blur-xl border-b border-border transition-colors">
+    <header className="sticky top-0 z-40 flex items-center justify-between h-16 md:h-20 px-3 sm:px-6 bg-[var(--header-bg)] backdrop-blur-xl border-b border-border transition-colors text-[var(--header-text)]">
       <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
         {/* Mobile Menu Toggle */}
         <button 

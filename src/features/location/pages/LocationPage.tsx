@@ -361,7 +361,15 @@ export default function LocationPage() {
     setIsSearching(true);
     setOfficeActionError('');
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+      // Add country code and limit results for better accuracy
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=in&limit=5&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'QuickBoom-HRM' // Required by Nominatim usage policy
+          }
+        }
+      );
       const data = await res.json();
       if (data && data.length > 0) {
         const latitude = parseFloat(data[0].lat);
@@ -370,8 +378,8 @@ export default function LocationPage() {
         const shortName = displayName.split(',')[0].trim();
         const nameCandidate = isNaN(Number(shortName)) ? shortName : (displayName.split(',')[1]?.trim() || shortName);
         setSiteNameInput(nameCandidate);
-        
-        mapInstance.setView([latitude, longitude], 14);
+
+        mapInstance.setView([latitude, longitude], 16);
         if (markerInstance && circleInstance) {
           markerInstance.setLatLng([latitude, longitude]);
           circleInstance.setLatLng([latitude, longitude]);
@@ -379,10 +387,11 @@ export default function LocationPage() {
           setLngInput(longitude.toFixed(6));
         }
       } else {
-        setOfficeActionError('Location not found. Try another query.');
+        setOfficeActionError('Location not found. Try being more specific (e.g., "Thane, Maharashtra" or "Mumbai").');
       }
-    } catch {
-      setOfficeActionError('Failed to geocode address.');
+    } catch (err) {
+      console.error('Geocoding error:', err);
+      setOfficeActionError('Failed to geocode address. Please try again.');
     } finally {
       setIsSearching(false);
     }
