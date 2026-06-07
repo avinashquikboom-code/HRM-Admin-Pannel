@@ -6,18 +6,18 @@
   --color-primary-light: #5FC5AE;
   --color-secondary: #1E293B;
   --color-accent: #F4B860;
-  
+
   --color-background: var(--background);
-  --color-background-light: #F6F9F8;
+  --color-background-light: #F8FAFC;
   --color-background-dark: #0F172A;
-  
+
   --color-surface: var(--surface);
   --color-surface-variant: var(--surface-variant);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  
+
   --color-success: #22C55E;
   --color-error: #EF4444;
   --color-warning: #F59E0B;
@@ -27,15 +27,16 @@
 
   --shadow-premium: 0 10px 30px -10px rgba(59, 163, 139, 0.2);
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 @layer base {
   :root {
-    --background: #F6F9F8;
+    --background: #FFFFFF;
     --surface: #FFFFFF;
-    --surface-variant: #F1F5F9;
-    --text-primary: #1E293B;
-    --text-secondary: #64748B;
+    --surface-variant: #F8FAFC;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
     --border: #E2E8F0;
     --muted: #94A3B8;
   }
@@ -79,6 +80,14 @@
     @apply bg-surface/70 dark:bg-surface/50 backdrop-blur-lg border border-border/50 dark:border-border/30 rounded-2xl sm:rounded-3xl shadow-premium;
   }
 
+  .card-dark {
+    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border rounded-2xl sm:rounded-3xl shadow-light dark:shadow-premium;
+  }
+
+  .card-dark-hover {
+    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border hover:border-border/60 rounded-2xl sm:rounded-3xl shadow-light dark:shadow-premium transition-all duration-300;
+  }
+
   .btn-primary {
     @apply bg-primary hover:bg-primary-dark text-white px-4 py-2 text-xs sm:text-sm rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 cursor-pointer;
   }
@@ -89,6 +98,10 @@
 
   .input-field {
     @apply w-full bg-surface dark:bg-surface-variant border border-border rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300;
+  }
+
+  .input-dark {
+    @apply w-full bg-surface-variant dark:bg-surface-variant/80 border border-border hover:border-border/60 focus:border-primary/30 rounded-2xl px-4 py-3.5 text-xs font-semibold text-text-primary outline-none transition-all duration-300;
   }
 
   .heading-1 {
