@@ -38,9 +38,7 @@ import {
   Bar, 
   XAxis, 
   YAxis, 
-  Tooltip, 
-  AreaChart, 
-  Area 
+  Tooltip
 } from 'recharts';
 
 
