@@ -127,6 +127,7 @@ export default function RegisterUserWithRights({
         email: normalizedEmail,
         password,
         role: selectedRole,
+        departmentId,
       });
 
       // TODO: Save user permissions via backend API

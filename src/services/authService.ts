@@ -120,6 +120,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role: RegisterRole;
+  departmentId?: number;
 }
 
 export interface RegisteredUser {
@@ -157,6 +158,7 @@ export async function registerUser(payload: RegisterRequest) {
         email: payload.email.trim().toLowerCase(),
         password: payload.password,
         role: normalizedRole,
+        departmentId: payload.departmentId,
       },
       {
         headers: {
