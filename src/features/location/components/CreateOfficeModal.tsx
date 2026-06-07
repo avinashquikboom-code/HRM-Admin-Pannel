@@ -20,7 +20,7 @@ const defaultForm: CreateOfficeRequest = {
   latitude: 0,
   longitude: 0,
   idealRadiusMeters: 25,
-  maxPunchRadiusMeters: 50,
+  maxPunchRadiusMeters: 25,
   isActive: true,
 };
 
@@ -159,38 +159,20 @@ export default function CreateOfficeModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
-              Ideal Radius (m)
-            </label>
-            <input
-              type="number"
-              min={1}
-              value={form.idealRadiusMeters}
-              onChange={(e) =>
-                updateField('idealRadiusMeters', parseInt(e.target.value, 10) || 0)
-              }
-              required
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
-              Max Punch Radius (m)
-            </label>
-            <input
-              type="number"
-              min={1}
-              value={form.maxPunchRadiusMeters}
-              onChange={(e) =>
-                updateField('maxPunchRadiusMeters', parseInt(e.target.value, 10) || 0)
-              }
-              required
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
-            />
-          </div>
+        <div className="space-y-2">
+          <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
+            Ideal Radius (m)
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={form.idealRadiusMeters}
+            onChange={(e) =>
+              updateField('idealRadiusMeters', parseInt(e.target.value, 10) || 0)
+            }
+            required
+            className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+          />
         </div>
 
         <label className="flex items-center gap-3 cursor-pointer ml-1">
