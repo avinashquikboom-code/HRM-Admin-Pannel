@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, UserPlus, Loader2, CheckSquare, Square, RotateCcw } from 'lucide-react';
+import { Mail, UserPlus, Loader2, CheckSquare, Square, RotateCcw, Building } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
 import { registerUser, type RegisterRole } from '@/services/authService';
 import { getAuthSession } from '@/lib/authStorage';
@@ -12,6 +12,7 @@ import {
   buildInitialUserPermissions,
 } from '@/lib/userPermissions';
 import { cn } from '@/utils/cn';
+import { fetchHRDepartments } from '@/services/hrService';
 
 interface RegisterUserWithRightsProps {
   managerPortal: 'super_admin' | 'platform_admin';
@@ -64,6 +65,8 @@ export default function RegisterUserWithRights({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<RegisterRole>(registerRole);
+  const [departmentId, setDepartmentId] = useState<number | undefined>();
+  const [departments, setDepartments] = useState<any[]>([]);
   const [permissions, setPermissions] = useState<Record<string, boolean>>(() =>
     buildInitialUserPermissions(targetPortal)
   );
@@ -74,6 +77,18 @@ export default function RegisterUserWithRights({
   useEffect(() => {
     setPermissions(buildInitialUserPermissions(targetPortal));
   }, [targetPortal]);
+
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const depts = await fetchHRDepartments();
+        setDepartments(depts);
+      } catch (err) {
+        console.error('Failed to load departments:', err);
+      }
+    };
+    loadDepartments();
+  }, []);
 
   const grouped = useMemo(() => groupModules(visibleModules), [visibleModules]);
   const enabled = visibleModules.filter((module) => permissions[module.id]).length;
@@ -204,6 +219,26 @@ export default function RegisterUserWithRights({
                 </>
               )}
             </select>
+          </div>
+        )}
+
+        {managerPortal === 'platform_admin' && (
+          <div>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Department</label>
+            <div className="relative group">
+              <Building className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
+              <select
+                value={departmentId || ''}
+                onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
+                disabled={isLoading}
+                className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+              >
+                <option value="">Select Department (Optional)</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
