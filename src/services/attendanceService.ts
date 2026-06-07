@@ -160,6 +160,40 @@ export async function fetchComprehensiveAttendanceReport(params: {
   }
 }
 
+export async function downloadComprehensiveAttendanceReport(params: {
+  month: number;
+  year: number;
+  employeeId?: number;
+  departmentId?: number;
+}): Promise<void> {
+  try {
+    const response = await api.get(
+      '/api/attendance/comprehensive-report/download',
+      {
+        params,
+        responseType: 'blob'
+      }
+    );
+
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute(
+      'download',
+      `comprehensive-attendance-report-${params.month}-${params.year}.pdf`
+    );
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to download comprehensive attendance report. Please try again.')
+    );
+  }
+}
+
 export interface AllEmployeesAttendanceParams {
   from?: string;
   to?: string;
