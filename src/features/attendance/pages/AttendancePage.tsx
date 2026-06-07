@@ -626,7 +626,7 @@ const AttendancePage = () => {
         isOpen={isComprehensiveReportOpen} 
         onClose={() => setIsComprehensiveReportOpen(false)}
         title="Comprehensive Attendance Report"
-        size="large"
+        maxWidth="max-w-4xl"
       >
         {comprehensiveReport && (
           <div className="space-y-6">
