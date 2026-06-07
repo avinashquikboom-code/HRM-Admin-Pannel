@@ -421,7 +421,7 @@ export default function LocationPage() {
     setSiteNameInput('');
     setLatInput('19.187053');
     setLngInput('72.977937');
-    setRadiusInput(25);
+    setRadiusInput(10);
     setSearchQuery('');
     setOfficeActionMessage('');
     setOfficeActionError('');
@@ -430,7 +430,7 @@ export default function LocationPage() {
       mapInstance.setView([19.187053, 72.977937], 13);
       markerInstance.setLatLng([19.187053, 72.977937]);
       circleInstance.setLatLng([19.187053, 72.977937]);
-      circleInstance.setRadius(25);
+      circleInstance.setRadius(10);
     }
   };
 

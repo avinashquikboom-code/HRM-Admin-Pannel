@@ -26,7 +26,7 @@ function officeToForm(office: Office): UpdateOfficeRequest {
     latitude: office.latitude,
     longitude: office.longitude,
     idealRadiusMeters: office.idealRadiusMeters,
-    maxPunchRadiusMeters: office.maxPunchRadiusMeters || 100,
+    maxPunchRadiusMeters: office.maxPunchRadiusMeters || 10,
     isActive: office.isActive,
   };
 }
