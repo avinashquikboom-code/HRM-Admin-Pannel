@@ -5,11 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-primary: #0D9488;
-  --color-primary-dark: #0F766E;
-  --color-primary-light: #14B8A6;
-  --color-secondary: #0F766E;
-  --color-accent: #2DD4BF;
+  --color-primary: #14B8A6;
+  --color-primary-dark: #0D9488;
+  --color-primary-light: #2DD4BF;
+  --color-secondary: #1E293B;
+  --color-accent: #F4B860;
 
   --color-background: var(--background);
   --color-background-light: #F8FAFC;
@@ -55,7 +55,7 @@
     --text-secondary: #94A3B8;
     --border: #334155;
     --muted: #64748B;
-    --header-bg: #1E293B;
+    --header-bg: #0F172A;
     --header-text: #F8FAFC;
   }
 
