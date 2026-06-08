@@ -5,11 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-primary: #14B8A6;
-  --color-primary-dark: #0D9488;
-  --color-primary-light: #2DD4BF;
-  --color-secondary: #1E293B;
-  --color-accent: #F4B860;
+  --color-primary: #3BA38B;
+  --color-primary-dark: #2D8A74;
+  --color-primary-light: #5BBDA6;
+  --color-secondary: #1A2332;
+  --color-accent: #F59E0B;
 
   --color-background: var(--background);
   --color-background-light: #F8FAFC;
@@ -36,27 +36,27 @@
 
 @layer base {
   :root {
-    --background: #F0FDFA;
+    --background: #F0F4F3;
     --surface: #FFFFFF;
-    --surface-variant: #CCFBF1;
-    --text-primary: #134E4A;
-    --text-secondary: #5EEAD4;
-    --border: #99F6E4;
-    --muted: #6EE7B7;
+    --surface-variant: #E8F5F2;
+    --text-primary: #1A2332;
+    --text-secondary: #64748B;
+    --border: #E2E8F0;
+    --muted: #94A3B8;
     --header-bg: #FFFFFF;
-    --header-text: #134E4A;
+    --header-text: #1A2332;
   }
 
   .dark {
-    --background: #0F172A;
-    --surface: #1E293B;
-    --surface-variant: #334155;
-    --text-primary: #F8FAFC;
+    --background: #0A1F1A;
+    --surface: #1A2E28;
+    --surface-variant: #2D8A74;
+    --text-primary: #F0F4F3;
     --text-secondary: #94A3B8;
-    --border: #334155;
+    --border: #2D8A74;
     --muted: #64748B;
-    --header-bg: #0F172A;
-    --header-text: #F8FAFC;
+    --header-bg: #1A2E28;
+    --header-text: #F0F4F3;
   }
 
   html {
