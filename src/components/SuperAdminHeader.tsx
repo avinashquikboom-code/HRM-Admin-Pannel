@@ -52,7 +52,7 @@ export default function SuperAdminHeader({
   return (
     <motion.div
       variants={itemVariants}
-      className="relative overflow-hidden rounded-[36px] border border-border/50 dark:bg-gradient-to-br dark:from-primary/15 dark:via-surface dark:to-amber-500/10 bg-surface p-6 sm:p-8 shadow-sm"
+      className="relative overflow-hidden rounded-[36px] border border-border/50 dark:bg-gradient-to-br dark:from-primary/15 dark:via-surface dark:to-amber-500/10 bg-surface p-8 sm:p-10 shadow-sm"
     >
       <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
       <div className="absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" />
