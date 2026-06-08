@@ -19,6 +19,14 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import {
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, Variants } from 'framer-motion';
 import {
   Download,
@@ -42,6 +50,17 @@ import {
 } from '@/services/analyticsService';
 
 const COLORS = ['#3BAF8B', '#10B981', '#06B6D4', '#8B5CF6', '#F59E0B'];
+
+const chartConfig = {
+  employees: {
+    label: "Active Seats",
+    color: "#3BA38B",
+  },
+  revenue: {
+    label: "Revenue",
+    color: "#14B8A6",
+  },
+} as const;
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -132,23 +151,24 @@ const AnalyticsPage = () => {
           { label: 'Growth Rate', value: '+12.5%', icon: Activity }
         ]}
       >
-        <button className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center">
-          <Download size={18} />
+        <Button className="shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 text-xs font-black uppercase tracking-wider">
+          <Download size={18} className="mr-2" />
           Export Data
-        </button>
+        </Button>
       </SuperAdminHeader>
 
       {/* Error State */}
       {error && (
         <motion.div variants={itemVariants} className="glass-card p-6 text-center">
           <p className="text-error mb-4">{error}</p>
-          <button
+          <Button
             onClick={loadAnalyticsData}
+            variant="ghost"
             className="text-primary font-bold hover:underline flex items-center gap-2 mx-auto"
           >
             <RefreshCw size={16} />
             Try Again
-          </button>
+          </Button>
         </motion.div>
       )}
 
@@ -195,7 +215,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
           {analyticsData?.weeklyData && (
-            <ChartContainer heightClassName="h-[350px]" className="relative z-10">
+            <ChartContainer heightClassName="h-[350px]" className="relative z-10" config={chartConfig}>
               <AreaChart data={analyticsData.weeklyData}>
                 <defs>
                   <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
@@ -206,15 +226,7 @@ const AnalyticsPage = () => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} dy={15} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '24px',
-                    border: 'none',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(20px)',
-                    padding: '16px'
-                  }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
                   dataKey="employees"
@@ -233,7 +245,7 @@ const AnalyticsPage = () => {
           <h3 className="text-xl font-black text-text-primary tracking-tight mb-2">Workforce Lifecycle</h3>
           <p className="text-xs text-text-secondary font-medium mb-10">Employee health & state distribution</p>
 
-          <ChartContainer heightClassName="h-[250px]" className="mb-8">
+          <ChartContainer heightClassName="h-[250px]" className="mb-8" config={chartConfig}>
             <PieChart>
               <Pie
                 data={analyticsData?.retentionData || []}
@@ -249,7 +261,8 @@ const AnalyticsPage = () => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
             </PieChart>
           </ChartContainer>
 
@@ -274,20 +287,21 @@ const AnalyticsPage = () => {
               <p className="text-sm text-text-secondary font-medium italic">Revenue vs Employee growth correlation across the ecosystem</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-6 py-3 bg-surface-variant text-text-primary text-label rounded-xl hover:bg-surface transition-all border border-border">Daily</button>
-              <button className="px-6 py-3 bg-primary text-white text-label rounded-xl shadow-lg shadow-primary/20">Weekly</button>
+              <Button variant="outline" className="px-6 py-3 text-label">Daily</Button>
+              <Button className="px-6 py-3 text-label shadow-lg shadow-primary/20">Weekly</Button>
             </div>
           </div>
 
           {analyticsData?.weeklyData && (
-            <ChartContainer heightClassName="h-[400px]">
+            <ChartContainer heightClassName="h-[400px]" config={chartConfig}>
               <BarChart data={analyticsData.weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" opacity={0.3} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} dy={15} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 900 }} />
-                <Tooltip cursor={{ fill: 'rgba(59, 163, 139, 0.05)', radius: 16 }} />
+                <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(59, 163, 139, 0.05)', radius: 16 }} />
                 <Bar dataKey="employees" fill="#3BA38B" radius={[12, 12, 0, 0]} barSize={40} />
                 <Bar dataKey="revenue" fill="#F4B860" radius={[12, 12, 0, 0]} barSize={40} />
+                <ChartLegend content={<ChartLegendContent />} />
               </BarChart>
             </ChartContainer>
           )}
@@ -307,9 +321,9 @@ const AnalyticsPage = () => {
               Our neural models project a 24% increase in seat allocation for the next quarter based on current ecosystem trends.
             </p>
           </div>
-          <button className="px-12 py-5 bg-white text-primary text-label tracking-[0.2em] rounded-[28px] shadow-2xl hover:bg-primary-light hover:text-white transition-all active:scale-95">
+          <Button className="px-12 py-5 bg-white text-primary text-label tracking-[0.2em] rounded-[28px] shadow-2xl hover:bg-primary-light hover:text-white transition-all active:scale-95">
             Execute Strategy <ChevronRight size={16} className="inline ml-1" />
-          </button>
+          </Button>
         </div>
       </motion.div>
     </motion.div>
