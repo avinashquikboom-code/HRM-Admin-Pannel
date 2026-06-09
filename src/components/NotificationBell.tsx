@@ -38,7 +38,7 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/admin/notifications');
+      const res = await api.get('/api/admin/notifications');
       if (res.data.success) {
         setNotifications(res.data.notifications);
       }
@@ -54,7 +54,7 @@ export default function NotificationBell() {
       setNotifications(prev => 
         prev.map(n => n.id === id ? { ...n, isRead: true } : n)
       );
-      await api.put(`/admin/notifications/${id}/read`);
+      await api.put(`/api/admin/notifications/${id}/read`);
     } catch (error) {
       console.error('Failed to mark notification as read', error);
     }
@@ -63,7 +63,7 @@ export default function NotificationBell() {
   const markAllAsRead = async () => {
     try {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      await api.put('/admin/notifications/read-all');
+      await api.put('/api/admin/notifications/read-all');
     } catch (error) {
       console.error('Failed to mark all as read', error);
     }

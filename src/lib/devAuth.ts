@@ -16,6 +16,7 @@ export const EMPLOYEE_DEV_PASSWORD = '123456';
 
 export const DEV_AUTH_TOKEN = 'dev-local-auth-token';
 export const DEV_PLATFORM_AUTH_TOKEN = 'dev-platform-auth-token';
+export const DEV_ADMIN_AUTH_TOKEN = 'dev-admin-auth-token';
 export const DEV_EMPLOYEE_AUTH_TOKEN = 'dev-employee-auth-token';
 
 export function matchesSuperAdminDevCredentials(email: string, password: string) {
@@ -80,6 +81,7 @@ export function isDevAuthSession(portal?: PortalType): boolean {
       if (
         session.token === DEV_AUTH_TOKEN ||
         session.token === DEV_PLATFORM_AUTH_TOKEN ||
+        session.token === DEV_ADMIN_AUTH_TOKEN ||
         session.token === DEV_EMPLOYEE_AUTH_TOKEN
       ) {
         return true;
@@ -117,27 +119,28 @@ function createBaseProfile(email: string, fullName: string, clearanceLabel: stri
   };
 }
 
-export function createDevAuthSession(portal: PortalType): {
+export function createDevAuthSession(portal: PortalType, role?: string): {
   token: string;
   user: User;
   portal: PortalType;
 } {
   if (portal === 'super_admin') {
+    const isAdmin = role?.toUpperCase() === 'ADMIN';
     return {
-      token: DEV_AUTH_TOKEN,
+      token: isAdmin ? DEV_ADMIN_AUTH_TOKEN : DEV_AUTH_TOKEN,
       portal,
       user: {
-        id: 1,
-        name: 'Super Admin',
-        email: SUPER_ADMIN_DEV_EMAIL,
-        role: 'SUPER_ADMIN',
+        id: isAdmin ? 14 : 1,
+        name: isAdmin ? 'Admin' : 'Super Admin',
+        email: isAdmin ? 'admin@hrm.com' : SUPER_ADMIN_DEV_EMAIL,
+        role: isAdmin ? 'ADMIN' : 'SUPER_ADMIN',
         avatar: '/favicon.svg',
         phone: '',
-        bio: 'Offline demo super administrator',
+        bio: isAdmin ? 'Offline demo administrator' : 'Offline demo super administrator',
         profile: createBaseProfile(
-          SUPER_ADMIN_DEV_EMAIL,
-          'Super Admin',
-          'Super Admin'
+          isAdmin ? 'admin@hrm.com' : SUPER_ADMIN_DEV_EMAIL,
+          isAdmin ? 'Admin' : 'Super Admin',
+          isAdmin ? 'Admin' : 'Super Admin'
         ),
       },
     };

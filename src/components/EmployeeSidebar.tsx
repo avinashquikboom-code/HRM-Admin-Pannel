@@ -66,13 +66,13 @@ function NavItem({
     >
       <item.icon
         className="w-[18px] h-[18px] flex-shrink-0 shrink-0"
-        style={{ color: isActive ? '#14B8A6' : 'currentColor' }}
+        style={{ color: isActive ? '#14B8A6' : '#94A3B8' }}
       />
       {isOpen && (
         <motion.span
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
-          className="whitespace-nowrap"
+          style={{ whiteSpace: 'nowrap' }}
         >
           {item.name}
         </motion.span>
@@ -146,7 +146,7 @@ const EmployeeSidebar = () => {
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
               <p className="sidebar-brand leading-tight">Employee Portal</p>
-              <p className="text-micro font-medium text-accent uppercase tracking-wide mt-0.5">
+              <p style={{ fontSize: '11px', fontWeight: 500, color: '#14B8A6', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>
                 Self Service
               </p>
             </motion.div>
@@ -186,19 +186,20 @@ const EmployeeSidebar = () => {
             )}
           >
             {isOpen ? <ChevronLeft className="w-[18px] h-[18px]" /> : <ChevronRight className="w-[18px] h-[18px]" />}
-            {isOpen && <span className="whitespace-nowrap">Collapse Menu</span>}
+            {isOpen && <span style={{ whiteSpace: 'nowrap' }}>Collapse Menu</span>}
           </button>
 
           <button
             type="button"
             onClick={() => setIsSignOutModalOpen(true)}
             className={cn(
-              'sidebar-nav-item text-error hover:bg-error/5',
+              'sidebar-nav-item',
               !isOpen && 'sidebar-nav-item-collapsed'
             )}
+            style={{ color: '#EF4444' }}
           >
-            <LogOut className="w-5 h-5" />
-            {isOpen && <span className="text-nav text-error">Sign Out</span>}
+            <LogOut className="w-[18px] h-[18px]" />
+            {isOpen && <span style={{ whiteSpace: 'nowrap', color: '#EF4444' }}>Sign Out</span>
           </button>
         </div>
 
