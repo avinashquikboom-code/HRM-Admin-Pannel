@@ -127,16 +127,15 @@ const Sidebar = () => {
           'sidebar-panel fixed md:relative border-r z-50',
           !isOpen && 'md:items-center'
         )}
-        style={{ borderRightColor: '#1E293B' }}
       >
         <div className="sidebar-brand-wrap">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #14B8A6, #06B6D4)', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' }}>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 sidebar-logo">
             <span className="text-white font-semibold text-sm">HRM</span>
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
               <p className="sidebar-brand leading-tight">HRM Admin</p>
-              <p style={{ fontSize: '11px', fontWeight: 500, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>
+              <p className="sidebar-subtitle">
                 Platform Operations
               </p>
             </motion.div>
