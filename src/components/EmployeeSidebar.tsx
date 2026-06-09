@@ -199,7 +199,7 @@ const EmployeeSidebar = () => {
             style={{ color: '#EF4444' }}
           >
             <LogOut className="w-[18px] h-[18px]" />
-            {isOpen && <span style={{ whiteSpace: 'nowrap', color: '#EF4444' }}>Sign Out</span>
+            {isOpen && <span style={{ whiteSpace: 'nowrap', color: '#EF4444' }}>Sign Out</span>}
           </button>
         </div>
 
