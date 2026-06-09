@@ -54,8 +54,8 @@ function NavItem({
       )}
     >
       <item.icon
-        className="w-[18px] h-[18px] flex-shrink-0 shrink-0"
-        style={{ color: isActive ? '#14B8A6' : '#94A3B8' }}
+        className="w-[20px] h-[20px] flex-shrink-0 shrink-0"
+        style={{ color: isActive ? '#14B8A6' : 'currentColor' }}
       />
       {isOpen && (
         <motion.span
@@ -133,13 +133,13 @@ const SuperAdminSidebar = () => {
         style={{ borderRightColor: '#1E293B' }}
       >
         <div className="sidebar-brand-wrap">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/30">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #14B8A6, #06B6D4)', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' }}>
             <span className="text-white font-semibold text-sm">HRM</span>
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
               <p className="sidebar-brand leading-tight">Super HRM</p>
-              <p style={{ fontSize: '11px', fontWeight: 500, color: '#14B8A6', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 500, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>
                 Ecosystem Control
               </p>
             </motion.div>
@@ -159,6 +159,20 @@ const SuperAdminSidebar = () => {
         </nav>
 
         <div className="sidebar-footer">
+          {isOpen && user && (
+            <div className="sidebar-profile-card">
+              <div className="sidebar-profile-avatar">
+                {user.name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="sidebar-profile-info">
+                <p className="sidebar-profile-name">{user.name || 'User'}</p>
+                <p className="sidebar-profile-role">{user.role || 'Admin'}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="sidebar-divider" />
+
           <Link
             href={`${SUPER_ADMIN_PREFIX}/profile`}
             onClick={closeMobileSidebar}
@@ -169,14 +183,14 @@ const SuperAdminSidebar = () => {
             )}
           >
             <User
-              className="w-[18px] h-[18px] flex-shrink-0 shrink-0"
-              style={{ color: isProfileActive ? '#14B8A6' : '#94A3B8' }}
+              className="w-[20px] h-[20px] flex-shrink-0 shrink-0"
+              style={{ color: isProfileActive ? '#14B8A6' : 'currentColor' }}
             />
             {isOpen && <span style={{ whiteSpace: 'nowrap' }}>Profile</span>}
           </Link>
-        </div>
 
-        <div className="sidebar-footer">
+          <div className="sidebar-divider" />
+
           <button
             type="button"
             onClick={() => dispatch(toggleSidebar())}
@@ -185,7 +199,7 @@ const SuperAdminSidebar = () => {
               !isOpen && 'sidebar-nav-item-collapsed'
             )}
           >
-            {isOpen ? <ChevronLeft className="w-[18px] h-[18px]" /> : <ChevronRight className="w-[18px] h-[18px]" />}
+            {isOpen ? <ChevronLeft className="w-[20px] h-[20px]" /> : <ChevronRight className="w-[20px] h-[20px]" />}
             {isOpen && <span style={{ whiteSpace: 'nowrap' }}>Collapse Menu</span>}
           </button>
 
@@ -198,7 +212,7 @@ const SuperAdminSidebar = () => {
             )}
             style={{ color: '#EF4444' }}
           >
-            <LogOut className="w-[18px] h-[18px]" />
+            <LogOut className="w-[20px] h-[20px]" />
             {isOpen && <span style={{ whiteSpace: 'nowrap', color: '#EF4444' }}>Sign Out</span>}
           </button>
         </div>
