@@ -137,6 +137,7 @@ const EmployeeSidebar = () => {
           'sidebar-panel fixed md:relative border-r z-50',
           !isOpen && 'md:items-center'
         )}
+        style={{ borderRightColor: '#1E293B' }}
       >
         <div className="sidebar-brand-wrap">
           <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent/30">
