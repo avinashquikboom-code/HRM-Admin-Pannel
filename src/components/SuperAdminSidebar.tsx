@@ -47,26 +47,30 @@ function NavItem({
     <Link
       href={item.path}
       onClick={onNavigate}
+      data-active={isActive ? 'true' : undefined}
       className={cn(
         'sidebar-nav-item group',
-        !isOpen && 'sidebar-nav-item-collapsed',
-        isActive
-          ? 'bg-primary/20 text-white border border-primary/40 shadow-sm'
-          : 'text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text'
+        !isOpen && 'sidebar-nav-item-collapsed'
       )}
     >
-      <item.icon className={cn('w-[18px] h-[18px] flex-shrink-0', isActive ? 'text-primary' : 'text-sidebar-muted group-hover:text-sidebar-text')} />
+      <item.icon
+        className="w-[18px] h-[18px] flex-shrink-0 shrink-0"
+        style={{ color: isActive ? '#14B8A6' : 'currentColor' }}
+      />
       {isOpen && (
         <motion.span
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-[13px] font-medium whitespace-nowrap"
+          className="whitespace-nowrap"
         >
           {item.name}
         </motion.span>
       )}
       {!isOpen && (
-        <div className="absolute left-full ml-4 px-2.5 py-1.5 bg-sidebar-secondary text-sidebar-text text-xs rounded-lg border border-sidebar-hover opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60] shadow-lg">
+        <div
+          className="absolute left-full ml-3 px-2.5 py-1.5 text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[999] shadow-xl"
+          style={{ backgroundColor: '#1E293B', color: '#F8FAFC', border: '1px solid #334155', fontSize: '12px' }}
+        >
           {item.name}
         </div>
       )}
@@ -123,9 +127,10 @@ const SuperAdminSidebar = () => {
           x: isMobile && !isOpen ? -260 : 0,
         }}
         className={cn(
-          'sidebar-panel fixed md:relative border-r border-sidebar-border z-50',
-          !isOpen && 'md:items-center overflow-hidden'
+          'sidebar-panel fixed md:relative border-r z-50',
+          !isOpen && 'md:items-center'
         )}
+        style={{ borderRightColor: '#1E293B' }}
       >
         <div className="sidebar-brand-wrap">
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/30">
@@ -133,7 +138,7 @@ const SuperAdminSidebar = () => {
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-              <p className="sidebar-brand leading-tight text-sidebar-text">Super HRM</p>
+              <p className="sidebar-brand leading-tight">Super HRM</p>
               <p className="text-micro font-medium text-primary uppercase tracking-wide mt-0.5">
                 Ecosystem Control
               </p>
@@ -157,16 +162,17 @@ const SuperAdminSidebar = () => {
           <Link
             href={`${SUPER_ADMIN_PREFIX}/profile`}
             onClick={closeMobileSidebar}
+            data-active={isProfileActive ? 'true' : undefined}
             className={cn(
               'sidebar-nav-item group',
-              !isOpen && 'sidebar-nav-item-collapsed',
-              isProfileActive
-                ? 'bg-primary/20 text-white border border-primary/40 shadow-sm'
-                : 'text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text'
+              !isOpen && 'sidebar-nav-item-collapsed'
             )}
           >
-            <User className={cn('w-[18px] h-[18px] flex-shrink-0', isProfileActive ? 'text-primary' : 'text-sidebar-muted group-hover:text-sidebar-text')} />
-            {isOpen && <span className="text-[13px] font-medium whitespace-nowrap">Profile</span>}
+            <User
+              className="w-[18px] h-[18px] flex-shrink-0 shrink-0"
+              style={{ color: isProfileActive ? '#14B8A6' : 'currentColor' }}
+            />
+            {isOpen && <span className="whitespace-nowrap">Profile</span>}
           </Link>
         </div>
 
@@ -175,12 +181,12 @@ const SuperAdminSidebar = () => {
             type="button"
             onClick={() => dispatch(toggleSidebar())}
             className={cn(
-              'sidebar-nav-item text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text hidden md:flex',
+              'sidebar-nav-item hidden md:flex',
               !isOpen && 'sidebar-nav-item-collapsed'
             )}
           >
             {isOpen ? <ChevronLeft className="w-[18px] h-[18px]" /> : <ChevronRight className="w-[18px] h-[18px]" />}
-            {isOpen && <span className="text-[13px] font-medium text-sidebar-muted">Collapse Menu</span>}
+            {isOpen && <span className="whitespace-nowrap">Collapse Menu</span>}
           </button>
 
           <button
