@@ -80,6 +80,7 @@ function NavItem({
 
 const SuperAdminSidebar = () => {
   const { isOpen } = useAppSelector((state) => state.sidebar);
+  const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
