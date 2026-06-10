@@ -55,7 +55,7 @@ function NavItem({
     >
       <item.icon
         className="w-[20px] h-[20px] flex-shrink-0 shrink-0 transition-transform duration-300 group-hover:scale-110"
-        style={{ color: isActive ? '#14B8A6' : 'currentColor' }}
+        style={{ color: isActive ? 'var(--sidebar-active-border)' : 'currentColor' }}
       />
       {isOpen && (
         <motion.span
@@ -184,7 +184,7 @@ const SuperAdminSidebar = () => {
           >
             <User
               className="w-[20px] h-[20px] flex-shrink-0 shrink-0"
-              style={{ color: isProfileActive ? '#14B8A6' : 'currentColor' }}
+              style={{ color: isProfileActive ? 'var(--sidebar-active-border)' : 'currentColor' }}
             />
             {isOpen && <span style={{ whiteSpace: 'nowrap' }}>Profile</span>}
           </Link>

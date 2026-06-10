@@ -42,45 +42,46 @@
 
 @layer base {
   :root {
-    --background: #F0FDFA;
-    --foreground: #134E4A;
+    --background: #F8FAFC;
+    --foreground: #0F172A;
     --surface: #FFFFFF;
-    --surface-variant: #CCFBF1;
-    --text-primary: #134E4A;
+    --surface-variant: #F1F5F9;
+    --text-primary: #0F172A;
     --text-secondary: #475569;
-    --border: #5EEAD4;
-    --muted: #CCFBF1;
+    --border: #E2E8F0;
+    --muted: #F1F5F9;
     --muted-foreground: #64748B;
     --primary-foreground: #FFFFFF;
-    --secondary: #CCFBF1;
-    --secondary-foreground: #134E4A;
+    --secondary: #E2E8F0;
+    --secondary-foreground: #0F172A;
     --destructive: #EF4444;
-    --input: #99F6E4;
+    --input: #E2E8F0;
     --ring: #14B8A6;
     --header-bg: #FFFFFF;
-    --header-text: #134E4A;
+    --header-text: #0F172A;
     --radius: 0.625rem;
 
-    /* Light Theme Sidebar & Card Variables */
-    --sidebar-bg: #FFFFFF;
-    --sidebar-surface: #F8FAFC;
-    --sidebar-hover: #E2E8F0;
-    --sidebar-active-bg: #CCFBF1;
-    --sidebar-active-border: #14B8A6;
-    --sidebar-text-primary: #0F172A;
-    --sidebar-text-secondary: #64748B;
-    --sidebar-border: #CBD5E1;
-    --sidebar-profile-bg: #F1F5F9;
-    --sidebar-profile-border: #CBD5E1;
-    --sidebar-danger: #EF4444;
-    --sidebar-bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
-    --sidebar-cyan-glow: rgba(20, 184, 166, 0.15);
+    /* Light Theme Sidebar & Card Variables — Teal Matched */
+    --sidebar-bg: #0F2827;
+    --sidebar-surface: #132F2E;
+    --sidebar-hover: rgba(20, 184, 166, 0.12);
+    --sidebar-active-bg: rgba(20, 184, 166, 0.20);
+    --sidebar-active-border: #2DD4BF;
+    --sidebar-text-primary: #F0FDFA;
+    --sidebar-text-secondary: #99F6E4;
+    --sidebar-border: rgba(45, 212, 191, 0.15);
+    --sidebar-profile-bg: rgba(20, 184, 166, 0.08);
+    --sidebar-profile-border: rgba(45, 212, 191, 0.2);
+    --sidebar-danger: #FCA5A5;
+    --sidebar-bg-gradient: linear-gradient(180deg, #0A2120 0%, #0F2827 50%, #132F2E 100%);
+    --sidebar-cyan-glow: rgba(20, 184, 166, 0.25);
+    --sidebar-card-bg: rgba(19, 47, 46, 0.6);
 
     --card-bg-light: #FFFFFF;
-    --card-border-light: #CBD5E1;
+    --card-border-light: #E2E8F0;
     --card-title-light: #0F172A;
     --card-subtitle-light: #64748B;
-    --card-shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --card-shadow-light: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   }
 
   .dark {
@@ -462,7 +463,7 @@
   }
 
   html:not(.dark) .sidebar-panel {
-    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(45, 212, 191, 0.08);
   }
 
   .sidebar-profile-card {
@@ -593,43 +594,39 @@
 
 /* Light Mode Utility Color & Visibility Overrides for Admin Panel */
 html:not(.dark) {
-  /* Override hardcoded dark card backgrounds */
-  .bg-slate-800,
-  .bg-slate-850,
-  .bg-slate-900,
-  .bg-slate-950,
-  .bg-slate-800\/40,
-  .bg-slate-800\/50,
-  .bg-slate-800\/60,
-  .bg-slate-800\/80,
-  .bg-slate-900\/20,
-  .bg-slate-900\/30,
-  .bg-slate-900\/40,
-  .bg-slate-900\/50,
-  .bg-slate-900\/60,
-  .bg-slate-900\/80,
-  .bg-slate-955\/10,
-  .bg-slate-955\/20,
-  .bg-slate-955\/30,
-  .bg-slate-955\/40,
-  .bg-slate-955\/50,
-  .bg-slate-955\/60,
-  .bg-slate-955\/70,
-  .bg-slate-955\/80,
-  .bg-slate-955\/90,
-  .bg-slate-950\/10,
-  .bg-slate-950\/20,
-  .bg-slate-950\/30,
-  .bg-slate-950\/40,
-  .bg-slate-950\/50,
-  .bg-slate-950\/60,
-  .bg-slate-950\/70,
-  .bg-slate-950\/80,
-  .bg-slate-950\/90,
-  .bg-slate-900\/50,
-  .bg-slate-950\/40,
-  .bg-slate-950\/50,
-  .bg-slate-950\/20 {
+  /* Override hardcoded dark card backgrounds (excluding sidebar which is intentionally dark) */
+  .bg-slate-800:not(aside):not(aside *),
+  .bg-slate-850:not(aside):not(aside *),
+  .bg-slate-900:not(aside):not(aside *),
+  .bg-slate-950:not(aside):not(aside *),
+  .bg-slate-800\/40:not(aside):not(aside *),
+  .bg-slate-800\/50:not(aside):not(aside *),
+  .bg-slate-800\/60:not(aside):not(aside *),
+  .bg-slate-800\/80:not(aside):not(aside *),
+  .bg-slate-900\/20:not(aside):not(aside *),
+  .bg-slate-900\/30:not(aside):not(aside *),
+  .bg-slate-900\/40:not(aside):not(aside *),
+  .bg-slate-900\/50:not(aside):not(aside *),
+  .bg-slate-900\/60:not(aside):not(aside *),
+  .bg-slate-900\/80:not(aside):not(aside *),
+  .bg-slate-955\/10:not(aside):not(aside *),
+  .bg-slate-955\/20:not(aside):not(aside *),
+  .bg-slate-955\/30:not(aside):not(aside *),
+  .bg-slate-955\/40:not(aside):not(aside *),
+  .bg-slate-955\/50:not(aside):not(aside *),
+  .bg-slate-955\/60:not(aside):not(aside *),
+  .bg-slate-955\/70:not(aside):not(aside *),
+  .bg-slate-955\/80:not(aside):not(aside *),
+  .bg-slate-955\/90:not(aside):not(aside *),
+  .bg-slate-950\/10:not(aside):not(aside *),
+  .bg-slate-950\/20:not(aside):not(aside *),
+  .bg-slate-950\/30:not(aside):not(aside *),
+  .bg-slate-950\/40:not(aside):not(aside *),
+  .bg-slate-950\/50:not(aside):not(aside *),
+  .bg-slate-950\/60:not(aside):not(aside *),
+  .bg-slate-950\/70:not(aside):not(aside *),
+  .bg-slate-950\/80:not(aside):not(aside *),
+  .bg-slate-950\/90:not(aside):not(aside *) {
     background-color: var(--card-bg-light) !important;
   }
 
@@ -663,19 +660,19 @@ html:not(.dark) {
     border-color: var(--card-border-light) !important;
   }
 
-  /* Override hardcoded text colors to use theme primary text (excluding buttons and active items) */
-  .text-white:not(button):not(a):not(button *):not(a *):not([class*="btn"]):not([class*="btn"] *):not([class*="badge"]):not([class*="badge"] *),
-  .text-slate-100,
-  .text-slate-200,
-  .text-slate-300,
-  .text-slate-350 {
+  /* Override hardcoded text colors to use theme primary text (excluding sidebar, buttons, active items) */
+  .text-white:not(aside):not(aside *):not(button):not(a):not(button *):not(a *):not([class*="btn"]):not([class*="btn"] *):not([class*="badge"]):not([class*="badge"] *),
+  .text-slate-100:not(aside):not(aside *),
+  .text-slate-200:not(aside):not(aside *),
+  .text-slate-300:not(aside):not(aside *),
+  .text-slate-350:not(aside):not(aside *) {
     color: var(--text-primary) !important;
   }
 
-  /* Override secondary text colors */
-  .text-slate-400,
-  .text-slate-450,
-  .text-slate-550 {
+  /* Override secondary text colors (excluding sidebar) */
+  .text-slate-400:not(aside):not(aside *),
+  .text-slate-450:not(aside):not(aside *),
+  .text-slate-550:not(aside):not(aside *) {
     color: var(--text-secondary) !important;
   }
 

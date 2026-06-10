@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { sendNotificationToEmployee } from '@/services/notificationService';
 import { 
   Wallet, 
   TrendingUp, 
@@ -266,6 +267,21 @@ const PayrollPage = () => {
     setIsDisbursing(true);
     try {
       await api.post('/api/admin/payroll/disburse');
+
+      // Send salary credit notifications to all employees in the current slip list
+      const notifyAll = slipsList.map((slip) =>
+        sendNotificationToEmployee({
+          employeeId: slip.id,
+          title: '💰 Salary Credited',
+          body: `Your salary of ₹${slip.netSalary?.toLocaleString('en-IN') ?? ''} for ${slipMonth} has been disbursed to your account. Please check your bank.`,
+          category: 'salary',
+          actionType: 'salary_disbursed',
+        }).catch((err) =>
+          console.warn(`[Payroll] Notification failed for employee ${slip.id}:`, err)
+        )
+      );
+      await Promise.allSettled(notifyAll);
+
       alert('Disbursement completed successfully!');
       setIsProcessModalOpen(false);
       await loadPayrollData();
@@ -281,10 +297,29 @@ const PayrollPage = () => {
     try {
       const [year, month] = slipMonth.split('-').map(Number);
       await api.post('/api/admin/payroll/slips/approve', { employeeId, month, year });
+
+      // Refresh slips list to get updated net salary
       const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/admin/payroll/slips?month=${slipMonth}`);
       if (slipsRes.data.success) {
         setSlipsList(slipsRes.data.slips);
+
+        // Send notification to this specific employee
+        const updatedSlip = slipsRes.data.slips.find((s: any) => s.id === employeeId);
+        const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        const netDisplay = updatedSlip?.netSalary
+          ? `₹${updatedSlip.netSalary.toLocaleString('en-IN')}`
+          : 'your salary';
+        await sendNotificationToEmployee({
+          employeeId,
+          title: '🧾 Salary Slip Generated',
+          body: `Your salary slip for ${monthLabel} has been approved. Net pay: ${netDisplay}. View it in your Employee Portal.`,
+          category: 'salary',
+          actionType: 'salary_slip_generated',
+        }).catch((err) =>
+          console.warn(`[Payroll] Slip notification failed for employee ${employeeId}:`, err)
+        );
       }
+
       alert('Salary slip approved and generated successfully!');
     } catch (err) {
       console.error('Failed to approve slip:', err);

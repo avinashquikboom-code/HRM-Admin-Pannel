@@ -161,10 +161,15 @@ export function logApiError(error: AxiosError): void {
   const status = error.response?.status ?? 'NETWORK';
   const message = extractErrorMessage(error);
 
+  // 4xx are expected client errors (wrong password, not found, etc.)
+  // Reserve console.error only for 5xx server errors or network failures
+  const isClientError = typeof status === 'number' && status >= 400 && status < 500;
+  const logFn = isClientError ? console.warn : console.error;
+
   console.groupCollapsed(
     `${LOG_PREFIX} ✗ ${method} ${url} ${status}${formatDuration(config)}`
   );
-  console.error('Error', {
+  logFn('Error', {
     id,
     status,
     message,

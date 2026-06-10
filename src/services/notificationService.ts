@@ -96,3 +96,28 @@ export async function broadcastAnnouncement(payload: {
     );
   }
 }
+
+/**
+ * Send a mobile push notification to an employee when they are added to an office.
+ * Silently swallows errors so it never blocks the main operation.
+ */
+export async function sendOfficeAssignedNotification(payload: {
+  employeeId: number;
+  employeeName: string;
+  officeName: string;
+}): Promise<void> {
+  try {
+    await api.post('/api/hr/notifications/send', {
+      employeeId: payload.employeeId,
+      title: '🏢 Welcome to Your Office!',
+      body: `Hi ${payload.employeeName}, you have been assigned to ${payload.officeName}. Please check the Employee Portal for your schedule and attendance details.`,
+      category: 'office_assignment',
+      actionType: 'office_assigned',
+    });
+  } catch (err) {
+    console.warn(
+      `[Notification] Office assignment notification failed for employee ${payload.employeeId}:`,
+      err
+    );
+  }
+}
