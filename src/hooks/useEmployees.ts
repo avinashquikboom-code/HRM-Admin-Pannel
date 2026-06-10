@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchEmployees, type AdminEmployee } from '@/services/employeeService';
 
-export function useEmployees() {
+export function useEmployees(enabled = true) {
   const [employees, setEmployees] = useState<AdminEmployee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,8 +28,12 @@ export function useEmployees() {
   }, []);
 
   useEffect(() => {
-    loadEmployees();
-  }, [loadEmployees]);
+    if (enabled) {
+      loadEmployees();
+    } else {
+      setIsLoading(false);
+    }
+  }, [loadEmployees, enabled]);
 
   return {
     employees,

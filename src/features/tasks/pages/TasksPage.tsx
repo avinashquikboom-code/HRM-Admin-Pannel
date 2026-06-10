@@ -26,6 +26,7 @@ import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
 import { api } from '@/lib/api';
 import { useEmployees } from '@/hooks/useEmployees';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
+import { useAppSelector } from '@/store/hooks';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -55,6 +56,9 @@ const columnNames = ['To Do', 'In Progress', 'Under Review', 'Completed'] as con
 type TaskStatus = typeof columnNames[number];
 
 const TasksPage = () => {
+  const portal = useAppSelector((state) => state.auth.portal);
+  const isEmployee = portal === 'employee';
+
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState<any[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -68,21 +72,65 @@ const TasksPage = () => {
   const [priority, setPriority] = useState('High');
   const [deadline, setDeadline] = useState('');
   const [description, setDescription] = useState('');
-  const { employees } = useEmployees();
+  const { employees } = useEmployees(!isEmployee);
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await api.get<{ success: boolean; tasks: any[] }>('/api/super-admin/tasks');
+      const endpoint = isEmployee ? '/api/employee/tasks' : '/api/super-admin/tasks';
+      const res = await api.get<{ success: boolean; tasks: any[] }>(endpoint);
       if (res.data.success) {
-        setTasks(res.data.tasks);
+        if (isEmployee) {
+          const mapped = res.data.tasks.map((t: any) => {
+            const rawStatus = (t.status || '').toUpperCase();
+            const statusStr = rawStatus === 'COMPLETED' ? 'Completed' :
+                              rawStatus === 'UNDERREVIEW' || rawStatus === 'UNDER_REVIEW' ? 'Under Review' :
+                              rawStatus === 'INPROGRESS' || rawStatus === 'IN_PROGRESS' ? 'In Progress' :
+                              rawStatus === 'OVERDUE' ? 'Overdue' : 'To Do';
+
+            const progressVal = statusStr === 'Completed' ? 100 :
+                                statusStr === 'Under Review' ? 90 :
+                                statusStr === 'In Progress' ? 40 : 0;
+
+            const rawPriority = (t.priority || '').toLowerCase();
+            const priorityStr = rawPriority === 'high' ? 'High' : rawPriority === 'medium' ? 'Medium' : 'Low';
+
+            let deadlineStr = '';
+            try {
+              if (t.dueDate) {
+                const d = new Date(t.dueDate);
+                if (!isNaN(d.getTime())) {
+                  deadlineStr = d.toISOString().split('T')[0];
+                }
+              }
+            } catch (e) {
+              deadlineStr = '';
+            }
+
+            return {
+              id: t.id,
+              title: t.title || '',
+              description: t.description || '',
+              assignee: t.assignedToName || 'Unassigned',
+              assigneeId: t.assignedToId || '',
+              priority: priorityStr,
+              status: statusStr,
+              deadline: deadlineStr,
+              projectName: t.projectName || 'General',
+              progress: progressVal,
+            };
+          });
+          setTasks(mapped);
+        } else {
+          setTasks(res.data.tasks);
+        }
       }
     } catch (err) {
-      console.error('Failed to load admin tasks:', err);
+      console.error('Failed to load tasks:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isEmployee]);
 
   useEffect(() => {
     loadTasks();
@@ -104,11 +152,25 @@ const TasksPage = () => {
 
   const handleStatusChange = async (taskId: string, nextStatus: TaskStatus) => {
     try {
-      const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
-      await api.put(`/api/super-admin/tasks/${taskId}`, {
-        status: nextStatus,
-        progress: nextProgress
-      });
+      if (isEmployee) {
+        let employeeStatus = 'todo';
+        if (nextStatus === 'In Progress') {
+          employeeStatus = 'inProgress';
+        } else if (nextStatus === 'Under Review') {
+          employeeStatus = 'underReview';
+        } else if (nextStatus === 'Completed') {
+          employeeStatus = 'completed';
+        }
+        await api.put(`/api/employee/tasks/${taskId}`, {
+          status: employeeStatus
+        });
+      } else {
+        const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
+        await api.put(`/api/super-admin/tasks/${taskId}`, {
+          status: nextStatus,
+          progress: nextProgress
+        });
+      }
       await loadTasks();
     } catch (err) {
       console.error('Failed to update task status:', err);
@@ -191,24 +253,26 @@ const TasksPage = () => {
       className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
     >
       <SuperAdminHeader
-        title="Task Orchestration"
-        subtitle="Assign deliverable tasks, track real-time project velocities, manage employee capacities, and monitor deadlines."
-        badgeText="Corporate Velocity & Execution"
+        title={isEmployee ? "My Tasks" : "Task Orchestration"}
+        subtitle={isEmployee ? "Track your assigned deliverables, update status, and manage deadlines." : "Assign deliverable tasks, track real-time project velocities, manage employee capacities, and monitor deadlines."}
+        badgeText={isEmployee ? "My Velocity & Deliverables" : "Corporate Velocity & Execution"}
         badgeIcon={CheckSquare}
         stats={[
-          { label: 'Total Sprint Deliverables', value: totalTasks.toString(), icon: CheckSquare },
-          { label: 'Active Sprint Tasks', value: activeSprintCount.toString(), icon: Play },
-          { label: 'Completed Deliverables', value: completedCount.toString(), icon: CheckCircle2 },
-          { label: 'Sprint Completion Velocity', value: `${completionRate}%`, icon: SlidersHorizontal }
+          { label: isEmployee ? 'Total Assigned' : 'Total Sprint Deliverables', value: totalTasks.toString(), icon: CheckSquare },
+          { label: isEmployee ? 'In Progress' : 'Active Sprint Tasks', value: activeSprintCount.toString(), icon: Play },
+          { label: 'Completed', value: completedCount.toString(), icon: CheckCircle2 },
+          { label: isEmployee ? 'Completion Rate' : 'Sprint Completion Velocity', value: `${completionRate}%`, icon: SlidersHorizontal }
         ]}
       >
-        <button 
-          onClick={() => setIsAssignModalOpen(true)}
-          className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
-        >
-          <Plus size={18} className="group-hover:rotate-12 transition-transform" />
-          Assign Task
-        </button>
+        {!isEmployee && (
+          <button 
+            onClick={() => setIsAssignModalOpen(true)}
+            className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
+          >
+            <Plus size={18} className="group-hover:rotate-12 transition-transform" />
+            Assign Task
+          </button>
+        )}
       </SuperAdminHeader>
 
       
@@ -273,8 +337,11 @@ const TasksPage = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         key={task.id}
-                        onClick={() => setSelectedTaskId(task.id)}
-                        className="glass-card p-5 border border-border/60 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,163,139,0.12)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer relative overflow-hidden bg-surface"
+                        onClick={() => !isEmployee && setSelectedTaskId(task.id)}
+                        className={cn(
+                          "glass-card p-5 border border-border/60 relative overflow-hidden bg-surface transition-all duration-300 group",
+                          !isEmployee ? "hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,163,139,0.12)] hover:-translate-y-1 cursor-pointer" : "cursor-default"
+                        )}
                       >
                         {/* Background Overlay */}
                         <div className={cn(
@@ -338,17 +405,21 @@ const TasksPage = () => {
 
                         {/* Status Progression Controls */}
                         <div className="mt-4 pt-3 border-t border-border/40 flex justify-between items-center">
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTask(task.id);
-                            }}
-                            className="p-1.5 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-all border border-error/10 active:scale-95 animate-transition"
-                            title="Delete Task"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          {!isEmployee ? (
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTask(task.id);
+                              }}
+                              className="p-1.5 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-all border border-error/10 active:scale-95 animate-transition"
+                              title="Delete Task"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          ) : (
+                            <div />
+                          )}
                           <div className="flex gap-1.5">
                             {colName !== 'To Do' && (
                               <button 

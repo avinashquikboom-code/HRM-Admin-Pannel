@@ -54,7 +54,7 @@ export default function StatCard({
   return (
     <div
       className={cn(
-        'group relative isolate min-h-[152px] rounded-3xl border border-border/60 bg-surface p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-premium',
+        'group relative isolate min-h-[152px] glass-card card-dark-hover p-5 transition-all duration-300',
         styles.ring,
         isLoading && 'animate-pulse',
         className
