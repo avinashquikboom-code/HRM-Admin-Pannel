@@ -33,6 +33,7 @@ import {
   UpdateHREmployeeRequest,
   HREmployeesResponse
 } from '@/services/hrService';
+import { sendOfficeAssignedNotification } from '@/services/notificationService';
 
 interface HREmployeeManagementProps {
   className?: string;
@@ -142,9 +143,22 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     setError(null);
 
     try {
-      await createHREmployee(formData);
+      const newEmployee = await createHREmployee(formData);
       showSuccessMessage('Employee created successfully!');
       setIsCreateModalOpen(false);
+
+      // Send mobile notification if an office was selected during creation
+      if (formData.officeId) {
+        const assignedOffice = offices.find((o) => o.id === formData.officeId);
+        if (assignedOffice) {
+          sendOfficeAssignedNotification({
+            employeeId: newEmployee.id,
+            employeeName: `${formData.firstName} ${formData.lastName ?? ''}`.trim(),
+            officeName: assignedOffice.name,
+          });
+        }
+      }
+
       setFormData({
         email: '',
         firstName: '',
@@ -170,6 +184,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     setIsSubmitting(true);
     setError(null);
 
+    // Capture the old office name before update to detect office change
+    const previousOfficeName = selectedEmployee.office;
+
     try {
       const updateData: UpdateHREmployeeRequest = {
         firstName: formData.firstName,
@@ -181,10 +198,26 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         phone: formData.phone
       };
       
-      await updateHREmployee(selectedEmployee.id, updateData);
+      const updatedEmployee = await updateHREmployee(selectedEmployee.id, updateData);
       showSuccessMessage('Employee updated successfully!');
       setIsEditModalOpen(false);
       setSelectedEmployee(null);
+
+      // Send notification only if office changed
+      const newOffice = offices.find((o) => o.id === formData.officeId);
+      const officeChanged =
+        formData.officeId !== undefined &&
+        newOffice &&
+        newOffice.name !== previousOfficeName;
+
+      if (officeChanged && newOffice) {
+        sendOfficeAssignedNotification({
+          employeeId: updatedEmployee.id,
+          employeeName: updatedEmployee.fullName,
+          officeName: newOffice.name,
+        });
+      }
+
       loadEmployees();
     } catch (err: any) {
       setError(err?.message || 'Failed to update employee.');
