@@ -1,4 +1,4 @@
-const LOCAL_API_DEFAULT = 'http://69.62.80.20:3000';
+const LOCAL_API_DEFAULT = 'http://192.168.1.102:3000';
 
 /**
  * Backend base URL (no trailing slash).
