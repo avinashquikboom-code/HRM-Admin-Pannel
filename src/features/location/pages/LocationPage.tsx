@@ -239,15 +239,6 @@ export default function LocationPage() {
     document.head.appendChild(script);
   }, []);
 
-  // Cleanup Leaflet on unmount
-  useEffect(() => {
-    return () => {
-      if (mapInstance) {
-        mapInstance.remove();
-      }
-    };
-  }, [mapInstance]);
-
   // Initialize Leaflet Map
   useEffect(() => {
     if (!leafletLoaded || !document.getElementById('leaflet-map') || mapInstance || activeTab !== 'editor') return;
@@ -334,6 +325,13 @@ export default function LocationPage() {
       const { lat, lng } = e.target.getLatLng();
       reverseGeocode(lat, lng);
     });
+
+    return () => {
+      map.remove();
+      setMapInstance(null);
+      setMarkerInstance(null);
+      setCircleInstance(null);
+    };
   }, [leafletLoaded, activeTab]);
 
   // React to Radius Slider shifts

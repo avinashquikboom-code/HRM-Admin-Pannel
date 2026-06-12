@@ -628,9 +628,10 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   </div>
                   <div>
                     <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
-                      Department
+                      Department *
                     </label>
                     <select
+                      required
                       value={formData.departmentId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
                       className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
@@ -763,9 +764,10 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   </div>
                   <div>
                     <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
-                      Department
+                      Department *
                     </label>
                     <select
+                      required
                       value={formData.departmentId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
                       className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
