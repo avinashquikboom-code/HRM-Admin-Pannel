@@ -661,7 +661,7 @@ const HRManagementPage = () => {
             {/* 5. HR Employee Management Section */}
             <motion.div
               variants={itemVariants}
-              className="glass-card border border-white/5 bg-slate-900/40 shadow-2xl p-8"
+              className="w-full"
             >
               <HREmployeeManagement />
             </motion.div>
