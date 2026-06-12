@@ -213,12 +213,12 @@ const HRManagementPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-16 text-slate-100 animate-fadeIn"
+      className="space-y-8 pb-16 text-text-primary animate-fadeIn"
     >
       {/* 1. Header Command Hub with Glowing Ambient Effects */}
       <motion.div 
         variants={itemVariants}
-        className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8 animate-slideDown"
+        className="relative overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8 animate-slideDown"
       >
         <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
@@ -228,34 +228,34 @@ const HRManagementPage = () => {
             <Radio size={12} className="animate-pulse text-primary" />
             Active platform command center
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
+          <h1 className="text-3xl md:text-5xl font-black text-text-primary tracking-tight leading-none">
             {greetingMessage}, <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Administrator</span>
           </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
+          <p className="text-xs md:text-sm text-text-secondary font-medium max-w-xl leading-relaxed">
             Monitor real-time corporate workspace parameters, track check-ins, and broadcast ecosystem-wide updates.
           </p>
         </div>
 
-        <div className="relative z-10 shrink-0 flex items-center gap-4 bg-slate-900/50 border border-white/5 px-6.5 py-5 rounded-[2rem] backdrop-blur-2xl shadow-2xl">
+        <div className="relative z-10 shrink-0 flex items-center gap-4 bg-surface-variant/40 dark:bg-slate-900/50 border border-border/50 dark:border-white/5 px-6.5 py-5 rounded-[2rem] backdrop-blur-2xl shadow-sm dark:shadow-2xl">
           <div className="flex flex-col items-end">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest flex items-center gap-1.5">
               <Clock size={12} className="text-primary animate-pulse" /> SYSTEM CLOCK
             </span>
-            <span className="text-3xl font-black text-white tracking-wider font-mono mt-1 drop-shadow-[0_0_8px_rgba(59,163,139,0.3)]">
+            <span className="text-3xl font-black text-text-primary tracking-wider font-mono mt-1 drop-shadow-[0_0_8px_rgba(59,163,139,0.3)]">
               {currentTime || '00:00:00'}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={handleDownloadLeaveReport}
-              className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 shadow-inner shrink-0"
+              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-2xl border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
               title="Download Leave Report"
             >
               <Download size={15} />
             </button>
             <button 
               onClick={handleDownloadAttendanceReport}
-              className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 shadow-inner shrink-0"
+              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-2xl border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
               title="Download Attendance Report"
             >
               <Download size={15} />
@@ -263,7 +263,7 @@ const HRManagementPage = () => {
             <button 
               onClick={handleRefresh} 
               disabled={isLoading || isRefreshing}
-              className="p-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50 shadow-inner shrink-0"
+              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-2xl border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50 shadow-sm shrink-0"
               title="Refresh Operational Pulse"
             >
               <RefreshCw size={15} className={cn(isRefreshing && "animate-spin text-primary")} />

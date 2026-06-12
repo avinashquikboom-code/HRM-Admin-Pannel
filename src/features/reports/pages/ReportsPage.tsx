@@ -197,10 +197,10 @@ const ReportsPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
+      className="space-y-8 pb-10 text-text-primary animate-fadeIn"
     >
       {/* Title Header Command hub */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
 
@@ -209,10 +209,10 @@ const ReportsPage = () => {
             <FileSpreadsheet size={12} className="text-primary animate-pulse" />
             Corporate Audit & Compliance Center
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none">
+          <h1 className="text-3xl md:text-5xl font-black text-text-primary tracking-tight leading-none">
             Intelligence <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Center</span>
           </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
+          <p className="text-xs md:text-sm text-text-secondary font-medium max-w-xl leading-relaxed">
             Access, generate, and manage platform-wide compliance audits, financial velocity files, and custom blueprints.
           </p>
         </div>
