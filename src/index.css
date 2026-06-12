@@ -61,21 +61,21 @@
     --header-text: #0F172A;
     --radius: 0.625rem;
 
-    /* Light Theme Sidebar & Card Variables — Teal Matched */
-    --sidebar-bg: #0F2827;
-    --sidebar-surface: #132F2E;
-    --sidebar-hover: rgba(20, 184, 166, 0.12);
-    --sidebar-active-bg: rgba(20, 184, 166, 0.20);
-    --sidebar-active-border: #2DD4BF;
-    --sidebar-text-primary: #F0FDFA;
-    --sidebar-text-secondary: #99F6E4;
-    --sidebar-border: rgba(45, 212, 191, 0.15);
-    --sidebar-profile-bg: rgba(20, 184, 166, 0.08);
-    --sidebar-profile-border: rgba(45, 212, 191, 0.2);
-    --sidebar-danger: #FCA5A5;
-    --sidebar-bg-gradient: linear-gradient(180deg, #0A2120 0%, #0F2827 50%, #132F2E 100%);
-    --sidebar-cyan-glow: rgba(20, 184, 166, 0.25);
-    --sidebar-card-bg: rgba(19, 47, 46, 0.6);
+    /* Light Theme Sidebar & Card Variables — Premium Light Slate/Teal */
+    --sidebar-bg: #FFFFFF;
+    --sidebar-surface: #F8FAFC;
+    --sidebar-hover: rgba(20, 184, 166, 0.08);
+    --sidebar-active-bg: rgba(20, 184, 166, 0.12);
+    --sidebar-active-border: #0D9488;
+    --sidebar-text-primary: #0F172A;
+    --sidebar-text-secondary: #475569;
+    --sidebar-border: #E2E8F0;
+    --sidebar-profile-bg: #F8FAFC;
+    --sidebar-profile-border: #E2E8F0;
+    --sidebar-danger: #EF4444;
+    --sidebar-bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+    --sidebar-cyan-glow: rgba(20, 184, 166, 0.04);
+    --sidebar-card-bg: rgba(255, 255, 255, 0.8);
 
     --card-bg-light: #FFFFFF;
     --card-border-light: #E2E8F0;
@@ -463,7 +463,7 @@
   }
 
   html:not(.dark) .sidebar-panel {
-    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(45, 212, 191, 0.08);
+    box-shadow: none;
   }
 
   .sidebar-profile-card {
