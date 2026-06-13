@@ -153,58 +153,58 @@
 
 @layer components {
   .glass-card {
-    @apply bg-surface/70 dark:bg-surface/50 backdrop-blur-lg border border-border/50 dark:border-border/30 rounded-sm sm:rounded shadow-premium;
+    @apply bg-surface/70 dark:bg-surface/50 backdrop-blur-lg border border-border/50 dark:border-border/30 rounded-sm sm:rounded;
     background-color: var(--card-bg-light);
     border-color: var(--card-border-light);
-    box-shadow: var(--card-shadow-light);
+    box-shadow: none;
   }
 
   .dark .glass-card {
     background-color: var(--card-bg-dark);
     border-color: var(--card-border-dark);
-    box-shadow: var(--card-shadow-dark);
+    box-shadow: none;
   }
 
   .card-dark {
-    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border rounded-sm sm:rounded shadow-light dark:shadow-premium;
+    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border rounded-sm sm:rounded;
     background-color: var(--card-bg-light);
     border-color: var(--card-border-light);
-    box-shadow: var(--card-shadow-light);
+    box-shadow: none;
   }
 
   .dark .card-dark {
     background-color: var(--card-bg-dark);
     border-color: var(--card-border-dark);
-    box-shadow: var(--card-shadow-dark);
+    box-shadow: none;
   }
 
   .card-dark-hover {
-    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border hover:border-border/60 rounded-sm sm:rounded shadow-light dark:shadow-premium transition-all duration-300;
+    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border hover:border-border/60 rounded-sm sm:rounded transition-all duration-300;
     background-color: var(--card-bg-light);
     border-color: var(--card-border-light);
-    box-shadow: var(--card-shadow-light);
+    box-shadow: none;
   }
 
   .dark .card-dark-hover {
     background-color: var(--card-bg-dark);
     border-color: var(--card-border-dark);
-    box-shadow: var(--card-shadow-dark);
+    box-shadow: none;
   }
 
   .card-dark-hover:hover {
     border-color: #94A3B8;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: none;
     transform: translateY(-2px);
   }
 
   .dark .card-dark-hover:hover {
     border-color: rgba(0, 212, 199, 0.3);
-    box-shadow: 0 0 20px rgba(0, 212, 199, 0.2);
+    box-shadow: none;
     transform: translateY(-2px);
   }
 
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white px-4 py-2 text-xs sm:text-sm rounded-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer shadow-lg shadow-primary/20;
+    @apply bg-primary hover:bg-primary-dark text-white px-4 py-2 text-xs sm:text-sm rounded-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer;
   }
 
   .btn-secondary {
@@ -220,7 +220,7 @@
 
   .input-field:focus {
     border-color: #14B8A6;
-    box-shadow: 0 0 10px rgba(20, 184, 166, 0.2);
+    box-shadow: none;
   }
 
   .dark .input-field {
@@ -231,7 +231,7 @@
 
   .dark .input-field:focus {
     border-color: var(--sidebar-active-border);
-    box-shadow: 0 0 15px var(--sidebar-cyan-glow);
+    box-shadow: none;
   }
 
   .input-dark {
@@ -261,15 +261,15 @@
 
   .dark .input-dark:focus {
     border-color: var(--sidebar-active-border);
-    box-shadow: 0 0 15px var(--sidebar-cyan-glow);
+    box-shadow: none;
   }
 
   .page-header {
-    @apply bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded shadow-light dark:shadow-premium;
+    @apply bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded;
     background-color: #F8FAFC;
     border-color: #CBD5E1;
     color: #0F172A;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: none;
   }
 
   .dark .page-header {
@@ -279,11 +279,11 @@
   }
 
   .page-header-dark {
-    @apply dark:bg-slate-900/40 dark:border-white/5 bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded shadow-light dark:shadow-premium;
+    @apply dark:bg-slate-900/40 dark:border-white/5 bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded;
     background-color: #F8FAFC;
     border-color: #E2E8F0;
     color: #0F172A;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: none;
   }
 
   .dark .page-header-dark {
@@ -365,7 +365,7 @@
 
   .sidebar-logo {
     background: linear-gradient(135deg, #00D4C7 0%, #00A8A0 50%, #008C8C 100%);
-    box-shadow: 0 0 20px var(--sidebar-cyan-glow);
+    box-shadow: none;
   }
 
   .sidebar-subtitle {
@@ -423,7 +423,7 @@
     background-color: var(--sidebar-hover);
     color: var(--sidebar-text-primary);
     transform: translateX(2px);
-    box-shadow: 0 0 20px var(--sidebar-cyan-glow);
+    box-shadow: none;
   }
 
   .sidebar-nav-item:hover svg {
@@ -435,13 +435,13 @@
     background-color: var(--sidebar-active-bg);
     color: var(--sidebar-active-border);
     border-left: 3px solid var(--sidebar-active-border);
-    box-shadow: 0 0 20px var(--sidebar-cyan-glow);
+    box-shadow: none;
   }
 
   .sidebar-nav-item.active svg,
   .sidebar-nav-item[data-active='true'] svg {
     color: var(--sidebar-active-border);
-    filter: drop-shadow(0 0 8px var(--sidebar-cyan-glow));
+    filter: none;
   }
 
   .sidebar-nav-item-collapsed {
@@ -458,7 +458,7 @@
     flex-direction: column;
     height: 100%;
     background: var(--sidebar-bg-gradient);
-    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
+    box-shadow: none;
     overflow: hidden;
   }
 
@@ -476,7 +476,7 @@
     border-radius: 12px;
     margin-bottom: 12px;
     border: 1px solid var(--sidebar-profile-border);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: none;
   }
 
   .sidebar-profile-avatar {
@@ -491,7 +491,7 @@
     color: white;
     font-size: 14px;
     flex-shrink: 0;
-    box-shadow: 0 0 20px var(--sidebar-cyan-glow);
+    box-shadow: none;
   }
 
   .sidebar-profile-info {

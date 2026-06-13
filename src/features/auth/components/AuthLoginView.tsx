@@ -126,15 +126,15 @@ export default function AuthLoginView({
           <p className="text-page-desc mt-2">{access.description}</p>
         </div>
 
-        <div className="glass-card p-6 sm:p-8 lg:p-10 bg-surface/40 border-surface/50">
-          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-sm bg-surface-variant mb-6">
+        <div className="glass-card p-6 sm:p-8 lg:p-10 bg-surface/40 border-surface/50 rounded-none">
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-none bg-surface-variant mb-6">
             {LOGIN_PORTAL_ORDER.map((optionId) => (
               <button
                 key={optionId}
                 type="button"
                 onClick={() => switchPortal(optionId)}
                 className={cn(
-                  'py-2.5 px-3 rounded-sm text-xs sm:text-sm font-semibold transition-all',
+                  'py-2.5 px-3 rounded-none text-xs sm:text-sm font-semibold transition-all',
                   portal === optionId
                     ? styles.tab
                     : 'text-text-secondary hover:text-text-primary'

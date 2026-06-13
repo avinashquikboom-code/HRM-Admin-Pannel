@@ -551,7 +551,7 @@ const ReportsPage = () => {
                             <Tooltip 
                               cursor={{fill: 'rgba(255, 255, 255, 0.02)', radius: 8}}
                               contentStyle={{ 
-                                borderRadius: '12px', 
+                                borderRadius: '0px', 
                                 border: '1px solid rgba(255, 255, 255, 0.08)', 
                                 backgroundColor: '#0F172A',
                                 color: '#F1F5F9',
@@ -659,7 +659,7 @@ const ReportsPage = () => {
                             <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
                             <Tooltip 
                               contentStyle={{ 
-                                borderRadius: '12px', 
+                                borderRadius: '0px', 
                                 border: '1px solid rgba(255, 255, 255, 0.08)', 
                                 backgroundColor: '#0F172A',
                                 color: '#F1F5F9',

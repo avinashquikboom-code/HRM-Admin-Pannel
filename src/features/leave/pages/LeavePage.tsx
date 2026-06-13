@@ -477,7 +477,7 @@ export default function LeavePage() {
                       <XAxis dataKey="name" stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
                       <YAxis stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#0F172A', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}
+                        contentStyle={{ backgroundColor: '#0F172A', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0px' }}
                         labelStyle={{ color: '#94A3B8', fontWeight: 'bold' }}
                       />
                       <Bar dataKey="Casual Leave" fill="#F4B860" radius={[4, 4, 0, 0]} />

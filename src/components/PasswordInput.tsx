@@ -25,7 +25,7 @@ export default function PasswordInput({
         type={visible ? 'text' : 'password'}
         disabled={disabled}
         className={cn(
-          'w-full pl-12 pr-12 py-4 bg-surface dark:bg-surface-variant border-none rounded-sm shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60',
+          'w-full pl-12 pr-12 py-4 bg-surface dark:bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary disabled:opacity-60',
           inputClassName
         )}
       />

@@ -27,7 +27,7 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-surface rounded-t-sm sm:rounded shadow-2xl overflow-hidden border border-border"
+            className="relative w-full max-w-md bg-surface rounded-t-sm sm:rounded overflow-hidden border border-border"
           >
             <div className="p-5 sm:p-8">
               <div className="flex justify-between items-start mb-6">
@@ -56,7 +56,7 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 py-4 bg-error text-white font-bold rounded-sm shadow-lg shadow-error/20 hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="flex-1 py-4 bg-error text-white font-bold rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
                   <LogOut size={18} />
                   Sign Out

@@ -376,7 +376,7 @@ const AttendancePage = () => {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    borderRadius: '16px', 
+                    borderRadius: '0px', 
                     border: 'none', 
                     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                     backgroundColor: 'var(--surface)',
@@ -450,7 +450,7 @@ const AttendancePage = () => {
                 <Tooltip 
                   cursor={{fill: 'var(--primary)', opacity: 0.05}} 
                   contentStyle={{ 
-                    borderRadius: '20px', 
+                    borderRadius: '0px', 
                     border: 'none', 
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
                     padding: '16px',

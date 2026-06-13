@@ -205,7 +205,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         {!isEmployee && (
         <>
         <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-sm border border-transparent focus-within:border-primary/50 focus-within:bg-surface focus-within:shadow-[0_0_20px_var(--sidebar-cyan-glow)] transition-all group duration-300">
+        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-sm border border-transparent focus-within:border-primary/50 focus-within:bg-surface transition-all group duration-300">
           <Search className="w-5 h-5 text-muted group-focus-within:text-primary transition-colors shrink-0" />
           <input
             id="global-search"
@@ -216,7 +216,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
             placeholder="Search analytics, companies..."
             className="bg-transparent border-none outline-none text-sm text-text-primary w-full min-w-0 placeholder:text-muted"
           />
-          <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-surface border border-border rounded-lg shadow-sm shrink-0">
+          <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-surface border border-border rounded-lg shrink-0">
             <span className="text-micro font-bold text-muted">⌘</span>
             <span className="text-micro font-bold text-muted">K</span>
           </div>
@@ -227,7 +227,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full left-0 right-0 mt-3 bg-surface border border-border rounded-sm shadow-2xl shadow-primary/10 overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-3 bg-surface border border-border rounded-sm overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
             >
               {searchResultsContent}
             </motion.div>
@@ -278,10 +278,10 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                   <img 
                     src={user?.avatar || '/favicon.svg'} 
                     alt="Avatar" 
-                    className="w-10 h-10 rounded-full bg-surface object-cover border-2 border-surface shadow-sm"
+                    className="w-10 h-10 rounded-full bg-surface object-cover border-2 border-surface"
                   />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success border-2 border-surface rounded-full shadow-sm"></div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success border-2 border-surface rounded-full"></div>
               </div>
             </div>
             
@@ -299,7 +299,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-3 w-[min(18rem,calc(100vw-2rem))] bg-surface/95 backdrop-blur-xl border border-border rounded-[28px] shadow-2xl shadow-primary/10 overflow-hidden z-50 p-2"
+                className="absolute right-0 mt-3 w-[min(18rem,calc(100vw-2rem))] bg-surface/95 backdrop-blur-xl border border-border rounded-[28px] overflow-hidden z-50 p-2"
               >
                 <div className="p-5 border-b border-border/50 mb-2 bg-surface-variant/30 rounded-t-[20px]">
                   <p className="text-label text-primary mb-1">Authenticated As</p>

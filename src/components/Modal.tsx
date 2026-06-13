@@ -46,7 +46,7 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className={cn(
-              'relative w-full bg-surface rounded-t-sm sm:rounded shadow-2xl border border-border overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col',
+              'relative w-full bg-surface rounded-t-sm sm:rounded border border-border overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col',
               maxWidth
             )}
           >

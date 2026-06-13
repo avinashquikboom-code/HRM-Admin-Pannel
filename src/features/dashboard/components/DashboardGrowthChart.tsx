@@ -82,7 +82,7 @@ export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps
           <Tooltip
             cursor={{ fill: 'var(--surface-variant)', opacity: 0.5 }}
             contentStyle={{
-              borderRadius: '12px',
+              borderRadius: '0px',
               border: '1px solid var(--border)',
               background: 'var(--surface)',
               fontSize: '12px',

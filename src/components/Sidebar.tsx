@@ -72,7 +72,7 @@ function NavItem({
       )}
       {!isOpen && (
         <div
-          className="absolute left-full ml-3 px-2.5 py-1.5 text-xs rounded-sm opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[999] shadow-xl"
+          className="absolute left-full ml-3 px-2.5 py-1.5 text-xs rounded-sm opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[999]"
           style={{ backgroundColor: '#1E293B', color: '#F8FAFC', border: '1px solid #334155', fontSize: '12px' }}
         >
           {item.name}

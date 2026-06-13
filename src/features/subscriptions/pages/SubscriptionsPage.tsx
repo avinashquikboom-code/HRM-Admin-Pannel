@@ -570,7 +570,7 @@ const SubscriptionsPage = () => {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    borderRadius: '16px', 
+                    borderRadius: '0px', 
                     border: '1px solid var(--border)', 
                     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
                     backgroundColor: 'var(--surface)',

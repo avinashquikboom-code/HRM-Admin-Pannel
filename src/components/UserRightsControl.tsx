@@ -39,21 +39,21 @@ const PORTAL_ICONS: Record<PortalType, typeof ShieldCheck> = {
 
 const ACCENT = {
   secondary: {
-    tab: 'bg-violet-600 text-white shadow-lg shadow-violet-500/20 border-violet-500/30',
+    tab: 'bg-violet-600 text-white border-violet-500/30',
     ring: 'ring-violet-500/30',
     badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
     progress: 'bg-violet-500',
     checkbox: 'accent-violet-500',
   },
   primary: {
-    tab: 'bg-primary text-white shadow-lg shadow-primary/20 border-primary/30',
+    tab: 'bg-primary text-white border-primary/30',
     ring: 'ring-primary/30',
     badge: 'bg-primary/10 text-primary border-primary/20',
     progress: 'bg-primary',
     checkbox: 'accent-primary',
   },
   accent: {
-    tab: 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border-amber-400/30',
+    tab: 'bg-amber-500 text-slate-950 border-amber-400/30',
     ring: 'ring-amber-500/30',
     badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     progress: 'bg-amber-500',
@@ -90,7 +90,7 @@ function PermissionCheckbox({
         'flex items-start gap-4 p-4 sm:p-5 rounded-sm border transition-all cursor-pointer group',
         disabled && 'cursor-default opacity-85',
         checked
-          ? 'border-primary/30 bg-primary/5 text-primary shadow-[0_8px_20px_-6px_rgba(59,163,139,0.15)]'
+          ? 'border-primary/30 bg-primary/5 text-primary'
           : 'border-white/5 bg-slate-950/30 hover:border-white/10 hover:bg-slate-950/50'
       )}
     >
@@ -383,7 +383,7 @@ export default function UserRightsControl({
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-sm bg-primary text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-sm bg-primary text-white text-xs font-black uppercase tracking-wider hover:bg-primary-dark transition-all disabled:opacity-50 cursor-pointer"
                   >
                     <Save size={14} />
                     {isSaving ? 'Saving...' : 'Save Changes'}

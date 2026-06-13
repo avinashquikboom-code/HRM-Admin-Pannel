@@ -453,7 +453,7 @@ const HRManagementPage = () => {
                         <Tooltip 
                           cursor={{fill: 'rgba(255, 255, 255, 0.02)', radius: 12}}
                           contentStyle={{ 
-                            borderRadius: '16px', 
+                            borderRadius: '0px', 
                             border: '1px solid rgba(255, 255, 255, 0.08)', 
                             backgroundColor: '#0F172A',
                             color: '#F1F5F9',
@@ -516,7 +516,7 @@ const HRManagementPage = () => {
                         </Pie>
                         <Tooltip 
                           contentStyle={{ 
-                            borderRadius: '12px', 
+                            borderRadius: '0px', 
                             border: '1px solid rgba(255, 255, 255, 0.08)', 
                             backgroundColor: '#0F172A',
                             color: '#F1F5F9',

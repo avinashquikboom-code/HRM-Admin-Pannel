@@ -338,7 +338,7 @@ const DashboardPage = () => {
                   <Tooltip 
                     cursor={{ stroke: 'var(--color-primary)', strokeWidth: 2 }} 
                     contentStyle={{ 
-                      borderRadius: '20px', 
+                      borderRadius: '0px', 
                       border: 'none', 
                       boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
                       background: 'var(--surface)',

@@ -9,7 +9,7 @@ interface PremiumCardProps {
 const cardVariants: Variants = {
   hover: {
     y: -2,
-    boxShadow: 'var(--shadow-premium)',
+    boxShadow: 'none',
     transition: { type: 'spring', stiffness: 300 },
   },
   initial: { y: 0 },
