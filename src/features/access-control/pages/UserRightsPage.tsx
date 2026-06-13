@@ -183,13 +183,13 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
       {/* 1. Header Command Hub with Glowing Ambient Effects */}
       <motion.div
         variants={itemVariants}
-        className="relative overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8"
+        className="relative overflow-hidden rounded-sm border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8"
       >
         <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest">
             <ShieldCheck size={12} className="text-primary animate-pulse" />
             Security & permission control
           </div>
@@ -203,7 +203,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         
         <Link
           href="#register-user-rights"
-          className="relative z-10 btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider self-start md:self-auto"
+          className="relative z-10 btn-primary px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider self-start md:self-auto"
         >
           <UserPlus size={16} />
           Register User
@@ -237,12 +237,11 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         ].map((stat) => (
           <div 
             key={stat.label} 
-            className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-6 flex items-center gap-5 shadow-2xl backdrop-blur-xl group hover:border-white/10 transition-all duration-300"
+            className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-6 flex items-center gap-5 backdrop-blur-xl group hover:border-white/10 transition-all duration-300"
           >
             <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div 
               className={`w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
-              style={{ boxShadow: `0 8px 24px -6px ${stat.glow}` }}
             >
               <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
             </div>
@@ -255,9 +254,9 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
       </motion.div>
 
       {/* 3. Module Checklist Control Panel */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 shadow-2xl backdrop-blur-xl">
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 backdrop-blur-xl">
         <div className="flex flex-col lg:flex-row lg:items-center gap-5 mb-8 pb-6 border-b border-white/5">
-          <div className="w-14 h-14 rounded-sm bg-gradient-to-br from-primary/20 to-teal-500/10 border border-primary/30 text-primary flex items-center justify-center shrink-0" style={{ boxShadow: '0 8px 24px -6px rgba(59,163,139,0.2)' }}>
+          <div className="w-14 h-14 rounded-sm bg-gradient-to-br from-primary/20 to-teal-500/10 border border-primary/30 text-primary flex items-center justify-center shrink-0">
             <ShieldCheck size={26} />
           </div>
           <div className="flex-1">
@@ -289,7 +288,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
           <button
             type="button"
             onClick={() => refetchUsers()}
-            className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all shadow-sm active:scale-95 self-end sm:self-auto cursor-pointer"
+            className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all active:scale-95 self-end sm:self-auto cursor-pointer"
             title="Refresh users directory"
           >
             <RefreshCw size={16} className={cn(isUsersLoading && 'animate-spin')} />
@@ -316,7 +315,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         )}
 
         {/* Searching & Filters */}
-        <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-sm shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-sm backdrop-blur-xl">
           <div className="relative w-full xl:w-96 group">
             <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
             <input 
@@ -352,11 +351,11 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
 
         {/* Users Table / List */}
         {isUsersLoading ? (
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-8 shadow-2xl backdrop-blur-xl">
+          <div className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-8 backdrop-blur-xl">
             <TableSkeleton rows={4} columns={5} />
           </div>
         ) : (
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-xl">
+          <div className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 backdrop-blur-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -379,7 +378,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                         >
                           <td className="px-6 py-4.5">
                             <div className="flex items-center gap-4">
-                              <div className="w-11 h-11 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 text-primary font-black flex items-center justify-center text-sm shrink-0 group-hover:scale-105 transition-all duration-300" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
+                              <div className="w-11 h-11 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 text-primary font-black flex items-center justify-center text-sm shrink-0 group-hover:scale-105 transition-all duration-300">
                                 {initials || 'U'}
                               </div>
                               <div className="min-w-0">
@@ -449,7 +448,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         )}
       </motion.div>
 
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 shadow-2xl backdrop-blur-xl">
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 backdrop-blur-xl">
         <RegisterUserWithRights
           managerPortal={variant}
           registerRole={variant === 'super_admin' ? 'HR' : 'EMPLOYEE'}
