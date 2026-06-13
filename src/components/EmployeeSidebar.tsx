@@ -54,10 +54,18 @@ function NavItem({
   isOpen: boolean;
   onNavigate?: () => void;
 }) {
+  const router = useRouter();
+  
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push(item.path);
+    if (onNavigate) onNavigate();
+  };
+
   return (
     <Link
       href={item.path}
-      onClick={onNavigate}
+      onClick={handleClick}
       data-active={isActive ? 'true' : undefined}
       className={cn(
         'sidebar-nav-item group',
