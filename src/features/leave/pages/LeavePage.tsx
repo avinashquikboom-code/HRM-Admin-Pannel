@@ -291,11 +291,11 @@ export default function LeavePage() {
   // Chart data calculation
   const chartData = useMemo(() => {
     const monthlyStats: Record<string, { cl: number; sl: number; el: number }> = {
-      'Jan': { cl: 2, sl: 1, el: 1 },
-      'Feb': { cl: 4, sl: 3, el: 2 },
-      'Mar': { cl: 1, sl: 5, el: 4 },
-      'Apr': { cl: 5, sl: 2, el: 6 },
-      'May': { cl: 6, sl: 4, el: 3 },
+      'Jan': { cl: 0, sl: 0, el: 0 },
+      'Feb': { cl: 0, sl: 0, el: 0 },
+      'Mar': { cl: 0, sl: 0, el: 0 },
+      'Apr': { cl: 0, sl: 0, el: 0 },
+      'May': { cl: 0, sl: 0, el: 0 },
     };
 
     leaveRequests.forEach(req => {

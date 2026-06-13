@@ -45,15 +45,7 @@ import Modal from '@/components/Modal';
 import ChartContainer from '@/components/ChartContainer';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 
-const revenueData = [
-  { name: 'Jan', value: 400000, active: 380000 },
-  { name: 'Feb', value: 300000, active: 290000 },
-  { name: 'Mar', value: 500000, active: 480000 },
-  { name: 'Apr', value: 450000, active: 440000 },
-  { name: 'May', value: 600000, active: 580000 },
-  { name: 'Jun', value: 550000, active: 540000 },
-  { name: 'Jul', value: 700000, active: 680000 },
-];
+const revenueData: { name: string; value: number; active: number }[] = [];
 
 // subscriptionData now comes from useDashboardStats hook
 

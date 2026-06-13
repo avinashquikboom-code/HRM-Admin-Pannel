@@ -10,15 +10,7 @@ import {
 } from 'recharts';
 import ChartContainer from '@/components/ChartContainer';
 
-const growthDataDefault = [
-  { name: 'Jan', companies: 8, seats: 2100 },
-  { name: 'Feb', companies: 9, seats: 2450 },
-  { name: 'Mar', companies: 10, seats: 2800 },
-  { name: 'Apr', companies: 11, seats: 3100 },
-  { name: 'May', companies: 13, seats: 4200 },
-  { name: 'Jun', companies: 14, seats: 5100 },
-  { name: 'Jul', companies: 15, seats: 6425 },
-];
+const growthDataDefault: { name: string; companies: number; seats: number }[] = [];
 
 interface DashboardGrowthChartProps {
   data?: { name: string; companies: number; seats: number }[];
@@ -26,7 +18,7 @@ interface DashboardGrowthChartProps {
 
 export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps) {
   const chartData = data && data.length > 0 ? data : growthDataDefault;
-  const latest = chartData[chartData.length - 1];
+  const latest = chartData.length > 0 ? chartData[chartData.length - 1] : { companies: 0, seats: 0 };
 
   return (
     <div className="rounded-sm border border-border/60 bg-surface p-5 sm:p-6 flex flex-col shadow-sm">
@@ -58,49 +50,55 @@ export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps
       </div>
 
       <ChartContainer heightClassName="h-[260px] sm:min-h-[300px] sm:h-[300px]">
-        <BarChart data={chartData} barSize={28}>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            vertical={false}
-            stroke="var(--border)"
-          />
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-            dy={8}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-            tickFormatter={(val) =>
-              val >= 1000 ? `${(val / 1000).toFixed(1)}k` : String(val)
-            }
-          />
-          <Tooltip
-            cursor={{ fill: 'var(--surface-variant)', opacity: 0.5 }}
-            contentStyle={{
-              borderRadius: '0px',
-              border: '1px solid var(--border)',
-              background: 'var(--surface)',
-              fontSize: '12px',
-            }}
-            formatter={(value, name) => [
-              typeof value === 'number'
-                ? value.toLocaleString()
-                : String(value ?? ''),
-              name === 'seats' ? 'Employee seats' : 'Companies',
-            ]}
-          />
-          <Bar
-            dataKey="seats"
-            fill="#3BA38B"
-            radius={[8, 8, 0, 0]}
-            animationDuration={900}
-          />
-        </BarChart>
+        {chartData.length === 0 ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full animate-pulse bg-surface-variant/30 rounded-sm" />
+          </div>
+        ) : (
+          <BarChart data={chartData} barSize={28}>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="var(--border)"
+            />
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+              dy={8}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+              tickFormatter={(val) =>
+                val >= 1000 ? `${(val / 1000).toFixed(1)}k` : String(val)
+              }
+            />
+            <Tooltip
+              cursor={{ fill: 'var(--surface-variant)', opacity: 0.5 }}
+              contentStyle={{
+                borderRadius: '0px',
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                fontSize: '12px',
+              }}
+              formatter={(value, name) => [
+                typeof value === 'number'
+                  ? value.toLocaleString()
+                  : String(value ?? ''),
+                name === 'seats' ? 'Employee seats' : 'Companies',
+              ]}
+            />
+            <Bar
+              dataKey="seats"
+              fill="#3BA38B"
+              radius={[8, 8, 0, 0]}
+              animationDuration={900}
+            />
+          </BarChart>
+        )}
       </ChartContainer>
     </div>
   );

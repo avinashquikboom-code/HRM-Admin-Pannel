@@ -426,43 +426,42 @@ const AttendancePage = () => {
           </div>
 
           <ChartContainer heightClassName="h-[320px]" className="relative z-10">
-              <BarChart data={[
-                { time: '7 AM', ontime: 1500, late: 50 },
-                { time: '8 AM', ontime: 5800, late: 120 },
-                { time: '9 AM', ontime: 12500, late: 1400 },
-                { time: '10 AM', ontime: 4200, late: 3200 },
-                { time: '11 AM', ontime: 1800, late: 1100 },
-                { time: '12 PM', ontime: 800, late: 400 },
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                <XAxis 
-                  dataKey="time" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}} 
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}}
-                />
-                <Tooltip 
-                  cursor={{fill: 'var(--primary)', opacity: 0.05}} 
-                  contentStyle={{ 
-                    borderRadius: '0px', 
-                    border: 'none', 
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                    padding: '16px',
-                    background: 'var(--surface)',
-                    backdropFilter: 'blur(8px)',
-                    color: 'var(--text-primary)'
-                  }}
-                  itemStyle={{ color: 'var(--text-primary)' }}
-                />
-                <Bar dataKey="ontime" stackId="a" fill="#3BA38B" radius={[0, 0, 0, 0]} animationDuration={1500} />
-                <Bar dataKey="late" stackId="a" fill="#F4B860" radius={[10, 10, 0, 0]} animationDuration={2000} />
-              </BarChart>
+              {isLoading ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full animate-pulse bg-surface-variant/30 rounded-sm" />
+                </div>
+              ) : (
+                <BarChart data={[]}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                  <XAxis 
+                    dataKey="time" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}} 
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}}
+                  />
+                  <Tooltip 
+                    cursor={{fill: 'var(--primary)', opacity: 0.05}} 
+                    contentStyle={{ 
+                      borderRadius: '0px', 
+                      border: 'none', 
+                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                      padding: '16px',
+                      background: 'var(--surface)',
+                      backdropFilter: 'blur(8px)',
+                      color: 'var(--text-primary)'
+                    }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                  />
+                  <Bar dataKey="ontime" stackId="a" fill="#3BA38B" radius={[0, 0, 0, 0]} animationDuration={1500} />
+                  <Bar dataKey="late" stackId="a" fill="#F4B860" radius={[10, 10, 0, 0]} animationDuration={2000} />
+                </BarChart>
+              )}
           </ChartContainer>
         </motion.div>
       </div>

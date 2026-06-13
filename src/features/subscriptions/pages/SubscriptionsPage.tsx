@@ -42,18 +42,11 @@ import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useLoadingData } from '@/hooks/useLoadingData';
 import { useCompanyStats } from '@/hooks/useCompanyStats';
 import {
-  fetchSubscriptions, updateSubscription, fetchPricingPlans, updatePricingPlan,
+  fetchSubscriptions, updateSubscription, fetchPricingPlans, updatePricingPlan, downloadSubscriptionReport,
   type Subscription, type PricingPlan
 } from '@/services/subscriptionService';
 
-const revenueData = [
-  { name: 'Jan', value: 450000, churn: 12000 },
-  { name: 'Feb', value: 520000, churn: 15000 },
-  { name: 'Mar', value: 480000, churn: 18000 },
-  { name: 'Apr', value: 610000, churn: 14000 },
-  { name: 'May', value: 720000, churn: 11000 },
-  { name: 'Jun', value: 850000, churn: 9000 },
-];
+const revenueData: { name: string; value: number; churn: number }[] = [];
 
 // planDistribution is now computed dynamically from subscriptions data below
 
@@ -301,6 +294,15 @@ const SubscriptionsPage = () => {
     }
   };
 
+  const handleExportReport = async () => {
+    try {
+      await downloadSubscriptionReport();
+    } catch (err) {
+      console.error('Failed to export subscription report:', err);
+      alert(err instanceof Error ? err.message : 'Failed to export subscription report. Please try again.');
+    }
+  };
+
   const isLoading = isStaticLoading || isStatsLoading || isLoadingSubs;
 
   const basicCount = stats?.planMix?.find((p) => p.name === 'Basic')?.count ?? 20;
@@ -438,7 +440,10 @@ const SubscriptionsPage = () => {
           <WalletCards size={18} className="group-hover:rotate-12 transition-transform" />
           Manage Billing
         </button>
-        <button className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
+        <button 
+          onClick={handleExportReport}
+          className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95"
+        >
           <Download size={18} />
           Export Report
         </button>

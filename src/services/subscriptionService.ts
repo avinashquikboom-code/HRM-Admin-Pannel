@@ -93,3 +93,24 @@ export async function updatePricingPlan(
     );
   }
 }
+
+export async function downloadSubscriptionReport(): Promise<void> {
+  try {
+    const response = await api.get('/api/admin/subscriptions/report', {
+      responseType: 'blob',
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `subscription-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to download subscription report. Please try again.')
+    );
+  }
+}
