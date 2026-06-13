@@ -35,6 +35,9 @@ export interface AttendanceDistributionItem {
 export interface TodayAttendanceResponse {
   date: string;
   count: number;
+  total: number;
+  page: number;
+  limit: number;
   attendances: AttendanceRecord[];
   attendanceDistribution: AttendanceDistributionItem[];
 }

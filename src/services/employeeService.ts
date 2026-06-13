@@ -37,6 +37,9 @@ export interface AdminEmployee {
 
 export interface EmployeesResponse {
   count: number;
+  total: number;
+  page: number;
+  limit: number;
   registeredCount: number;
   employees: AdminEmployee[];
 }
