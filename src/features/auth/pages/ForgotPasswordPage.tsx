@@ -35,7 +35,7 @@ const ForgotPasswordPage = () => {
       >
         <div className="text-center mb-8 sm:mb-10">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-sm flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl shadow-primary/40">
-            <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">HRM</span>
+            <span className="font-semibold text-lg sm:text-xl tracking-tight" style={{ color: '#FFFFFF' }}>HRM</span>
           </div>
           <h1 className="heading-1">Identity Recovery</h1>
           <p className="text-page-desc mt-2">Reset your admin credentials securely</p>

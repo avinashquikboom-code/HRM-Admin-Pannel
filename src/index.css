@@ -266,8 +266,8 @@
 
   .page-header {
     @apply bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded shadow-light dark:shadow-premium;
-    background-color: #FFFFFF;
-    border-color: #E2E8F0;
+    background-color: #F8FAFC;
+    border-color: #CBD5E1;
     color: #0F172A;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
