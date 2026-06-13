@@ -27,16 +27,16 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-surface rounded-t-[28px] sm:rounded-[32px] shadow-2xl overflow-hidden border border-border"
+            className="relative w-full max-w-md bg-surface rounded-t-sm sm:rounded shadow-2xl overflow-hidden border border-border"
           >
             <div className="p-5 sm:p-8">
               <div className="flex justify-between items-start mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-error/10 flex items-center justify-center text-error">
+                <div className="w-14 h-14 rounded-sm bg-error/10 flex items-center justify-center text-error">
                   <AlertTriangle size={28} />
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-surface-variant rounded-xl text-muted transition-colors"
+                  className="p-2 hover:bg-surface-variant rounded-sm text-muted transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -50,13 +50,13 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={onClose}
-                  className="flex-1 py-4 bg-surface-variant text-text-primary font-bold rounded-2xl hover:bg-border transition-all active:scale-95"
+                  className="flex-1 py-4 bg-surface-variant text-text-primary font-bold rounded-sm hover:bg-border transition-all active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 py-4 bg-error text-white font-bold rounded-2xl shadow-lg shadow-error/20 hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="flex-1 py-4 bg-error text-white font-bold rounded-sm shadow-lg shadow-error/20 hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
                   <LogOut size={18} />
                   Sign Out

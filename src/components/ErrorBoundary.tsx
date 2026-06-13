@@ -39,7 +39,7 @@ class ErrorBoundary extends Component<Props, State> {
             animate={{ opacity: 1, scale: 1 }}
             className="max-w-md w-full glass-card p-6 sm:p-8 md:p-10 text-center"
           >
-            <div className="w-20 h-20 bg-error/10 text-error rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-error/5">
+            <div className="w-20 h-20 bg-error/10 text-error rounded-sm flex items-center justify-center mx-auto mb-6 shadow-lg shadow-error/5">
               <AlertTriangle size={40} />
             </div>
             
@@ -48,7 +48,7 @@ class ErrorBoundary extends Component<Props, State> {
               An unexpected error occurred. Don't worry, our team has been notified.
             </p>
 
-            <div className="bg-surface-variant/50 rounded-2xl p-4 mb-8 text-left overflow-hidden">
+            <div className="bg-surface-variant/50 rounded-sm p-4 mb-8 text-left overflow-hidden">
               <p className="text-label font-bold text-muted mb-2">Error Details</p>
               <p className="text-xs font-mono text-error break-words">
                 {this.state.error?.message || 'Unknown runtime error'}
@@ -65,7 +65,7 @@ class ErrorBoundary extends Component<Props, State> {
               </button>
               <button 
                 onClick={() => window.location.href = '/'}
-                className="w-full py-4 bg-surface-variant text-text-primary font-bold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-surface-variant text-text-primary font-bold rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
               >
                 <Home size={18} />
                 Back to Dashboard

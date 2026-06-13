@@ -42,7 +42,7 @@ interface QuickAccessGridProps {
 
 export default function QuickAccessGrid({ items }: QuickAccessGridProps) {
   return (
-    <div className="rounded-3xl border border-border/60 bg-surface p-4 sm:p-5 shadow-sm">
+    <div className="rounded-sm border border-border/60 bg-surface p-4 sm:p-5 shadow-sm">
       <div className="mb-4">
         <h3 className="heading-2">Modules</h3>
         <p className="text-xs text-text-secondary mt-1">
@@ -58,7 +58,7 @@ export default function QuickAccessGrid({ items }: QuickAccessGridProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                'group relative flex min-h-[88px] items-start gap-3 rounded-2xl border border-border/60 bg-surface-variant/30 p-4 transition-all',
+                'group relative flex min-h-[88px] items-start gap-3 rounded-sm border border-border/60 bg-surface-variant/30 p-4 transition-all',
                 styles.hover
               )}
             >
@@ -68,7 +68,7 @@ export default function QuickAccessGrid({ items }: QuickAccessGridProps) {
                   styles.bar
                 )}
               />
-              <div className={cn('rounded-xl p-2.5 shrink-0', styles.icon)}>
+              <div className={cn('rounded-sm p-2.5 shrink-0', styles.icon)}>
                 <item.icon size={18} />
               </div>
               <div className="min-w-0 flex-1 pr-4">

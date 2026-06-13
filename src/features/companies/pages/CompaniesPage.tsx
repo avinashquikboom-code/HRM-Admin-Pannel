@@ -286,7 +286,7 @@ const CompaniesPage = () => {
           { label: 'Pending Verification', value: stats ? stats.pendingVerification.toString() : '0', icon: ShieldAlert }
         ]}
       >
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-2xl text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-md active:scale-95">
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-sm text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-md active:scale-95">
           <Download size={18} />
           Bulk Export
           </button>
@@ -305,7 +305,7 @@ const CompaniesPage = () => {
       {statsError ? (
         <motion.div
           variants={itemVariants}
-          className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning"
+          className="rounded-sm border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning"
         >
           {statsError}
         </motion.div>
@@ -328,7 +328,7 @@ const CompaniesPage = () => {
             )} />
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div className={cn(
-                "p-3 rounded-2xl transition-all duration-300 group-hover:scale-110",
+                "p-3 rounded-sm transition-all duration-300 group-hover:scale-110",
                 `bg-${stat.color}/10 text-${stat.color}`
               )}>
                 <stat.icon size={22} />
@@ -353,7 +353,7 @@ const CompaniesPage = () => {
       {/* Filter & Action Bar */}
       <motion.div 
         variants={itemVariants}
-        className="flex flex-col xl:flex-row gap-4 items-center justify-between glass-card p-4 rounded-3xl"
+        className="flex flex-col xl:flex-row gap-4 items-center justify-between glass-card p-4 rounded-sm"
       >
         <div className="relative w-full xl:w-[450px] group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-5 h-5" />
@@ -362,18 +362,18 @@ const CompaniesPage = () => {
             placeholder="Search by name, ID, or admin email..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm text-text-primary"
+            className="w-full pl-12 pr-4 py-3 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm text-text-primary"
           />
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-          <button className="flex items-center gap-2 px-4 py-3 bg-surface-variant rounded-2xl text-xs font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-all flex-grow sm:flex-grow-0 justify-center">
+          <button className="flex items-center gap-2 px-4 py-3 bg-surface-variant rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-all flex-grow sm:flex-grow-0 justify-center">
             <Filter size={16} />
             Filters
           </button>
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-sm px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
           >
             <option value="All">Status: All</option>
             <option value="Active">Active</option>
@@ -382,7 +382,7 @@ const CompaniesPage = () => {
           <select 
             value={planFilter}
             onChange={(e) => setPlanFilter(e.target.value)}
-            className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border-none rounded-sm px-5 py-3 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
           >
             <option value="All">Plan: All</option>
             <option value="Enterprise">Enterprise</option>
@@ -419,7 +419,7 @@ const CompaniesPage = () => {
                   >
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-all duration-300 shadow-sm border border-primary/10">
+                        <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-all duration-300 shadow-sm border border-primary/10">
                           {company.name.substring(0, 1)}
                         </div>
                         <div>
@@ -441,7 +441,7 @@ const CompaniesPage = () => {
                     </td>
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       <span className={cn(
-                        "px-4 py-1.5 rounded-xl text-label transition-all",
+                        "px-4 py-1.5 rounded-sm text-label transition-all",
                         company.plan === 'Enterprise' ? "bg-secondary text-white shadow-lg shadow-secondary/20" : 
                         company.plan === 'Pro' || company.plan === 'Professional' ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
                       )}>
@@ -476,7 +476,7 @@ const CompaniesPage = () => {
                             handleToggleStatus(company);
                           }}
                           title={company.status === 'Active' ? 'Suspend Company' : 'Activate Company'}
-                          className="p-2.5 bg-surface border border-border text-muted hover:text-warning hover:border-warning/50 rounded-xl transition-all shadow-sm"
+                          className="p-2.5 bg-surface border border-border text-muted hover:text-warning hover:border-warning/50 rounded-sm transition-all shadow-sm"
                         >
                           {company.status === 'Active' ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}
                         </button>
@@ -486,7 +486,7 @@ const CompaniesPage = () => {
                             confirmDelete(company);
                           }}
                           title="Delete Company"
-                          className="p-2.5 bg-surface border border-border text-muted hover:text-error hover:border-error/50 rounded-xl transition-all shadow-sm"
+                          className="p-2.5 bg-surface border border-border text-muted hover:text-error hover:border-error/50 rounded-sm transition-all shadow-sm"
                         >
                           <Plus size={18} className="rotate-45 text-error" />
                         </button>
@@ -497,7 +497,7 @@ const CompaniesPage = () => {
                             setIsModalOpen(true);
                           }}
                           title="Edit Parameters"
-                          className="p-2.5 bg-surface border border-border text-muted hover:text-text-primary rounded-xl transition-all shadow-sm"
+                          className="p-2.5 bg-surface border border-border text-muted hover:text-text-primary rounded-sm transition-all shadow-sm"
                         >
                           <MoreHorizontal size={18} />
                         </button>
@@ -513,8 +513,8 @@ const CompaniesPage = () => {
           <div className="p-6 bg-surface-variant border-t border-border flex items-center justify-between">
             <p className="text-label text-text-secondary">Showing {filteredCompanies.length} of {companies.length} Managed Entities</p>
             <div className="flex items-center gap-2">
-              <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-sm transition-all" disabled>Previous</button>
-              <button className="px-5 py-2.5 bg-surface border border-border rounded-xl text-xs font-black uppercase tracking-widest text-text-secondary hover:shadow-sm hover:text-primary transition-all">Next</button>
+              <button className="px-5 py-2.5 bg-surface border border-border rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary disabled:opacity-30 hover:shadow-sm transition-all" disabled>Previous</button>
+              <button className="px-5 py-2.5 bg-surface border border-border rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary hover:shadow-sm hover:text-primary transition-all">Next</button>
             </div>
           </div>
         )}
@@ -541,7 +541,7 @@ const CompaniesPage = () => {
                   type="text" 
                   placeholder="e.g. Cyberdyne Systems" 
                   className={cn(
-                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 transition-all font-bold text-text-primary",
                     errors.name ? "ring-2 ring-error/20" : "focus:ring-primary/20"
                   )}
                 />
@@ -558,7 +558,7 @@ const CompaniesPage = () => {
                   type="text" 
                   placeholder="https://domain.com" 
                   className={cn(
-                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 transition-all font-bold text-text-primary",
                     errors.website ? "ring-2 ring-error/20" : "focus:ring-primary/20"
                   )}
                 />
@@ -576,7 +576,7 @@ const CompaniesPage = () => {
                   type="email" 
                   placeholder="admin@entity.com" 
                   className={cn(
-                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                    "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 transition-all font-bold text-text-primary",
                     errors.adminEmail ? "ring-2 ring-error/20" : "focus:ring-primary/20"
                   )}
                 />
@@ -588,7 +588,7 @@ const CompaniesPage = () => {
               <select 
                 {...register('plan')}
                 className={cn(
-                  "w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all text-sm font-bold uppercase tracking-wider text-text-primary",
+                  "w-full px-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 transition-all text-sm font-bold uppercase tracking-wider text-text-primary",
                   errors.plan ? "ring-2 ring-error/20" : "focus:ring-primary/20"
                 )}
               >
@@ -609,7 +609,7 @@ const CompaniesPage = () => {
                 type="number" 
                 placeholder="Initial seat count" 
                 className={cn(
-                  "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 transition-all font-bold text-text-primary",
+                  "w-full pl-12 pr-4 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 transition-all font-bold text-text-primary",
                   errors.employeeCount ? "ring-2 ring-error/20" : "focus:ring-primary/20"
                 )}
               />
@@ -623,14 +623,14 @@ const CompaniesPage = () => {
                 setIsModalOpen(false);
                 reset();
               }}
-              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-surface transition-all border border-border"
+              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-sm hover:bg-surface transition-all border border-border"
             >
               Discard
             </button>
             <button 
               type="submit"
               disabled={isSubmitting}
-              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
+              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
             >
               {isSubmitting ? (
                 <motion.div 

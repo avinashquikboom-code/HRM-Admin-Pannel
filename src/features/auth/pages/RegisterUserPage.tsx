@@ -25,7 +25,7 @@ const RegisterUserPage = () => {
         <button
           type="button"
           onClick={() => router.back()}
-          className="p-3 bg-surface border border-border rounded-2xl text-text-secondary hover:text-primary transition-all"
+          className="p-3 bg-surface border border-border rounded-sm text-text-secondary hover:text-primary transition-all"
         >
           <ArrowLeft size={20} />
         </button>

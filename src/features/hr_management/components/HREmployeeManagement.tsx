@@ -282,7 +282,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="btn-primary py-2.5 px-4 rounded-2xl flex items-center gap-2 text-xs font-black shadow-lg shadow-primary/10 transition-all"
+          className="btn-primary py-2.5 px-4 rounded-sm flex items-center gap-2 text-xs font-black shadow-lg shadow-primary/10 transition-all"
         >
           <UserPlus size={14} />
           Add Employee
@@ -298,13 +298,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
             placeholder="Search employees by name, code, or designation..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300"
+          className="bg-slate-900 border border-white/10 rounded-sm px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300"
         >
           <option value="">All Status</option>
           <option value="active">Active</option>
@@ -313,7 +313,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         <select
           value={departmentFilter}
           onChange={(e) => setDepartmentFilter(e.target.value)}
-          className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300"
+          className="bg-slate-900 border border-white/10 rounded-sm px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300"
         >
           <option value="">All Departments</option>
           {departments.map((dept) => (
@@ -323,7 +323,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         <button
           onClick={() => loadEmployees(true)}
           disabled={isRefreshing}
-          className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-xl border border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50"
+          className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-sm border border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50"
         >
           <RefreshCw size={14} className={cn(isRefreshing && "animate-spin")} />
         </button>
@@ -336,7 +336,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm"
+            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-emerald-400 text-sm"
           >
             <div className="flex items-center gap-3">
               <Check size={18} className="text-emerald-400" />
@@ -357,7 +357,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between p-4 bg-error/10 border border-error/20 rounded-xl text-error-text text-sm"
+          className="flex items-center justify-between p-4 bg-error/10 border border-error/20 rounded-sm text-error-text text-sm"
         >
           <div className="flex items-center gap-3">
             <AlertCircle size={18} className="text-error" />
@@ -424,7 +424,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     {!searchTerm && !statusFilter && !departmentFilter && (
                       <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black hover:bg-primary/90 transition-colors"
+                        className="mt-4 px-4 py-2 bg-primary text-white rounded-sm text-xs font-black hover:bg-primary/90 transition-colors"
                       >
                         <UserPlus size={14} className="inline mr-2" />
                         Add First Employee
@@ -546,7 +546,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-card border border-white/5 bg-slate-900/90 shadow-2xl rounded-2xl p-6 w-full max-w-md"
+              className="glass-card border border-white/5 bg-slate-900/90 shadow-2xl rounded-sm p-6 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
@@ -564,7 +564,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     required
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                     placeholder="employee@company.com"
                   />
                 </div>
@@ -579,7 +579,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       required
                       value={formData.firstName}
                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                       placeholder="John"
                     />
                   </div>
@@ -591,7 +591,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                       placeholder="Doe"
                     />
                   </div>
@@ -605,7 +605,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     type="text"
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                     placeholder="Software Engineer"
                   />
                 </div>
@@ -618,7 +618,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     <select
                       value={formData.officeId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, officeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
                     >
                       <option value="">Select Company</option>
                       {offices.map((office) => (
@@ -634,7 +634,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       required
                       value={formData.departmentId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -648,14 +648,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="flex-1 p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors font-bold text-xs"
+                    className="flex-1 p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-sm transition-colors font-bold text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 btn-primary py-3 rounded-xl font-black text-xs shadow-lg shadow-primary/10 disabled:opacity-50"
+                    className="flex-1 btn-primary py-3 rounded-sm font-black text-xs shadow-lg shadow-primary/10 disabled:opacity-50"
                   >
                     {isSubmitting ? 'Creating...' : 'Create Employee'}
                   </button>
@@ -680,7 +680,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-card border border-white/5 bg-slate-900/90 shadow-2xl rounded-2xl p-6 w-full max-w-md"
+              className="glass-card border border-white/5 bg-slate-900/90 shadow-2xl rounded-sm p-6 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
@@ -689,7 +689,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
               </h3>
               
               <form onSubmit={handleUpdateEmployee} className="space-y-4">
-                <div className="p-3 bg-slate-800/50 rounded-xl">
+                <div className="p-3 bg-slate-800/50 rounded-sm">
                   <p className="text-xs text-slate-400 font-medium">Employee Code</p>
                   <p className="text-sm font-bold text-white">{selectedEmployee.employeeCode}</p>
                 </div>
@@ -704,7 +704,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       required
                       value={formData.firstName}
                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                     />
                   </div>
                   <div>
@@ -715,7 +715,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -728,7 +728,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     type="text"
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
                   />
                 </div>
 
@@ -739,7 +739,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -754,7 +754,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     <select
                       value={formData.officeId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, officeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
                     >
                       <option value="">Select Company</option>
                       {offices.map((office) => (
@@ -770,7 +770,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       required
                       value={formData.departmentId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -784,14 +784,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   <button
                     type="button"
                     onClick={() => setIsEditModalOpen(false)}
-                    className="flex-1 p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors font-bold text-xs"
+                    className="flex-1 p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-sm transition-colors font-bold text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 btn-primary py-3 rounded-xl font-black text-xs shadow-lg shadow-primary/10 disabled:opacity-50"
+                    className="flex-1 btn-primary py-3 rounded-sm font-black text-xs shadow-lg shadow-primary/10 disabled:opacity-50"
                   >
                     {isSubmitting ? 'Updating...' : 'Update Employee'}
                   </button>

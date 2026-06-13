@@ -30,7 +30,7 @@ export default function SettingsSidebar({
 }: SettingsSidebarProps) {
   return (
     <div className="space-y-4">
-      <nav className="rounded-3xl border border-border/60 bg-surface p-3 shadow-sm space-y-1">
+      <nav className="rounded-sm border border-border/60 bg-surface p-3 shadow-sm space-y-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -39,7 +39,7 @@ export default function SettingsSidebar({
               type="button"
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                'relative w-full flex items-start gap-3 rounded-2xl px-4 py-3.5 text-left transition-all',
+                'relative w-full flex items-start gap-3 rounded-sm px-4 py-3.5 text-left transition-all',
                 isActive
                   ? 'bg-primary/10 border border-primary/20'
                   : 'hover:bg-surface-variant/60 border border-transparent'
@@ -53,7 +53,7 @@ export default function SettingsSidebar({
               />
               <div
                 className={cn(
-                  'rounded-xl p-2.5 shrink-0',
+                  'rounded-sm p-2.5 shrink-0',
                   isActive
                     ? 'bg-primary/15 text-primary'
                     : 'bg-surface-variant text-text-secondary'
@@ -79,7 +79,7 @@ export default function SettingsSidebar({
         })}
       </nav>
 
-      <div className="rounded-3xl border border-border/60 bg-surface-variant/40 p-5 shadow-sm">
+      <div className="rounded-sm border border-border/60 bg-surface-variant/40 p-5 shadow-sm">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
           Platform info
         </p>

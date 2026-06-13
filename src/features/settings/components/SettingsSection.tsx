@@ -19,10 +19,10 @@ export default function SettingsSection({
   action,
 }: SettingsSectionProps) {
   return (
-    <section className="rounded-3xl border border-border/60 bg-surface p-5 sm:p-6 shadow-sm space-y-6">
+    <section className="rounded-sm border border-border/60 bg-surface p-5 sm:p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="rounded-2xl bg-primary/10 p-3 text-primary shrink-0">
+          <div className="rounded-sm bg-primary/10 p-3 text-primary shrink-0">
             <Icon size={20} />
           </div>
           <div>
@@ -60,7 +60,7 @@ export function SettingsField({ label, hint, children }: SettingsFieldProps) {
 }
 
 export const settingsInputClass =
-  'w-full rounded-2xl border border-border/60 bg-surface-variant/50 px-4 py-3 text-sm font-medium text-text-primary outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10 transition-all';
+  'w-full rounded-sm border border-border/60 bg-surface-variant/50 px-4 py-3 text-sm font-medium text-text-primary outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10 transition-all';
 
 export const settingsSelectClass =
-  'w-full rounded-2xl border border-border/60 bg-surface-variant/50 px-4 py-3 text-sm font-medium text-text-primary outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer';
+  'w-full rounded-sm border border-border/60 bg-surface-variant/50 px-4 py-3 text-sm font-medium text-text-primary outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer';

@@ -34,7 +34,7 @@ const ForgotPasswordPage = () => {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8 sm:mb-10">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl shadow-primary/40">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-sm flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl shadow-primary/40">
             <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">HRM</span>
           </div>
           <h1 className="heading-1">Identity Recovery</h1>
@@ -67,7 +67,7 @@ const ForgotPasswordPage = () => {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary font-medium"
+                        className="w-full pl-12 pr-4 py-4 bg-surface dark:bg-surface-variant border-none rounded-sm shadow-inner outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-primary font-medium"
                         placeholder="admin@hrm.ai"
                       />
                     </div>
@@ -76,7 +76,7 @@ const ForgotPasswordPage = () => {
                   <button 
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 mt-8 disabled:opacity-50"
+                    className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-widest text-xs rounded-sm shadow-xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 mt-8 disabled:opacity-50"
                   >
                     {isLoading ? (
                       <motion.div 
@@ -115,7 +115,7 @@ const ForgotPasswordPage = () => {
                 
                 <button 
                   onClick={() => router.push('/login')}
-                  className="w-full py-4 bg-surface-variant text-text-primary font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-border transition-all shadow-sm"
+                  className="w-full py-4 bg-surface-variant text-text-primary font-black uppercase tracking-widest text-xs rounded-sm hover:bg-border transition-all shadow-sm"
                 >
                   Return to Login
                 </button>

@@ -94,7 +94,7 @@ const KPICard = ({ title, value, icon: Icon, change, isPositive, color = 'primar
     
     <div className="flex items-center justify-between relative z-10">
       <div className={cn(
-        "p-3 rounded-2xl transition-all duration-300 group-hover:scale-110 shadow-sm",
+        "p-3 rounded-sm transition-all duration-300 group-hover:scale-110 shadow-sm",
         `bg-${color}/10 text-${color}`
       )}>
         <Icon size={24} />
@@ -134,7 +134,7 @@ const MiniCalendar = () => {
           <div 
             key={d} 
             className={cn(
-              "h-8 flex items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer",
+              "h-8 flex items-center justify-center rounded-sm text-xs font-bold transition-all cursor-pointer",
               d === today ? "bg-primary text-white shadow-lg shadow-primary/20" : "hover:bg-surface-variant text-text-secondary",
               [1, 15, 28].includes(d) && d !== today && "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-accent after:rounded-full"
             )}
@@ -183,7 +183,7 @@ const DashboardPage = () => {
         <div className="relative">
           <button 
             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-surface-variant border border-border rounded-2xl text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95"
+              className="flex items-center gap-2 px-4 py-2.5 bg-surface-variant border border-border rounded-sm text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95"
             >
               <CalendarIcon size={18} />
               {selectedDate}
@@ -209,7 +209,7 @@ const DashboardPage = () => {
                           setIsCalendarOpen(false);
                         }}
                         className={cn(
-                          "py-2 rounded-xl text-xs font-bold transition-all",
+                          "py-2 rounded-sm text-xs font-bold transition-all",
                           selectedDate.startsWith(month) ? "bg-primary text-white" : "hover:bg-surface-variant text-text-secondary"
                         )}
                       >
@@ -384,7 +384,7 @@ const DashboardPage = () => {
 
           <div className="space-y-4 mt-auto">
             {(data?.subscriptionDistribution || []).map((item: { name: string; value: number; color: string }) => (
-              <div key={item.name} className="flex items-center justify-between p-4 rounded-2xl bg-surface-variant group/item hover:bg-surface transition-all border border-transparent hover:border-border shadow-sm">
+              <div key={item.name} className="flex items-center justify-between p-4 rounded-sm bg-surface-variant group/item hover:bg-surface transition-all border border-transparent hover:border-border shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }}></div>
                   <span className="text-sm font-bold text-text-primary group-hover/item:text-primary transition-colors">{item.name}</span>
@@ -422,7 +422,7 @@ const DashboardPage = () => {
             ].map((event, i) => (
               <div key={i} className="flex items-start gap-6 group relative z-10">
                 <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110 shadow-sm border border-border/50",
+                  "w-12 h-12 rounded-sm flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110 shadow-sm border border-border/50",
                   event.type === 'success' ? "bg-success/10 text-success" :
                   event.type === 'warning' ? "bg-warning/10 text-warning" : "bg-error/10 text-error"
                 )}>
@@ -436,7 +436,7 @@ const DashboardPage = () => {
                     {event.time} • System Intelligence
                   </p>
                 </div>
-                <button className="self-center p-2 rounded-xl bg-surface-variant opacity-0 group-hover:opacity-100 transition-all">
+                <button className="self-center p-2 rounded-sm bg-surface-variant opacity-0 group-hover:opacity-100 transition-all">
                   <ArrowRight size={16} className="text-muted" />
                 </button>
               </div>
@@ -445,7 +445,7 @@ const DashboardPage = () => {
           
           <button 
             onClick={() => router.push('/payroll')}
-            className="w-full mt-10 py-4 text-xs font-black text-text-secondary uppercase tracking-widest hover:text-primary hover:bg-primary/5 rounded-2xl transition-all border border-dashed border-border"
+            className="w-full mt-10 py-4 text-xs font-black text-text-secondary uppercase tracking-widest hover:text-primary hover:bg-primary/5 rounded-sm transition-all border border-dashed border-border"
           >
             Enter Audit Control Center
           </button>
@@ -462,7 +462,7 @@ const DashboardPage = () => {
                 <h3 className="text-xl font-black text-white tracking-tighter">System Health</h3>
                 <p className="text-label text-white/50 mt-1">Platform Integrity Status</p>
               </div>
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-sm">
+              <div className="p-3 bg-white/10 backdrop-blur-md rounded-sm border border-white/10 shadow-sm">
                 <Activity size={24} className="text-primary-light animate-pulse" />
               </div>
             </div>
@@ -497,7 +497,7 @@ const DashboardPage = () => {
               ))}
             </div>
 
-            <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+            <div className="mt-8 p-4 bg-white/5 rounded-sm border border-white/10 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-micro font-black text-white/40 uppercase tracking-widest">Global Status</span>
                 <span className="text-micro font-black text-success uppercase">Optimal</span>
@@ -543,7 +543,7 @@ const DashboardPage = () => {
                   <div 
                     key={d} 
                     className={cn(
-                      "aspect-square flex flex-col items-center justify-center rounded-xl sm:rounded-2xl md:rounded-3xl text-xs sm:text-sm font-bold transition-all cursor-pointer border border-transparent hover:border-primary/20 hover:bg-primary/5",
+                      "aspect-square flex flex-col items-center justify-center rounded-sm sm:rounded-sm md:rounded-sm text-xs sm:text-sm font-bold transition-all cursor-pointer border border-transparent hover:border-primary/20 hover:bg-primary/5",
                       d === new Date().getDate() ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-text-primary",
                       [1, 15, 28].includes(d) && d !== new Date().getDate() && "relative after:absolute after:bottom-2 after:w-1.5 after:h-1.5 after:bg-accent after:rounded-full"
                     )}
@@ -560,9 +560,9 @@ const DashboardPage = () => {
                 { title: 'TechVibe Payroll', amount: '₹382,500', time: '09:00 AM', icon: Wallet, color: 'primary' },
                 { title: 'Global Audit', amount: 'Manual Check', time: '02:00 PM', icon: ShieldCheck, color: 'accent' },
               ].map((event, i) => (
-                <div key={i} className="p-5 bg-surface-variant rounded-3xl border border-border/50 group hover:border-primary/30 transition-all cursor-default">
+                <div key={i} className="p-5 bg-surface-variant rounded-sm border border-border/50 group hover:border-primary/30 transition-all cursor-default">
                   <div className="flex items-center gap-4">
-                    <div className={cn("p-3 rounded-2xl shadow-sm", `bg-${event.color}/10 text-${event.color}`)}>
+                    <div className={cn("p-3 rounded-sm shadow-sm", `bg-${event.color}/10 text-${event.color}`)}>
                       <event.icon size={20} />
                     </div>
                     <div>
@@ -572,7 +572,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
               ))}
-              <button className="w-full py-4 text-label text-text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2 border border-dashed border-border rounded-2xl mt-4">
+              <button className="w-full py-4 text-label text-text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2 border border-dashed border-border rounded-sm mt-4">
                 <Plus size={14} />
                 Add Platform Event
               </button>
@@ -600,7 +600,7 @@ const DashboardPage = () => {
               className="flex items-center gap-4 p-5 glass-card hover:border-primary/30 transition-all text-left group shadow-sm"
             >
               <div className={cn(
-                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 shadow-sm",
+                "w-12 h-12 rounded-sm flex items-center justify-center transition-all group-hover:scale-110 shadow-sm",
                 `bg-${action.color}/10 text-${action.color}`
               )}>
                 <action.icon size={24} />
@@ -613,7 +613,7 @@ const DashboardPage = () => {
             </motion.button>
           ))}
         </div>
-        <div className="mt-8 p-6 bg-surface-variant/50 rounded-2xl border border-dashed border-border text-center">
+        <div className="mt-8 p-6 bg-surface-variant/50 rounded-sm border border-dashed border-border text-center">
           <p className="text-xs font-bold text-text-secondary">More advanced controls are available in specific module settings.</p>
         </div>
       </Modal>

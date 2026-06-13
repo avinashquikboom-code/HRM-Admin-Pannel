@@ -14,7 +14,7 @@ export default function SettingsHero({
   saveMessage,
 }: SettingsHeroProps) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-secondary via-primary-dark to-primary p-6 sm:p-8 text-white shadow-premium">
+    <div className="relative overflow-hidden rounded-sm border border-primary/15 bg-gradient-to-br from-secondary via-primary-dark to-primary p-6 sm:p-8 text-white shadow-premium">
       <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
       <div className="absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
 
@@ -42,7 +42,7 @@ export default function SettingsHero({
           type="button"
           onClick={onSave}
           disabled={isSaving}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-primary shadow-lg hover:bg-white/95 transition-all disabled:opacity-60 shrink-0"
+          className="inline-flex items-center justify-center gap-2 rounded-sm bg-white px-5 py-3 text-sm font-semibold text-primary shadow-lg hover:bg-white/95 transition-all disabled:opacity-60 shrink-0"
         >
           <Save size={16} className={isSaving ? 'animate-pulse' : ''} />
           {isSaving ? 'Saving...' : 'Save changes'}

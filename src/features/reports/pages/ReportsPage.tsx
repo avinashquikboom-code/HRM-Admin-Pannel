@@ -220,7 +220,7 @@ const ReportsPage = () => {
         <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
             onClick={() => setIsCreateOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center animate-transition"
+            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center animate-transition"
           >
             <FileCheck2 size={18} />
             Generate Intelligence
@@ -245,7 +245,7 @@ const ReportsPage = () => {
             <div className={cn("absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-20 transition-all group-hover:opacity-40", `bg-${stat.color}`)} />
             
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300", stat.bg, `text-${stat.color}`)}>
+              <div className={cn("w-12 h-12 rounded-sm flex items-center justify-center transition-transform group-hover:scale-110 duration-300", stat.bg, `text-${stat.color}`)}>
                 <stat.icon size={24} />
               </div>
               <span className={cn(
@@ -272,14 +272,14 @@ const ReportsPage = () => {
             placeholder="Search documentation, metadata, or report ID..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
+            className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
           />
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
           <select 
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all"
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-sm px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all"
           >
             <option value="All">Classification: All</option>
             <option value="Payroll">Payroll</option>
@@ -291,14 +291,14 @@ const ReportsPage = () => {
           <select 
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
-            className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all"
+            className="flex-grow sm:flex-grow-0 bg-surface-variant border border-transparent hover:border-primary/10 rounded-sm px-5 py-3.5 text-sm outline-none font-bold text-text-secondary cursor-pointer transition-all"
           >
             <option value="All">Format: All</option>
             <option value="PDF">PDF</option>
             <option value="Excel">Excel</option>
             <option value="CSV">CSV</option>
           </select>
-          <button className="flex items-center gap-2 px-5 py-3.5 bg-surface-variant rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all border border-transparent hover:border-primary/10 flex-grow sm:flex-grow-0 justify-center">
+          <button className="flex items-center gap-2 px-5 py-3.5 bg-surface-variant rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all border border-transparent hover:border-primary/10 flex-grow sm:flex-grow-0 justify-center">
             <Filter size={18} />
             Advanced
           </button>
@@ -323,7 +323,7 @@ const ReportsPage = () => {
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
                   <div className={cn(
-                    "w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black text-micro shadow-sm transition-transform group-hover:scale-110",
+                    "w-14 h-14 rounded-sm flex flex-col items-center justify-center font-black text-micro shadow-sm transition-transform group-hover:scale-110",
                     report.format === 'PDF' ? 'bg-error/10 text-error' : 
                     report.format === 'Excel' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'
                   )}>
@@ -362,7 +362,7 @@ const ReportsPage = () => {
                       e.stopPropagation();
                       handlePreviewReport(report);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/5 rounded-xl text-xs font-bold transition-all border border-transparent hover:border-primary/10"
+                    className="flex items-center gap-2 px-4 py-2 bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/5 rounded-sm text-xs font-bold transition-all border border-transparent hover:border-primary/10"
                   >
                     Preview
                   </button>
@@ -371,11 +371,11 @@ const ReportsPage = () => {
                       e.stopPropagation();
                       alert('Downloading complete report...');
                     }}
-                    className="p-3 bg-surface-variant text-muted hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm active:scale-90 group-hover:shadow-md"
+                    className="p-3 bg-surface-variant text-muted hover:text-white hover:bg-primary rounded-sm transition-all shadow-sm active:scale-90 group-hover:shadow-md"
                   >
                     <Download size={20} />
                   </button>
-                  <button className="p-3 bg-surface-variant text-muted hover:text-text-primary rounded-xl transition-all">
+                  <button className="p-3 bg-surface-variant text-muted hover:text-text-primary rounded-sm transition-all">
                     <ChevronRight size={20} />
                   </button>
                 </div>
@@ -391,18 +391,18 @@ const ReportsPage = () => {
           Archiving <span className="text-text-primary">1,284</span> intelligence assets
         </p>
         <div className="flex items-center gap-3">
-          <button className="px-5 py-2.5 bg-surface-variant rounded-xl text-xs font-black text-text-secondary hover:text-primary transition-all disabled:opacity-50" disabled>PREV</button>
+          <button className="px-5 py-2.5 bg-surface-variant rounded-sm text-xs font-black text-text-secondary hover:text-primary transition-all disabled:opacity-50" disabled>PREV</button>
           <div className="flex items-center gap-1">
             {[1, 2, 3, '...', 12].map((p, i) => (
               <button key={i} className={cn(
-                "w-10 h-10 rounded-xl text-xs font-black transition-all",
+                "w-10 h-10 rounded-sm text-xs font-black transition-all",
                 p === 1 ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-text-secondary hover:bg-surface-variant"
               )}>
                 {p}
               </button>
             ))}
           </div>
-          <button className="px-5 py-2.5 bg-surface-variant rounded-xl text-xs font-black text-text-secondary hover:text-primary transition-all">NEXT</button>
+          <button className="px-5 py-2.5 bg-surface-variant rounded-sm text-xs font-black text-text-secondary hover:text-primary transition-all">NEXT</button>
         </div>
       </motion.div>
 
@@ -484,9 +484,9 @@ const ReportsPage = () => {
           ) : reportDetails ? (
             <div className="space-y-8 animate-fadeIn">
               {/* Dynamic Metadata Badge Info bar */}
-              <div className="flex flex-wrap items-center justify-between gap-4 p-4.5 bg-slate-900/60 border border-white/5 rounded-2xl">
+              <div className="flex flex-wrap items-center justify-between gap-4 p-4.5 bg-slate-900/60 border border-white/5 rounded-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-sm bg-primary/10 text-primary flex items-center justify-center font-bold">
                     {selectedReport?.format}
                   </div>
                   <div>
@@ -519,7 +519,7 @@ const ReportsPage = () => {
                     ].map((card, idx) => (
                       <div key={idx} className="glass-card p-5 relative overflow-hidden group border border-white/5 bg-slate-950/50">
                         <div className="flex items-center justify-between mb-3">
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black", card.bg, `text-${card.color}`)}>
+                          <div className={cn("w-10 h-10 rounded-sm flex items-center justify-center text-sm font-black", card.bg, `text-${card.color}`)}>
                             <card.icon size={18} />
                           </div>
                         </div>
@@ -628,7 +628,7 @@ const ReportsPage = () => {
                     ].map((card, idx) => (
                       <div key={idx} className="glass-card p-5 relative overflow-hidden group border border-white/5 bg-slate-950/50">
                         <div className="flex items-center justify-between mb-3">
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black", card.bg, `text-${card.color}`)}>
+                          <div className={cn("w-10 h-10 rounded-sm flex items-center justify-center text-sm font-black", card.bg, `text-${card.color}`)}>
                             <card.icon size={18} />
                           </div>
                         </div>

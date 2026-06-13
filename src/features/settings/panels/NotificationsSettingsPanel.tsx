@@ -60,7 +60,7 @@ function ChannelButton({
       title={title}
       onClick={onClick}
       className={cn(
-        'rounded-xl p-2 transition-colors',
+        'rounded-sm p-2 transition-colors',
         active
           ? 'bg-primary/10 text-primary'
           : 'text-muted hover:bg-surface-variant hover:text-text-secondary'
@@ -96,7 +96,7 @@ export default function NotificationsSettingsPanel({
                 return (
                   <div
                     key={event.key}
-                    className="flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-surface-variant/25 px-4 py-3.5"
+                    className="flex items-center justify-between gap-4 rounded-sm border border-border/60 bg-surface-variant/25 px-4 py-3.5"
                   >
                     <span className="text-sm font-medium text-text-primary">
                       {event.label}

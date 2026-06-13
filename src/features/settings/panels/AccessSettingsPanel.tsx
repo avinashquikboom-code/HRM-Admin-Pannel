@@ -106,10 +106,10 @@ export default function AccessSettingsPanel() {
             adminUsers.map((admin) => (
               <div
                 key={admin.email}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border/60 bg-surface-variant/25 px-4 py-4"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-sm border border-border/60 bg-surface-variant/25 px-4 py-4"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-black shrink-0">
+                  <div className="w-10 h-10 rounded-sm bg-primary/10 text-primary flex items-center justify-center text-xs font-black shrink-0">
                     {admin.initials}
                   </div>
                   <div className="min-w-0">

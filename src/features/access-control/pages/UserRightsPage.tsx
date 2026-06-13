@@ -203,7 +203,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         
         <Link
           href="#register-user-rights"
-          className="relative z-10 btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider self-start md:self-auto"
+          className="relative z-10 btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider self-start md:self-auto"
         >
           <UserPlus size={16} />
           Register User
@@ -241,7 +241,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
           >
             <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div 
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
+              className={`w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
               style={{ boxShadow: `0 8px 24px -6px ${stat.glow}` }}
             >
               <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
@@ -257,7 +257,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
       {/* 3. Module Checklist Control Panel */}
       <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 shadow-2xl backdrop-blur-xl">
         <div className="flex flex-col lg:flex-row lg:items-center gap-5 mb-8 pb-6 border-b border-white/5">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-teal-500/10 border border-primary/30 text-primary flex items-center justify-center shrink-0" style={{ boxShadow: '0 8px 24px -6px rgba(59,163,139,0.2)' }}>
+          <div className="w-14 h-14 rounded-sm bg-gradient-to-br from-primary/20 to-teal-500/10 border border-primary/30 text-primary flex items-center justify-center shrink-0" style={{ boxShadow: '0 8px 24px -6px rgba(59,163,139,0.2)' }}>
             <ShieldCheck size={26} />
           </div>
           <div className="flex-1">
@@ -289,7 +289,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
           <button
             type="button"
             onClick={() => refetchUsers()}
-            className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-2xl border border-white/5 transition-all shadow-sm active:scale-95 self-end sm:self-auto cursor-pointer"
+            className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all shadow-sm active:scale-95 self-end sm:self-auto cursor-pointer"
             title="Refresh users directory"
           >
             <RefreshCw size={16} className={cn(isUsersLoading && 'animate-spin')} />
@@ -297,7 +297,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         </div>
 
         {usersError && (
-          <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-sm bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span>{usersError}</span>
             <button
               type="button"
@@ -310,13 +310,13 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         )}
 
         {userActionSuccess && (
-          <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4.5 py-3.5 text-xs font-semibold text-emerald-400">
+          <div className="rounded-sm bg-emerald-500/10 border border-emerald-500/20 px-4.5 py-3.5 text-xs font-semibold text-emerald-400">
             {userActionSuccess}
           </div>
         )}
 
         {/* Searching & Filters */}
-        <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-3xl shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-sm shadow-2xl backdrop-blur-xl">
           <div className="relative w-full xl:w-96 group">
             <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
             <input 
@@ -324,14 +324,14 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="Search users by name or email..." 
-              className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
+              className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
             />
           </div>
           <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
             >
               <option value="All" className="bg-slate-900 text-white">All System Roles</option>
               <option value="ADMIN" className="bg-slate-900 text-white">System Admins</option>
@@ -341,7 +341,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
             <select
               value={profileFilter}
               onChange={(e) => setProfileFilter(e.target.value)}
-              className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
             >
               <option value="All" className="bg-slate-900 text-white">All Connection States</option>
               <option value="Linked" className="bg-slate-900 text-white">Linked Profiles</option>
@@ -379,7 +379,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                         >
                           <td className="px-6 py-4.5">
                             <div className="flex items-center gap-4">
-                              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 text-primary font-black flex items-center justify-center text-sm shrink-0 group-hover:scale-105 transition-all duration-300" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
+                              <div className="w-11 h-11 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 text-primary font-black flex items-center justify-center text-sm shrink-0 group-hover:scale-105 transition-all duration-300" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                                 {initials || 'U'}
                               </div>
                               <div className="min-w-0">
@@ -394,7 +394,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                           </td>
                           <td className="px-6 py-4.5 text-center">
                             <span className={cn(
-                              "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border",
+                              "px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider border",
                               getRoleBadgeClass(userItem.role)
                             )}>
                               {getRoleLabel(userItem.role)}
@@ -402,12 +402,12 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                           </td>
                           <td className="px-6 py-4.5 text-center">
                             {userItem.hasEmployeeProfile ? (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-sm">
                                 <UserCheck size={12} />
                                 Linked
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-xl">
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-sm">
                                 <UserX size={12} />
                                 Unlinked
                               </span>
@@ -426,7 +426,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                                 setSelectedUser(userItem);
                                 setIsCustomModalOpen(true);
                               }}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-white/5 bg-slate-950/40 hover:border-primary/30 text-xs font-bold text-slate-400 hover:text-white transition-all active:scale-95 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-sm border border-white/5 bg-slate-950/40 hover:border-primary/30 text-xs font-bold text-slate-400 hover:text-white transition-all active:scale-95 cursor-pointer"
                             >
                               <SlidersHorizontal size={13} className="text-slate-500 group-hover:text-primary transition-colors" />
                               Configure Override

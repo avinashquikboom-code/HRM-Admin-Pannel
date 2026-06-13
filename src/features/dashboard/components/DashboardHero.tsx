@@ -27,7 +27,7 @@ export default function DashboardHero({
   });
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-primary via-primary-dark to-secondary p-6 sm:p-8 text-white shadow-premium">
+    <div className="relative overflow-hidden rounded-sm border border-primary/15 bg-gradient-to-br from-primary via-primary-dark to-secondary p-6 sm:p-8 text-white shadow-premium">
       <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
       <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
 
@@ -48,14 +48,14 @@ export default function DashboardHero({
           <div className="mt-6 flex flex-wrap gap-2">
             <Link
               href={`${SUPER_ADMIN_PREFIX}/location`}
-              className="inline-flex items-center gap-2 rounded-2xl bg-white text-primary px-4 py-2.5 text-sm font-semibold shadow-lg hover:bg-white/95 transition-all"
+              className="inline-flex items-center gap-2 rounded-sm bg-white text-primary px-4 py-2.5 text-sm font-semibold shadow-lg hover:bg-white/95 transition-all"
             >
               <MapPin size={16} />
               Live location
             </Link>
             <Link
               href={`${SUPER_ADMIN_PREFIX}/subscriptions`}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/15 transition-all"
+              className="inline-flex items-center gap-2 rounded-sm border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/15 transition-all"
             >
               Subscriptions
             </Link>
@@ -63,7 +63,7 @@ export default function DashboardHero({
               type="button"
               onClick={onRefresh}
               disabled={isLoading}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/15 transition-all disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-sm border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/15 transition-all disabled:opacity-60"
             >
               <RefreshCw
                 size={16}
@@ -78,7 +78,7 @@ export default function DashboardHero({
           {highlights.map((item) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-white/15 bg-white/10 px-3 py-3 backdrop-blur-sm"
+              className="rounded-sm border border-white/15 bg-white/10 px-3 py-3 backdrop-blur-sm"
             >
               <p className="text-[10px] font-semibold uppercase tracking-wider text-white/60">
                 {item.label}

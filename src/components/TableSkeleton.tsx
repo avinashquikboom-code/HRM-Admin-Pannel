@@ -28,7 +28,7 @@ const TableSkeleton = ({ rows = 5, columns = 6 }: TableSkeletonProps) => {
                     <td key={colIndex} className="px-4 sm:px-6 py-4 sm:py-5">
                       {colIndex === 0 ? (
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-surface-variant"></div>
+                          <div className="w-10 h-10 rounded-sm bg-surface-variant"></div>
                           <div className="space-y-2">
                             <div className="h-4 bg-surface-variant rounded-lg w-32"></div>
                             <div className="h-3 bg-surface-variant/70 rounded-lg w-24"></div>

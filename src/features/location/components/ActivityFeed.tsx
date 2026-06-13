@@ -64,7 +64,7 @@ export default function ActivityFeed({ logs, onClear }: ActivityFeedProps) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   className={cn(
-                    'p-3.5 rounded-xl border flex gap-3',
+                    'p-3.5 rounded-sm border flex gap-3',
                     isBreach
                       ? 'bg-warning/5 border-warning/15'
                       : 'bg-success/5 border-success/15'

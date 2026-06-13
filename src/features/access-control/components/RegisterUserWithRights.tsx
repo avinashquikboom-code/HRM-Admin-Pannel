@@ -156,13 +156,13 @@ export default function RegisterUserWithRights({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-450">
+          <div className="rounded-sm bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-450">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4.5 py-3.5 text-xs font-semibold text-emerald-450">
+          <div className="rounded-sm bg-emerald-500/10 border border-emerald-500/20 px-4.5 py-3.5 text-xs font-semibold text-emerald-450">
             {success}
           </div>
         )}
@@ -178,7 +178,7 @@ export default function RegisterUserWithRights({
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white placeholder-slate-500 disabled:opacity-60"
+                className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500 disabled:opacity-60"
                 placeholder="newuser@company.com"
               />
             </div>
@@ -206,7 +206,7 @@ export default function RegisterUserWithRights({
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value as RegisterRole)}
               disabled={isLoading}
-              className="w-full px-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+              className="w-full px-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
             >
               {managerPortal === 'super_admin' ? (
                 <>
@@ -232,7 +232,7 @@ export default function RegisterUserWithRights({
               onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
               disabled={isLoading}
               required
-              className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+              className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
             >
               <option value="">Select Department</option>
               {departments.map((dept) => (
@@ -256,7 +256,7 @@ export default function RegisterUserWithRights({
               <button
                 type="button"
                 onClick={selectAll}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-350 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-350 cursor-pointer"
               >
                 <CheckSquare size={13} />
                 All
@@ -264,7 +264,7 @@ export default function RegisterUserWithRights({
               <button
                 type="button"
                 onClick={clearAll}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-350 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-350 cursor-pointer"
               >
                 <Square size={13} />
                 None
@@ -272,7 +272,7 @@ export default function RegisterUserWithRights({
               <button
                 type="button"
                 onClick={resetDefaults}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-400 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-400 cursor-pointer"
               >
                 <RotateCcw size={13} />
                 Defaults
@@ -291,7 +291,7 @@ export default function RegisterUserWithRights({
                     <label
                       key={module.id}
                       className={cn(
-                        'flex items-start gap-4.5 p-4 rounded-2xl border cursor-pointer transition-all group',
+                        'flex items-start gap-4.5 p-4 rounded-sm border cursor-pointer transition-all group',
                         permissions[module.id]
                           ? 'border-primary/25 bg-primary/5 text-primary shadow-[0_8px_20px_-6px_rgba(59,163,139,0.15)]'
                           : 'border-white/5 bg-slate-950/30 hover:border-white/10 hover:bg-slate-950/50'
@@ -324,7 +324,7 @@ export default function RegisterUserWithRights({
           type="submit"
           disabled={isLoading}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-4.5 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full py-4.5 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/30 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
         >
           {isLoading ? (
             <>

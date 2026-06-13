@@ -79,7 +79,7 @@ export default function CreateOfficeModal({
     <Modal isOpen={isOpen} onClose={handleClose} title="Provision New Office">
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+          <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
             {error}
           </div>
         )}
@@ -95,7 +95,7 @@ export default function CreateOfficeModal({
               onChange={(e) => updateField('name', e.target.value)}
               required
               placeholder="Pune Branch"
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
             />
           </div>
 
@@ -108,7 +108,7 @@ export default function CreateOfficeModal({
               value={form.code}
               onChange={(e) => updateField('code', e.target.value.toUpperCase())}
               placeholder="PUN-BR"
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
             />
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function CreateOfficeModal({
             onChange={(e) => updateField('address', e.target.value)}
             required
             placeholder="Hinjewadi, Pune"
-            className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+            className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
           />
         </div>
 
@@ -139,7 +139,7 @@ export default function CreateOfficeModal({
               onChange={(e) => updateField('latitude', parseFloat(e.target.value) || 0)}
               required
               placeholder="18.5912"
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
             />
           </div>
 
@@ -154,7 +154,7 @@ export default function CreateOfficeModal({
               onChange={(e) => updateField('longitude', parseFloat(e.target.value) || 0)}
               required
               placeholder="73.7389"
-              className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function CreateOfficeModal({
               updateField('idealRadiusMeters', parseInt(e.target.value, 10) || 0)
             }
             required
-            className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+            className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
           />
         </div>
 
@@ -190,7 +190,7 @@ export default function CreateOfficeModal({
             type="button"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="flex-1 py-3 rounded-2xl border border-border text-text-secondary font-bold uppercase tracking-widest text-xs disabled:opacity-60"
+            className="flex-1 py-3 rounded-sm border border-border text-text-secondary font-bold uppercase tracking-widest text-xs disabled:opacity-60"
           >
             Cancel
           </button>
@@ -198,7 +198,7 @@ export default function CreateOfficeModal({
             type="submit"
             disabled={isSubmitting}
             className={cn(
-              'flex-[2] py-3 rounded-2xl bg-primary text-white font-bold uppercase tracking-widest text-xs',
+              'flex-[2] py-3 rounded-sm bg-primary text-white font-bold uppercase tracking-widest text-xs',
               'shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-70',
               'flex items-center justify-center gap-2'
             )}

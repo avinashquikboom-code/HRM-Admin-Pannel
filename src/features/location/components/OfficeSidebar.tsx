@@ -76,11 +76,11 @@ export default function OfficeSidebar({
           [1, 2, 3].map((item) => (
             <div
               key={item}
-              className="h-20 rounded-xl bg-surface-variant animate-pulse"
+              className="h-20 rounded-sm bg-surface-variant animate-pulse"
             />
           ))
         ) : offices.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-6 text-center">
+          <div className="rounded-sm border border-dashed border-border p-6 text-center">
             <Building2 size={24} className="mx-auto text-muted mb-2" />
             <p className="text-sm font-semibold text-text-secondary">
               No offices yet
@@ -96,7 +96,7 @@ export default function OfficeSidebar({
               <div
                 key={office.id}
                 className={cn(
-                  'rounded-xl border p-4 transition-all',
+                  'rounded-sm border p-4 transition-all',
                   isSelected
                     ? 'border-primary/30 bg-primary/5 shadow-sm'
                     : 'border-border/60 hover:border-primary/20 bg-surface-variant/30'
@@ -110,7 +110,7 @@ export default function OfficeSidebar({
                   <div className="flex items-start gap-3">
                     <div
                       className={cn(
-                        'p-2 rounded-xl shrink-0',
+                        'p-2 rounded-sm shrink-0',
                         isSelected
                           ? 'bg-primary/15 text-primary'
                           : 'bg-surface-variant text-text-secondary'

@@ -118,7 +118,7 @@ const ProfilePage = () => {
       className="max-w-7xl mx-auto space-y-8 pb-12"
     >
       {error && (
-        <div className="rounded-2xl bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-medium text-warning">
+        <div className="rounded-sm bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-medium text-warning">
           {error}
         </div>
       )}
@@ -165,7 +165,7 @@ const ProfilePage = () => {
               </div>
               <button
                 onClick={() => router.push(`${profileBasePath}/edit`)}
-                className="absolute -bottom-1 -right-1 p-2.5 rounded-xl bg-primary text-white shadow-lg border border-primary/30 hover:scale-110 transition-transform active:scale-95 cursor-pointer"
+                className="absolute -bottom-1 -right-1 p-2.5 rounded-sm bg-primary text-white shadow-lg border border-primary/30 hover:scale-110 transition-transform active:scale-95 cursor-pointer"
                 title="Change Avatar"
               >
                 <Camera size={16} />
@@ -184,14 +184,14 @@ const ProfilePage = () => {
           {/* Security Status Card */}
           <motion.div variants={itemVariants} className="glass-card p-6 space-y-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-accent/10 text-accent border border-accent/10">
+              <div className="p-2 rounded-sm bg-accent/10 text-accent border border-accent/10">
                 <ShieldAlert size={18} />
               </div>
               <h3 className="text-sm font-black text-white uppercase tracking-widest">Security Status</h3>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+              <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                 <div className="flex items-center gap-3">
                   <Fingerprint size={16} className="text-primary" />
                   <span className="text-sm font-bold text-white">2FA Authentication</span>
@@ -205,7 +205,7 @@ const ProfilePage = () => {
               </div>
 
               {!hideLoginTracking && (
-                <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                   <div className="flex items-center gap-3">
                     <MapPin size={16} className="text-primary" />
                     <span className="text-sm font-bold text-white">Last Access</span>
@@ -226,14 +226,14 @@ const ProfilePage = () => {
             
             <div className="flex items-center justify-between mb-6 relative z-10">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm border border-primary/10">
+                <div className="p-2.5 rounded-sm bg-primary/10 text-primary shadow-sm border border-primary/10">
                   <UserIcon size={20} />
                 </div>
                 <h2 className="text-xl font-black text-white">Identity Information</h2>
               </div>
               <button
                 onClick={() => router.push(`${profileBasePath}/edit`)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider text-white hover:text-primary transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 rounded-sm bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider text-white hover:text-primary transition-all active:scale-95"
               >
                 <Pencil size={14} /> Edit
               </button>
@@ -241,8 +241,8 @@ const ProfilePage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
               {identityFields.map((field, idx) => (
-                <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl bg-surface-variant/30 border border-border/30 hover:border-primary/20 transition-all group/item">
-                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm group-hover/item:scale-110 transition-transform">
+                <div key={idx} className="flex items-start gap-4 p-4 rounded-sm bg-surface-variant/30 border border-border/30 hover:border-primary/20 transition-all group/item">
+                  <div className="p-2.5 rounded-sm bg-primary/10 text-primary shadow-sm group-hover/item:scale-110 transition-transform">
                     <field.icon size={18} />
                   </div>
                   <div>
@@ -259,7 +259,7 @@ const ProfilePage = () => {
             <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
             
             <div className="flex items-center gap-3 mb-6 relative z-10">
-              <div className="p-2.5 rounded-xl bg-accent/10 text-accent shadow-sm border border-accent/10">
+              <div className="p-2.5 rounded-sm bg-accent/10 text-accent shadow-sm border border-accent/10">
                 <Activity size={20} />
               </div>
               <h2 className="text-xl font-black text-white">Recent Activity</h2>
@@ -293,7 +293,7 @@ const ProfilePage = () => {
             <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-primary shadow-sm">
+                  <div className="p-2.5 rounded-sm bg-white/5 border border-white/10 text-primary shadow-sm">
                     <Cpu size={20} />
                   </div>
                   <h3 className="text-lg font-black text-white">System Actions</h3>
@@ -306,13 +306,13 @@ const ProfilePage = () => {
               <div className="flex flex-wrap gap-3">
                 <button 
                   onClick={() => router.push(`${profileBasePath}/edit`)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/20 text-xs font-black uppercase tracking-wider text-primary transition-all active:scale-95"
+                  className="flex items-center gap-2 px-5 py-3 rounded-sm bg-primary/10 hover:bg-primary/15 border border-primary/20 text-xs font-black uppercase tracking-wider text-primary transition-all active:scale-95"
                 >
                   <Key size={14} /> Update Password
                 </button>
                 <button 
                   onClick={() => setIsSignOutModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-error/10 hover:bg-error/15 border border-error/20 text-xs font-black uppercase tracking-wider text-error transition-all active:scale-95"
+                  className="flex items-center gap-2 px-5 py-3 rounded-sm bg-error/10 hover:bg-error/15 border border-error/20 text-xs font-black uppercase tracking-wider text-error transition-all active:scale-95"
                 >
                   <LogOut size={14} /> Sign Out
                 </button>

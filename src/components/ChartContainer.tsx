@@ -26,7 +26,7 @@ export default function ChartContainer({
   if (!mounted) {
     return (
       <div className={cn('w-full min-w-0', heightClassName, className)}>
-        <div className="h-full w-full animate-pulse rounded-2xl bg-surface-variant/50" />
+        <div className="h-full w-full animate-pulse rounded-sm bg-surface-variant/50" />
       </div>
     );
   }

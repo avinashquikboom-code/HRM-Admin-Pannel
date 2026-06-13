@@ -28,7 +28,7 @@ export default function EmployeeHomePage() {
               href={link.path}
               className="glass-card p-5 flex items-center gap-4 hover:border-accent/40 transition-colors"
             >
-              <div className="w-11 h-11 rounded-2xl bg-accent/15 text-secondary flex items-center justify-center">
+              <div className="w-11 h-11 rounded-sm bg-accent/15 text-secondary flex items-center justify-center">
                 <link.icon size={22} />
               </div>
               <span className="font-semibold text-text-primary">{link.label}</span>

@@ -668,7 +668,7 @@ export default function LocationPage() {
                 type="button"
                 onClick={handleRefresh}
                 disabled={isLoadingAny}
-                className="p-3 rounded-xl bg-surface-variant hover:bg-border text-text-primary transition-all disabled:opacity-60"
+                className="p-3 rounded-sm bg-surface-variant hover:bg-border text-text-primary transition-all disabled:opacity-60"
                 title="Refresh data"
               >
                 <RefreshCw
@@ -684,13 +684,13 @@ export default function LocationPage() {
       {(officeActionMessage || officeActionError || officesError || locationsError) && (
         <motion.div variants={itemVariants} className="space-y-2">
           {officeActionMessage && (
-            <div className="rounded-2xl bg-success/10 border border-success/20 px-4 py-3 text-sm font-semibold text-success flex items-center gap-2">
+            <div className="rounded-sm bg-success/10 border border-success/20 px-4 py-3 text-sm font-semibold text-success flex items-center gap-2">
               <ShieldCheck size={16} />
               {officeActionMessage}
             </div>
           )}
           {(officeActionError || officesError || locationsError) && (
-            <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-semibold text-error flex items-center gap-2">
+            <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-semibold text-error flex items-center gap-2">
               <ShieldAlert size={16} />
               {officeActionError || officesError || locationsError}
             </div>
@@ -732,7 +732,7 @@ export default function LocationPage() {
                     placeholder="e.g. Thane Office"
                     value={siteNameInput}
                     onChange={(e) => setSiteNameInput(e.target.value)}
-                    className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-semibold text-text-primary"
+                    className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-semibold text-text-primary"
                   />
                 </div>
 
@@ -745,7 +745,7 @@ export default function LocationPage() {
                       value={latInput}
                       onChange={(e) => setLatInput(e.target.value)}
                       onBlur={handleCoordsSubmit}
-                      className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-semibold text-text-primary"
+                      className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-semibold text-text-primary"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -756,7 +756,7 @@ export default function LocationPage() {
                       value={lngInput}
                       onChange={(e) => setLngInput(e.target.value)}
                       onBlur={handleCoordsSubmit}
-                      className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-semibold text-text-primary"
+                      className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-semibold text-text-primary"
                     />
                   </div>
                 </div>
@@ -780,7 +780,7 @@ export default function LocationPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl active:scale-95 disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-sm font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl active:scale-95 disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
                 >
                   {isSaving ? (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -800,7 +800,7 @@ export default function LocationPage() {
               {isOfficesLoading ? (
                 <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-14 bg-surface-variant animate-pulse rounded-2xl" />
+                    <div key={i} className="h-14 bg-surface-variant animate-pulse rounded-sm" />
                   ))}
                 </div>
               ) : offices.length === 0 ? (
@@ -816,7 +816,7 @@ export default function LocationPage() {
                         key={off.id}
                         onClick={() => handleSelectOfficeFence(off)}
                         className={cn(
-                          "p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between group",
+                          "p-4 rounded-sm border cursor-pointer transition-all flex items-center justify-between group",
                           isActive
                             ? "bg-primary/5 border-primary shadow-sm text-primary"
                             : "bg-surface-variant border-transparent hover:bg-surface hover:border-border text-text-primary"
@@ -866,7 +866,7 @@ export default function LocationPage() {
               {/* Autocomplete Address geocoder absolute positioned */}
               <form
                 onSubmit={handleAddressSearch}
-                className="absolute top-[76px] left-4 z-[10] w-[280px] sm:w-[360px] bg-surface/95 backdrop-blur border border-border shadow-xl rounded-2xl flex items-center p-1"
+                className="absolute top-[76px] left-4 z-[10] w-[280px] sm:w-[360px] bg-surface/95 backdrop-blur border border-border shadow-xl rounded-sm flex items-center p-1"
               >
                 <input
                   type="text"
@@ -878,7 +878,7 @@ export default function LocationPage() {
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center shrink-0"
+                  className="p-2.5 bg-primary text-white rounded-sm hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center shrink-0"
                 >
                   {isSearching ? (
                     <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

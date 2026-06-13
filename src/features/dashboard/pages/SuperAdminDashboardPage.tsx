@@ -151,7 +151,7 @@ export default function SuperAdminDashboardPage() {
           <button 
             onClick={refetch}
             disabled={isLoading}
-            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95 disabled:opacity-60"
+            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95 disabled:opacity-60"
           >
             <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
             Refresh
@@ -162,7 +162,7 @@ export default function SuperAdminDashboardPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="rounded-2xl border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-warning"
+          className="rounded-sm border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-warning"
         >
           {error} — showing demo figures where available.
         </motion.div>

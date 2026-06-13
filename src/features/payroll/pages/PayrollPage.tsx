@@ -398,7 +398,7 @@ const PayrollPage = () => {
         <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
             onClick={() => setIsProcessModalOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
+            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
           >
             <Wallet size={18} />
             Bulk Process
@@ -407,7 +407,7 @@ const PayrollPage = () => {
       </motion.div>
 
       {/* Tab Navigation Controls */}
-      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-2xl no-scrollbar max-w-lg">
+      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-sm no-scrollbar max-w-lg">
         {[
           { id: 'batches', label: 'Disbursement Batches', icon: Wallet },
           { id: 'slips', label: 'Employee Payslips', icon: Users },
@@ -418,7 +418,7 @@ const PayrollPage = () => {
               key={tab.id}
               onClick={() => setActiveSubTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
+                "flex items-center gap-2 px-5 py-3 rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
                 isSelected 
                   ? "bg-primary text-white shadow-lg shadow-primary/25 border-primary/30" 
                   : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -453,13 +453,13 @@ const PayrollPage = () => {
             
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div className={cn(
-                "p-3.5 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
+                "p-3.5 rounded-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
                 `bg-${stat.color}/10 text-${stat.color}`
               )}>
                 <stat.icon size={22} />
               </div>
               <span className={cn(
-                "text-micro font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm",
+                "text-micro font-black px-2.5 py-1.5 rounded-sm uppercase tracking-wider border shadow-sm",
                 stat.trend.startsWith('+') || stat.trend === 'SECURE' ? "bg-success/10 text-success border-success/10" : 
                 stat.trend.startsWith('-') ? "bg-warning/10 text-warning border-warning/10" : "bg-error/20 text-error border-error/20 animate-pulse"
               )}>
@@ -487,7 +487,7 @@ const PayrollPage = () => {
               <h3 className="heading-2">Platform Disbursement Volume</h3>
               <p className="text-sm text-page-desc mt-1 italic">Global payroll distribution trends over the last 5 months</p>
             </div>
-            <div className="flex items-center gap-3 text-success text-label tracking-[0.15em] bg-success/10 px-5 py-2.5 rounded-2xl self-start sm:self-center border border-success/10 shadow-sm">
+            <div className="flex items-center gap-3 text-success text-label tracking-[0.15em] bg-success/10 px-5 py-2.5 rounded-sm self-start sm:self-center border border-success/10 shadow-sm">
               <TrendingUp size={16} />
               +14.2% SYSTEM GROWTH
             </div>
@@ -548,7 +548,7 @@ const PayrollPage = () => {
             
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-8">
-                <div className="p-4 bg-white/5 backdrop-blur-2xl rounded-2xl group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/10 shadow-sm">
+                <div className="p-4 bg-white/5 backdrop-blur-2xl rounded-sm group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/10 shadow-sm">
                   <IndianRupee size={32} className="text-primary" />
                 </div>
                 <div className="px-4 py-1.5 bg-white/5 backdrop-blur-2xl rounded-full text-micro font-black tracking-[0.2em] flex items-center gap-2 border border-white/10 shadow-sm">
@@ -575,10 +575,10 @@ const PayrollPage = () => {
                   </div>
                 </div>
                 <div className="mt-10 flex items-center gap-3">
-                  <button className="flex-1 py-4 bg-primary text-white text-micro font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary-light transition-all active:scale-95 shadow-xl shadow-primary/30">
+                  <button className="flex-1 py-4 bg-primary text-white text-micro font-black uppercase tracking-[0.2em] rounded-sm hover:bg-primary-light transition-all active:scale-95 shadow-xl shadow-primary/30">
                     Rebalance Pool
                   </button>
-                  <button className="p-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95 shadow-sm">
+                  <button className="p-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-sm hover:bg-white/10 transition-all active:scale-95 shadow-sm">
                     <ArrowUpRight size={20} className="text-white" />
                   </button>
                 </div>
@@ -593,7 +593,7 @@ const PayrollPage = () => {
           >
             <div className="absolute right-0 top-0 w-24 h-24 bg-warning/5 blur-3xl rounded-full" />
             <div className="flex items-center gap-5 relative z-10">
-              <div className="p-4 rounded-2xl bg-warning/10 text-warning group-hover:rotate-12 group-hover:scale-110 transition-all shadow-sm">
+              <div className="p-4 rounded-sm bg-warning/10 text-warning group-hover:rotate-12 group-hover:scale-110 transition-all shadow-sm">
                 <Clock size={24} />
               </div>
               <div>
@@ -601,7 +601,7 @@ const PayrollPage = () => {
                 <p className="text-micro font-bold text-text-secondary mt-1 uppercase tracking-widest">12 runs awaiting approval</p>
               </div>
             </div>
-            <div className="w-12 h-12 bg-surface-variant rounded-2xl flex items-center justify-center text-text-secondary group-hover:bg-primary group-hover:text-white transition-all shadow-sm border border-border relative z-10">
+            <div className="w-12 h-12 bg-surface-variant rounded-sm flex items-center justify-center text-text-secondary group-hover:bg-primary group-hover:text-white transition-all shadow-sm border border-border relative z-10">
               <ArrowRight size={20} />
             </div>
           </motion.div>
@@ -624,10 +624,10 @@ const PayrollPage = () => {
                   placeholder="Search batches..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
+                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-sm text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
                 />
               </div>
-              <button className="p-3.5 bg-surface-variant hover:bg-surface border border-border rounded-2xl text-text-secondary transition-all active:scale-95 hover:border-primary/30 shadow-sm">
+              <button className="p-3.5 bg-surface-variant hover:bg-surface border border-border rounded-sm text-text-secondary transition-all active:scale-95 hover:border-primary/30 shadow-sm">
                 <Filter size={20} />
               </button>
             </div>
@@ -658,13 +658,13 @@ const PayrollPage = () => {
                       className="hover:bg-surface-variant transition-colors group cursor-pointer"
                     >
                       <td className="px-8 py-7">
-                        <span className="font-mono text-micro font-black text-muted bg-surface-variant px-3 py-1.5 rounded-xl border border-border shadow-sm group-hover:border-primary/30 transition-colors">
+                        <span className="font-mono text-micro font-black text-muted bg-surface-variant px-3 py-1.5 rounded-sm border border-border shadow-sm group-hover:border-primary/30 transition-colors">
                           {run.id}
                         </span>
                       </td>
                       <td className="px-8 py-7">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xs group-hover:scale-110 transition-all duration-500 shadow-sm border border-primary/10">
+                          <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xs group-hover:scale-110 transition-all duration-500 shadow-sm border border-primary/10">
                             {run.company.substring(0, 2)}
                           </div>
                           <div>
@@ -690,7 +690,7 @@ const PayrollPage = () => {
                       </td>
                       <td className="px-8 py-7">
                         <span className={cn(
-                          "px-4 py-2 rounded-2xl text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
+                          "px-4 py-2 rounded-sm text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
                           run.status === 'Completed' ? "bg-success/10 text-success border-success/10" : 
                           run.status === 'Failed' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
                         )}>
@@ -704,10 +704,10 @@ const PayrollPage = () => {
                       </td>
                       <td className="px-8 py-7 text-right">
                         <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                          <button className="p-3 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-2xl transition-all shadow-sm hover:shadow-md">
+                          <button className="p-3 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-sm transition-all shadow-sm hover:shadow-md">
                             <Download size={18} />
                           </button>
-                          <button className="p-3 bg-surface border border-border text-muted hover:text-text-primary rounded-2xl transition-all shadow-sm">
+                          <button className="p-3 bg-surface border border-border text-muted hover:text-text-primary rounded-sm transition-all shadow-sm">
                             <MoreVertical size={18} />
                           </button>
                         </div>
@@ -725,8 +725,8 @@ const PayrollPage = () => {
                 <p className="text-label text-text-secondary tracking-[0.2em]">Global Audit Stream Live</p>
               </div>
               <div className="flex items-center gap-3">
-                <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
-                <button className="px-6 py-3 bg-surface border border-border rounded-2xl text-label text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
+                <button className="px-6 py-3 bg-surface border border-border rounded-sm text-label text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
+                <button className="px-6 py-3 bg-surface border border-border rounded-sm text-label text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
               </div>
             </div>
           )}
@@ -746,7 +746,7 @@ const PayrollPage = () => {
                   placeholder="Search employees..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-2xl text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
+                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-sm text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
                 />
               </div>
             </div>
@@ -777,7 +777,7 @@ const PayrollPage = () => {
                       className="hover:bg-surface-variant/30 transition-colors group cursor-pointer"
                     >
                       <td className="px-8 py-7">
-                        <span className="font-mono text-micro font-black text-muted bg-slate-900 px-3 py-1.5 rounded-xl border border-white/5 shadow-sm group-hover:border-primary/30 transition-colors">
+                        <span className="font-mono text-micro font-black text-muted bg-slate-900 px-3 py-1.5 rounded-sm border border-white/5 shadow-sm group-hover:border-primary/30 transition-colors">
                           {slip.employeeCode}
                         </span>
                       </td>
@@ -801,7 +801,7 @@ const PayrollPage = () => {
                       </td>
                       <td className="px-8 py-7">
                         <span className={cn(
-                          "px-4 py-2 rounded-2xl text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
+                          "px-4 py-2 rounded-sm text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
                           slip.status === 'Approved' ? "bg-success/10 text-success border-success/10" : "bg-warning/10 text-warning border-warning/10"
                         )}>
                           <span className={cn(
@@ -817,7 +817,7 @@ const PayrollPage = () => {
                             <button 
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleApproveSlip(slip.id); }}
-                              className="px-4 py-2 bg-primary/20 text-primary border border-primary/20 hover:bg-primary hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                              className="px-4 py-2 bg-primary/20 text-primary border border-primary/20 hover:bg-primary hover:text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
                             >
                               Approve & Generate
                             </button>
@@ -825,7 +825,7 @@ const PayrollPage = () => {
                             <button 
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setSelectedSlip(slip); setIsSlipModalOpen(true); }}
-                              className="px-4 py-2 bg-success/20 text-success border border-success/20 hover:bg-success hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                              className="px-4 py-2 bg-success/20 text-success border border-success/20 hover:bg-success hover:text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
                             >
                               View & Download
                             </button>
@@ -856,17 +856,17 @@ const PayrollPage = () => {
                 type="month"
                 value={slipMonth}
                 onChange={e => setSlipMonth(e.target.value)}
-                className="px-4 py-2 bg-slate-800/80 border border-white/10 rounded-xl text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+                className="px-4 py-2 bg-slate-800/80 border border-white/10 rounded-sm text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
               />
             </div>
 
             {/* ── SALARY SLIP DOCUMENT ── */}
-            <div className="border border-white/10 rounded-3xl overflow-hidden bg-slate-950/60 shadow-2xl">
+            <div className="border border-white/10 rounded-sm overflow-hidden bg-slate-950/60 shadow-2xl">
 
               {/* Company Header */}
               <div className="bg-gradient-to-r from-primary/25 via-teal-500/15 to-emerald-500/10 border-b border-white/10 px-8 py-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/40">
+                  <div className="w-10 h-10 rounded-sm bg-primary flex items-center justify-center shadow-lg shadow-primary/40">
                     <Wallet size={20} className="text-white" />
                   </div>
                   <div>
@@ -886,7 +886,7 @@ const PayrollPage = () => {
               <div className="p-8 space-y-6">
 
                 {/* Employee Info Grid */}
-                <div className="grid grid-cols-2 gap-x-12 gap-y-4 border border-white/8 rounded-2xl p-6">
+                <div className="grid grid-cols-2 gap-x-12 gap-y-4 border border-white/8 rounded-sm p-6">
                   {([
                     ['Employee Name',   selectedSlip.name],
                     ['Employee Code',   selectedSlip.employeeCode],
@@ -903,7 +903,7 @@ const PayrollPage = () => {
                 </div>
 
                 {/* Attendance Details Summary — always visible, ?? 0 fallback until data loads */}
-                <div className="border border-white/10 rounded-2xl overflow-hidden">
+                <div className="border border-white/10 rounded-sm overflow-hidden">
                   <div className="grid grid-cols-6 divide-x divide-white/10">
                     {[
                       { label: 'Working Days', value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100' },
@@ -925,7 +925,7 @@ const PayrollPage = () => {
                 <div className="grid grid-cols-2 gap-6">
 
                   {/* Earnings */}
-                  <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-2xl overflow-hidden">
+                  <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-sm overflow-hidden">
                     <div className="bg-emerald-500/10 px-5 py-3 border-b border-emerald-500/15">
                       <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Earnings</h4>
                     </div>
@@ -949,7 +949,7 @@ const PayrollPage = () => {
                   </div>
 
                   {/* Deductions */}
-                  <div className="bg-rose-500/5 border border-rose-500/15 rounded-2xl overflow-hidden">
+                  <div className="bg-rose-500/5 border border-rose-500/15 rounded-sm overflow-hidden">
                     <div className="bg-rose-500/10 px-5 py-3 border-b border-rose-500/15">
                       <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Deductions</h4>
                     </div>
@@ -973,7 +973,7 @@ const PayrollPage = () => {
                 </div>
 
                 {/* Net Pay Banner */}
-                <div className="bg-gradient-to-r from-primary/20 to-teal-500/10 border border-primary/25 rounded-2xl px-7 py-5 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-primary/20 to-teal-500/10 border border-primary/25 rounded-sm px-7 py-5 flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Payable Amount</p>
                     <p className="text-3xl font-black text-primary mt-1 font-mono">₹ {netPay.toLocaleString('en-IN')}</p>
@@ -1010,14 +1010,14 @@ const PayrollPage = () => {
               <button
                 type="button"
                 onClick={() => setIsSlipModalOpen(false)}
-                className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={handlePrintSlip}
-                className="px-7 py-3 bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-primary/25"
+                className="px-7 py-3 bg-primary hover:bg-primary/90 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-primary/25"
               >
                 <Download size={14} />
                 Download PDF
@@ -1036,7 +1036,7 @@ const PayrollPage = () => {
         title="Execute Bulk Disbursement"
       >
         <div className="space-y-8 p-2">
-          <div className="p-6 bg-surface-variant/50 rounded-3xl border border-border/50">
+          <div className="p-6 bg-surface-variant/50 rounded-sm border border-border/50">
             <div className="flex items-center justify-between mb-6">
               <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">Batch Summary</h4>
               <span className="px-3 py-1 bg-primary/10 text-primary text-micro font-black rounded-full uppercase tracking-widest border border-primary/10">Draft Batch #882</span>
@@ -1069,7 +1069,7 @@ const PayrollPage = () => {
                 'Synchronize with global liquidity pool',
                 'Enable multi-signature audit trail',
               ].map((step, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 bg-surface rounded-2xl border border-border/50 group hover:border-primary/30 transition-all shadow-sm">
+                <div key={i} className="flex items-center gap-4 p-4 bg-surface rounded-sm border border-border/50 group hover:border-primary/30 transition-all shadow-sm">
                   <div className="w-6 h-6 rounded-lg bg-surface-variant border border-border flex items-center justify-center text-muted group-hover:bg-primary/10 group-hover:text-primary transition-all">
                     <CheckCircle2 size={16} />
                   </div>
@@ -1082,7 +1082,7 @@ const PayrollPage = () => {
           <button 
             disabled={isDisbursing}
             onClick={handleBulkDisburse}
-            className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 mt-8 disabled:opacity-55 cursor-pointer"
+            className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 mt-8 disabled:opacity-55 cursor-pointer"
           >
             <ShieldCheck size={20} className={cn(isDisbursing && "animate-spin")} />
             {isDisbursing ? 'Processing Disbursement...' : 'Initiate Disbursement Protocol'}

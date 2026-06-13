@@ -46,7 +46,7 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className={cn(
-              'relative w-full bg-surface rounded-t-[28px] sm:rounded-[32px] shadow-2xl border border-border overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col',
+              'relative w-full bg-surface rounded-t-sm sm:rounded shadow-2xl border border-border overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col',
               maxWidth
             )}
           >
@@ -54,7 +54,7 @@ const Modal: React.FC<ModalProps> = ({
               <h3 className="text-lg sm:text-xl font-bold text-text-primary">{title}</h3>
               <button 
                 onClick={onClose}
-                className="p-2 hover:bg-surface-variant rounded-xl transition-colors text-muted hover:text-text-primary shrink-0"
+                className="p-2 hover:bg-surface-variant rounded-sm transition-colors text-muted hover:text-text-primary shrink-0"
                 aria-label="Close modal"
               >
                 <X size={24} />

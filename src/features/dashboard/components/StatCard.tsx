@@ -69,7 +69,7 @@ export default function StatCard({
       />
 
       <div className="relative z-10 flex items-start justify-between gap-2">
-        <div className={cn('rounded-2xl p-3 shrink-0', styles.icon)}>
+        <div className={cn('rounded-sm p-3 shrink-0', styles.icon)}>
           <Icon size={20} />
         </div>
         {badge && (

@@ -285,7 +285,7 @@ const TasksPage = () => {
             placeholder="Search deliverables, descriptions, assignees..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-surface-variant border border-transparent focus:border-primary/20 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
+            className="w-full pl-12 pr-4 py-3 bg-surface-variant border border-transparent focus:border-primary/20 rounded-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
           />
         </div>
       </motion.div>

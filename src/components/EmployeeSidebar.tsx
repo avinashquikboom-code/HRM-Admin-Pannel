@@ -79,7 +79,7 @@ function NavItem({
       )}
       {!isOpen && (
         <div
-          className="absolute left-full ml-3 px-2.5 py-1.5 text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[999] shadow-xl"
+          className="absolute left-full ml-3 px-2.5 py-1.5 text-xs rounded-sm opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[999] shadow-xl"
           style={{ backgroundColor: '#1E293B', color: '#F8FAFC', border: '1px solid #334155', fontSize: '12px' }}
         >
           {item.name}
@@ -139,7 +139,7 @@ const EmployeeSidebar = () => {
         )}
       >
         <div className="sidebar-brand-wrap">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 sidebar-logo">
+          <div className="w-11 h-11 rounded-sm flex items-center justify-center flex-shrink-0 sidebar-logo">
             <User className="w-5 h-5 text-white" />
           </div>
           {isOpen && (

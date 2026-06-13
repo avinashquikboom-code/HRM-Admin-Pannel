@@ -231,7 +231,7 @@ const EditProfilePage = () => {
         >
           <button
             onClick={() => router.push(profileBasePath)}
-            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95"
+            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95"
           >
             <ArrowLeft size={18} />
             Back to Profile
@@ -243,7 +243,7 @@ const EditProfilePage = () => {
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex items-center gap-3"
+              className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex items-center gap-3"
             >
               <X size={18} />
               {submitError}
@@ -284,7 +284,7 @@ const EditProfilePage = () => {
                     type="button"
                     disabled={isAvatarLoading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 p-2.5 rounded-xl bg-primary text-white shadow-lg border border-primary/30 hover:scale-110 transition-transform active:scale-95 disabled:opacity-60 cursor-pointer"
+                    className="absolute -bottom-1 -right-1 p-2.5 rounded-sm bg-primary text-white shadow-lg border border-primary/30 hover:scale-110 transition-transform active:scale-95 disabled:opacity-60 cursor-pointer"
                   >
                     <Camera size={16} />
                   </button>
@@ -310,7 +310,7 @@ const EditProfilePage = () => {
                     type="button"
                     disabled={isAvatarLoading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-3 text-xs font-black text-primary bg-primary/10 hover:bg-primary/15 rounded-xl transition-all border border-primary/20 uppercase tracking-wider disabled:opacity-60 active:scale-95 cursor-pointer"
+                    className="flex-1 py-3 text-xs font-black text-primary bg-primary/10 hover:bg-primary/15 rounded-sm transition-all border border-primary/20 uppercase tracking-wider disabled:opacity-60 active:scale-95 cursor-pointer"
                   >
                     {isAvatarLoading ? 'Processing...' : 'Upload New'}
                   </button>
@@ -318,7 +318,7 @@ const EditProfilePage = () => {
                     type="button"
                     disabled={isAvatarLoading || !hasCustomAvatar}
                     onClick={handleAvatarRemove}
-                    className="flex-1 py-3 text-xs font-black text-error bg-error/10 hover:bg-error/15 rounded-xl transition-all border border-error/20 uppercase tracking-wider disabled:opacity-60 active:scale-95 cursor-pointer"
+                    className="flex-1 py-3 text-xs font-black text-error bg-error/10 hover:bg-error/15 rounded-sm transition-all border border-error/20 uppercase tracking-wider disabled:opacity-60 active:scale-95 cursor-pointer"
                   >
                     Remove
                   </button>
@@ -327,14 +327,14 @@ const EditProfilePage = () => {
 
               <div className="glass-card p-6 space-y-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-xl bg-accent/10 text-accent border border-accent/10">
+                  <div className="p-2 rounded-sm bg-accent/10 text-accent border border-accent/10">
                     <Shield size={18} />
                   </div>
                   <h3 className="text-sm font-black text-white uppercase tracking-widest">Security Info</h3>
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                  <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                     <span className="text-sm font-bold text-white">2FA Authentication</span>
                     <span className={cn(
                       "text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider",
@@ -345,13 +345,13 @@ const EditProfilePage = () => {
                   </div>
                   
                   {!hideLoginTracking && (
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                    <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                       <span className="text-sm font-bold text-white">Last Access</span>
                       <span className="text-xs font-black text-text-secondary">{security?.lastLoginLocation || 'Unknown'}</span>
                     </div>
                   )}
                   
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-variant/50 border border-border/50">
+                  <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                     <span className="text-sm font-bold text-white">Clearance</span>
                     <span className="text-xs font-black text-primary uppercase tracking-wider">{security?.clearanceLabel || 'Level 5'}</span>
                   </div>
@@ -363,7 +363,7 @@ const EditProfilePage = () => {
             <motion.div variants={itemVariants} className="lg:col-span-8 space-y-6">
               <div className="glass-card p-6 sm:p-8 space-y-6">
                 <div className="flex items-center gap-4 border-b border-border/30 pb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                  <div className="w-12 h-12 rounded-sm bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <Info size={24} />
                   </div>
                   <div>
@@ -410,7 +410,7 @@ const EditProfilePage = () => {
                     <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
                       Time Zone
                     </label>
-                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-2xl flex items-center gap-3 text-white font-bold text-sm">
+                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-sm flex items-center gap-3 text-white font-bold text-sm">
                       <Globe size={18} className="text-primary/70" />
                       <span className="truncate">{profile?.timezoneLabel || 'Asia/Kolkata (IST)'}</span>
                     </div>
@@ -426,7 +426,7 @@ const EditProfilePage = () => {
                       <div className="relative">
                         <select
                           {...register('officeId')}
-                          className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-2xl outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-white text-sm font-bold appearance-none cursor-pointer"
+                          className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-white text-sm font-bold appearance-none cursor-pointer"
                         >
                           <option value="" className="bg-surface text-white">System Default</option>
                           {offices.map((office) => (
@@ -444,7 +444,7 @@ const EditProfilePage = () => {
 
               <div className="glass-card p-6 sm:p-8 space-y-4">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-xl bg-accent/10 text-accent border border-accent/10">
+                  <div className="p-2 rounded-sm bg-accent/10 text-accent border border-accent/10">
                     <Mail size={18} />
                   </div>
                   <h3 className="text-sm font-black text-white uppercase tracking-widest">About</h3>
@@ -457,7 +457,7 @@ const EditProfilePage = () => {
                     rows={4}
                     placeholder="Tell us about yourself..."
                     className={cn(
-                      "w-full px-6 py-4 bg-surface-variant/50 border border-border/30 rounded-2xl outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-white resize-none",
+                      "w-full px-6 py-4 bg-surface-variant/50 border border-border/30 rounded-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-white resize-none",
                       errors.bio && "border-error/40 bg-error/5 focus:ring-error/5"
                     )}
                   />
@@ -469,7 +469,7 @@ const EditProfilePage = () => {
                 <button
                   onClick={() => router.push(profileBasePath)}
                   type="button"
-                  className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-white cursor-pointer"
+                  className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-white cursor-pointer"
                 >
                   Cancel
                 </button>

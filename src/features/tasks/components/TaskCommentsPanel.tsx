@@ -93,7 +93,7 @@ export default function TaskCommentsPanel({
       </div>
 
       {(error || actionError) && (
-        <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <span>{error || actionError}</span>
           {error && (
             <button
@@ -128,9 +128,9 @@ export default function TaskCommentsPanel({
             return (
               <div
                 key={comment.id}
-                className="flex items-start gap-3 p-4 rounded-2xl bg-surface-variant/50 border border-border/50"
+                className="flex items-start gap-3 p-4 rounded-sm bg-surface-variant/50 border border-border/50"
               >
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0">
+                <div className="w-10 h-10 rounded-sm bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0">
                   {initials}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -151,7 +151,7 @@ export default function TaskCommentsPanel({
                     type="button"
                     onClick={() => handleDelete(comment.id)}
                     disabled={deletingId === comment.id}
-                    className="p-2 rounded-xl text-text-secondary hover:text-error hover:bg-error/10 transition-all disabled:opacity-60 shrink-0"
+                    className="p-2 rounded-sm text-text-secondary hover:text-error hover:bg-error/10 transition-all disabled:opacity-60 shrink-0"
                     title="Delete comment"
                   >
                     {deletingId === comment.id ? (
@@ -165,7 +165,7 @@ export default function TaskCommentsPanel({
             );
           })
         ) : (
-          <div className="rounded-2xl border border-dashed border-border px-4 py-6 text-center">
+          <div className="rounded-sm border border-dashed border-border px-4 py-6 text-center">
             <p className="text-sm font-bold text-text-secondary">
               No comments yet. Start the discussion below.
             </p>
@@ -179,13 +179,13 @@ export default function TaskCommentsPanel({
           onChange={(e) => setDraft(e.target.value)}
           rows={3}
           placeholder="Write a comment for this task..."
-          className="w-full px-4 py-3 bg-surface-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium resize-none"
+          className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium resize-none"
         />
         <button
           type="submit"
           disabled={isSubmitting || !draft.trim()}
           className={cn(
-            'w-full py-3 rounded-2xl bg-primary text-white font-bold uppercase tracking-widest text-xs',
+            'w-full py-3 rounded-sm bg-primary text-white font-bold uppercase tracking-widest text-xs',
             'shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-70',
             'flex items-center justify-center gap-2'
           )}

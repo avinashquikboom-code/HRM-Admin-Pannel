@@ -31,6 +31,7 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
       { id: 'sa-companies', label: 'Companies', group: 'Platform', description: 'Manage registered organizations' },
       { id: 'sa-subscriptions', label: 'Subscriptions', group: 'Billing', description: 'Plans, renewals and billing status' },
       { id: 'sa-location', label: 'Live Location', group: 'Operations', description: 'Platform-wide field staff location tracking' },
+      { id: 'sa-location-new', label: 'Live Location Tracker', group: 'Operations', description: 'Real-time location tracking dashboard' },
       { id: 'sa-settings', label: 'System Settings', group: 'Platform', description: 'Global configuration and access policies' },
       { id: 'sa-user-rights', label: 'User Rights', group: 'Security', description: 'Role permissions and module access' },
       { id: 'sa-profile', label: 'Profile', group: 'Account', description: 'Personal account and security settings' },

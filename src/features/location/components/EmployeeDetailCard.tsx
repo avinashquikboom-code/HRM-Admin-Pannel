@@ -109,7 +109,7 @@ export default function EmployeeDetailCard({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0">
+              <div className="w-11 h-11 rounded-sm bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0">
                 {employee.name
                   .split(' ')
                   .map((n) => n[0])
@@ -209,7 +209,7 @@ export default function EmployeeDetailCard({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-surface-variant/60 p-3">
+                <div className="rounded-sm bg-surface-variant/60 p-3">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                     Coordinates
                   </p>
@@ -219,7 +219,7 @@ export default function EmployeeDetailCard({
                       : `${employee.lat.toFixed(5)}, ${employee.lng.toFixed(5)}`}
                   </p>
                 </div>
-                <div className="rounded-xl bg-surface-variant/60 p-3">
+                <div className="rounded-sm bg-surface-variant/60 p-3">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                     Speed
                   </p>
@@ -227,7 +227,7 @@ export default function EmployeeDetailCard({
                     {employee.speed}
                   </p>
                 </div>
-                <div className="rounded-xl bg-surface-variant/60 p-3 col-span-2">
+                <div className="rounded-sm bg-surface-variant/60 p-3 col-span-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted flex items-center gap-1">
                     <Battery size={10} /> Device battery
                   </p>
@@ -256,7 +256,7 @@ export default function EmployeeDetailCard({
                       type="button"
                       onClick={() => onForceBreach?.(employee.employeeId)}
                       disabled={employee.status === 'Outside Geofence'}
-                      className="btn-danger py-2 text-xs rounded-xl disabled:opacity-40"
+                      className="btn-danger py-2 text-xs rounded-sm disabled:opacity-40"
                     >
                       Simulate breach
                     </button>
@@ -264,7 +264,7 @@ export default function EmployeeDetailCard({
                       type="button"
                       onClick={() => onRecallToOffice?.(employee.employeeId)}
                       disabled={employee.status === 'In Office'}
-                      className="btn-primary py-2 text-xs rounded-xl disabled:opacity-40"
+                      className="btn-primary py-2 text-xs rounded-sm disabled:opacity-40"
                     >
                       Return to office
                     </button>

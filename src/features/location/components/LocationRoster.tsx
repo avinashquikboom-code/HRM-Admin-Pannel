@@ -66,7 +66,7 @@ export default function LocationRoster({
               placeholder="Search by name or role..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-xl outline-none focus:ring-2 focus:ring-primary/10 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-sm outline-none focus:ring-2 focus:ring-primary/10 text-sm"
             />
           </div>
           <select
@@ -74,7 +74,7 @@ export default function LocationRoster({
             onChange={(e) =>
               onStatusFilterChange(e.target.value as LocationStatusFilter)
             }
-            className="sm:w-44 bg-surface-variant border border-transparent rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary outline-none"
+            className="sm:w-44 bg-surface-variant border border-transparent rounded-sm px-3 py-2.5 text-sm font-medium text-text-secondary outline-none"
           >
             {FILTER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>

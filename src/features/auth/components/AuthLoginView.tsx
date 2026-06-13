@@ -114,11 +114,11 @@ export default function AuthLoginView({
         <div className="text-center mb-6 sm:mb-8">
           <div
             className={cn(
-              'w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl',
+              'w-16 h-16 sm:w-20 sm:h-20 rounded-sm flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-2xl',
               styles.icon
             )}
           >
-            <span className="text-white font-semibold text-lg sm:text-xl tracking-tight">
+            <span className="font-semibold text-lg sm:text-xl tracking-tight" style={{ color: '#FFFFFF' }}>
               HRM
             </span>
           </div>
@@ -127,14 +127,14 @@ export default function AuthLoginView({
         </div>
 
         <div className="glass-card p-6 sm:p-8 lg:p-10 bg-surface/40 border-surface/50">
-          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-surface-variant mb-6">
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-sm bg-surface-variant mb-6">
             {LOGIN_PORTAL_ORDER.map((optionId) => (
               <button
                 key={optionId}
                 type="button"
                 onClick={() => switchPortal(optionId)}
                 className={cn(
-                  'py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all',
+                  'py-2.5 px-3 rounded-sm text-xs sm:text-sm font-semibold transition-all',
                   portal === optionId
                     ? styles.tab
                     : 'text-text-secondary hover:text-text-primary'
@@ -151,7 +151,7 @@ export default function AuthLoginView({
             autoComplete="off"
           >
             {error && (
-              <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+              <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
                 {error}
                 {error.includes('Super Admin') && portal !== 'super_admin' && (
                   <button
@@ -181,7 +181,7 @@ export default function AuthLoginView({
                   disabled={isLoading}
                   required={true}
                   className={cn(
-                    'w-full pl-12 pr-4 py-3.5 bg-surface dark:bg-surface-variant border-none rounded-2xl shadow-inner outline-none focus:ring-2 transition-all text-text-primary disabled:opacity-60 text-sm',
+                    'w-full pl-12 pr-4 py-3.5 bg-surface dark:bg-surface-variant border-none rounded-sm shadow-inner outline-none focus:ring-2 transition-all text-text-primary disabled:opacity-60 text-sm',
                     styles.ring
                   )}
                   placeholder={copy.emailPlaceholder}
@@ -229,7 +229,7 @@ export default function AuthLoginView({
               type="submit"
               disabled={isLoading}
               className={cn(
-                'w-full py-3.5 font-semibold rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed text-sm text-white',
+                'w-full py-3.5 font-semibold rounded-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed text-sm text-white',
                 styles.button
               )}
             >

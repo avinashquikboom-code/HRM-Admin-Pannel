@@ -119,7 +119,7 @@ const itemVariants: Variants = {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card p-4 border border-border/50 shadow-2xl backdrop-blur-xl bg-surface/90 rounded-2xl">
+      <div className="glass-card p-4 border border-border/50 shadow-2xl backdrop-blur-xl bg-surface/90 rounded-sm">
         <p className="text-micro font-black text-muted uppercase tracking-widest mb-1.5">{label}</p>
         <div className="space-y-0.5">
           <p className="text-lg font-black text-text-primary">
@@ -438,7 +438,7 @@ const SubscriptionsPage = () => {
           <WalletCards size={18} className="group-hover:rotate-12 transition-transform" />
           Manage Billing
         </button>
-        <button className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-2xl text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
+        <button className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95">
           <Download size={18} />
           Export Report
         </button>
@@ -456,7 +456,7 @@ const SubscriptionsPage = () => {
             
             <div className="flex items-center justify-between mb-5 relative z-10">
               <div className={cn(
-                "p-3 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-sm",
+                "p-3 rounded-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-sm",
                 stat.color === 'primary' ? "bg-indigo-500/10 text-indigo-500" :
                 stat.color === 'secondary' ? "bg-amber-500/10 text-amber-500" :
                 stat.color === 'error' ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"
@@ -492,7 +492,7 @@ const SubscriptionsPage = () => {
               <h3 className="heading-2">Revenue Momentum</h3>
               <p className="text-sm text-muted mt-1.5 font-medium">Monthly Recurring Revenue (MRR) performance overview</p>
             </div>
-            <div className="flex bg-surface-variant/50 p-1.5 rounded-xl border border-border/50">
+            <div className="flex bg-surface-variant/50 p-1.5 rounded-sm border border-border/50">
               <select className="bg-transparent text-sm font-bold text-text-primary px-3 py-1 outline-none border-none cursor-pointer">
                 <option>Last 6 Months</option>
                 <option>Last 12 Months</option>
@@ -590,7 +590,7 @@ const SubscriptionsPage = () => {
             {activePlanMix.map((plan: { name: string; value: number; color: string }) => (
               <div 
                 key={plan.name} 
-                className="flex items-center justify-between p-3.5 rounded-2xl bg-surface-variant/30 hover:bg-surface-variant/70 border border-border/40 hover:border-border transition-all duration-300 group/item cursor-default shadow-sm"
+                className="flex items-center justify-between p-3.5 rounded-sm bg-surface-variant/30 hover:bg-surface-variant/70 border border-border/40 hover:border-border transition-all duration-300 group/item cursor-default shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-3.5 h-3.5 rounded-full shadow-inner" style={{ backgroundColor: plan.color }} />
@@ -613,11 +613,11 @@ const SubscriptionsPage = () => {
             <p className="text-sm text-text-secondary mt-0.5">Configure platform-wide pricing models and company-level license allocation.</p>
           </div>
           
-          <div className="flex items-center gap-2.5 p-1 bg-surface-variant/40 border border-border/60 rounded-2xl self-start sm:self-center">
+          <div className="flex items-center gap-2.5 p-1 bg-surface-variant/40 border border-border/60 rounded-sm self-start sm:self-center">
             <button
               onClick={() => setBillingCycle('monthly')}
               className={cn(
-                "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95",
+                "px-4 py-2 rounded-sm text-xs font-bold transition-all duration-300 active:scale-95",
                 billingCycle === 'monthly' ? "bg-primary text-white shadow-md shadow-primary/20" : "text-text-secondary hover:text-text-primary"
               )}
             >
@@ -626,7 +626,7 @@ const SubscriptionsPage = () => {
             <button
               onClick={() => setBillingCycle('yearly')}
               className={cn(
-                "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center gap-1.5",
+                "px-4 py-2 rounded-sm text-xs font-bold transition-all duration-300 active:scale-95 flex items-center gap-1.5",
                 billingCycle === 'yearly' ? "bg-primary text-white shadow-md shadow-primary/20" : "text-text-secondary hover:text-text-primary"
               )}
             >
@@ -662,14 +662,14 @@ const SubscriptionsPage = () => {
 
               <div className="relative z-10 mb-6">
                 <div className="flex items-center justify-between gap-3">
-                  <span className={cn("px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border", plan.badgeColor)}>
+                  <span className={cn("px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-widest border", plan.badgeColor)}>
                     {plan.name} Tier
                   </span>
                   <span className="text-[10px] font-black uppercase tracking-widest text-muted">{plan.activeHires}</span>
                 </div>
                 <div className="flex items-baseline gap-1 mt-6">
                   {isPricingLoading ? (
-                    <div className="h-10 w-28 bg-surface-variant/60 animate-pulse rounded-xl" />
+                    <div className="h-10 w-28 bg-surface-variant/60 animate-pulse rounded-sm" />
                   ) : (
                     <>
                       <span className="text-4xl font-black text-text-primary tracking-tight">
@@ -708,7 +708,7 @@ const SubscriptionsPage = () => {
                     <button
                       onClick={() => handleOpenPricingEdit(plan.dbPlan!)}
                       title="Edit Plan Pricing"
-                      className="p-3.5 rounded-2xl bg-surface-variant hover:bg-indigo-500/10 hover:text-indigo-500 border border-border/60 hover:border-indigo-500/30 transition-all duration-300 active:scale-95"
+                      className="p-3.5 rounded-sm bg-surface-variant hover:bg-indigo-500/10 hover:text-indigo-500 border border-border/60 hover:border-indigo-500/30 transition-all duration-300 active:scale-95"
                     >
                       <Settings2 size={15} />
                     </button>
@@ -716,7 +716,7 @@ const SubscriptionsPage = () => {
                   <button 
                     onClick={() => handleOpenConfigureForPlan(plan.name)}
                     className={cn(
-                      "flex-1 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 active:scale-98 flex items-center justify-center gap-2",
+                      "flex-1 py-3.5 rounded-sm text-xs font-black uppercase tracking-widest transition-all duration-300 active:scale-98 flex items-center justify-center gap-2",
                       plan.buttonVariant === 'primary' 
                         ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20" 
                         : "bg-surface-variant hover:bg-surface-variant/80 text-text-primary border border-border/60"
@@ -748,14 +748,14 @@ const SubscriptionsPage = () => {
                 placeholder="Search invoices..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 pr-4 py-3 bg-surface-variant/60 border border-border/40 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all w-full sm:w-64 font-bold text-text-primary placeholder:text-muted"
+                className="pl-11 pr-4 py-3 bg-surface-variant/60 border border-border/40 rounded-sm text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all w-full sm:w-64 font-bold text-text-primary placeholder:text-muted"
               />
             </div>
             
             <select 
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value)}
-              className="bg-surface border border-border/60 rounded-2xl px-4 py-2.5 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              className="bg-surface border border-border/60 rounded-sm px-4 py-2.5 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               <option value="All">Plan: All</option>
               <option value="Basic">Basic</option>
@@ -766,7 +766,7 @@ const SubscriptionsPage = () => {
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-surface border border-border/60 rounded-2xl px-4 py-2.5 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              className="bg-surface border border-border/60 rounded-sm px-4 py-2.5 text-xs font-black uppercase tracking-widest text-text-secondary outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               <option value="All">Status: All</option>
               <option value="Paid">Paid</option>
@@ -802,13 +802,13 @@ const SubscriptionsPage = () => {
                     className="hover:bg-surface-variant/20 transition-all duration-200 group cursor-pointer"
                   >
                     <td className="px-6 sm:px-8 py-5">
-                      <span className="font-mono text-micro font-black text-text-secondary bg-surface border border-border/80 px-2.5 py-1.5 rounded-xl shadow-inner group-hover:border-primary/20 transition-all">
+                      <span className="font-mono text-micro font-black text-text-secondary bg-surface border border-border/80 px-2.5 py-1.5 rounded-sm shadow-inner group-hover:border-primary/20 transition-all">
                         {invoice.id}
                       </span>
                     </td>
                     <td className="px-6 sm:px-8 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 text-indigo-500 font-black text-xs flex items-center justify-center group-hover:scale-105 transition-all duration-300 shadow-sm border border-indigo-500/10">
+                        <div className="w-9 h-9 rounded-sm bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 text-indigo-500 font-black text-xs flex items-center justify-center group-hover:scale-105 transition-all duration-300 shadow-sm border border-indigo-500/10">
                           {invoice.company.substring(0, 2)}
                         </div>
                         <span className="font-bold text-text-primary group-hover:text-primary transition-colors">{invoice.company}</span>
@@ -827,7 +827,7 @@ const SubscriptionsPage = () => {
                     <td className="px-6 sm:px-8 py-5 text-xs font-bold text-text-secondary">{invoice.date}</td>
                     <td className="px-6 sm:px-8 py-5">
                       <span className={cn(
-                        "px-3 py-1.5 rounded-xl text-micro font-bold uppercase tracking-widest inline-flex items-center gap-1.5 border shadow-inner",
+                        "px-3 py-1.5 rounded-sm text-micro font-bold uppercase tracking-widest inline-flex items-center gap-1.5 border shadow-inner",
                         invoice.status === 'Paid' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
                         invoice.status === 'Overdue' ? "bg-rose-500/10 text-rose-500 border-rose-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                       )}>
@@ -842,7 +842,7 @@ const SubscriptionsPage = () => {
                     <td className="px-6 sm:px-8 py-5 text-right">
                       <button 
                         onClick={() => invoice.rawSub && handleOpenConfigure(invoice.rawSub)}
-                        className="p-2 bg-surface hover:bg-surface-variant border border-border/80 hover:border-border rounded-xl transition-all shadow-sm"
+                        className="p-2 bg-surface hover:bg-surface-variant border border-border/80 hover:border-border rounded-sm transition-all shadow-sm"
                       >
                         <ArrowRight size={16} className="text-text-secondary group-hover:text-primary transition-all group-hover:translate-x-0.5" />
                       </button>
@@ -869,7 +869,7 @@ const SubscriptionsPage = () => {
           {/* Plan badge */}
           {editingPlan && (
             <div className={cn(
-              "p-4 rounded-2xl border flex items-center gap-3",
+              "p-4 rounded-sm border flex items-center gap-3",
               editingPlan.name === 'Enterprise' ? "bg-indigo-500/10 border-indigo-500/20" :
               editingPlan.name === 'Pro' ? "bg-amber-500/10 border-amber-500/20" : "bg-emerald-500/10 border-emerald-500/20"
             )}>
@@ -902,7 +902,7 @@ const SubscriptionsPage = () => {
                   onChange={e => setEditMonthly(e.target.value)}
                   required
                   placeholder="e.g. 1200"
-                  className="w-full pl-8 pr-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-black text-text-primary tabular-nums"
+                  className="w-full pl-8 pr-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-black text-text-primary tabular-nums"
                 />
               </div>
               <p className="text-[10px] text-muted ml-1">Charged per company per month</p>
@@ -920,7 +920,7 @@ const SubscriptionsPage = () => {
                   onChange={e => setEditYearly(e.target.value)}
                   required
                   placeholder="e.g. 12000"
-                  className="w-full pl-8 pr-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-black text-text-primary tabular-nums"
+                  className="w-full pl-8 pr-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-black text-text-primary tabular-nums"
                 />
               </div>
               <p className="text-[10px] text-muted ml-1">Charged per company per year</p>
@@ -934,13 +934,13 @@ const SubscriptionsPage = () => {
               value={editSeats}
               onChange={e => setEditSeats(e.target.value)}
               placeholder="e.g. Up to 50 active seats"
-              className="w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold text-text-primary"
+              className="w-full px-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold text-text-primary"
             />
           </div>
 
           {/* Savings indicator */}
           {editMonthly && editYearly && (
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-sm">
               <p className="text-xs font-bold text-emerald-600">
                 💡 Yearly saves{' '}
                 <strong>
@@ -953,7 +953,7 @@ const SubscriptionsPage = () => {
           )}
 
           {priceSaveSuccess && (
-            <div className="p-4 bg-success/10 border border-success/20 rounded-2xl flex items-center gap-3">
+            <div className="p-4 bg-success/10 border border-success/20 rounded-sm flex items-center gap-3">
               <ShieldCheck className="text-success w-5 h-5 shrink-0" />
               <p className="text-xs font-bold text-success">{priceSaveSuccess}</p>
             </div>
@@ -963,14 +963,14 @@ const SubscriptionsPage = () => {
             <button
               type="button"
               onClick={() => { setIsPricingModalOpen(false); setEditingPlan(null); }}
-              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-surface border border-border transition-all"
+              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-sm hover:bg-surface border border-border transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSavingPrice}
-              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
+              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
             >
               {isSavingPrice ? (
                 <><Loader2 size={16} className="animate-spin" />Saving...</>
@@ -993,7 +993,7 @@ const SubscriptionsPage = () => {
       >
         <form onSubmit={handleSaveSubscription} className="space-y-6 p-2">
           {selectedSub ? (
-            <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl flex items-center gap-3">
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-sm flex items-center gap-3">
               <Building2 className="text-primary w-6 h-6 shrink-0" />
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-primary">Selected Company</p>
@@ -1008,7 +1008,7 @@ const SubscriptionsPage = () => {
                   const sub = subscriptions.find(s => s.id === e.target.value);
                   setSelectedSub(sub || null);
                 }}
-                className="w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold text-text-primary"
+                className="w-full px-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold text-text-primary"
                 defaultValue=""
               >
                 <option value="" disabled>Choose Company</option>
@@ -1025,7 +1025,7 @@ const SubscriptionsPage = () => {
               <select
                 value={modalPlan}
                 onChange={(e) => setModalPlan(e.target.value)}
-                className="w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold uppercase tracking-wider text-text-primary"
+                className="w-full px-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold uppercase tracking-wider text-text-primary"
               >
                 <option value="Basic">Basic Plan ({getPlanPrice('Basic', 'monthly')}/mo)</option>
                 <option value="Pro">Pro Plan ({getPlanPrice('Pro', 'monthly')}/mo)</option>
@@ -1038,7 +1038,7 @@ const SubscriptionsPage = () => {
               <select
                 value={modalCycle}
                 onChange={(e) => setModalCycle(e.target.value)}
-                className="w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold uppercase tracking-wider text-text-primary"
+                className="w-full px-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold uppercase tracking-wider text-text-primary"
               >
                 <option value="monthly">Monthly Recurring</option>
                 <option value="yearly">Yearly Commitment</option>
@@ -1051,7 +1051,7 @@ const SubscriptionsPage = () => {
             <select
               value={modalStatus}
               onChange={(e) => setModalStatus(e.target.value)}
-              className="w-full px-5 py-4 bg-surface-variant border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold uppercase tracking-wider text-text-primary"
+              className="w-full px-5 py-4 bg-surface-variant border-none rounded-sm outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold uppercase tracking-wider text-text-primary"
             >
               <option value="Paid">Paid (Current)</option>
               <option value="Pending">Pending Invoice</option>
@@ -1060,7 +1060,7 @@ const SubscriptionsPage = () => {
           </div>
 
           {modalStatus === 'Overdue' && (
-            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex gap-3 text-rose-500 items-start">
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-sm flex gap-3 text-rose-500 items-start">
               <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
               <p className="text-xs font-semibold leading-relaxed">
                 Marking a company's subscription status as <strong>Overdue</strong> may lock features or flag administrative attention cards in the dashboards.
@@ -1075,14 +1075,14 @@ const SubscriptionsPage = () => {
                 setIsModalOpen(false);
                 setSelectedSub(null);
               }}
-              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-surface border border-border transition-all"
+              className="flex-1 py-4 bg-surface-variant text-text-secondary text-xs font-black uppercase tracking-widest rounded-sm hover:bg-surface border border-border transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
+              className="flex-2 py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 px-8"
             >
               {isSubmitting ? (
                 <>

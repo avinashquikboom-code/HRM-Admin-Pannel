@@ -111,7 +111,7 @@ const AnalyticsPage = () => {
   if (isLoading) {
     return (
       <div className="space-y-8 pb-10">
-        <div className="h-20 w-1/3 bg-surface-variant rounded-2xl animate-pulse" />
+        <div className="h-20 w-1/3 bg-surface-variant rounded-sm animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="glass-card p-8 space-y-4">
@@ -185,7 +185,7 @@ const AnalyticsPage = () => {
                 <stat.icon size={64} />
               </div>
               <div className="flex items-center justify-between mb-4">
-                <div className={cn("p-3 rounded-2xl", `bg-${stat.color}/10 text-${stat.color}`)}>
+                <div className={cn("p-3 rounded-sm", `bg-${stat.color}/10 text-${stat.color}`)}>
                   <stat.icon size={22} />
                 </div>
                 <span className="text-xs font-black text-success bg-success/10 px-2.5 py-1 rounded-full">{stat.trend}</span>
@@ -211,7 +211,7 @@ const AnalyticsPage = () => {
                 <div className="w-2 h-2 rounded-full bg-primary" />
                 Active Seats
               </div>
-              <button className="p-3 bg-surface-variant rounded-xl text-muted hover:text-primary transition-colors"><Filter size={18} /></button>
+              <button className="p-3 bg-surface-variant rounded-sm text-muted hover:text-primary transition-colors"><Filter size={18} /></button>
             </div>
           </div>
           {analyticsData?.weeklyData && (
@@ -268,7 +268,7 @@ const AnalyticsPage = () => {
 
           <div className="space-y-4 mt-auto">
             {(analyticsData?.retentionData || []).map((item, index) => (
-              <div key={item.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-2xl border border-border/50 group hover:border-primary/20 transition-all">
+              <div key={item.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-sm border border-border/50 group hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
                   <span className="text-sm font-black text-text-primary">{item.name}</span>

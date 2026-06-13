@@ -21,7 +21,7 @@ const ModuleShell: React.FC<ModuleShellProps> = ({ title, description, icon: Ico
         animate={{ opacity: 1, scale: 1 }}
         className="glass-card p-12 flex flex-col items-center justify-center text-center min-h-[400px] border-dashed border-2"
       >
-        <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mb-6">
+        <div className="w-20 h-20 bg-primary/10 rounded-sm flex items-center justify-center text-primary mb-6">
           <Icon size={40} />
         </div>
         <h2 className="text-xl sm:text-lg font-semibold text-text-primary mb-2">{title} Module</h2>

@@ -379,14 +379,14 @@ export default function LeavePage() {
         <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
             onClick={() => handleDownloadLeaveReport()}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300"
           >
             <Download size={18} />
             Download All Report
           </button>
           <button 
             onClick={() => setIsApplyModalOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
+            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
           >
             <Plus size={18} />
             Apply Time-Off
@@ -395,7 +395,7 @@ export default function LeavePage() {
       </motion.div>
 
       {/* Tab Navigation Controls */}
-      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-2xl no-scrollbar max-w-3xl">
+      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-sm no-scrollbar max-w-3xl">
         {[
           { id: 'dashboard', label: 'Dashboard Overview', icon: BarChart3 },
           { id: 'requests', label: 'Request Logs', icon: FileText },
@@ -409,7 +409,7 @@ export default function LeavePage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
+                "flex items-center gap-2 px-5 py-3 rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
                 isSelected 
                   ? "bg-primary text-white shadow-lg shadow-primary/25 border-primary/30" 
                   : "text-slate-450 hover:text-white hover:bg-white/5"
@@ -446,7 +446,7 @@ export default function LeavePage() {
                 >
                   <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
                   <div 
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
+                    className={`w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
                     style={{ boxShadow: `0 8px 24px -6px ${stat.glow}` }}
                   >
                     <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
@@ -506,7 +506,7 @@ export default function LeavePage() {
 
                 <button 
                   onClick={() => setActiveTab('calendar')}
-                  className="w-full mt-6 py-3 border border-white/5 hover:border-primary/20 bg-slate-950/20 hover:bg-primary/10 rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white transition-all duration-300 cursor-pointer"
+                  className="w-full mt-6 py-3 border border-white/5 hover:border-primary/20 bg-slate-950/20 hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white transition-all duration-300 cursor-pointer"
                 >
                   View Complete Calendar
                 </button>
@@ -527,7 +527,7 @@ export default function LeavePage() {
             className="space-y-6"
           >
             {/* Filter and Search Hub */}
-            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-3xl shadow-2xl backdrop-blur-xl">
+            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-sm shadow-2xl backdrop-blur-xl">
               <div className="relative w-full xl:w-96 group">
                 <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
                 <input 
@@ -535,14 +535,14 @@ export default function LeavePage() {
                   placeholder="Search time-off justification..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
+                  className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                 <select 
                   value={filterType} 
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
                 >
                   <option value="All" className="bg-slate-900 text-white">All Leave Types</option>
                   <option value="Casual Leave" className="bg-slate-900 text-white">Casual Leave</option>
@@ -553,7 +553,7 @@ export default function LeavePage() {
                 <select 
                   value={filterStatus} 
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
                 >
                   <option value="All" className="bg-slate-900 text-white">All Statuses</option>
                   <option value="Pending" className="bg-slate-900 text-white">Pending Action</option>
@@ -563,7 +563,7 @@ export default function LeavePage() {
 
                 <button 
                   onClick={() => exportReport('excel')}
-                  className="flex items-center gap-2 px-5 py-3.5 bg-slate-900/50 hover:bg-slate-800 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer justify-center w-full sm:w-auto"
+                  className="flex items-center gap-2 px-5 py-3.5 bg-slate-900/50 hover:bg-slate-800 border border-white/5 rounded-sm text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer justify-center w-full sm:w-auto"
                 >
                   <Download size={14} />
                   Export Sheet
@@ -609,7 +609,7 @@ export default function LeavePage() {
                                 <span className="text-xs font-bold text-slate-400">{req.type}</span>
                               </td>
                               <td className="px-6 py-5 text-center">
-                                <span className="font-mono text-[10px] font-black text-slate-400 bg-slate-950/40 px-3 py-1.5 rounded-xl border border-white/5 shadow-sm">
+                                <span className="font-mono text-[10px] font-black text-slate-400 bg-slate-950/40 px-3 py-1.5 rounded-sm border border-white/5 shadow-sm">
                                   {req.startDate} to {req.endDate}
                                 </span>
                               </td>
@@ -621,7 +621,7 @@ export default function LeavePage() {
                               </td>
                               <td className="px-6 py-5">
                                 <span className={cn(
-                                  "px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
+                                  "px-3.5 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
                                   req.status === 'Approved' ? "bg-emerald-500/10 text-emerald-450 border-emerald-500/20" : 
                                   req.status === 'Rejected' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                 )}>
@@ -638,14 +638,14 @@ export default function LeavePage() {
                                   <div className="flex items-center justify-end gap-2">
                                     <button 
                                       onClick={() => openRemarksModal(req, 'approve')}
-                                      className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-xl text-emerald-400 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                      className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-emerald-400 transition-all shadow-sm active:scale-95 cursor-pointer"
                                       title="Approve time-off"
                                     >
                                       <Check size={16} />
                                     </button>
                                     <button 
                                       onClick={() => openRemarksModal(req, 'reject')}
-                                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 rounded-xl text-rose-400 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 rounded-sm text-rose-400 transition-all shadow-sm active:scale-95 cursor-pointer"
                                       title="Reject time-off"
                                     >
                                       <X size={16} />
@@ -685,7 +685,7 @@ export default function LeavePage() {
             className="space-y-6"
           >
             {/* Balance Options Panel */}
-            <div className="flex items-center justify-between gap-4 p-4.5 border border-white/5 bg-slate-900/40 rounded-3xl shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-4 p-4.5 border border-white/5 bg-slate-900/40 rounded-sm shadow-2xl backdrop-blur-xl">
               <div>
                 <h3 className="text-sm font-black text-white uppercase tracking-widest">Allowance Adjustment Operations</h3>
                 <p className="text-xs text-slate-450 mt-1 font-medium leading-relaxed">Modify individual employee allocation credits or standard parameters.</p>
@@ -693,14 +693,14 @@ export default function LeavePage() {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setIsBalanceAdjustOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-white/5 hover:border-primary/20 bg-slate-950/20 hover:bg-primary/10 rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-white/5 hover:border-primary/20 bg-slate-950/20 hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white transition-all cursor-pointer"
                 >
                   <Plus size={13} />
                   Adjust Credit
                 </button>
                 <button 
                   onClick={resetAllBalances}
-                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-rose-500/10 hover:border-rose-500/30 bg-slate-950/20 hover:bg-rose-500/10 rounded-2xl text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-350 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-rose-500/10 hover:border-rose-500/30 bg-slate-950/20 hover:bg-rose-500/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-350 transition-all cursor-pointer"
                 >
                   <Trash2 size={13} />
                   Reset Ledger
@@ -728,7 +728,7 @@ export default function LeavePage() {
                       <tr key={bal.employeeId} className="hover:bg-white/[0.02] transition-colors">
                         <td className="px-6 py-4.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-black text-xs border border-primary/20">
+                            <div className="w-9 h-9 rounded-sm bg-primary/20 text-primary flex items-center justify-center font-black text-xs border border-primary/20">
                               {bal.name.substring(0, 2).toUpperCase()}
                             </div>
                             <span className="font-bold text-white">{bal.name}</span>
@@ -747,7 +747,7 @@ export default function LeavePage() {
                         <td className="px-6 py-4.5 text-center">
                           <button
                             onClick={() => handleDownloadLeaveReport(bal.employeeId, bal.name)}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
                             title={`Download leave report for ${bal.name}`}
                           >
                             <Download size={13} />
@@ -776,7 +776,7 @@ export default function LeavePage() {
           >
             {/* Standard leave configurations list */}
             <div className="xl:col-span-2 space-y-5">
-              <div className="p-4 border border-white/5 bg-slate-900/40 rounded-3xl">
+              <div className="p-4 border border-white/5 bg-slate-900/40 rounded-sm">
                 <h3 className="text-xs font-black text-white uppercase tracking-widest">Active Time-Off Allocation Categories</h3>
                 <p className="text-[11px] text-slate-500 font-semibold mt-1">Configure baseline allowances for each active category tier.</p>
               </div>
@@ -790,7 +790,7 @@ export default function LeavePage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs text-white"
+                          className="w-10 h-10 rounded-sm flex items-center justify-center font-black text-xs text-white"
                           style={{ backgroundColor: type.color }}
                         >
                           {type.code}
@@ -813,7 +813,7 @@ export default function LeavePage() {
             {/* General Time-off settings panel */}
             <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6">
               <div className="flex items-center gap-3.5 pb-4 border-b border-white/5">
-                <div className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                <div className="w-12 h-12 rounded-sm bg-primary/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                   <Settings size={22} />
                 </div>
                 <div>
@@ -829,7 +829,7 @@ export default function LeavePage() {
                     type="number"
                     value={carryForwardDays}
                     onChange={(e) => setCarryForwardDays(Number(e.target.value))}
-                    className="w-full px-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none text-white transition-all text-xs"
+                    className="w-full px-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none text-white transition-all text-xs"
                   />
                   <span className="text-[9px] text-slate-500 block leading-relaxed">Max days allowed to carry over into next calendar cycle.</span>
                 </div>
@@ -840,7 +840,7 @@ export default function LeavePage() {
                     type="number"
                     value={maxLimits}
                     onChange={(e) => setMaxLimits(Number(e.target.value))}
-                    className="w-full px-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none text-white transition-all text-xs"
+                    className="w-full px-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none text-white transition-all text-xs"
                   />
                   <span className="text-[9px] text-slate-500 block leading-relaxed">Sets default validation checks on submission limits.</span>
                 </div>
@@ -848,7 +848,7 @@ export default function LeavePage() {
 
               <button 
                 onClick={() => alert('Global Policy parameters saved successfully')}
-                className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-2xl shadow-xl shadow-primary/20 transition-all duration-300 cursor-pointer"
+                className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/20 transition-all duration-300 cursor-pointer"
               >
                 Save Settings
               </button>
@@ -868,14 +868,14 @@ export default function LeavePage() {
             className="space-y-6"
           >
             {/* Date info hub */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border border-white/5 bg-slate-900/40 rounded-3xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border border-white/5 bg-slate-900/40 rounded-sm">
               <div>
                 <h3 className="text-md font-black text-white tracking-tight">May 2026</h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Corporate Holiday & Leaves Overview</p>
               </div>
               <div className="flex flex-wrap gap-2.5">
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-violet-400 bg-violet-500/10 px-2.5 py-1.5 rounded-xl border border-violet-500/20">Holiday</span>
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1.5 rounded-xl border border-primary/20">Approved Leave</span>
+                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-violet-400 bg-violet-500/10 px-2.5 py-1.5 rounded-sm border border-violet-500/20">Holiday</span>
+                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1.5 rounded-sm border border-primary/20">Approved Leave</span>
               </div>
             </div>
 
@@ -891,7 +891,7 @@ export default function LeavePage() {
                   <div 
                     key={idx}
                     className={cn(
-                      "min-h-[6.5rem] p-3 rounded-2xl border transition-all flex flex-col justify-between",
+                      "min-h-[6.5rem] p-3 rounded-sm border transition-all flex flex-col justify-between",
                       day.day === 0 ? "border-transparent bg-transparent select-none opacity-0" :
                       day.isHoliday ? "border-violet-500/30 bg-violet-500/5" :
                       hasLeave ? "border-primary/20 bg-primary/5" : "border-white/5 bg-slate-900/40 hover:border-white/10"
@@ -937,7 +937,7 @@ export default function LeavePage() {
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Provide a processing rationale or justification note..."
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-white transition-all placeholder:text-slate-650"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-white transition-all placeholder:text-slate-650"
             />
           </div>
 
@@ -945,14 +945,14 @@ export default function LeavePage() {
             <button 
               type="button" 
               onClick={() => setIsRemarksModalOpen(false)}
-              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
+              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-sm text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               className={cn(
-                "flex-1 py-4 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg cursor-pointer",
+                "flex-1 py-4 text-white rounded-sm text-xs font-black uppercase tracking-widest shadow-lg cursor-pointer",
                 remarksAction === 'approve' ? "bg-emerald-500 shadow-emerald-500/20 hover:bg-emerald-600" : "bg-rose-500 shadow-rose-500/20 hover:bg-rose-600"
               )}
             >
@@ -970,7 +970,7 @@ export default function LeavePage() {
             <select 
               value={adjustEmployee}
               onChange={(e) => setAdjustEmployee(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
             >
               {leaveBalances.map(bal => (
                 <option key={bal.employeeId} value={bal.name} className="bg-slate-900 text-white">{bal.name}</option>
@@ -983,7 +983,7 @@ export default function LeavePage() {
             <select 
               value={adjustType}
               onChange={(e) => setAdjustType(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
             >
               <option value="Casual" className="bg-slate-900 text-white">Casual Leave (CL)</option>
               <option value="Sick" className="bg-slate-900 text-white">Sick Leave (SL)</option>
@@ -999,7 +999,7 @@ export default function LeavePage() {
               value={adjustValue}
               onChange={(e) => setAdjustValue(Number(e.target.value))}
               required
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-white transition-all text-xs"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-white transition-all text-xs"
             />
           </div>
 
@@ -1007,13 +1007,13 @@ export default function LeavePage() {
             <button 
               type="button" 
               onClick={() => setIsBalanceAdjustOpen(false)}
-              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
+              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-sm text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="flex-1 btn-primary py-4 rounded-2xl shadow-lg shadow-primary/25 font-black uppercase tracking-wider text-xs cursor-pointer"
+              className="flex-1 btn-primary py-4 rounded-sm shadow-lg shadow-primary/25 font-black uppercase tracking-wider text-xs cursor-pointer"
             >
               Apply Delta Change
             </button>
@@ -1029,7 +1029,7 @@ export default function LeavePage() {
             <select 
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
             >
               {leaveBalances.map(bal => (
                 <option key={bal.employeeId} value={bal.name} className="bg-slate-900 text-white">{bal.name}</option>
@@ -1042,7 +1042,7 @@ export default function LeavePage() {
             <select 
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
             >
               <option value="Casual Leave" className="bg-slate-900 text-white">Casual Leave (CL)</option>
               <option value="Sick Leave" className="bg-slate-900 text-white">Sick Leave (SL)</option>
@@ -1059,7 +1059,7 @@ export default function LeavePage() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
-                className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-xs font-bold text-white transition-all"
+                className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white transition-all"
               />
             </div>
             <div className="space-y-2">
@@ -1069,7 +1069,7 @@ export default function LeavePage() {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 required
-                className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-xs font-bold text-white transition-all"
+                className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white transition-all"
               />
             </div>
           </div>
@@ -1082,7 +1082,7 @@ export default function LeavePage() {
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a detailed justification for the time-off..."
               required
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-2xl outline-none text-white transition-all placeholder:text-slate-650"
+              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-white transition-all placeholder:text-slate-650"
             />
           </div>
 
@@ -1090,13 +1090,13 @@ export default function LeavePage() {
             <button 
               type="button" 
               onClick={() => setIsApplyModalOpen(false)}
-              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
+              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-sm text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="flex-1 btn-primary py-4 rounded-2xl shadow-lg shadow-primary/25 font-black uppercase tracking-wider text-xs cursor-pointer"
+              className="flex-1 btn-primary py-4 rounded-sm shadow-lg shadow-primary/25 font-black uppercase tracking-wider text-xs cursor-pointer"
             >
               Submit Allocation
             </button>

@@ -34,7 +34,7 @@ export default function RecentSubscriptionsPanel({
   invoices,
 }: RecentSubscriptionsPanelProps) {
   return (
-    <div className="rounded-3xl border border-border/60 bg-surface shadow-sm flex flex-col">
+    <div className="rounded-sm border border-border/60 bg-surface shadow-sm flex flex-col">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3 bg-surface-variant/30">
         <div>
           <h3 className="heading-2">Recent billing</h3>
@@ -44,7 +44,7 @@ export default function RecentSubscriptionsPanel({
         </div>
         <Link
           href={`${SUPER_ADMIN_PREFIX}/subscriptions`}
-          className="inline-flex items-center gap-1 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/15 transition-colors shrink-0"
+          className="inline-flex items-center gap-1 rounded-sm bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/15 transition-colors shrink-0"
         >
           View all
           <ChevronRight size={14} />
@@ -124,9 +124,9 @@ export function SubscriptionAlertsCard({
   pendingCount: number;
 }) {
   return (
-    <div className="rounded-3xl border border-accent/25 bg-gradient-to-br from-accent/10 via-surface to-surface p-5 shadow-sm flex flex-col">
+    <div className="rounded-sm border border-accent/25 bg-gradient-to-br from-accent/10 via-surface to-surface p-5 shadow-sm flex flex-col">
       <div className="flex items-start gap-3">
-        <div className="rounded-2xl bg-accent/15 p-3 text-accent shrink-0">
+        <div className="rounded-sm bg-accent/15 p-3 text-accent shrink-0">
           <CreditCard size={20} />
         </div>
         <div>
@@ -147,7 +147,7 @@ export function SubscriptionAlertsCard({
       <Link
         href={`${SUPER_ADMIN_PREFIX}/subscriptions`}
         className={cn(
-          'mt-5 inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all',
+          'mt-5 inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-sm font-semibold transition-all',
           pendingCount > 0
             ? 'bg-accent text-secondary hover:opacity-90'
             : 'bg-surface-variant text-text-secondary hover:text-primary'
@@ -177,7 +177,7 @@ export function PlanMixCard({ plans }: { plans?: PlanMixDataPoint[] }) {
   const activePlans = plans && plans.length > 0 ? plans : defaultPlans;
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-surface p-5 shadow-sm">
+    <div className="rounded-sm border border-border/60 bg-surface p-5 shadow-sm">
       <h3 className="heading-2">Plan mix</h3>
       <p className="text-xs text-text-secondary mt-1 mb-5">
         Active subscription tiers on the platform

@@ -17,7 +17,7 @@ export default function SettingsToggle({
   onChange,
 }: SettingsToggleProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-surface-variant/30 px-4 py-4">
+    <div className="flex items-center justify-between gap-4 rounded-sm border border-border/60 bg-surface-variant/30 px-4 py-4">
       <div className="min-w-0">
         <p className="text-sm font-semibold text-text-primary">{title}</p>
         <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">

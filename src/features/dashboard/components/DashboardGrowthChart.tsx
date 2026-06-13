@@ -29,7 +29,7 @@ export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps
   const latest = chartData[chartData.length - 1];
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-surface p-5 sm:p-6 flex flex-col shadow-sm">
+    <div className="rounded-sm border border-border/60 bg-surface p-5 sm:p-6 flex flex-col shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
           <h3 className="heading-2">Platform growth</h3>
@@ -38,7 +38,7 @@ export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="rounded-2xl bg-primary/10 px-4 py-2 text-center min-w-[88px]">
+          <div className="rounded-sm bg-primary/10 px-4 py-2 text-center min-w-[88px]">
             <p className="text-[10px] font-bold uppercase tracking-wide text-primary">
               Seats
             </p>
@@ -46,7 +46,7 @@ export default function DashboardGrowthChart({ data }: DashboardGrowthChartProps
               {latest.seats.toLocaleString()}
             </p>
           </div>
-          <div className="rounded-2xl bg-accent/10 px-4 py-2 text-center min-w-[88px]">
+          <div className="rounded-sm bg-accent/10 px-4 py-2 text-center min-w-[88px]">
             <p className="text-[10px] font-bold uppercase tracking-wide text-accent">
               Companies
             </p>

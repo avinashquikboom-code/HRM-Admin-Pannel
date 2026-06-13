@@ -79,7 +79,7 @@ export default function SuperAdminHeader({
         {stats && (
           <div className="grid grid-cols-2 gap-3">
             {stats.map((item) => (
-              <div key={item.label} className="rounded-3xl border border-border/50 bg-surface/70 p-4 shadow-sm backdrop-blur-xl">
+              <div key={item.label} className="rounded-sm border border-border/50 bg-surface/70 p-4 shadow-sm backdrop-blur-xl">
                 <item.icon size={20} className="mb-4 text-primary" />
                 <p className="text-2xl font-black text-text-primary tracking-tight">{item.value}</p>
                 <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-text-secondary">{item.label}</p>

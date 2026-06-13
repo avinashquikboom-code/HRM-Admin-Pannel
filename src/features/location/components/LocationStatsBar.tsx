@@ -73,7 +73,7 @@ export default function LocationStatsBar({
         >
           <div
             className={cn(
-              'p-3 rounded-2xl shrink-0',
+              'p-3 rounded-sm shrink-0',
               toneStyles[stat.tone]
             )}
           >

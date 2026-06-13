@@ -166,7 +166,7 @@ export default function ManageUserPermissionsModal({
           {/* Header */}
           <div className="flex items-start justify-between p-6 sm:p-8 border-b border-white/5">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-black text-sm shrink-0 border border-primary/30" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
+              <div className="w-12 h-12 rounded-sm bg-primary/20 text-primary flex items-center justify-center font-black text-sm shrink-0 border border-primary/30" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                 {user.name.split(' ').map((n) => n[0]).join('')}
               </div>
               <div className="min-w-0">
@@ -187,7 +187,7 @@ export default function ManageUserPermissionsModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+              className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-sm transition-all cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -195,7 +195,7 @@ export default function ManageUserPermissionsModal({
 
           {/* Body */}
           <div className="flex-1 p-6 sm:p-8 overflow-y-auto space-y-6">
-            <div className="rounded-2xl bg-slate-950/20 border border-white/5 p-5 space-y-4">
+            <div className="rounded-sm bg-slate-950/20 border border-white/5 p-5 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h4 className="text-sm font-bold text-white">
@@ -209,7 +209,7 @@ export default function ManageUserPermissionsModal({
                   <button
                     type="button"
                     onClick={selectAll}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
                     <CheckSquare size={13} />
                     All
@@ -217,7 +217,7 @@ export default function ManageUserPermissionsModal({
                   <button
                     type="button"
                     onClick={clearAll}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
                   >
                     <Square size={13} />
                     None
@@ -225,7 +225,7 @@ export default function ManageUserPermissionsModal({
                   <button
                     type="button"
                     onClick={resetDefaults}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-450 hover:text-white transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-slate-900/50 border border-white/5 hover:border-primary/20 text-xs font-bold text-slate-450 hover:text-white transition-all cursor-pointer"
                   >
                     <RotateCcw size={13} />
                     Defaults
@@ -263,7 +263,7 @@ export default function ManageUserPermissionsModal({
                         <label
                           key={module.id}
                           className={cn(
-                            'flex items-start gap-4.5 p-4 rounded-2xl border cursor-pointer transition-all group',
+                            'flex items-start gap-4.5 p-4 rounded-sm border cursor-pointer transition-all group',
                             checked
                               ? 'border-primary/25 bg-primary/5 text-primary shadow-[0_8px_20px_-6px_rgba(59,163,139,0.15)]'
                               : 'border-white/5 bg-slate-950/30 hover:border-white/10 hover:bg-slate-950/50'
@@ -303,14 +303,14 @@ export default function ManageUserPermissionsModal({
             <button
               onClick={onClose}
               disabled={isSaving}
-              className="btn-secondary bg-white/5 hover:bg-white/10 border border-white/5 py-3 px-5 text-sm rounded-xl font-bold disabled:opacity-50 cursor-pointer"
+              className="btn-secondary bg-white/5 hover:bg-white/10 border border-white/5 py-3 px-5 text-sm rounded-sm font-bold disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving || isLoading}
-              className="btn-primary shadow-lg shadow-primary/20 py-3 px-6 text-sm rounded-xl font-black uppercase tracking-wider disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+              className="btn-primary shadow-lg shadow-primary/20 py-3 px-6 text-sm rounded-sm font-black uppercase tracking-wider disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               {isSaving ? (
                 <>

@@ -27,10 +27,10 @@ export default function LoginLocationBanner() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3"
+          className="mb-4 flex items-center justify-between gap-4 rounded-sm border border-primary/20 bg-primary/5 px-4 py-3"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
               <MapPin size={18} />
             </div>
             <div className="min-w-0">

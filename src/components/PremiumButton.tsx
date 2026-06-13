@@ -21,7 +21,7 @@ export default function PremiumButton({
   className = '',
 }: PremiumButtonProps) {
   const baseClasses =
-    'flex items-center justify-center gap-2 px-6 py-3 rounded-2xl transition-all duration-200 font-medium text-sm';
+    'flex items-center justify-center gap-2 px-6 py-3 rounded-sm transition-all duration-200 font-medium text-sm';
   const variantClasses =
     variant === 'primary'
       ? 'bg-gradient-to-r from-primary/80 to-primary-light text-white hover:from-primary-dark hover:to-primary'

@@ -107,19 +107,19 @@ const EmployeesPage = () => {
         <button
             type="button"
             onClick={() => refetch()}
-            className="p-4 bg-slate-900/50 hover:bg-slate-800 text-slate-350 hover:text-white rounded-2xl border border-white/5 transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="p-4 bg-slate-900/50 hover:bg-slate-800 text-slate-350 hover:text-white rounded-sm border border-white/5 transition-all shadow-sm active:scale-95 cursor-pointer"
             title="Refresh employees list"
           >
             <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
           </button>
-          <Link href="/users/register" className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center">
+          <Link href="/users/register" className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center">
             <UserPlus size={18} />
             Register User
           </Link>
       </SuperAdminHeader>
 
       {error && (
-        <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+        <div className="rounded-sm bg-rose-500/10 border border-rose-500/20 px-4.5 py-3.5 text-xs font-semibold text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
           <span>{error}</span>
           <button
             type="button"
@@ -145,7 +145,7 @@ const EmployeesPage = () => {
           >
             <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div 
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
+              className={`w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
               style={{ boxShadow: `0 8px 24px -6px ${stat.glow}` }}
             >
               <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
@@ -158,7 +158,7 @@ const EmployeesPage = () => {
         ))}
       </div>
 
-      <motion.div variants={itemVariants} className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-3xl shadow-2xl backdrop-blur-xl">
+      <motion.div variants={itemVariants} className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-sm shadow-2xl backdrop-blur-xl">
         <div className="relative w-full xl:w-96 group">
           <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
           <input 
@@ -166,7 +166,7 @@ const EmployeesPage = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, email, role..." 
-            className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-2xl outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
+            className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
           />
         </div>
       </motion.div>
@@ -189,7 +189,7 @@ const EmployeesPage = () => {
                 <div key={employee.id} className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-5 space-y-4 shadow-2xl backdrop-blur-xl">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-black text-primary border border-primary/20 shrink-0" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
+                      <div className="w-11 h-11 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-black text-primary border border-primary/20 shrink-0" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                         {initials}
                       </div>
                       <div className="min-w-0">
@@ -199,16 +199,16 @@ const EmployeesPage = () => {
                         </p>
                       </div>
                     </div>
-                    <button className="p-2 hover:bg-slate-950 rounded-xl text-slate-400 shrink-0 cursor-pointer">
+                    <button className="p-2 hover:bg-slate-950 rounded-sm text-slate-400 shrink-0 cursor-pointer">
                       <MoreVertical size={18} />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="bg-slate-950/30 rounded-2xl p-3 border border-white/5">
+                    <div className="bg-slate-950/30 rounded-sm p-3 border border-white/5">
                       <p className="text-slate-500 uppercase tracking-widest text-[9px] font-black">Office</p>
                       <p className="font-bold text-white mt-1.5 truncate">{employee.office?.name ?? 'Unassigned'}</p>
                     </div>
-                    <div className="bg-slate-950/30 rounded-2xl p-3 border border-white/5">
+                    <div className="bg-slate-950/30 rounded-sm p-3 border border-white/5">
                       <p className="text-slate-500 uppercase tracking-widest text-[9px] font-black">Role</p>
                       <p className="font-bold text-white mt-1.5 truncate">{employee.designation ?? '—'}</p>
                     </div>
@@ -216,7 +216,7 @@ const EmployeesPage = () => {
                   <div className="flex items-center justify-between gap-3 pt-2">
                     <span className="text-xs text-slate-400 font-semibold truncate">{employee.department?.name ?? 'No department'}</span>
                     <span className={cn(
-                      "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 border inline-flex items-center gap-1.5",
+                      "px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider shrink-0 border inline-flex items-center gap-1.5",
                       statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20' :
                       statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                     )}>
@@ -236,7 +236,7 @@ const EmployeesPage = () => {
               No employees found.
             </div>
           )}
-          <div className="p-4.5 bg-slate-950/20 rounded-2xl border border-white/5 text-xs text-slate-400 font-semibold text-center">
+          <div className="p-4.5 bg-slate-950/20 rounded-sm border border-white/5 text-xs text-slate-400 font-semibold text-center">
             Showing <span className="text-white font-bold">{filteredEmployees.length}</span> of{' '}
             <span className="text-white font-bold">{employees.length}</span> employees
           </div>
@@ -271,7 +271,7 @@ const EmployeesPage = () => {
                       >
                         <td className="px-6 py-4.5">
                           <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-black text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
+                            <div className="w-11 h-11 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-black text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform" style={{ boxShadow: '0 4px 12px -3px rgba(59,163,139,0.2)' }}>
                               {initials}
                             </div>
                             <div>
@@ -299,7 +299,7 @@ const EmployeesPage = () => {
                         </td>
                         <td className="px-6 py-4.5">
                           <span className={cn(
-                            "px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border",
+                            "px-3.5 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border",
                             statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20' : 
                             statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                           )}>
@@ -312,7 +312,7 @@ const EmployeesPage = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4.5 text-right">
-                          <button className="p-2.5 hover:bg-slate-900 rounded-xl text-slate-400 hover:text-white transition-all duration-300 shadow-sm border border-white/5 active:scale-95 cursor-pointer">
+                          <button className="p-2.5 hover:bg-slate-900 rounded-sm text-slate-400 hover:text-white transition-all duration-300 shadow-sm border border-white/5 active:scale-95 cursor-pointer">
                             <MoreVertical size={18} />
                           </button>
                         </td>

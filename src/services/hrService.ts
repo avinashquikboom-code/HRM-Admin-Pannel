@@ -249,7 +249,7 @@ export async function downloadHRLeaveReport(params?: {
 }): Promise<void> {
   try {
     const token = getAuthToken('super_admin');
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
     const queryParams = new URLSearchParams();
     
     if (params?.employeeId) queryParams.append('employeeId', params.employeeId);
@@ -271,7 +271,7 @@ export async function downloadHRAttendanceReport(params?: {
 }): Promise<void> {
   try {
     const token = getAuthToken('super_admin');
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
     const queryParams = new URLSearchParams();
     
     if (params?.startDate) queryParams.append('startDate', params.startDate);

@@ -66,7 +66,7 @@ export default function SecuritySettingsPanel({
         ].map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-border/60 bg-surface-variant/25 p-4"
+            className="rounded-sm border border-border/60 bg-surface-variant/25 p-4"
           >
             <item.icon size={16} className="text-primary mb-2" />
             <p className="text-[10px] font-bold uppercase tracking-wide text-muted">

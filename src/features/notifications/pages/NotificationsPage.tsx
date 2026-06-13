@@ -156,7 +156,7 @@ const NotificationsPage = () => {
             onClick={handleMarkAllAsRead}
             disabled={unreadCount === 0}
             className={cn(
-              "text-sm font-bold px-4 py-2 rounded-xl transition-colors",
+              "text-sm font-bold px-4 py-2 rounded-sm transition-colors",
               unreadCount > 0 
                 ? "text-primary hover:bg-primary/5" 
                 : "text-muted cursor-not-allowed"
@@ -166,7 +166,7 @@ const NotificationsPage = () => {
           </button>
           <button 
             onClick={loadNotifications}
-            className="p-2.5 bg-surface-variant text-muted hover:text-primary rounded-xl transition-colors"
+            className="p-2.5 bg-surface-variant text-muted hover:text-primary rounded-sm transition-colors"
             title="Refresh notifications"
           >
             <RefreshCw size={20} className={cn(isLoading && 'animate-spin')} />
@@ -181,7 +181,7 @@ const NotificationsPage = () => {
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             className={cn(
-              "px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all",
+              "px-6 py-2.5 rounded-sm text-sm font-bold whitespace-nowrap transition-all",
               selectedCategory === cat 
                 ? "bg-primary text-white shadow-lg shadow-primary/20" 
                 : "bg-surface border border-border text-text-secondary hover:border-primary/30 font-medium"
@@ -199,7 +199,7 @@ const NotificationsPage = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm mb-4"
+            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-emerald-400 text-sm mb-4"
           >
             <div className="flex items-center gap-3">
               <CheckCircle2 size={18} className="text-emerald-400" />
@@ -255,7 +255,7 @@ const NotificationsPage = () => {
                   onClick={() => handleNotificationClick(notif)}
                 >
                   <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+                    "w-12 h-12 rounded-sm flex items-center justify-center shrink-0",
                     notif.type === 'success' && "bg-emerald-500/10 text-emerald-500",
                     notif.type === 'error' && "bg-rose-500/10 text-rose-500",
                     notif.type === 'warning' && "bg-amber-500/10 text-amber-500",
@@ -302,7 +302,7 @@ const NotificationsPage = () => {
               {selectedCategory !== 'All' && (
                 <button 
                   onClick={() => setSelectedCategory('All')}
-                  className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black hover:bg-primary/90 transition-colors"
+                  className="mt-4 px-4 py-2 bg-primary text-white rounded-sm text-xs font-black hover:bg-primary/90 transition-colors"
                 >
                   View All Notifications
                 </button>

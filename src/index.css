@@ -153,7 +153,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-surface/70 dark:bg-surface/50 backdrop-blur-lg border border-border/50 dark:border-border/30 rounded-2xl sm:rounded-3xl shadow-premium;
+    @apply bg-surface/70 dark:bg-surface/50 backdrop-blur-lg border border-border/50 dark:border-border/30 rounded-sm sm:rounded shadow-premium;
     background-color: var(--card-bg-light);
     border-color: var(--card-border-light);
     box-shadow: var(--card-shadow-light);
@@ -166,7 +166,7 @@
   }
 
   .card-dark {
-    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border rounded-2xl sm:rounded-3xl shadow-light dark:shadow-premium;
+    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border rounded-sm sm:rounded shadow-light dark:shadow-premium;
     background-color: var(--card-bg-light);
     border-color: var(--card-border-light);
     box-shadow: var(--card-shadow-light);
@@ -179,7 +179,7 @@
   }
 
   .card-dark-hover {
-    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border hover:border-border/60 rounded-2xl sm:rounded-3xl shadow-light dark:shadow-premium transition-all duration-300;
+    @apply bg-surface-variant dark:bg-surface-variant/60 border border-border hover:border-border/60 rounded-sm sm:rounded shadow-light dark:shadow-premium transition-all duration-300;
     background-color: var(--card-bg-light);
     border-color: var(--card-border-light);
     box-shadow: var(--card-shadow-light);
@@ -204,15 +204,15 @@
   }
 
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white px-4 py-2 text-xs sm:text-sm rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer shadow-lg shadow-primary/20;
+    @apply bg-primary hover:bg-primary-dark text-white px-4 py-2 text-xs sm:text-sm rounded-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer shadow-lg shadow-primary/20;
   }
 
   .btn-secondary {
-    @apply bg-secondary hover:opacity-90 text-white px-4 py-2 text-xs sm:text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer;
+    @apply bg-secondary hover:opacity-90 text-white px-4 py-2 text-xs sm:text-sm rounded-sm transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer;
   }
 
   .input-field {
-    @apply w-full rounded-2xl px-4 py-2.5 text-sm focus:outline-none transition-all duration-300;
+    @apply w-full rounded-sm px-4 py-2.5 text-sm focus:outline-none transition-all duration-300;
     background-color: #FFFFFF;
     border: 1px solid #CBD5E1;
     color: #0F172A;
@@ -235,7 +235,7 @@
   }
 
   .input-dark {
-    @apply w-full rounded-2xl px-4 py-3.5 text-xs font-semibold outline-none transition-all duration-300;
+    @apply w-full rounded-sm px-4 py-3.5 text-xs font-semibold outline-none transition-all duration-300;
     background-color: #F8FAFC;
     border: 1px solid #E2E8F0;
     color: #0F172A;
@@ -265,7 +265,7 @@
   }
 
   .page-header {
-    @apply bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-2xl sm:rounded-3xl shadow-light dark:shadow-premium;
+    @apply bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded shadow-light dark:shadow-premium;
     background-color: #FFFFFF;
     border-color: #E2E8F0;
     color: #0F172A;
@@ -279,7 +279,7 @@
   }
 
   .page-header-dark {
-    @apply dark:bg-slate-900/40 dark:border-white/5 bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-2xl sm:rounded-3xl shadow-light dark:shadow-premium;
+    @apply dark:bg-slate-900/40 dark:border-white/5 bg-[var(--header-bg)] text-[var(--header-text)] border border-border/50 rounded-sm sm:rounded shadow-light dark:shadow-premium;
     background-color: #F8FAFC;
     border-color: #E2E8F0;
     color: #0F172A;

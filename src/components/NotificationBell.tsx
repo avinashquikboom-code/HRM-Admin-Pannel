@@ -73,7 +73,7 @@ export default function NotificationBell() {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary transition-colors"
+        className="relative p-2.5 rounded-sm hover:bg-surface-variant text-text-secondary transition-colors"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -111,7 +111,7 @@ export default function NotificationBell() {
                   <div 
                     key={notif.id}
                     onClick={() => !notif.isRead && markAsRead(notif.id)}
-                    className={`p-3 rounded-2xl cursor-pointer transition-colors ${notif.isRead ? 'hover:bg-surface-variant/50 opacity-70' : 'bg-primary/5 hover:bg-primary/10'}`}
+                    className={`p-3 rounded-sm cursor-pointer transition-colors ${notif.isRead ? 'hover:bg-surface-variant/50 opacity-70' : 'bg-primary/5 hover:bg-primary/10'}`}
                   >
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="text-sm font-bold text-text-primary pr-2">{notif.title}</h4>

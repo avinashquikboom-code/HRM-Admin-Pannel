@@ -45,7 +45,7 @@ export default function DashboardActivityFeed({
   items,
 }: DashboardActivityFeedProps) {
   return (
-    <div className="rounded-3xl border border-border/60 bg-surface flex flex-col min-h-[360px] shadow-sm">
+    <div className="rounded-sm border border-border/60 bg-surface flex flex-col min-h-[360px] shadow-sm">
       <div className="px-5 py-4 border-b border-border bg-surface-variant/30 shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -83,7 +83,7 @@ export default function DashboardActivityFeed({
 
                 <div
                   className={cn(
-                    'min-w-0 flex-1 rounded-2xl border p-4',
+                    'min-w-0 flex-1 rounded-sm border p-4',
                     typeStyles[item.type]
                   )}
                 >

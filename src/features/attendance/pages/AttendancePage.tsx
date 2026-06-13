@@ -109,7 +109,7 @@ const MiniCalendar = () => {
           <div 
             key={d} 
             className={cn(
-              "h-8 flex items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer",
+              "h-8 flex items-center justify-center rounded-sm text-xs font-bold transition-all cursor-pointer",
               d === today ? "bg-primary text-white shadow-lg shadow-primary/20" : "hover:bg-surface-variant text-text-secondary",
               [1, 15, 28].includes(d) && d !== today && "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-accent after:rounded-full"
             )}
@@ -291,7 +291,7 @@ const AttendancePage = () => {
       >
         <button 
             onClick={() => handleDownloadAttendanceReport()}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3"
           >
             <Download size={18} />
             Download Monthly Report
@@ -299,14 +299,14 @@ const AttendancePage = () => {
         <button 
             onClick={handleLoadComprehensiveReport}
             disabled={isLoadingReport}
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-xl shadow-purple-600/20 hover:shadow-purple-600/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3 disabled:opacity-50"
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-xl shadow-purple-600/20 hover:shadow-purple-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3 disabled:opacity-50"
           >
             <Activity size={18} />
             {isLoadingReport ? 'Loading...' : 'Comprehensive Report'}
         </button>
         <button 
             onClick={() => setIsHolidaysOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-2xl text-xs font-black uppercase tracking-wider justify-center"
+            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
           >
             <Calendar size={18} />
             Holidays Config
@@ -330,13 +330,13 @@ const AttendancePage = () => {
             
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div className={cn(
-                "p-3.5 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
+                "p-3.5 rounded-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
                 `bg-${stat.color}/10 text-${stat.color}`
               )}>
                 <stat.icon size={22} />
               </div>
               <span className={cn(
-                "text-micro font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider border shadow-sm",
+                "text-micro font-black px-2.5 py-1.5 rounded-sm uppercase tracking-wider border shadow-sm",
                 stat.trend.startsWith('+') ? "bg-success/10 text-success border-success/10" : "bg-error/10 text-error border-error/10"
               )}>
                 {stat.trend}
@@ -395,7 +395,7 @@ const AttendancePage = () => {
           
           <div className="mt-8 space-y-3 relative z-10">
             {distribution.map((item: { name: string; value: number; color: string }) => (
-              <div key={item.name} className="flex items-center justify-between p-3 rounded-2xl hover:bg-surface-variant transition-colors border border-transparent hover:border-border shadow-sm">
+              <div key={item.name} className="flex items-center justify-between p-3 rounded-sm hover:bg-surface-variant transition-colors border border-transparent hover:border-border shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
                   <span className="text-sm font-bold text-text-primary">{item.name}</span>
@@ -419,7 +419,7 @@ const AttendancePage = () => {
               <h3 className="heading-2">Peak Check-in Activity</h3>
               <p className="text-sm text-page-desc mt-1">Hourly density of employee arrivals across the platform</p>
             </div>
-            <div className="flex items-center gap-4 text-label bg-surface-variant p-2.5 rounded-xl border border-border/50 shadow-sm">
+            <div className="flex items-center gap-4 text-label bg-surface-variant p-2.5 rounded-sm border border-border/50 shadow-sm">
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /> On-time</span>
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-accent" /> Late</span>
             </div>
@@ -468,7 +468,7 @@ const AttendancePage = () => {
       </div>
 
       {error && (
-        <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <span>{error}</span>
           <button
             type="button"
@@ -484,7 +484,7 @@ const AttendancePage = () => {
       <motion.div variants={itemVariants} className="glass-card overflow-hidden">
         <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center animate-pulse shadow-sm">
+            <div className="w-12 h-12 rounded-sm bg-primary/10 text-primary flex items-center justify-center animate-pulse shadow-sm">
               <Activity size={24} />
             </div>
             <div>
@@ -500,10 +500,10 @@ const AttendancePage = () => {
                 placeholder="Search employees..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 pr-4 py-3 bg-surface-variant border-none rounded-2xl text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-64 font-bold text-text-primary"
+                className="pl-11 pr-4 py-3 bg-surface-variant border-none rounded-sm text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-64 font-bold text-text-primary"
               />
             </div>
-            <button className="p-3 bg-surface-variant hover:bg-border/50 rounded-2xl text-text-secondary transition-all active:scale-95 border border-border/50 shadow-sm">
+            <button className="p-3 bg-surface-variant hover:bg-border/50 rounded-sm text-text-secondary transition-all active:scale-95 border border-border/50 shadow-sm">
               <Filter size={20} />
             </button>
           </div>
@@ -569,7 +569,7 @@ const AttendancePage = () => {
                     </td>
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
                       {record.isOnBreak ? (
-                        <span className="px-2.5 py-1 bg-amber-500/15 text-amber-500 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
+                        <span className="px-2.5 py-1 bg-amber-500/15 text-amber-500 border border-amber-500/20 rounded-sm text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-ping" />
                           On Break
                         </span>
@@ -583,7 +583,7 @@ const AttendancePage = () => {
                     </td>
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
                       <span className={cn(
-                        "px-4 py-1.5 rounded-xl text-label inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
+                        "px-4 py-1.5 rounded-sm text-label inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
                         statusLabel === 'On-time' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
                       )}>
                         {statusLabel === 'On-time' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
@@ -593,7 +593,7 @@ const AttendancePage = () => {
                     <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-center">
                       <button
                         onClick={() => handleDownloadAttendanceReport(record.employee.id, employeeName)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
                         title={`Download attendance report for ${employeeName}`}
                       >
                         <Download size={13} />
@@ -629,7 +629,7 @@ const AttendancePage = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">Upcoming Holidays</h4>
-              <button className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all"><Plus size={18} /></button>
+              <button className="p-2 bg-primary/10 text-primary rounded-sm hover:bg-primary/20 transition-all"><Plus size={18} /></button>
             </div>
             <div className="space-y-4">
               {[
@@ -637,7 +637,7 @@ const AttendancePage = () => {
                 { name: 'Infrastructure Maintenance', date: '15 May 2024', color: 'accent' },
                 { name: 'System Performance Audit', date: '28 May 2024', color: 'warning' },
               ].map((holiday) => (
-                <div key={holiday.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-2xl border border-border/50 group hover:border-primary/30 transition-all cursor-default shadow-sm">
+                <div key={holiday.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-sm border border-border/50 group hover:border-primary/30 transition-all cursor-default shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className={cn("w-2 h-10 rounded-full", `bg-${holiday.color}`)} />
                     <div>
@@ -649,7 +649,7 @@ const AttendancePage = () => {
                 </div>
               ))}
             </div>
-            <button className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-2">
+            <button className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-2">
               <ShieldCheck size={18} />
               Save Protocol Changes
             </button>
@@ -666,7 +666,7 @@ const AttendancePage = () => {
         {selectedEmployee && (
           <div className="space-y-4">
             {/* Employee Info */}
-            <div className="p-4 bg-surface-variant/50 rounded-xl">
+            <div className="p-4 bg-surface-variant/50 rounded-sm">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
                   {selectedEmployee.firstName[0]}{selectedEmployee.lastName[0]}
@@ -691,7 +691,7 @@ const AttendancePage = () => {
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {employeeAttendance.map((att: any) => (
-                    <div key={att.id} className="p-3 bg-surface-variant/30 rounded-xl">
+                    <div key={att.id} className="p-3 bg-surface-variant/30 rounded-sm">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-semibold">{att.date}</span>
                         <span className={`text-xs font-bold px-2 py-1 rounded ${
@@ -728,7 +728,7 @@ const AttendancePage = () => {
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {employeeLeaves.map((leave: any) => (
-                    <div key={leave.id} className="p-3 bg-surface-variant/30 rounded-xl">
+                    <div key={leave.id} className="p-3 bg-surface-variant/30 rounded-sm">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-semibold">{leave.type}</span>
                         <span className={`text-xs font-bold px-2 py-1 rounded ${
@@ -752,7 +752,7 @@ const AttendancePage = () => {
             {/* Download Report Button */}
             <button
               onClick={() => handleDownloadAttendanceReport(selectedEmployee.id, `${selectedEmployee.firstName} ${selectedEmployee.lastName}`)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-sm font-semibold hover:bg-primary-dark transition-colors"
             >
               <Download size={16} />
               Download Attendance Report
@@ -771,12 +771,12 @@ const AttendancePage = () => {
         {comprehensiveReport && (
           <div className="space-y-6">
             {/* Period Selector */}
-            <div className="flex items-center gap-4 p-4 bg-surface-variant/50 rounded-2xl">
+            <div className="flex items-center gap-4 p-4 bg-surface-variant/50 rounded-sm">
               <label className="text-sm font-bold text-text-primary">Month:</label>
               <select
                 value={reportMonth}
                 onChange={(e) => setReportMonth(parseInt(e.target.value))}
-                className="px-4 py-2 bg-surface rounded-xl border border-border/50 text-sm font-bold"
+                className="px-4 py-2 bg-surface rounded-sm border border-border/50 text-sm font-bold"
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
                   <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
@@ -786,7 +786,7 @@ const AttendancePage = () => {
               <select
                 value={reportYear}
                 onChange={(e) => setReportYear(parseInt(e.target.value))}
-                className="px-4 py-2 bg-surface rounded-xl border border-border/50 text-sm font-bold"
+                className="px-4 py-2 bg-surface rounded-sm border border-border/50 text-sm font-bold"
               >
                 {[2023, 2024, 2025, 2026].map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -794,13 +794,13 @@ const AttendancePage = () => {
               </select>
               <button
                 onClick={handleLoadComprehensiveReport}
-                className="px-4 py-2 bg-primary text-white text-xs font-bold uppercase rounded-xl hover:bg-primary-dark transition-all"
+                className="px-4 py-2 bg-primary text-white text-xs font-bold uppercase rounded-sm hover:bg-primary-dark transition-all"
               >
                 Load Report
               </button>
               <button
                 onClick={handleDownloadComprehensiveReport}
-                className="px-4 py-2 bg-secondary text-white text-xs font-bold uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-secondary text-white text-xs font-bold uppercase rounded-sm hover:opacity-90 transition-all flex items-center gap-2"
               >
                 <Download size={14} />
                 Download PDF
@@ -809,19 +809,19 @@ const AttendancePage = () => {
 
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-green-500/10 rounded-2xl border border-green-500/20">
+              <div className="p-4 bg-green-500/10 rounded-sm border border-green-500/20">
                 <p className="text-xs font-bold text-green-500 uppercase">Full Days</p>
                 <p className="text-2xl font-black text-green-500">{comprehensiveReport.summary.fullDays}</p>
               </div>
-              <div className="p-4 bg-orange-500/10 rounded-2xl border border-orange-500/20">
+              <div className="p-4 bg-orange-500/10 rounded-sm border border-orange-500/20">
                 <p className="text-xs font-bold text-orange-500 uppercase">Half Days</p>
                 <p className="text-2xl font-black text-orange-500">{comprehensiveReport.summary.halfDays}</p>
               </div>
-              <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+              <div className="p-4 bg-red-500/10 rounded-sm border border-red-500/20">
                 <p className="text-xs font-bold text-red-500 uppercase">Absent</p>
                 <p className="text-2xl font-black text-red-500">{comprehensiveReport.summary.absentDays}</p>
               </div>
-              <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20">
+              <div className="p-4 bg-purple-500/10 rounded-sm border border-purple-500/20">
                 <p className="text-xs font-bold text-purple-500 uppercase">Late</p>
                 <p className="text-2xl font-black text-purple-500">{comprehensiveReport.summary.lateDays}</p>
               </div>
@@ -829,18 +829,18 @@ const AttendancePage = () => {
 
             {/* Work & Break Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+              <div className="p-4 bg-blue-500/10 rounded-sm border border-blue-500/20">
                 <p className="text-xs font-bold text-blue-500 uppercase">Total Work Hours</p>
                 <p className="text-2xl font-black text-blue-500">{comprehensiveReport.summary.totalWorkHours.toFixed(1)}h</p>
               </div>
-              <div className="p-4 bg-yellow-500/10 rounded-2xl border border-yellow-500/20">
+              <div className="p-4 bg-yellow-500/10 rounded-sm border border-yellow-500/20">
                 <p className="text-xs font-bold text-yellow-500 uppercase">Total Break Time</p>
                 <p className="text-2xl font-black text-yellow-500">{comprehensiveReport.summary.totalBreakTime.toFixed(0)}m</p>
               </div>
             </div>
 
             {/* Location Tracking */}
-            <div className="p-4 bg-surface-variant/50 rounded-2xl">
+            <div className="p-4 bg-surface-variant/50 rounded-sm">
               <h4 className="text-sm font-black uppercase tracking-widest text-text-primary mb-4">Location Tracking</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -859,7 +859,7 @@ const AttendancePage = () => {
               <h4 className="text-sm font-black uppercase tracking-widest text-text-primary mb-4">Attendance Records</h4>
               <div className="max-h-64 overflow-y-auto space-y-2">
                 {comprehensiveReport.attendanceRecords.slice(0, 10).map((record, idx) => (
-                  <div key={idx} className="p-3 bg-surface-variant/30 rounded-xl border border-border/30">
+                  <div key={idx} className="p-3 bg-surface-variant/30 rounded-sm border border-border/30">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-bold">{record.date}</span>
                       <span className={`text-xs font-bold px-2 py-1 rounded ${

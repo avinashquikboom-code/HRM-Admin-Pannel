@@ -113,9 +113,9 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                     router.push(`${SUPER_ADMIN_PREFIX}/companies`);
                     closeSearch();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-variant rounded-2xl transition-colors group"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-variant rounded-sm transition-colors group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary font-bold">
                     {company.logo}
                   </div>
                   <div className="text-left flex-grow min-w-0">
@@ -145,7 +145,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                     router.push('/employees');
                     closeSearch();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-variant rounded-2xl transition-colors group"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-variant rounded-sm transition-colors group"
                 >
                   <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold">
                     {employee.avatar}
@@ -172,14 +172,14 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
               router.push('/analytics');
               closeSearch();
             }}
-            className="w-full mt-2 p-3 text-center text-xs font-bold text-primary hover:bg-primary/5 rounded-2xl transition-colors border-t border-border"
+            className="w-full mt-2 p-3 text-center text-xs font-bold text-primary hover:bg-primary/5 rounded-sm transition-colors border-t border-border"
           >
             View all results for "{searchQuery}"
           </button>
         </>
       ) : (
         <div className="px-6 py-8 text-center">
-          <div className="w-12 h-12 bg-surface-variant rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 bg-surface-variant rounded-sm flex items-center justify-center mx-auto mb-3">
             <Search size={20} className="text-muted" />
           </div>
           <p className="text-sm font-semibold text-text-primary">No results found</p>
@@ -195,7 +195,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         {/* Mobile Menu Toggle */}
         <button 
           onClick={() => dispatch(toggleSidebar())}
-          className="p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary md:hidden transition-colors shrink-0"
+          className="p-2.5 rounded-sm hover:bg-surface-variant text-text-secondary md:hidden transition-colors shrink-0"
           aria-label="Open menu"
         >
           <Menu className="w-6 h-6" />
@@ -205,7 +205,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         {!isEmployee && (
         <>
         <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-2xl border border-transparent focus-within:border-primary/50 focus-within:bg-surface focus-within:shadow-[0_0_20px_var(--sidebar-cyan-glow)] transition-all group duration-300">
+        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-sm border border-transparent focus-within:border-primary/50 focus-within:bg-surface focus-within:shadow-[0_0_20px_var(--sidebar-cyan-glow)] transition-all group duration-300">
           <Search className="w-5 h-5 text-muted group-focus-within:text-primary transition-colors shrink-0" />
           <input
             id="global-search"
@@ -227,7 +227,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full left-0 right-0 mt-3 bg-surface border border-border rounded-3xl shadow-2xl shadow-primary/10 overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-3 bg-surface border border-border rounded-sm shadow-2xl shadow-primary/10 overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
             >
               {searchResultsContent}
             </motion.div>
@@ -238,7 +238,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
       <button
         type="button"
         onClick={() => setIsMobileSearchOpen(true)}
-        className="p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary md:hidden transition-colors shrink-0"
+        className="p-2.5 rounded-sm hover:bg-surface-variant text-text-secondary md:hidden transition-colors shrink-0"
         aria-label="Search"
       >
         <Search className="w-5 h-5" />
@@ -254,7 +254,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         {/* Dark Mode Toggle */}
         <button
           onClick={() => dispatch(toggleDarkMode())}
-          className="p-2.5 rounded-xl hover:bg-surface-variant text-text-secondary transition-colors"
+          className="p-2.5 rounded-sm hover:bg-surface-variant text-text-secondary transition-colors"
         >
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
@@ -320,9 +320,9 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                         router.push(settingsPath);
                         setIsProfileOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-2xl transition-all group"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-sm transition-all group"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+                      <div className="w-9 h-9 rounded-sm bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
                         <Settings size={18} />
                       </div>
                       <div className="text-left">
@@ -337,9 +337,9 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                       router.push(profilePath);
                       setIsProfileOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-2xl transition-all group"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 rounded-sm transition-all group"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                       <User size={18} />
                     </div>
                     <div className="text-left">
@@ -353,9 +353,9 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                       setIsSignOutModalOpen(true);
                       setIsProfileOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-error/5 rounded-2xl transition-all group"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-error/5 rounded-sm transition-all group"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-error/10 flex items-center justify-center text-error group-hover:scale-110 transition-transform">
+                    <div className="w-9 h-9 rounded-sm bg-error/10 flex items-center justify-center text-error group-hover:scale-110 transition-transform">
                       <LogOut size={18} />
                     </div>
                     <div className="text-left">
@@ -396,7 +396,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     placeholder="Search analytics, companies..."
-                    className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+                    className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border border-border rounded-sm outline-none focus:ring-2 focus:ring-primary/30 text-sm"
                   />
                 </div>
                 <button
@@ -412,7 +412,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
                 </button>
               </div>
               {searchQuery && (
-                <div className="bg-surface border border-border rounded-3xl overflow-hidden max-h-[calc(100vh-8rem)] overflow-y-auto">
+                <div className="bg-surface border border-border rounded-sm overflow-hidden max-h-[calc(100vh-8rem)] overflow-y-auto">
                   {searchResultsContent}
                 </div>
               )}

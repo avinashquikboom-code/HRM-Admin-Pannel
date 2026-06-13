@@ -251,7 +251,7 @@ function MapCanvas({
       <div id={containerId} className="w-full h-full" style={{ zIndex: 1 }} />
 
       {/* Info Legend Overlay */}
-      <div className="absolute bottom-3 left-3 z-[5] p-3 rounded-xl bg-surface/90 backdrop-blur border border-border shadow-sm text-xs space-y-1 pointer-events-none">
+      <div className="absolute bottom-3 left-3 z-[5] p-3 rounded-sm bg-surface/90 backdrop-blur border border-border shadow-sm text-xs space-y-1 pointer-events-none">
         <p className="font-semibold text-text-primary flex items-center gap-1.5">
           <MapPin size={12} className="text-primary" />
           {officeCenter.lat.toFixed(4)}, {officeCenter.lng.toFixed(4)}
@@ -262,7 +262,7 @@ function MapCanvas({
       </div>
 
       {/* Map Markers Legend */}
-      <div className="absolute top-3 right-3 z-[5] p-3 rounded-xl bg-surface/90 backdrop-blur border border-border shadow-sm space-y-1.5 text-[10px] font-semibold pointer-events-none">
+      <div className="absolute top-3 right-3 z-[5] p-3 rounded-sm bg-surface/90 backdrop-blur border border-border shadow-sm space-y-1.5 text-[10px] font-semibold pointer-events-none">
         <div className="flex items-center gap-2 text-text-secondary">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
           In office
@@ -352,7 +352,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
             <button
               type="button"
               onClick={openFullscreen}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-variant/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-surface-variant/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
             >
               <Maximize2 size={14} />
               Expand
@@ -431,7 +431,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
                     <button
                       type="button"
                       onClick={closeFullscreen}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-surface-variant px-3 py-2 text-xs font-semibold text-text-primary hover:bg-border transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-sm bg-surface-variant px-3 py-2 text-xs font-semibold text-text-primary hover:bg-border transition-colors"
                     >
                       <Minimize2 size={14} />
                       Exit
@@ -439,7 +439,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
                     <button
                       type="button"
                       onClick={closeFullscreen}
-                      className="rounded-xl p-2 text-text-secondary hover:bg-surface-variant hover:text-text-primary transition-colors"
+                      className="rounded-sm p-2 text-text-secondary hover:bg-surface-variant hover:text-text-primary transition-colors"
                       aria-label="Close full screen map"
                     >
                       <X size={18} />
@@ -457,7 +457,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
                   <MapCanvas
                     {...canvasProps}
                     containerId={fullscreenMapId}
-                    className="h-full min-h-[280px] rounded-2xl border border-border overflow-hidden"
+                    className="h-full min-h-[280px] rounded-sm border border-border overflow-hidden"
                   />
                 </motion.div>
               </motion.div>

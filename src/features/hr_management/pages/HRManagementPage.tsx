@@ -248,14 +248,14 @@ const HRManagementPage = () => {
           <div className="flex items-center gap-2">
             <button 
               onClick={handleDownloadLeaveReport}
-              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-2xl border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
+              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-sm border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
               title="Download Leave Report"
             >
               <Download size={15} />
             </button>
             <button 
               onClick={handleDownloadAttendanceReport}
-              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-2xl border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
+              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-sm border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
               title="Download Attendance Report"
             >
               <Download size={15} />
@@ -263,7 +263,7 @@ const HRManagementPage = () => {
             <button 
               onClick={handleRefresh} 
               disabled={isLoading || isRefreshing}
-              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-2xl border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50 shadow-sm shrink-0"
+              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-sm border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50 shadow-sm shrink-0"
               title="Refresh Operational Pulse"
             >
               <RefreshCw size={15} className={cn(isRefreshing && "animate-spin text-primary")} />
@@ -277,7 +277,7 @@ const HRManagementPage = () => {
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between p-4 bg-error/10 border border-error/20 rounded-2xl text-error-text text-sm shadow-sm"
+          className="flex items-center justify-between p-4 bg-error/10 border border-error/20 rounded-sm text-error-text text-sm shadow-sm"
         >
           <div className="flex items-center gap-3">
             <AlertCircle size={20} className="text-error" />
@@ -285,7 +285,7 @@ const HRManagementPage = () => {
           </div>
           <button 
             onClick={() => loadData()}
-            className="px-4 py-1.5 bg-error text-white font-bold rounded-xl text-xs hover:bg-error/90 transition-all duration-200"
+            className="px-4 py-1.5 bg-error text-white font-bold rounded-sm text-xs hover:bg-error/90 transition-all duration-200"
           >
             Re-sync Databases
           </button>
@@ -382,7 +382,7 @@ const HRManagementPage = () => {
                   <div className={cn("absolute inset-0 bg-gradient-to-br opacity-25 group-hover:opacity-40 transition-opacity duration-300", stat.gradient)} />
                   
                   <div className="flex items-start justify-between relative z-10">
-                    <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner transition-all duration-300", stat.bg, stat.color, stat.glow)}>
+                    <div className={cn("w-11 h-11 rounded-sm flex items-center justify-center shadow-inner transition-all duration-300", stat.bg, stat.color, stat.glow)}>
                       <stat.icon size={20} />
                     </div>
                     <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded text-[8px] font-black tracking-widest text-slate-400">
@@ -432,7 +432,7 @@ const HRManagementPage = () => {
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5">Comparative platform-wide hiring trends over past months</p>
                     </div>
-                    <select className="bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300">
+                    <select className="bg-slate-800 border border-white/10 rounded-sm px-3.5 py-2 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300">
                       <option>Last 5 Months</option>
                       <option>Last Year</option>
                     </select>
@@ -620,7 +620,7 @@ const HRManagementPage = () => {
                       onChange={(e) => setBroadcastMsg(e.target.value)}
                       placeholder="Type announcements, corporate notices, or alert messages here..."
                       rows={4}
-                      className="w-full p-4 bg-slate-950 border border-white/10 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none leading-relaxed"
+                      className="w-full p-4 bg-slate-950 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none leading-relaxed"
                       maxLength={150}
                     />
                     <span className="absolute bottom-3.5 right-3.5 text-[9px] font-black text-slate-600 select-none">
@@ -631,7 +631,7 @@ const HRManagementPage = () => {
                   <button
                     type="submit"
                     disabled={isBroadcasting || !broadcastMsg.trim()}
-                    className="w-full btn-primary py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black shadow-lg shadow-primary/10 disabled:opacity-40 select-none transition-all"
+                    className="w-full btn-primary py-3 rounded-sm flex items-center justify-center gap-2 text-xs font-black shadow-lg shadow-primary/10 disabled:opacity-40 select-none transition-all"
                   >
                     <Zap size={13} />
                     {isBroadcasting ? 'Broadcasting notice...' : 'Push Announcement broadcast'}
@@ -644,7 +644,7 @@ const HRManagementPage = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[10px] font-bold text-emerald-400"
+                      className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-[10px] font-bold text-emerald-400"
                     >
                       <Check size={13} className="text-emerald-400" />
                       <span>Announcement successfully pushed to all devices!</span>

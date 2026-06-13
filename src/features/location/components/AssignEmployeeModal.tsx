@@ -91,7 +91,7 @@ export default function AssignEmployeeModal({
         </p>
 
         {error && (
-          <div className="rounded-2xl bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
+          <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error">
             {error}
           </div>
         )}
@@ -111,7 +111,7 @@ export default function AssignEmployeeModal({
                 <label
                   key={user.id}
                   className={cn(
-                    'flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all',
+                    'flex items-center gap-3 p-3 rounded-sm border cursor-pointer transition-all',
                     selectedUserId === user.id
                       ? 'border-primary bg-primary/5'
                       : 'border-border/60 hover:border-primary/30 bg-surface-variant/30'
@@ -125,7 +125,7 @@ export default function AssignEmployeeModal({
                     onChange={() => setSelectedUserId(user.id)}
                     className="sr-only"
                   />
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-black shrink-0">
+                  <div className="w-9 h-9 rounded-sm bg-primary/10 text-primary flex items-center justify-center text-xs font-black shrink-0">
                     {user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -171,7 +171,7 @@ export default function AssignEmployeeModal({
             type="button"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="flex-1 py-3 rounded-2xl border border-border text-text-secondary font-bold uppercase tracking-widest text-xs disabled:opacity-60"
+            className="flex-1 py-3 rounded-sm border border-border text-text-secondary font-bold uppercase tracking-widest text-xs disabled:opacity-60"
           >
             Cancel
           </button>
@@ -179,7 +179,7 @@ export default function AssignEmployeeModal({
             type="submit"
             disabled={isSubmitting || selectedUserId === null || isLoadingUsers}
             className={cn(
-              'flex-[2] py-3 rounded-2xl bg-primary text-white font-bold uppercase tracking-widest text-xs',
+              'flex-[2] py-3 rounded-sm bg-primary text-white font-bold uppercase tracking-widest text-xs',
               'shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all disabled:opacity-70',
               'flex items-center justify-center gap-2'
             )}
