@@ -108,7 +108,11 @@ export async function downloadSubscriptionReport(): Promise<void> {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Subscription report download error:', error);
+    console.error('Error response:', error.response);
+    console.error('Error status:', error.response?.status);
+    console.error('Error data:', error.response?.data);
     throw new Error(
       getApiErrorMessage(error, 'Failed to download subscription report. Please try again.')
     );
