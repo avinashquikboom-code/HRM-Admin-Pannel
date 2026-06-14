@@ -10,7 +10,8 @@ import {
   Users,
   UserPlus,
   RefreshCw,
-  UserCheck
+  UserCheck,
+  Lock
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ import { cn } from '@/utils/cn';
 import TableSkeleton from '@/components/TableSkeleton';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useEmployees } from '@/hooks/useEmployees';
+import ResetPasswordModal from '../components/ResetPasswordModal';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -61,6 +63,8 @@ function formatStatus(status: string) {
 const EmployeesPage = () => {
   const { employees, isLoading, error, refetch } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const filteredEmployees = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -85,7 +89,17 @@ const EmployeesPage = () => {
 
   const activeCount = employees.filter((employee) => employee.status === 'ACTIVE').length;
 
+  const handleResetPassword = (employee: any) => {
+    setSelectedEmployee(employee);
+    setIsPasswordModalOpen(true);
+  };
+
+  const handlePasswordResetSuccess = () => {
+    refetch();
+  };
+
   return (
+    <>
     <motion.div 
       initial="hidden"
       animate="visible"
@@ -199,8 +213,12 @@ const EmployeesPage = () => {
                         </p>
                       </div>
                     </div>
-                    <button className="p-2 hover:bg-slate-950 rounded-sm text-slate-400 shrink-0 cursor-pointer">
-                      <MoreVertical size={18} />
+                    <button 
+                      onClick={() => handleResetPassword(employee)}
+                      className="p-2 hover:bg-slate-950 rounded-sm text-slate-400 hover:text-primary shrink-0 cursor-pointer"
+                      title="Reset Password"
+                    >
+                      <Lock size={18} />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-xs">
@@ -312,8 +330,12 @@ const EmployeesPage = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4.5 text-right">
-                          <button className="p-2.5 hover:bg-slate-900 rounded-sm text-slate-400 hover:text-white transition-all duration-300 shadow-sm border border-white/5 active:scale-95 cursor-pointer">
-                            <MoreVertical size={18} />
+                          <button 
+                            onClick={() => handleResetPassword(employee)}
+                            className="p-2.5 hover:bg-slate-900 rounded-sm text-slate-400 hover:text-primary transition-all duration-300 shadow-sm border border-white/5 active:scale-95 cursor-pointer"
+                            title="Reset Password"
+                          >
+                            <Lock size={18} />
                           </button>
                         </td>
                       </motion.tr>
@@ -339,6 +361,14 @@ const EmployeesPage = () => {
         </>
       )}
     </motion.div>
+
+    <ResetPasswordModal
+      isOpen={isPasswordModalOpen}
+      onClose={() => setIsPasswordModalOpen(false)}
+      employee={selectedEmployee}
+      onSuccess={handlePasswordResetSuccess}
+    />
+    </>
   );
 };
 

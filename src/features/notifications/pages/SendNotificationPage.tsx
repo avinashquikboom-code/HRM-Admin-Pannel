@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from 'react';
-import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, Users, Building2, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { sendNotificationToEmployee, broadcastAnnouncement } from '@/services/notificationService';
 import { cn } from '@/utils/cn';
 
+type NotificationType = 'individual' | 'broadcast' | 'department' | 'role';
+
 export default function SendNotificationPage() {
-  const [type, setType] = useState<'individual' | 'broadcast'>('individual');
+  const [type, setType] = useState<NotificationType>('individual');
   const [employeeId, setEmployeeId] = useState('');
+  const [departmentId, setDepartmentId] = useState('');
+  const [role, setRole] = useState('');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState('info');
@@ -31,6 +35,22 @@ export default function SendNotificationPage() {
           body,
           category,
         });
+      } else if (type === 'department') {
+        if (!departmentId) throw new Error('Department ID is required');
+        // Call department-based notification API
+        await fetch('/api/admin/notifications/send-department', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ departmentId: parseInt(departmentId), title, body, category }),
+        });
+      } else if (type === 'role') {
+        if (!role) throw new Error('Role is required');
+        // Call role-based notification API
+        await fetch('/api/admin/notifications/send-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, title, body, category }),
+        });
       } else {
         await broadcastAnnouncement({
           title,
@@ -41,7 +61,9 @@ export default function SendNotificationPage() {
       setSuccess('Notification sent successfully!');
       setTitle('');
       setBody('');
-      if (type === 'individual') setEmployeeId('');
+      setEmployeeId('');
+      setDepartmentId('');
+      setRole('');
     } catch (err: any) {
       setError(err.message || 'Failed to send notification');
     } finally {
@@ -58,9 +80,9 @@ export default function SendNotificationPage() {
 
       <form onSubmit={handleSubmit} className="glass-card p-6 md:p-8 space-y-6">
         {/* Type Selection */}
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <label className={cn(
-            "flex-1 p-4 rounded-sm border-2 cursor-pointer transition-all flex flex-col items-center gap-2",
+            "p-4 rounded-sm border-2 cursor-pointer transition-all flex flex-col items-center gap-2",
             type === 'individual' 
               ? "border-primary bg-primary/5 text-primary" 
               : "border-border bg-surface text-text-secondary hover:border-primary/30"
@@ -71,10 +93,41 @@ export default function SendNotificationPage() {
               checked={type === 'individual'} 
               onChange={() => setType('individual')} 
             />
-            <span className="font-bold">Individual</span>
+            <Users size={20} />
+            <span className="font-bold text-xs">Individual</span>
           </label>
           <label className={cn(
-            "flex-1 p-4 rounded-sm border-2 cursor-pointer transition-all flex flex-col items-center gap-2",
+            "p-4 rounded-sm border-2 cursor-pointer transition-all flex flex-col items-center gap-2",
+            type === 'department' 
+              ? "border-primary bg-primary/5 text-primary" 
+              : "border-border bg-surface text-text-secondary hover:border-primary/30"
+          )}>
+            <input 
+              type="radio" 
+              className="sr-only" 
+              checked={type === 'department'} 
+              onChange={() => setType('department')} 
+            />
+            <Building2 size={20} />
+            <span className="font-bold text-xs">Department</span>
+          </label>
+          <label className={cn(
+            "p-4 rounded-sm border-2 cursor-pointer transition-all flex flex-col items-center gap-2",
+            type === 'role' 
+              ? "border-primary bg-primary/5 text-primary" 
+              : "border-border bg-surface text-text-secondary hover:border-primary/30"
+          )}>
+            <input 
+              type="radio" 
+              className="sr-only" 
+              checked={type === 'role'} 
+              onChange={() => setType('role')} 
+            />
+            <Shield size={20} />
+            <span className="font-bold text-xs">Role</span>
+          </label>
+          <label className={cn(
+            "p-4 rounded-sm border-2 cursor-pointer transition-all flex flex-col items-center gap-2",
             type === 'broadcast' 
               ? "border-primary bg-primary/5 text-primary" 
               : "border-border bg-surface text-text-secondary hover:border-primary/30"
@@ -85,7 +138,8 @@ export default function SendNotificationPage() {
               checked={type === 'broadcast'} 
               onChange={() => setType('broadcast')} 
             />
-            <span className="font-bold">Broadcast</span>
+            <Send size={20} />
+            <span className="font-bold text-xs">Broadcast</span>
           </label>
         </div>
 
@@ -100,6 +154,37 @@ export default function SendNotificationPage() {
               className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm focus:ring-2 focus:ring-primary/30 outline-none transition-all"
               placeholder="e.g. 1"
             />
+          </div>
+        )}
+
+        {type === 'department' && (
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-text-primary">Department ID</label>
+            <input
+              type="number"
+              required
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+              className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm focus:ring-2 focus:ring-primary/30 outline-none transition-all"
+              placeholder="e.g. 1"
+            />
+          </div>
+        )}
+
+        {type === 'role' && (
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-text-primary">Role</label>
+            <select
+              required
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm focus:ring-2 focus:ring-primary/30 outline-none transition-all"
+            >
+              <option value="">Select Role</option>
+              <option value="EMPLOYEE">Employee</option>
+              <option value="HR">HR</option>
+              <option value="ADMIN">Admin</option>
+            </select>
           </div>
         )}
 
