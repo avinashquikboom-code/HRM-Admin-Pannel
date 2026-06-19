@@ -205,7 +205,7 @@ const DepartmentManagementPage = () => {
           </button>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="btn-primary px-5 py-3 rounded-sm flex items-center gap-2 text-xs font-black shadow-lg shadow-primary/20"
+            className="btn-primary px-5 py-3 rounded-sm flex items-center gap-2 text-xs font-black"
           >
             <Plus size={18} />
             Add Department
@@ -258,13 +258,13 @@ const DepartmentManagementPage = () => {
             <motion.div
               key={dept.id}
               whileHover={{ y: -5, scale: 1.02 }}
-              className="glass-card p-6 border border-white/5 bg-slate-900/40 hover:bg-slate-900/60 hover:border-white/10 shadow-2xl transition-all duration-300 relative overflow-hidden group"
+              className="glass-card p-6 border border-white/5 bg-slate-900/40 hover:bg-slate-900/60 hover:border-white/10 transition-all duration-300 relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all" />
               
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm">
+                  <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
                     <Building2 size={24} className="text-primary" />
                   </div>
                   <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ const DepartmentManagementPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-8 w-full max-w-md border border-white/10 bg-slate-900/95 shadow-2xl"
+              className="glass-card p-8 w-full max-w-md border border-white/10 bg-slate-900/95"
             >
               <h2 className="text-xl font-black text-white mb-6">Create Department</h2>
               
@@ -432,7 +432,7 @@ const DepartmentManagementPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-8 w-full max-w-md border border-white/10 bg-slate-900/95 shadow-2xl"
+              className="glass-card p-8 w-full max-w-md border border-white/10 bg-slate-900/95"
             >
               <h2 className="text-xl font-black text-white mb-6">Edit Department</h2>
               

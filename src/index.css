@@ -34,10 +34,6 @@
 
   --radius-3xl: 20px;
   --radius-4xl: 24px;
-
-  --shadow-premium: 0 10px 30px -10px rgba(20, 184, 166, 0.2);
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 @layer base {

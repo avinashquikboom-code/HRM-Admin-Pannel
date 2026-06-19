@@ -43,6 +43,7 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'HR Management', icon: Users, path: '/hr-management', moduleId: 'pa-hr' },
   { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
   { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
+  { name: 'Departments', icon: Building2, path: '/departments', moduleId: 'pa-departments' },
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },

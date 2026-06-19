@@ -67,6 +67,7 @@ export default function RegisterUserWithRights({
   const [selectedRole, setSelectedRole] = useState<RegisterRole>(registerRole);
   const [departmentId, setDepartmentId] = useState<number | undefined>();
   const [departments, setDepartments] = useState<any[]>([]);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
   const [permissions, setPermissions] = useState<Record<string, boolean>>(() =>
     buildInitialUserPermissions(targetPortal)
   );
@@ -78,15 +79,19 @@ export default function RegisterUserWithRights({
     setPermissions(buildInitialUserPermissions(targetPortal));
   }, [targetPortal]);
 
+  const loadDepartments = async () => {
+    setIsLoadingDepartments(true);
+    try {
+      const depts = await fetchHRDepartments();
+      setDepartments(depts);
+    } catch (err) {
+      console.error('Failed to load departments:', err);
+    } finally {
+      setIsLoadingDepartments(false);
+    }
+  };
+
   useEffect(() => {
-    const loadDepartments = async () => {
-      try {
-        const depts = await fetchHRDepartments();
-        setDepartments(depts);
-      } catch (err) {
-        console.error('Failed to load departments:', err);
-      }
-    };
     loadDepartments();
   }, []);
 
@@ -230,15 +235,24 @@ export default function RegisterUserWithRights({
             <select
               value={departmentId || ''}
               onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
-              disabled={isLoading}
+              disabled={isLoading || isLoadingDepartments}
               required
-              className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+              className="w-full pl-13 pr-12 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
             >
               <option value="">Select Department</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>{dept.name}</option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={loadDepartments}
+              disabled={isLoadingDepartments}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+              title="Refresh departments"
+            >
+              <RotateCcw size={16} className={isLoadingDepartments ? 'animate-spin' : ''} />
+            </button>
           </div>
         </div>
 
