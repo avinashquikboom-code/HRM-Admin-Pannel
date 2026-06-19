@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
 
+// Resolved at runtime on the server (rewrites run server-side), so this can be a
+// plain VPS env var — no rebuild needed to change the backend target.
+// Precedence: BACKEND_API_URL (runtime, prod) > NEXT_PUBLIC_API_URL (local dev).
 const backendUrl =
+  process.env.BACKEND_API_URL?.trim().replace(/\/$/, '') ||
   process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '') ||
-  'http://69.62.80.20:3000';
+  'http://69.62.80.20:5004';
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained build (.next/standalone) for a small Docker image.
+  output: 'standalone',
   async rewrites() {
     return [
       {
