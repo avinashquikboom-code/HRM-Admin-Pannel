@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
 const backendUrl =
   process.env.BACKEND_API_URL?.trim().replace(/\/$/, '') ||
   process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '') ||
-  'http://69.62.80.20:5004';
+  'https://api.voxiqai.com';
 
 const nextConfig: NextConfig = {
   // Emit a self-contained build (.next/standalone) for a small Docker image.
