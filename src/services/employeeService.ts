@@ -92,12 +92,13 @@ export async function assignEmployeeToOffice(
 
 export async function assignUserToOffice(
   userId: number,
-  officeId: string
+  officeId: string,
+  departmentId?: number
 ): Promise<{ message: string; employee: AssignedEmployeeResult }> {
   try {
     const { data } = await api.post<AssignEmployeeResponse>(
       '/api/admin/employees/assign',
-      { userId, officeId }
+      { userId, officeId, departmentId }
     );
 
     return {
