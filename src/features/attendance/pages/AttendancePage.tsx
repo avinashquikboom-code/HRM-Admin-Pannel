@@ -124,7 +124,6 @@ const MiniCalendar = () => {
 
 const AttendancePage = () => {
   const { records, distribution, isLoading, error, refetch } = useTodayAttendance();
-  const [isHolidaysOpen, setIsHolidaysOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isComprehensiveReportOpen, setIsComprehensiveReportOpen] = useState(false);
   const [comprehensiveReport, setComprehensiveReport] = useState<ComprehensiveReportResponse | null>(null);
@@ -299,18 +298,11 @@ const AttendancePage = () => {
         <button 
             onClick={handleLoadComprehensiveReport}
             disabled={isLoadingReport}
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-xl shadow-purple-600/20 hover:shadow-purple-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3 disabled:opacity-50"
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-xl shadow-purple-600/20 hover:shadow-purple-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 disabled:opacity-50"
           >
             <Activity size={18} />
             {isLoadingReport ? 'Loading...' : 'Comprehensive Report'}
         </button>
-        <button 
-            onClick={() => setIsHolidaysOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
-          >
-            <Calendar size={18} />
-            Holidays Config
-          </button>
       </SuperAdminHeader>
 
       {/* Top Metrics */}
@@ -614,47 +606,6 @@ const AttendancePage = () => {
           </div>
         )}
       </motion.div>
-
-      {/* Holidays Config Modal */}
-      <Modal 
-        isOpen={isHolidaysOpen} 
-        onClose={() => setIsHolidaysOpen(false)}
-        title="Global Holidays Configuration"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-2">
-          <div className="glass-card p-6">
-            <MiniCalendar />
-          </div>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">Upcoming Holidays</h4>
-              <button className="p-2 bg-primary/10 text-primary rounded-sm hover:bg-primary/20 transition-all"><Plus size={18} /></button>
-            </div>
-            <div className="space-y-4">
-              {[
-                { name: 'Global Labor Day', date: '01 May 2024', color: 'primary' },
-                { name: 'Infrastructure Maintenance', date: '15 May 2024', color: 'accent' },
-                { name: 'System Performance Audit', date: '28 May 2024', color: 'warning' },
-              ].map((holiday) => (
-                <div key={holiday.name} className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-sm border border-border/50 group hover:border-primary/30 transition-all cursor-default shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-2 h-10 rounded-full", `bg-${holiday.color}`)} />
-                    <div>
-                      <p className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">{holiday.name}</p>
-                      <p className="text-label text-text-secondary mt-0.5">{holiday.date}</p>
-                    </div>
-                  </div>
-                  <button className="text-muted hover:text-error transition-colors"><X size={16} /></button>
-                </div>
-              ))}
-            </div>
-            <button className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-2">
-              <ShieldCheck size={18} />
-              Save Protocol Changes
-            </button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Employee Detail Modal */}
       <Modal

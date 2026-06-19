@@ -63,10 +63,6 @@ export default function EditOfficeModal({
       return;
     }
 
-    if (!form.latitude || !form.longitude) {
-      setError('Valid latitude and longitude are required.');
-      return;
-    }
 
     setError('');
     setIsSubmitting(true);
@@ -140,51 +136,6 @@ export default function EditOfficeModal({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
-              Latitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              value={form.latitude}
-              onChange={(e) => updateField('latitude', parseFloat(e.target.value) || 0)}
-              required
-              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
-              Longitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              value={form.longitude}
-              onChange={(e) => updateField('longitude', parseFloat(e.target.value) || 0)}
-              required
-              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
-            Ideal Radius (m)
-          </label>
-          <input
-            type="number"
-            min={1}
-            value={form.idealRadiusMeters}
-            onChange={(e) =>
-              updateField('idealRadiusMeters', parseInt(e.target.value, 10) || 0)
-            }
-            required
-            className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
-          />
-        </div>
 
         <label className="flex items-center gap-3 cursor-pointer ml-1">
           <input

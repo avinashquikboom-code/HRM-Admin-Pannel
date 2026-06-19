@@ -169,7 +169,7 @@ const PayrollPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // New Payslips states
-  const [activeSubTab, setActiveSubTab] = useState<'batches' | 'slips'>('batches');
+  const [activeSubTab, setActiveSubTab] = useState<'slips'>('slips');
   const [slipsList, setSlipsList] = useState<any[]>([]);
   const [isSlipsLoading, setIsSlipsLoading] = useState(false);
   const [selectedSlip, setSelectedSlip] = useState<any | null>(null);
@@ -406,30 +406,6 @@ const PayrollPage = () => {
         </div>
       </motion.div>
 
-      {/* Tab Navigation Controls */}
-      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-sm no-scrollbar max-w-lg">
-        {[
-          { id: 'batches', label: 'Disbursement Batches', icon: Wallet },
-          { id: 'slips', label: 'Employee Payslips', icon: Users },
-        ].map((tab) => {
-          const isSelected = activeSubTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveSubTab(tab.id as any)}
-              className={cn(
-                "flex items-center gap-2 px-5 py-3 rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
-                isSelected 
-                  ? "bg-primary text-white shadow-lg shadow-primary/25 border-primary/30" 
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              )}
-            >
-              <tab.icon size={14} />
-              {tab.label}
-            </button>
-          );
-        })}
-      </motion.div>
 
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -608,131 +584,8 @@ const PayrollPage = () => {
         </div>
       </div>
 
-      {/* Tab Content selection */}
-      {activeSubTab === 'batches' ? (
-        <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
-          <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div>
-              <h3 className="heading-2">Recent Payroll Cycles</h3>
-              <p className="text-sm text-page-desc mt-1">Global audit stream of recent disbursement batches</p>
-            </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="relative flex-grow sm:flex-grow-0 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-4 h-4" />
-                <input 
-                  type="text" 
-                  placeholder="Search batches..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-sm text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
-                />
-              </div>
-              <button className="p-3.5 bg-surface-variant hover:bg-surface border border-border rounded-sm text-text-secondary transition-all active:scale-95 hover:border-primary/30 shadow-sm">
-                <Filter size={20} />
-              </button>
-            </div>
-          </div>
-          
-          {isLoading ? (
-            <div className="p-8">
-              <TableSkeleton rows={5} columns={6} />
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-surface-variant/50">
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Batch Identity</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Company</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Operational Scale</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Total Volume</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border">Status</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-muted border-b border-border text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredRuns.map((run) => (
-                    <motion.tr 
-                      key={run.id}
-                      variants={itemVariants}
-                      className="hover:bg-surface-variant transition-colors group cursor-pointer"
-                    >
-                      <td className="px-8 py-7">
-                        <span className="font-mono text-micro font-black text-muted bg-surface-variant px-3 py-1.5 rounded-sm border border-border shadow-sm group-hover:border-primary/30 transition-colors">
-                          {run.id}
-                        </span>
-                      </td>
-                      <td className="px-8 py-7">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-xs group-hover:scale-110 transition-all duration-500 shadow-sm border border-primary/10">
-                            {run.company.substring(0, 2)}
-                          </div>
-                          <div>
-                            <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block">{run.company}</span>
-                            <span className="text-label font-bold text-text-secondary">{run.date}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-7">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <Users size={14} className="text-primary" />
-                            <span className="text-sm font-black text-text-primary">{run.employees}</span>
-                          </div>
-                          <span className="text-micro font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">Managed Seats</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-7">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-black text-text-primary tracking-tighter">{run.totalAmount}</span>
-                          <span className="text-label font-bold text-text-secondary mt-1">Disbursed</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-7">
-                        <span className={cn(
-                          "px-4 py-2 rounded-sm text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
-                          run.status === 'Completed' ? "bg-success/10 text-success border-success/10" : 
-                          run.status === 'Failed' ? "bg-error/10 text-error border-error/10" : "bg-warning/10 text-warning border-warning/10"
-                        )}>
-                          <span className={cn(
-                            "w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]",
-                            run.status === 'Completed' ? "bg-success" : 
-                            run.status === 'Failed' ? "bg-error animate-pulse" : "bg-warning"
-                          )} />
-                          {run.status}
-                        </span>
-                      </td>
-                      <td className="px-8 py-7 text-right">
-                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                          <button className="p-3 bg-surface border border-border text-muted hover:text-primary hover:border-primary/50 rounded-sm transition-all shadow-sm hover:shadow-md">
-                            <Download size={18} />
-                          </button>
-                          <button className="p-3 bg-surface border border-border text-muted hover:text-text-primary rounded-sm transition-all shadow-sm">
-                            <MoreVertical size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {!isLoading && (
-            <div className="p-8 bg-surface-variant/50 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                <p className="text-label text-text-secondary tracking-[0.2em]">Global Audit Stream Live</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button className="px-6 py-3 bg-surface border border-border rounded-sm text-label text-text-secondary disabled:opacity-30 hover:shadow-md transition-all active:scale-95" disabled>Previous Cycle</button>
-                <button className="px-6 py-3 bg-surface border border-border rounded-sm text-label text-text-secondary hover:shadow-md hover:text-primary transition-all active:scale-95">Next Cycle</button>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      ) : (
-        <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
+      {/* Employee Payslips */}
+      <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
           <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div>
               <h3 className="heading-2">Employee Payslips Manager</h3>
@@ -839,7 +692,6 @@ const PayrollPage = () => {
             </div>
           )}
         </motion.div>
-      )}
 
       {/* View Payslip Modal */}
       <Modal

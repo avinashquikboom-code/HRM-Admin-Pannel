@@ -9,6 +9,9 @@ import {
   RefreshCw,
   Save,
   Settings,
+  Calendar,
+  Clock,
+  Users,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { api, getApiErrorMessage } from '@/lib/api';
@@ -24,6 +27,9 @@ import NotificationsSettingsPanel, {
   defaultNotificationPreferences,
 } from '@/features/settings/panels/NotificationsSettingsPanel';
 import ApiSettingsPanel from '@/features/settings/panels/ApiSettingsPanel';
+import AttendancePolicyPanel from '@/features/settings/panels/AttendancePolicyPanel';
+import LeavePolicyPanel from '@/features/settings/panels/LeavePolicyPanel';
+import HolidaysPanel from '@/features/settings/panels/HolidaysPanel';
 import {
   fetchSettings,
   updateSettings,
@@ -43,6 +49,24 @@ const tabs: SettingsTab[] = [
     label: 'Security',
     description: 'Authentication and audit policies',
     icon: Shield,
+  },
+  {
+    id: 'attendance-policy',
+    label: 'Attendance Policy',
+    description: 'Check-in rules, working hours, and thresholds',
+    icon: Clock,
+  },
+  {
+    id: 'leave-policy',
+    label: 'Leave Policy',
+    description: 'Leave types, limits, and approval rules',
+    icon: Users,
+  },
+  {
+    id: 'holidays',
+    label: 'Holidays',
+    description: 'Company holidays and calendar configuration',
+    icon: Calendar,
   },
   {
     id: 'notifications',
@@ -219,6 +243,40 @@ export default function SettingsPage() {
             onIpRestrictionChange={(value) => console.log('IP restriction update:', value)}
           />
         );
+      case 'attendance-policy':
+        return (
+          <AttendancePolicyPanel
+            lateThreshold={currentSettings.attendance.lateThreshold}
+            halfDayThreshold={currentSettings.attendance.halfDayThreshold}
+            absentThreshold={currentSettings.attendance.absentThreshold}
+            autoMarkAbsent={currentSettings.attendance.autoMarkAbsent}
+            workingHours={currentSettings.company.workingHours}
+            workingDays={currentSettings.company.workingDays}
+            onLateThresholdChange={(value) => updateAttendanceSettings({ lateThreshold: value })}
+            onHalfDayThresholdChange={(value) => updateAttendanceSettings({ halfDayThreshold: value })}
+            onAbsentThresholdChange={(value) => updateAttendanceSettings({ absentThreshold: value })}
+            onAutoMarkAbsentChange={(value) => updateAttendanceSettings({ autoMarkAbsent: value })}
+            onWorkingHoursChange={(start, end) => updateCompanySettings({ workingHours: { start, end } })}
+            onWorkingDaysChange={(days) => updateCompanySettings({ workingDays: days })}
+          />
+        );
+      case 'leave-policy':
+        return (
+          <LeavePolicyPanel
+            casualLeavePerYear={currentSettings.leave.casualLeavePerYear}
+            sickLeavePerYear={currentSettings.leave.sickLeavePerYear}
+            earnedLeavePerYear={currentSettings.leave.earnedLeavePerYear}
+            requireApproval={currentSettings.leave.requireApproval}
+            maxConsecutiveDays={currentSettings.leave.maxConsecutiveDays}
+            onCasualLeaveChange={(value) => updateLeaveSettings({ casualLeavePerYear: value })}
+            onSickLeaveChange={(value) => updateLeaveSettings({ sickLeavePerYear: value })}
+            onEarnedLeaveChange={(value) => updateLeaveSettings({ earnedLeavePerYear: value })}
+            onRequireApprovalChange={(value) => updateLeaveSettings({ requireApproval: value })}
+            onMaxConsecutiveDaysChange={(value) => updateLeaveSettings({ maxConsecutiveDays: value })}
+          />
+        );
+      case 'holidays':
+        return <HolidaysPanel />;
       case 'notifications':
         return (
           <NotificationsSettingsPanel

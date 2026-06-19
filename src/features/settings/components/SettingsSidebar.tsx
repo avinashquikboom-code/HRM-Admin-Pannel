@@ -7,6 +7,9 @@ export type SettingsTabId =
   | 'general'
   | 'access'
   | 'security'
+  | 'attendance-policy'
+  | 'leave-policy'
+  | 'holidays'
   | 'notifications'
   | 'api';
 

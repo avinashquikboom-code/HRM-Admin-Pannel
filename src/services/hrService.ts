@@ -67,6 +67,13 @@ export interface HREmployee {
   department: string;
   office: string;
   email: string | null;
+  phone?: string;
+  aadharNumber?: string;
+  pfNumber?: string;
+  esicNumber?: string;
+  isHandicapped?: boolean;
+  currentAddress?: string;
+  permanentAddress?: string;
   isActive: boolean;
   leaveCount: number;
   taskCount: number;
@@ -124,7 +131,7 @@ export async function fetchDepartmentOverview(): Promise<HRDepartmentResponse> {
 
 export async function fetchLeaveOverview(): Promise<HRLeaveOverview> {
   try {
-    const { data } = await api.get<{ data: HRLeaveOverview }>('/api/hr/leaves');
+    const { data } = await api.get<{ success: boolean; data: HRLeaveOverview }>('/api/hr/leaves');
     return data.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch leave overview.'));
@@ -186,6 +193,12 @@ export interface CreateHREmployeeRequest {
   officeId?: number;
   departmentId?: number;
   phone?: string;
+  aadharNumber?: string;
+  pfNumber?: string;
+  esicNumber?: string;
+  isHandicapped?: boolean;
+  currentAddress?: string;
+  permanentAddress?: string;
 }
 
 export interface UpdateHREmployeeRequest {
@@ -196,6 +209,12 @@ export interface UpdateHREmployeeRequest {
   officeId?: number;
   departmentId?: number;
   phone?: string;
+  aadharNumber?: string;
+  pfNumber?: string;
+  esicNumber?: string;
+  isHandicapped?: boolean;
+  currentAddress?: string;
+  permanentAddress?: string;
 }
 
 export async function fetchHROffices(): Promise<HROffice[]> {

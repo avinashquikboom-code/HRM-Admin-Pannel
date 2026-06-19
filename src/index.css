@@ -77,7 +77,6 @@
     --card-border-light: #E2E8F0;
     --card-title-light: #0F172A;
     --card-subtitle-light: #64748B;
-    --card-shadow-light: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   }
 
   .dark {
@@ -119,7 +118,6 @@
     --card-border-dark: rgba(255, 255, 255, 0.1);
     --card-title-dark: #FFFFFF;
     --card-subtitle-dark: #A1A1AA;
-    --card-shadow-dark: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
 
   html {
@@ -590,39 +588,39 @@
 
 /* Light Mode Utility Color & Visibility Overrides for Admin Panel */
 html:not(.dark) {
-  /* Override hardcoded dark card backgrounds (excluding sidebar which is intentionally dark) */
-  .bg-slate-800:not(aside):not(aside *),
-  .bg-slate-850:not(aside):not(aside *),
-  .bg-slate-900:not(aside):not(aside *),
-  .bg-slate-950:not(aside):not(aside *),
-  .bg-slate-800\/40:not(aside):not(aside *),
-  .bg-slate-800\/50:not(aside):not(aside *),
-  .bg-slate-800\/60:not(aside):not(aside *),
-  .bg-slate-800\/80:not(aside):not(aside *),
-  .bg-slate-900\/20:not(aside):not(aside *),
-  .bg-slate-900\/30:not(aside):not(aside *),
-  .bg-slate-900\/40:not(aside):not(aside *),
-  .bg-slate-900\/50:not(aside):not(aside *),
-  .bg-slate-900\/60:not(aside):not(aside *),
-  .bg-slate-900\/80:not(aside):not(aside *),
-  .bg-slate-955\/10:not(aside):not(aside *),
-  .bg-slate-955\/20:not(aside):not(aside *),
-  .bg-slate-955\/30:not(aside):not(aside *),
-  .bg-slate-955\/40:not(aside):not(aside *),
-  .bg-slate-955\/50:not(aside):not(aside *),
-  .bg-slate-955\/60:not(aside):not(aside *),
-  .bg-slate-955\/70:not(aside):not(aside *),
-  .bg-slate-955\/80:not(aside):not(aside *),
-  .bg-slate-955\/90:not(aside):not(aside *),
-  .bg-slate-950\/10:not(aside):not(aside *),
-  .bg-slate-950\/20:not(aside):not(aside *),
-  .bg-slate-950\/30:not(aside):not(aside *),
-  .bg-slate-950\/40:not(aside):not(aside *),
-  .bg-slate-950\/50:not(aside):not(aside *),
-  .bg-slate-950\/60:not(aside):not(aside *),
-  .bg-slate-950\/70:not(aside):not(aside *),
-  .bg-slate-950\/80:not(aside):not(aside *),
-  .bg-slate-950\/90:not(aside):not(aside *) {
+  /* Override hardcoded dark card backgrounds */
+  .bg-slate-800,
+  .bg-slate-850,
+  .bg-slate-900,
+  .bg-slate-950,
+  .bg-slate-800\/40,
+  .bg-slate-800\/50,
+  .bg-slate-800\/60,
+  .bg-slate-800\/80,
+  .bg-slate-900\/20,
+  .bg-slate-900\/30,
+  .bg-slate-900\/40,
+  .bg-slate-900\/50,
+  .bg-slate-900\/60,
+  .bg-slate-900\/80,
+  .bg-slate-955\/10,
+  .bg-slate-955\/20,
+  .bg-slate-955\/30,
+  .bg-slate-955\/40,
+  .bg-slate-955\/50,
+  .bg-slate-955\/60,
+  .bg-slate-955\/70,
+  .bg-slate-955\/80,
+  .bg-slate-955\/90,
+  .bg-slate-950\/10,
+  .bg-slate-950\/20,
+  .bg-slate-950\/30,
+  .bg-slate-950\/40,
+  .bg-slate-950\/50,
+  .bg-slate-950\/60,
+  .bg-slate-950\/70,
+  .bg-slate-950\/80,
+  .bg-slate-950\/90 {
     background-color: var(--card-bg-light) !important;
   }
 
@@ -656,19 +654,19 @@ html:not(.dark) {
     border-color: var(--card-border-light) !important;
   }
 
-  /* Override hardcoded text colors to use theme primary text (excluding sidebar, buttons, active items) */
-  .text-white:not(aside):not(aside *):not(button):not(a):not(button *):not(a *):not([class*="btn"]):not([class*="btn"] *):not([class*="badge"]):not([class*="badge"] *),
-  .text-slate-100:not(aside):not(aside *),
-  .text-slate-200:not(aside):not(aside *),
-  .text-slate-300:not(aside):not(aside *),
-  .text-slate-350:not(aside):not(aside *) {
+  /* Override hardcoded text colors to use theme primary text */
+  .text-white,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300,
+  .text-slate-350 {
     color: var(--text-primary) !important;
   }
 
-  /* Override secondary text colors (excluding sidebar) */
-  .text-slate-400:not(aside):not(aside *),
-  .text-slate-450:not(aside):not(aside *),
-  .text-slate-550:not(aside):not(aside *) {
+  /* Override secondary text colors */
+  .text-slate-400,
+  .text-slate-450,
+  .text-slate-550 {
     color: var(--text-secondary) !important;
   }
 
@@ -688,6 +686,17 @@ html:not(.dark) {
   /* Select dropdown options style */
   select option {
     background-color: var(--card-bg-light) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Additional light mode overrides for better visibility */
+  body {
+    background-color: #F8FAFC !important;
+  }
+
+  /* Ensure text is visible in light mode */
+  .text-primary,
+  .text-foreground {
     color: var(--text-primary) !important;
   }
 }

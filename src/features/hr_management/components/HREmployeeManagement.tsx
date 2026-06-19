@@ -67,8 +67,16 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     status: 'active',
     officeId: undefined,
     departmentId: undefined,
-    phone: ''
+    phone: '',
+    aadharNumber: '',
+    pfNumber: '',
+    esicNumber: '',
+    isHandicapped: false,
+    currentAddress: '',
+    permanentAddress: ''
   });
+
+  const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
   // Search and filter
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,8 +175,15 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         status: 'active',
         officeId: undefined,
         departmentId: undefined,
-        phone: ''
+        phone: '',
+        aadharNumber: '',
+        pfNumber: '',
+        esicNumber: '',
+        isHandicapped: false,
+        currentAddress: '',
+        permanentAddress: ''
       });
+      setSameAsPermanent(false);
       loadEmployees();
     } catch (err: any) {
       setError(err?.message || 'Failed to create employee.');
@@ -253,8 +268,15 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       status: employee.status,
       officeId: offices.find(o => o.name === employee.office)?.id,
       departmentId: departments.find(d => d.name === employee.department)?.id,
-      phone: ''
+      phone: employee.phone || '',
+      aadharNumber: employee.aadharNumber || '',
+      pfNumber: employee.pfNumber || '',
+      esicNumber: employee.esicNumber || '',
+      isHandicapped: employee.isHandicapped || false,
+      currentAddress: employee.currentAddress || '',
+      permanentAddress: employee.permanentAddress || ''
     });
+    setSameAsPermanent(false);
     setIsEditModalOpen(true);
   };
 
@@ -610,6 +632,126 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    placeholder="+91 9876543210"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Aadhar Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.aadharNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, aadharNumber: e.target.value }))}
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    placeholder="12-digit Aadhar number"
+                    maxLength={12}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                      PF Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.pfNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pfNumber: e.target.value }))}
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      placeholder="PF Number"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                      ESIC Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.esicNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, esicNumber: e.target.value }))}
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      placeholder="ESIC Number"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                  <input
+                    type="checkbox"
+                    id="isHandicapped"
+                    checked={formData.isHandicapped}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isHandicapped: e.target.checked }))}
+                    className="w-4 h-4 rounded"
+                  />
+                  <label htmlFor="isHandicapped" className="text-xs font-bold text-slate-300 cursor-pointer">
+                    Handicapped
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Permanent Address
+                  </label>
+                  <textarea
+                    value={formData.permanentAddress}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, permanentAddress: e.target.value }));
+                      if (sameAsPermanent) {
+                        setFormData(prev => ({ ...prev, currentAddress: e.target.value }));
+                      }
+                    }}
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none"
+                    placeholder="Enter permanent address"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                  <input
+                    type="checkbox"
+                    id="sameAsPermanent"
+                    checked={sameAsPermanent}
+                    onChange={(e) => {
+                      setSameAsPermanent(e.target.checked);
+                      if (e.target.checked) {
+                        setFormData(prev => ({ ...prev, currentAddress: prev.permanentAddress }));
+                      }
+                    }}
+                    className="w-4 h-4 rounded"
+                  />
+                  <label htmlFor="sameAsPermanent" className="text-xs font-bold text-slate-300 cursor-pointer">
+                    Same as permanent address
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Current Address
+                  </label>
+                  <textarea
+                    value={formData.currentAddress}
+                    onChange={(e) => setFormData(prev => ({ ...prev, currentAddress: e.target.value }))}
+                    disabled={sameAsPermanent}
+                    className={cn(
+                      "w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none",
+                      sameAsPermanent && "opacity-50 cursor-not-allowed"
+                    )}
+                    placeholder="Enter current address"
+                    rows={3}
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
@@ -729,6 +871,126 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
                     className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    placeholder="+91 9876543210"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Aadhar Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.aadharNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, aadharNumber: e.target.value }))}
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    placeholder="12-digit Aadhar number"
+                    maxLength={12}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                      PF Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.pfNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pfNumber: e.target.value }))}
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      placeholder="PF Number"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                      ESIC Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.esicNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, esicNumber: e.target.value }))}
+                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      placeholder="ESIC Number"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                  <input
+                    type="checkbox"
+                    id="editIsHandicapped"
+                    checked={formData.isHandicapped}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isHandicapped: e.target.checked }))}
+                    className="w-4 h-4 rounded"
+                  />
+                  <label htmlFor="editIsHandicapped" className="text-xs font-bold text-slate-300 cursor-pointer">
+                    Handicapped
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Permanent Address
+                  </label>
+                  <textarea
+                    value={formData.permanentAddress}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, permanentAddress: e.target.value }));
+                      if (sameAsPermanent) {
+                        setFormData(prev => ({ ...prev, currentAddress: e.target.value }));
+                      }
+                    }}
+                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none"
+                    placeholder="Enter permanent address"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                  <input
+                    type="checkbox"
+                    id="editSameAsPermanent"
+                    checked={sameAsPermanent}
+                    onChange={(e) => {
+                      setSameAsPermanent(e.target.checked);
+                      if (e.target.checked) {
+                        setFormData(prev => ({ ...prev, currentAddress: prev.permanentAddress }));
+                      }
+                    }}
+                    className="w-4 h-4 rounded"
+                  />
+                  <label htmlFor="editSameAsPermanent" className="text-xs font-bold text-slate-300 cursor-pointer">
+                    Same as permanent address
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    Current Address
+                  </label>
+                  <textarea
+                    value={formData.currentAddress}
+                    onChange={(e) => setFormData(prev => ({ ...prev, currentAddress: e.target.value }))}
+                    disabled={sameAsPermanent}
+                    className={cn(
+                      "w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none",
+                      sameAsPermanent && "opacity-50 cursor-not-allowed"
+                    )}
+                    placeholder="Enter current address"
+                    rows={3}
                   />
                 </div>
 

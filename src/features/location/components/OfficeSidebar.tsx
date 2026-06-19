@@ -190,10 +190,10 @@ export default function OfficeSidebar({
             <button
               type="button"
               onClick={onAssignEmployee}
-              className="btn-secondary py-1.5 px-2.5 text-xs shrink-0"
+              className="btn-primary py-2 px-3 text-xs shrink-0 font-bold uppercase tracking-wider"
             >
               <UserPlus size={14} />
-              Assign
+              Assign Staff
             </button>
           </div>
 

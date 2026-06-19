@@ -182,6 +182,53 @@ const ReportsPage = () => {
     }
   };
 
+  const handleDownloadReport = async (report: any) => {
+    try {
+      let monthQuery = '';
+      try {
+        const parts = report.date.split(' ');
+        if (parts.length >= 3) {
+          const monthNames = {
+            Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+            Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+          };
+          const year = parts[2];
+          const monthName = parts[1];
+          const monthNum = monthNames[monthName as keyof typeof monthNames] || '05';
+          monthQuery = `${year}-${monthNum}`;
+        }
+      } catch (e) {
+        monthQuery = new Date().toISOString().slice(0, 7);
+      }
+
+      if (!monthQuery) {
+        monthQuery = new Date().toISOString().slice(0, 7);
+      }
+
+      if (report.type === 'Payroll') {
+        const token = localStorage.getItem('super_hrm_token') || localStorage.getItem('hrm_token') || '';
+        const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
+        const url = `${baseUrl}/api/admin/reports/attendance/download?month=${monthQuery}&token=${token}`;
+        window.open(url, '_blank');
+      } else if (report.type === 'Attendance') {
+        const token = localStorage.getItem('super_hrm_token') || localStorage.getItem('hrm_token') || '';
+        const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
+        const url = `${baseUrl}/api/admin/reports/attendance/download?month=${monthQuery}&token=${token}`;
+        window.open(url, '_blank');
+      } else if (report.type === 'Leave') {
+        const token = localStorage.getItem('super_hrm_token') || localStorage.getItem('hrm_token') || '';
+        const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
+        const url = `${baseUrl}/api/admin/leaves/report/download?token=${token}`;
+        window.open(url, '_blank');
+      } else {
+        alert('Download not available for this report type yet.');
+      }
+    } catch (error) {
+      console.error('Failed to download report:', error);
+      alert('Failed to download report. Please try again.');
+    }
+  };
+
   const filteredReports = reportList.filter(rep => {
     const matchesSearch = rep.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           rep.type.toLowerCase().includes(searchTerm.toLowerCase());
@@ -369,7 +416,7 @@ const ReportsPage = () => {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert('Downloading complete report...');
+                      handleDownloadReport(report);
                     }}
                     className="p-3 bg-surface-variant text-muted hover:text-white hover:bg-primary rounded-sm transition-all shadow-sm active:scale-90 group-hover:shadow-md"
                   >

@@ -40,21 +40,21 @@ export default function ApiSettingsPanel() {
           <button
             type="button"
             onClick={() => setRevealed((prev) => !prev)}
-            className="btn-secondary py-2 px-4 text-xs"
+            className="btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
           >
-            {revealed ? 'Hide key' : 'Reveal key'}
+            {revealed ? 'Hide Key' : 'Reveal Key'}
           </button>
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-2 rounded-sm border border-border/60 bg-surface px-4 py-2 text-xs font-semibold text-text-secondary hover:text-primary transition-colors"
+            className="btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
           >
             <Copy size={14} />
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? 'Copied' : 'Copy Key'}
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-sm bg-primary/10 px-4 py-2 text-xs font-semibold text-primary hover:bg-primary/15 transition-colors"
+            className="btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
           >
             <RefreshCw size={14} />
             Regenerate
