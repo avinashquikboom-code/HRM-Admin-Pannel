@@ -24,6 +24,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 # next start listens on this port; override with PORT if needed.
 ENV PORT=3000
+# Bind to all interfaces so the container is reachable on 127.0.0.1 (health
+# checks) and the published port. Without this, Next standalone binds only to
+# the container hostname/eth0 and 127.0.0.1 probes are refused.
+ENV HOSTNAME=0.0.0.0
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
