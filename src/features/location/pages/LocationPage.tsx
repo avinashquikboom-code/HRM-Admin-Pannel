@@ -120,7 +120,7 @@ export default function LocationPage() {
   const [siteNameInput, setSiteNameInput] = useState('');
   const [latInput, setLatInput] = useState('19.187053');
   const [lngInput, setLngInput] = useState('72.977937');
-  const [radiusInput, setRadiusInput] = useState(10);
+  const [radiusInput, setRadiusInput] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -419,7 +419,7 @@ export default function LocationPage() {
     setSiteNameInput('');
     setLatInput('19.187053');
     setLngInput('72.977937');
-    setRadiusInput(10);
+    setRadiusInput(25);
     setSearchQuery('');
     setOfficeActionMessage('');
     setOfficeActionError('');
@@ -428,7 +428,7 @@ export default function LocationPage() {
       mapInstance.setView([19.187053, 72.977937], 13);
       markerInstance.setLatLng([19.187053, 72.977937]);
       circleInstance.setLatLng([19.187053, 72.977937]);
-      circleInstance.setRadius(10);
+      circleInstance.setRadius(25);
     }
   };
 
@@ -768,7 +768,7 @@ export default function LocationPage() {
                   </div>
                   <input
                     type="range"
-                    min="50"
+                    min="25"
                     max="2000"
                     step="25"
                     value={radiusInput}
