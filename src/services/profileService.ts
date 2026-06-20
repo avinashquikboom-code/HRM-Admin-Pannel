@@ -163,7 +163,7 @@ export async function updateAdminPassword(
 
   try {
     const { data } = await api.put<{ message: string }>(
-      '/api/admin/profile/password',
+      '/api/admin/change-password',
       payload
     );
     return data;
