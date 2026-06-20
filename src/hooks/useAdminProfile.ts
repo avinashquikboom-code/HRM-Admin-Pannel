@@ -29,7 +29,7 @@ export function useAdminProfile() {
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, user]);
+  }, [dispatch]);
 
   useEffect(() => {
     loadProfile();

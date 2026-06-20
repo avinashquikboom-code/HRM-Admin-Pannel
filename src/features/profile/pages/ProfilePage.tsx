@@ -26,6 +26,7 @@ import {
 import { motion, Variants } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import SignOutModal from '@/components/SignOutModal';
+import UpdatePasswordModal from '@/components/UpdatePasswordModal';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { formatLastLogin } from '@/lib/profileMapper';
 import { getProfileBasePath, isSuperAdminPath, getLoginPathForPortal } from '@/lib/portals';
@@ -67,6 +68,7 @@ const ProfilePage = () => {
   const dispatch = useAppDispatch();
   const { portal } = useAppSelector((state) => state.auth);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] = useState(false);
 
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
@@ -115,7 +117,7 @@ const ProfilePage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="max-w-7xl mx-auto space-y-8 pb-12"
+      className="space-y-8 pb-12"
     >
       {error && (
         <div className="rounded-sm bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-medium text-warning">
@@ -146,7 +148,7 @@ const ProfilePage = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column - Avatar & Security */}
+        {/* Left Column - Avatar, Security, & Activity */}
         <div className="lg:col-span-4 space-y-6">
           
           {/* Avatar Card */}
@@ -172,7 +174,7 @@ const ProfilePage = () => {
               </button>
             </div>
 
-            <h3 className="text-xl font-black text-white mb-1">{user?.name || profile?.fullName}</h3>
+            <h3 className="text-xl font-black text-text-primary mb-1">{user?.name || profile?.fullName}</h3>
             <p className="text-sm text-text-secondary font-medium mb-4">{user?.email || profile?.email}</p>
             
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest">
@@ -187,14 +189,14 @@ const ProfilePage = () => {
               <div className="p-2 rounded-sm bg-accent/10 text-accent border border-accent/10">
                 <ShieldAlert size={18} />
               </div>
-              <h3 className="text-sm font-black text-white uppercase tracking-widest">Security Status</h3>
+              <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">Security Status</h3>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                 <div className="flex items-center gap-3">
                   <Fingerprint size={16} className="text-primary" />
-                  <span className="text-sm font-bold text-white">2FA Authentication</span>
+                  <span className="text-sm font-bold text-text-primary">2FA Authentication</span>
                 </div>
                 <span className={cn(
                   "text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider",
@@ -208,13 +210,14 @@ const ProfilePage = () => {
                 <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
                   <div className="flex items-center gap-3">
                     <MapPin size={16} className="text-primary" />
-                    <span className="text-sm font-bold text-white">Last Access</span>
+                    <span className="text-sm font-bold text-text-primary">Last Access</span>
                   </div>
                   <span className="text-xs font-black text-text-secondary">{security?.lastLoginLocation || 'Unknown'}</span>
                 </div>
               )}
             </div>
           </motion.div>
+
         </div>
 
         {/* Right Column - Identity & Actions */}
@@ -229,11 +232,11 @@ const ProfilePage = () => {
                 <div className="p-2.5 rounded-sm bg-primary/10 text-primary shadow-sm border border-primary/10">
                   <UserIcon size={20} />
                 </div>
-                <h2 className="text-xl font-black text-white">Identity Information</h2>
+                <h2 className="text-xl font-black text-text-primary">Identity Information</h2>
               </div>
               <button
                 onClick={() => router.push(`${profileBasePath}/edit`)}
-                className="flex items-center gap-2 px-4 py-2 rounded-sm bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider text-white hover:text-primary transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 bg-surface-variant hover:bg-border border border-border/50 text-xs font-black uppercase tracking-wider text-text-primary hover:text-primary transition-all active:scale-95"
               >
                 <Pencil size={14} /> Edit
               </button>
@@ -247,75 +250,60 @@ const ProfilePage = () => {
                   </div>
                   <div>
                     <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">{field.label}</p>
-                    <p className="text-sm font-bold text-white">{field.value}</p>
+                    <p className="text-sm font-bold text-text-primary">{field.value}</p>
                   </div>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Activity Timeline */}
-          <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden">
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
-            
-            <div className="flex items-center gap-3 mb-6 relative z-10">
-              <div className="p-2.5 rounded-sm bg-accent/10 text-accent shadow-sm border border-accent/10">
-                <Activity size={20} />
-              </div>
-              <h2 className="text-xl font-black text-white">Recent Activity</h2>
-            </div>
-
-            <div className="space-y-6 relative z-10">
-              <div className="relative pl-6 border-l-2 border-white/10 pb-6">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-success shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">Profile Updated</p>
-                <p className="text-sm font-bold text-white">{profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : 'Recently'}</p>
-              </div>
-
-              <div className="relative pl-6 border-l-2 border-white/10 pb-6">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-primary shadow-[0_0_10px_rgba(59,163,139,0.5)]" />
-                <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">Last Login</p>
-                <p className="text-sm font-bold text-white">{security?.lastLoginAt ? formatLastLogin(security.lastLoginAt) : 'No logs recorded'}</p>
-              </div>
-
-              <div className="relative pl-6">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-slate-950 bg-slate-600" />
-                <p className="text-micro font-black uppercase tracking-widest text-text-secondary mb-1">Account Created</p>
-                <p className="text-sm font-bold text-white">Epoch Origins (Legacy)</p>
-              </div>
-            </div>
-          </motion.div>
-
           {/* Action Center */}
-          <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden group">
+          <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 relative overflow-hidden group">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700 pointer-events-none" />
             
-            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2.5 rounded-sm bg-white/5 border border-white/10 text-primary shadow-sm">
-                    <Cpu size={20} />
-                  </div>
-                  <h3 className="text-lg font-black text-white">System Actions</h3>
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center gap-3 border-b border-border/30 pb-4">
+                <div className="p-2.5 rounded-sm bg-primary/10 text-primary border border-primary/20">
+                  <Cpu size={20} />
                 </div>
-                <p className="text-sm text-text-secondary max-w-lg">
-                  Manage your account security, view audit logs, or sign out from all devices.
-                </p>
+                <div>
+                  <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">System Actions</h3>
+                  <p className="text-xs text-text-secondary mt-1">Manage your account security, view audit logs, or sign out.</p>
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button 
-                  onClick={() => router.push(`${profileBasePath}/edit`)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-sm bg-primary/10 hover:bg-primary/15 border border-primary/20 text-xs font-black uppercase tracking-wider text-primary transition-all active:scale-95"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Update Password Tile */}
+                <div 
+                  onClick={() => setIsUpdatePasswordModalOpen(true)}
+                  className="group/tile p-5 rounded-sm bg-surface-variant/30 border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 cursor-pointer flex gap-4 items-start"
                 >
-                  <Key size={14} /> Update Password
-                </button>
-                <button 
+                  <div className="p-3 rounded-sm bg-primary/10 text-primary border border-primary/20 group-hover/tile:bg-primary group-hover/tile:text-always-white transition-all duration-300 shadow-sm shrink-0">
+                    <Key size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-text-primary group-hover/tile:text-primary transition-colors">Update Password</h4>
+                    <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                      Modify your account login credentials and security protocols.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sign Out Tile */}
+                <div 
                   onClick={() => setIsSignOutModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-sm bg-error/10 hover:bg-error/15 border border-error/20 text-xs font-black uppercase tracking-wider text-error transition-all active:scale-95"
+                  className="group/tile p-5 rounded-sm bg-surface-variant/30 border border-border/30 hover:border-error/30 hover:bg-error/5 transition-all duration-300 cursor-pointer flex gap-4 items-start"
                 >
-                  <LogOut size={14} /> Sign Out
-                </button>
+                  <div className="p-3 rounded-sm bg-error/10 text-error border border-error/20 group-hover/tile:bg-error group-hover/tile:text-always-white transition-all duration-300 shadow-sm shrink-0">
+                    <LogOut size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-text-primary group-hover/tile:text-error transition-colors">Sign Out</h4>
+                    <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                      Securely terminate your current session and exit the panel.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -326,6 +314,11 @@ const ProfilePage = () => {
         isOpen={isSignOutModalOpen} 
         onClose={() => setIsSignOutModalOpen(false)} 
         onConfirm={handleSignOut} 
+      />
+
+      <UpdatePasswordModal
+        isOpen={isUpdatePasswordModalOpen}
+        onClose={() => setIsUpdatePasswordModalOpen(false)}
       />
     </motion.div>
   );

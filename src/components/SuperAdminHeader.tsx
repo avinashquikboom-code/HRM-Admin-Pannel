@@ -52,7 +52,7 @@ export default function SuperAdminHeader({
   return (
     <motion.div
       variants={itemVariants}
-      className="relative overflow-hidden rounded-[36px] border border-border/50 dark:bg-gradient-to-br dark:from-primary/15 dark:via-surface dark:to-amber-500/10 bg-surface p-10 sm:p-12"
+      className="relative overflow-hidden rounded-[20px] sm:rounded-[36px] border border-border/50 dark:bg-gradient-to-br dark:from-primary/15 dark:via-surface dark:to-amber-500/10 bg-surface p-6 sm:p-10 md:p-12"
     >
       <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
       <div className="absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" />
@@ -64,7 +64,7 @@ export default function SuperAdminHeader({
               {badgeText}
             </div>
           )}
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text-primary animate-text-reveal">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-text-primary animate-text-reveal leading-tight">
             {title}
           </h1>
           <p className="text-page-desc mt-3 max-w-2xl">
@@ -77,12 +77,12 @@ export default function SuperAdminHeader({
           )}
         </div>
         {stats && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 min-[450px]:grid-cols-2 gap-3">
             {stats.map((item) => (
               <div key={item.label} className="rounded-sm border border-border/50 bg-surface/70 p-4 backdrop-blur-xl">
                 <item.icon size={20} className="mb-4 text-primary" />
-                <p className="text-2xl font-black text-text-primary tracking-tight">{item.value}</p>
-                <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-text-secondary">{item.label}</p>
+                <p className="text-xl sm:text-2xl font-black text-text-primary tracking-tight break-all">{item.value}</p>
+                <p className="mt-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-text-secondary">{item.label}</p>
               </div>
             ))}
           </div>

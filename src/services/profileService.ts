@@ -1,5 +1,6 @@
 import { api, getApiErrorMessage } from '@/lib/api';
 import { getAuthSession, setAuthSession } from '@/lib/authStorage';
+import { isDevAuthSession } from '@/lib/devAuth';
 import {
   ApiProfile,
   ApiProfileUser,
@@ -115,3 +116,61 @@ export function fileToDataUrl(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+export interface UpdatePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export async function updateAdminPassword(
+  payload: UpdatePasswordPayload
+): Promise<{ message: string }> {
+  // If local offline dev auth session, mock the response
+  if (isDevAuthSession()) {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    
+    let portalKey = 'dev_pwd_super_admin';
+    let defaultDevPwd = '123456';
+    
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('super_hrm_auth')) {
+        portalKey = 'dev_pwd_super_admin';
+      } else if (localStorage.getItem('hrm_auth')) {
+        portalKey = 'dev_pwd_platform_admin';
+      } else if (localStorage.getItem('employee_hrm_auth')) {
+        portalKey = 'dev_pwd_employee';
+      }
+    }
+    
+    let currentDevPassword = defaultDevPwd;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(portalKey);
+      if (saved) {
+        currentDevPassword = saved;
+      }
+    }
+    
+    if (payload.currentPassword !== currentDevPassword) {
+      throw new Error('Incorrect current password.');
+    }
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(portalKey, payload.newPassword);
+    }
+    
+    return { message: 'Password updated successfully (Dev Mode).' };
+  }
+
+  try {
+    const { data } = await api.put<{ message: string }>(
+      '/api/admin/profile/password',
+      payload
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to update password. Please try again.')
+    );
+  }
+}
+

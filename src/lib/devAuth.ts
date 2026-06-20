@@ -21,24 +21,45 @@ export const DEV_EMPLOYEE_AUTH_TOKEN = 'dev-employee-auth-token';
 
 export function matchesSuperAdminDevCredentials(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
+  let currentDevPassword = SUPER_ADMIN_DEV_PASSWORD;
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('dev_pwd_super_admin');
+    if (saved) {
+      currentDevPassword = saved;
+    }
+  }
   return (
-    password.trim() === SUPER_ADMIN_DEV_PASSWORD &&
+    password.trim() === currentDevPassword &&
     (normalizedEmail === SUPER_ADMIN_DEV_EMAIL ||
       normalizedEmail === LEGACY_SUPER_ADMIN_DEV_EMAIL)
   );
 }
 
 export function matchesPlatformDevCredentials(email: string, password: string) {
+  let currentDevPassword = DEFAULT_PLATFORM_DEV_PASSWORD;
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('dev_pwd_platform_admin');
+    if (saved) {
+      currentDevPassword = saved;
+    }
+  }
   return (
     email.trim().toLowerCase() === DEFAULT_PLATFORM_DEV_EMAIL &&
-    password.trim() === DEFAULT_PLATFORM_DEV_PASSWORD
+    password.trim() === currentDevPassword
   );
 }
 
 export function matchesEmployeeDevCredentials(email: string, password: string) {
+  let currentDevPassword = EMPLOYEE_DEV_PASSWORD;
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('dev_pwd_employee');
+    if (saved) {
+      currentDevPassword = saved;
+    }
+  }
   return (
     email.trim().toLowerCase() === EMPLOYEE_DEV_EMAIL &&
-    password.trim() === EMPLOYEE_DEV_PASSWORD
+    password.trim() === currentDevPassword
   );
 }
 

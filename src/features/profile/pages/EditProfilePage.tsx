@@ -215,7 +215,7 @@ const EditProfilePage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
         variants={containerVariants}
-        className="max-w-5xl mx-auto space-y-8 pb-10"
+        className="space-y-8 pb-10"
       >
         <SuperAdminHeader
           title="Edit Profile"
@@ -290,7 +290,7 @@ const EditProfilePage = () => {
                   </button>
                 </div>
 
-                <h3 className="text-lg font-black text-white mb-1">{user?.name || 'Administrator'}</h3>
+                <h3 className="text-lg font-black text-text-primary mb-1">{user?.name || 'Administrator'}</h3>
                 <p className="text-sm text-text-secondary font-medium mb-4">{user?.email || 'admin@example.com'}</p>
                 
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest mb-6">
@@ -330,12 +330,12 @@ const EditProfilePage = () => {
                   <div className="p-2 rounded-sm bg-accent/10 text-accent border border-accent/10">
                     <Shield size={18} />
                   </div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Security Info</h3>
+                  <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">Security Info</h3>
                 </div>
                 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
-                    <span className="text-sm font-bold text-white">2FA Authentication</span>
+                    <span className="text-sm font-bold text-text-primary">2FA Authentication</span>
                     <span className={cn(
                       "text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider",
                       security?.twoFactorEnabled ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
@@ -346,13 +346,13 @@ const EditProfilePage = () => {
                   
                   {!hideLoginTracking && (
                     <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
-                      <span className="text-sm font-bold text-white">Last Access</span>
+                      <span className="text-sm font-bold text-text-primary">Last Access</span>
                       <span className="text-xs font-black text-text-secondary">{security?.lastLoginLocation || 'Unknown'}</span>
                     </div>
                   )}
                   
                   <div className="flex items-center justify-between p-3 rounded-sm bg-surface-variant/50 border border-border/50">
-                    <span className="text-sm font-bold text-white">Clearance</span>
+                    <span className="text-sm font-bold text-text-primary">Clearance</span>
                     <span className="text-xs font-black text-primary uppercase tracking-wider">{security?.clearanceLabel || 'Level 5'}</span>
                   </div>
                 </div>
@@ -367,7 +367,7 @@ const EditProfilePage = () => {
                     <Info size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Personal Information</h3>
+                    <h3 className="text-xl font-black text-text-primary tracking-tight">Personal Information</h3>
                     <p className="text-xs text-text-secondary font-medium">Update your profile details and preferences.</p>
                   </div>
                 </div>
@@ -410,7 +410,7 @@ const EditProfilePage = () => {
                     <label className="absolute left-6 top-3 text-[10px] font-black uppercase tracking-widest text-text-secondary z-10">
                       Time Zone
                     </label>
-                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-sm flex items-center gap-3 text-white font-bold text-sm">
+                    <div className="w-full px-6 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-sm flex items-center gap-3 text-text-primary font-bold text-sm">
                       <Globe size={18} className="text-primary/70" />
                       <span className="truncate">{profile?.timezoneLabel || 'Asia/Kolkata (IST)'}</span>
                     </div>
@@ -426,11 +426,11 @@ const EditProfilePage = () => {
                       <div className="relative">
                         <select
                           {...register('officeId')}
-                          className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-white text-sm font-bold appearance-none cursor-pointer"
+                          className="w-full px-5 pt-7 pb-3 bg-surface-variant/50 border border-border/30 rounded-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all text-text-primary text-sm font-bold appearance-none cursor-pointer"
                         >
-                          <option value="" className="bg-surface text-white">System Default</option>
+                          <option value="" className="bg-surface text-text-primary">System Default</option>
                           {offices.map((office) => (
-                            <option key={office.id} value={office.id} className="bg-surface text-white">{office.name}</option>
+                            <option key={office.id} value={office.id} className="bg-surface text-text-primary">{office.name}</option>
                           ))}
                         </select>
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary">
@@ -447,7 +447,7 @@ const EditProfilePage = () => {
                   <div className="p-2 rounded-sm bg-accent/10 text-accent border border-accent/10">
                     <Mail size={18} />
                   </div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest">About</h3>
+                  <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">About</h3>
                 </div>
                 
                 <div className="space-y-2">
@@ -457,7 +457,7 @@ const EditProfilePage = () => {
                     rows={4}
                     placeholder="Tell us about yourself..."
                     className={cn(
-                      "w-full px-6 py-4 bg-surface-variant/50 border border-border/30 rounded-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-white resize-none",
+                      "w-full px-6 py-4 bg-surface-variant/50 border border-border/30 rounded-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all font-bold text-text-primary resize-none",
                       errors.bio && "border-error/40 bg-error/5 focus:ring-error/5"
                     )}
                   />
@@ -469,7 +469,7 @@ const EditProfilePage = () => {
                 <button
                   onClick={() => router.push(profileBasePath)}
                   type="button"
-                  className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-white cursor-pointer"
+                  className="flex-1 py-4 px-6 bg-surface-variant hover:bg-border border border-border/50 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95 text-center text-text-primary cursor-pointer"
                 >
                   Cancel
                 </button>

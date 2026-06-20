@@ -277,8 +277,8 @@ export default function LocationPage() {
     }).addTo(map);
 
     const circle = L.circle([defaultLat, defaultLng], {
-      color: '#10b981',
-      fillColor: '#10b981',
+      color: '#ffffff',
+      fillColor: '#ffffff',
       fillOpacity: 0.15,
       weight: 2,
       radius: radiusInput

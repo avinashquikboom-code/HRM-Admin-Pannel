@@ -202,7 +202,7 @@
   }
 
   .btn-secondary {
-    @apply bg-secondary hover:opacity-90 text-white px-4 py-2 text-xs sm:text-sm rounded-sm transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer;
+    @apply bg-secondary hover:opacity-90 text-secondary-foreground px-4 py-2 text-xs sm:text-sm rounded-sm transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 cursor-pointer;
   }
 
   .input-field {
@@ -655,7 +655,6 @@ html:not(.dark) {
   }
 
   /* Override hardcoded text colors to use theme primary text */
-  .text-white,
   .text-slate-100,
   .text-slate-200,
   .text-slate-300,
@@ -699,4 +698,14 @@ html:not(.dark) {
   .text-foreground {
     color: var(--text-primary) !important;
   }
+}
+
+.text-always-white,
+.text-white,
+.btn-primary {
+  color: #FFFFFF !important;
+}
+
+.btn-primary svg {
+  color: #FFFFFF !important;
 }

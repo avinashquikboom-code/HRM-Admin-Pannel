@@ -46,7 +46,7 @@ const LOGIN_TAB_LABELS: Record<LoginPortalType, string> = {
 const LOGIN_ACCENT = {
   blob: 'bg-primary/10',
   icon: 'bg-primary shadow-primary/40',
-  tab: 'bg-primary text-white shadow-md',
+  tab: 'bg-primary text-always-white shadow-md',
   button: 'bg-primary hover:bg-primary-dark shadow-xl shadow-primary/30',
   ring: 'focus:ring-primary/50',
 };
@@ -118,7 +118,7 @@ export default function AuthLoginView({
               styles.icon
             )}
           >
-            <span className="font-semibold text-lg sm:text-xl tracking-tight" style={{ color: '#FFFFFF' }}>
+            <span className="font-semibold text-lg sm:text-xl tracking-tight text-always-white">
               HRM
             </span>
           </div>
@@ -229,7 +229,7 @@ export default function AuthLoginView({
               type="submit"
               disabled={isLoading}
               className={cn(
-                'w-full py-3.5 font-semibold rounded-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed text-sm text-white',
+                'w-full py-3.5 font-semibold rounded-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed text-sm text-always-white',
                 styles.button
               )}
             >
