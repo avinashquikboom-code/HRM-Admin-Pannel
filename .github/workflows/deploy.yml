@@ -43,4 +43,4 @@ jobs:
             .
           docker push "$IMAGE_URI:$IMAGE_TAG"
           docker push "$IMAGE_URI:latest"
-          echo "Pushed $IMAGE_URI:latest (and :$IMAGE_TAG)"
+          echo "Pushed $IMAGE_URI:latest (and :$IMAGE_TAG)" 
