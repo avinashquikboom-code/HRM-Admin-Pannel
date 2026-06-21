@@ -20,6 +20,33 @@ export interface LeaveHistoryResponse {
   leaves: LeaveRequest[];
 }
 
+export interface LeaveBalance {
+  employeeId: string;
+  employeeName: string;
+  casual: number;
+  sick: number;
+  earned: number;
+  paid: number;
+}
+
+export interface LeaveBalancesResponse {
+  success: boolean;
+  balances: LeaveBalance[];
+}
+
+export interface CreateLeaveRequest {
+  employeeId: string;
+  type: string;
+  fromDate: string;
+  toDate: string;
+  reason: string;
+}
+
+export interface UpdateLeaveStatusRequest {
+  status: 'APPROVED' | 'REJECTED';
+  remarks?: string;
+}
+
 export async function fetchEmployeeLeaves(employeeId: number): Promise<LeaveRequest[]> {
   try {
     const { data } = await api.get<LeaveHistoryResponse>('/api/admin/leaves', {
@@ -40,6 +67,42 @@ export async function fetchAllLeaves(): Promise<LeaveRequest[]> {
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load leave requests. Please try again.')
+    );
+  }
+}
+
+export async function fetchLeaveBalances(): Promise<LeaveBalance[]> {
+  try {
+    const { data } = await api.get<LeaveBalancesResponse>('/api/admin/leaves/balances');
+    return data.balances;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to load leave balances. Please try again.')
+    );
+  }
+}
+
+export async function createLeaveRequest(request: CreateLeaveRequest): Promise<{ message: string }> {
+  try {
+    const { data } = await api.post<{ message: string }>('/api/admin/leaves', request);
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to create leave request. Please try again.')
+    );
+  }
+}
+
+export async function updateLeaveStatus(
+  leaveId: string,
+  request: UpdateLeaveStatusRequest
+): Promise<{ message: string }> {
+  try {
+    const { data } = await api.put<{ message: string }>(`/api/admin/leaves/${leaveId}`, request);
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to update leave status. Please try again.')
     );
   }
 }

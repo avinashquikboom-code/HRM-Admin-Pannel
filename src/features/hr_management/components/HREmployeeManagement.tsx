@@ -144,13 +144,16 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       setDepartments(departmentsRes);
     } catch (err: any) {
       console.error('Failed to load offices and departments:', err);
+      // Set empty arrays to prevent UI from hanging
+      setOffices([]);
+      setDepartments([]);
     }
   }, []);
 
   useEffect(() => {
     loadEmployees(refreshTrigger !== undefined && refreshTrigger > 0);
     loadOfficesAndDepartments();
-  }, [loadEmployees, loadOfficesAndDepartments, refreshTrigger]);
+  }, [refreshTrigger]);
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,7 +210,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
     setError(null);
 
     // Capture the old office name before update to detect office change
-    const previousOfficeName = selectedEmployee.office;
+    const previousOfficeName = typeof selectedEmployee.office === 'object' && selectedEmployee.office !== null
+      ? selectedEmployee.office.name
+      : selectedEmployee.office;
 
     try {
       const updateData: UpdateHREmployeeRequest = {
@@ -278,8 +283,12 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       lastName: employee.lastName,
       designation: employee.designation,
       status: employee.status,
-      officeId: offices.find(o => o.name === employee.office)?.id,
-      departmentId: departments.find(d => d.name === employee.department)?.id,
+      officeId: typeof employee.office === 'object' && employee.office !== null
+        ? Number(employee.office.id)
+        : offices.find(o => o.name === employee.office)?.id,
+      departmentId: typeof employee.department === 'object' && employee.department !== null
+        ? Number(employee.department.id)
+        : departments.find(d => d.name === employee.department)?.id,
       phone: employee.phone || '',
       aadharNumber: employee.aadharNumber || '',
       pfNumber: employee.pfNumber || '',
@@ -490,9 +499,11 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 text-xs text-text-primary">
                           <Building size={12} className="text-text-secondary/50" />
-                          {employee.office}
+                          {employee.office 
+                            ? (typeof employee.office === 'object' ? employee.office.name : employee.office) 
+                            : 'Remote'}
                         </div>
-                        {employee.office === 'Remote' && (
+                        {(!employee.office || employee.office === 'Remote' || (typeof employee.office === 'object' && employee.office.name === 'Remote')) && (
                           <button
                             type="button"
                             onClick={() => {
@@ -509,7 +520,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                     <td className="p-4">
                       <div className="flex items-center gap-2 text-xs text-text-primary">
                         <Briefcase size={12} className="text-text-secondary/50" />
-                        {employee.department}
+                        {employee.department 
+                          ? (typeof employee.department === 'object' ? employee.department.name : employee.department) 
+                          : 'Unassigned'}
                       </div>
                     </td>
                     <td className="p-4">
@@ -809,6 +822,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                         <option key={dept.id} value={dept.id}>{dept.name}</option>
                       ))}
                     </select>
+                    <button
+                      type="button"
+                      className="mt-2 w-full p-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                    >
+                      <UserPlus size={12} />
+                      Create Role
+                    </button>
                   </div>
                 </div>
 

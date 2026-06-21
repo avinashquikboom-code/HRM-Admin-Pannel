@@ -745,3 +745,54 @@ html:not(.dark) {
 .btn-primary svg {
   color: #FFFFFF !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL INPUT VISIBILITY FIX
+   Inputs/selects with dark hardcoded bg-slate-* classes are
+   invisible (white text on white bg) in light mode.
+   These overrides fix all forms panel-wide.
+═══════════════════════════════════════════════════════════════ */
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 0.7;
+}
+
+/* Any input/select that uses a dark slate background — override in light mode */
+html:not(.dark) input[class*="bg-slate"],
+html:not(.dark) select[class*="bg-slate"],
+html:not(.dark) textarea[class*="bg-slate"] {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) input[class*="bg-slate"]:focus,
+html:not(.dark) select[class*="bg-slate"]:focus,
+html:not(.dark) textarea[class*="bg-slate"]:focus {
+  border-color: #14B8A6 !important;
+  box-shadow: 0 0 0 2px rgba(20,184,166,0.12) !important;
+}
+
+/* Modal containers with dark slate backgrounds in light mode */
+html:not(.dark) div[class*="bg-slate-900"],
+html:not(.dark) div[class*="bg-slate-800"] {
+  background-color: #FFFFFF !important;
+  border-color: var(--card-border-light) !important;
+}
+
+/* Text inside dark modal containers */
+html:not(.dark) [class*="bg-slate-900"] h3,
+html:not(.dark) [class*="bg-slate-900"] h2,
+html:not(.dark) [class*="bg-slate-900"] h1,
+html:not(.dark) [class*="bg-slate-900"] p,
+html:not(.dark) [class*="bg-slate-900"] label,
+html:not(.dark) [class*="bg-slate-900"] span {
+  color: var(--text-primary) !important;
+}

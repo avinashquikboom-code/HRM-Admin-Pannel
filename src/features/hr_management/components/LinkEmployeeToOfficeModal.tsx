@@ -46,8 +46,11 @@ export default function LinkEmployeeToOfficeModal({
         setDepartments(departmentsData);
         
         // Pre-select existing department if matched
-        if (employee.department && employee.department !== 'Unassigned') {
-          const matchedDept = departmentsData.find(d => d.name === employee.department);
+        const deptName = typeof employee.department === 'object' && employee.department !== null
+          ? employee.department.name
+          : employee.department;
+        if (deptName && deptName !== 'Unassigned') {
+          const matchedDept = departmentsData.find(d => d.name === deptName);
           if (matchedDept) {
             setSelectedDepartmentId(matchedDept.id);
           }

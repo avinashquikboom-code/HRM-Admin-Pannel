@@ -108,8 +108,8 @@ export default function RegisterUserWithRights({
   return (
     <div id="register-user-rights" className={cn(!compact && 'scroll-mt-8')}>
       <div className="mb-6">
-        <h2 className="text-xl font-black text-white tracking-tight">{copy.title}</h2>
-        <p className="text-xs text-slate-400 mt-1.5 font-medium">{copy.description}</p>
+        <h2 className="text-xl font-black text-text-primary tracking-tight">{copy.title}</h2>
+        <p className="text-xs text-text-secondary mt-1.5 font-medium">{copy.description}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -128,7 +128,7 @@ export default function RegisterUserWithRights({
         {/* First Name & Last Name */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">
+            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
               First Name
             </label>
             <div className="relative group">
@@ -138,14 +138,14 @@ export default function RegisterUserWithRights({
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 disabled={isLoading}
-                className="w-full pl-11 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500 disabled:opacity-60"
+                className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
                 placeholder="John"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">
+            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
               Last Name
             </label>
             <div className="relative group">
@@ -155,7 +155,7 @@ export default function RegisterUserWithRights({
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 disabled={isLoading}
-                className="w-full pl-11 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500 disabled:opacity-60"
+                className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
                 placeholder="Doe"
               />
             </div>
@@ -165,7 +165,7 @@ export default function RegisterUserWithRights({
         {/* Email & Password */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">
+            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
               Email Address *
             </label>
             <div className="relative group">
@@ -176,14 +176,14 @@ export default function RegisterUserWithRights({
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full pl-11 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500 disabled:opacity-60"
+                className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
                 placeholder="newuser@company.com"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">
+            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
               Account Password *
             </label>
             <PasswordInput
@@ -192,7 +192,7 @@ export default function RegisterUserWithRights({
               disabled={isLoading}
               required
               minLength={8}
-              inputClassName="bg-slate-950/40 border-white/5 hover:border-white/10 focus:border-primary/30 text-white shadow-none py-4 text-xs"
+              inputClassName="input-dark border-border hover:border-border/80 focus:border-primary/50 shadow-none py-4 text-xs"
               placeholder="Password@123"
               autoComplete="new-password"
             />
@@ -203,14 +203,14 @@ export default function RegisterUserWithRights({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {allowRoleSelection && (
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">
+              <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
                 User Role
               </label>
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value as RegisterRole)}
                 disabled={isLoading}
-                className="w-full px-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+                className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
               >
                 {managerPortal === 'super_admin' ? (
                   <>
@@ -228,7 +228,7 @@ export default function RegisterUserWithRights({
           )}
 
           <div className={cn(!allowRoleSelection && 'sm:col-span-2')}>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">
+            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
               Department *
             </label>
             <div className="relative group">
@@ -238,7 +238,7 @@ export default function RegisterUserWithRights({
                 onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
                 disabled={isLoading || isLoadingDepartments}
                 required
-                className="w-full pl-11 pr-12 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white disabled:opacity-60 cursor-pointer"
+                className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
               >
                 <option value="">Select Department</option>
                 {departments.map((dept) => (

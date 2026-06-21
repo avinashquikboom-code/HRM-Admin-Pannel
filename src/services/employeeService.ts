@@ -226,3 +226,21 @@ export async function deleteEmployee(employeeId: string): Promise<{ message: str
     );
   }
 }
+
+export async function assignEmployeeToDepartment(
+  employeeId: string,
+  departmentId: string
+): Promise<{ message: string }> {
+  try {
+    const { data } = await api.put<{ message: string }>(
+      `/api/admin/employees/${employeeId}/assign-department`,
+      { departmentId }
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to assign department. Please try again.')
+    );
+  }
+}
+

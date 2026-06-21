@@ -64,8 +64,8 @@ export interface HREmployee {
   fullName: string;
   designation: string;
   status: string;
-  department: string;
-  office: string;
+  department: string | { id: string; name: string; code: string | null } | null;
+  office: string | { id: string; name: string; latitude: number; longitude: number; idealRadiusMeters: number; maxPunchRadiusMeters: number } | null;
   email: string | null;
   phone?: string;
   aadharNumber?: string;
@@ -146,7 +146,7 @@ export async function fetchHREmployees(params: {
   limit?: number;
 }): Promise<HREmployeesResponse> {
   try {
-    const { data } = await api.get<HREmployeesResponse>('/api/hr/employees', { params });
+    const { data } = await api.get<HREmployeesResponse>('/api/admin/employees', { params });
     return data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch HR employees.'));
@@ -219,7 +219,7 @@ export interface UpdateHREmployeeRequest {
 
 export async function fetchHROffices(): Promise<HROffice[]> {
   try {
-    const { data } = await api.get<{ success: boolean; offices: HROffice[] }>('/api/hr/offices');
+    const { data } = await api.get<{ success: boolean; offices: HROffice[] }>('/api/admin/offices');
     return data.offices;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch offices.'));
@@ -228,7 +228,7 @@ export async function fetchHROffices(): Promise<HROffice[]> {
 
 export async function fetchHRDepartments(): Promise<HRDepartment[]> {
   try {
-    const { data } = await api.get<{ success: boolean; departments: HRDepartment[] }>('/api/hr/departments');
+    const { data } = await api.get<{ success: boolean; departments: HRDepartment[] }>('/api/admin/departments');
     return data.departments;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch departments.'));

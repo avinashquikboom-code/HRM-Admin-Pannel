@@ -34,6 +34,12 @@ import TableSkeleton from '@/components/TableSkeleton';
 import { api } from '@/lib/api';
 import { fetchAdminHolidays } from '@/services/settingsService';
 import { 
+  fetchAllLeaves, 
+  fetchLeaveBalances, 
+  createLeaveRequest, 
+  updateLeaveStatus 
+} from '@/services/leaveService';
+import { 
   ResponsiveContainer, 
   BarChart, 
   Bar, 
@@ -116,9 +122,9 @@ export default function LeavePage() {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [leavesRes, balancesRes, empRes, holidaysRes] = await Promise.all([
-        api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves'),
-        api.get<{ success: boolean; balances: any[] }>('/api/admin/leaves/balances'),
+      const [leaves, balances, empRes, holidaysRes] = await Promise.all([
+        fetchAllLeaves(),
+        fetchLeaveBalances(),
         api.get<{ success: boolean; employees: any[] }>('/api/admin/employees'),
         fetchAdminHolidays().catch(err => {
           console.error('Failed to fetch holidays:', err);
@@ -126,13 +132,8 @@ export default function LeavePage() {
         })
       ]);
 
-      if (leavesRes.data.success) {
-        setLeaveRequests(leavesRes.data.leaves);
-      }
-
-      if (balancesRes.data.success) {
-        setLeaveBalances(balancesRes.data.balances);
-      }
+      setLeaveRequests(leaves);
+      setLeaveBalances(balances);
 
       if (empRes.data.success && empRes.data.employees.length > 0) {
         setRealEmployees(empRes.data.employees);
@@ -143,6 +144,7 @@ export default function LeavePage() {
       setHolidays(Array.isArray(holidaysRes) ? holidaysRes : []);
     } catch (err) {
       console.error('Failed to load leave admin data:', err);
+      toast.error('Failed to load leave data. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -160,15 +162,15 @@ export default function LeavePage() {
     e.preventDefault();
     if (!selectedRequest) return;
 
-    const actionStatus = remarksAction === 'approve' ? 'Approved' : 'Rejected';
     const apiStatus = remarksAction === 'approve' ? 'APPROVED' : 'REJECTED';
 
     try {
-      await api.put(`/api/admin/leaves/${selectedRequest.id}`, { status: apiStatus, remarks });
+      await updateLeaveStatus(selectedRequest.id, { status: apiStatus, remarks });
       await loadData();
       setIsRemarksModalOpen(false);
       setSelectedRequest(null);
       setRemarks('');
+      toast.success(`Leave request ${remarksAction === 'approve' ? 'approved' : 'rejected'} successfully!`);
     } catch (err) {
       console.error(err);
       toast.error(err instanceof Error ? err.message : 'Operation failed');
@@ -230,7 +232,7 @@ export default function LeavePage() {
       const targetEmp = realEmployees.find(emp => `${emp.firstName} ${emp.lastName}` === employeeName) || realEmployees[0];
       if (!targetEmp) throw new Error('No registered employee found.');
 
-      await api.post('/api/admin/leaves', {
+      await createLeaveRequest({
         employeeId: targetEmp.id,
         type: leaveType,
         fromDate: startDate,
@@ -239,6 +241,7 @@ export default function LeavePage() {
       });
 
       await loadData();
+      toast.success('Leave request created successfully!');
 
       setIsApplyModalOpen(false);
       setStartDate('');
