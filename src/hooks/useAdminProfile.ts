@@ -8,7 +8,7 @@ import type { User } from '@/store/slices/authSlice';
 
 export function useAdminProfile() {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const hasCachedProfile = Boolean(user?.profile);
   const [isLoading, setIsLoading] = useState(!hasCachedProfile);
   const [error, setError] = useState('');
@@ -29,11 +29,14 @@ export function useAdminProfile() {
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+    // Only fetch profile if authenticated
+    if (isAuthenticated) {
+      loadProfile();
+    }
+  }, [isAuthenticated, loadProfile]);
 
   return {
     user: user as User | null,

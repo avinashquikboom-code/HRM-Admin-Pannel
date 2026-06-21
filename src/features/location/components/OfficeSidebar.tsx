@@ -53,7 +53,7 @@ export default function OfficeSidebar({
   selectedOfficeName,
 }: OfficeSidebarProps) {
   return (
-    <div className="glass-card flex flex-col h-full min-h-[420px] overflow-hidden">
+    <div className="bg-surface border border-border rounded-sm flex flex-col h-full min-h-[420px] overflow-hidden">
       <div className="p-5 border-b border-border flex items-center justify-between gap-3">
         <div>
           <h2 className="text-section-title">Offices</h2>

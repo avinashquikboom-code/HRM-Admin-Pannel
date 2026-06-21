@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Clock, 
   Plus, 
@@ -42,6 +44,8 @@ const ShiftManagementPage = () => {
     breakMinutes: 60,
     color: '#3BA38B'
   });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
 
   const fetchShifts = async () => {
     try {
@@ -99,18 +103,28 @@ const ShiftManagementPage = () => {
     }
   };
 
-  const handleDeleteShift = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this shift?')) return;
+  const handleDeleteShift = (shift: Shift) => {
+    setShiftToDelete(shift);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteShift = async () => {
+    if (!shiftToDelete) return;
     try {
-      const response = await fetch(`/api/admin/shifts/${id}`, {
+      const response = await fetch(`/api/admin/shifts/${shiftToDelete.id}`, {
         method: 'DELETE',
       });
       const data = await response.json();
       if (data.success) {
         fetchShifts();
+        toast.success('Shift deleted successfully');
       }
     } catch (error) {
       console.error('Failed to delete shift:', error);
+      toast.error('Failed to delete shift');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setShiftToDelete(null);
     }
   };
 
@@ -227,7 +241,7 @@ const ShiftManagementPage = () => {
                       <Edit size={16} />
                     </button>
                     <button
-                      onClick={() => handleDeleteShift(shift.id)}
+                      onClick={() => handleDeleteShift(shift)}
                       className="p-2 hover:bg-rose-500/10 rounded-lg text-slate-400 hover:text-rose-400 transition-colors"
                     >
                       <Trash2 size={16} />
@@ -416,6 +430,16 @@ const ShiftManagementPage = () => {
           </>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteShift}
+        title="Delete Shift"
+        message={shiftToDelete ? `Are you sure you want to delete "${shiftToDelete.name}"? This action cannot be undone.` : 'Are you sure you want to delete this shift? This action cannot be undone.'}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

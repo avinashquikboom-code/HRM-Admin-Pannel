@@ -21,6 +21,7 @@ import { fetchLiveLocationLogs, clearLiveLocationLogs } from '@/services/locatio
 import CreateOfficeModal from '@/features/location/components/CreateOfficeModal';
 import EditOfficeModal from '@/features/location/components/EditOfficeModal';
 import AssignEmployeeModal from '@/features/location/components/AssignEmployeeModal';
+import InlineAssignForm from '@/features/location/components/InlineAssignForm';
 import ConfirmModal from '@/components/ConfirmModal';
 import LocationStatsBar from '@/features/location/components/LocationStatsBar';
 import OfficeSidebar from '@/features/location/components/OfficeSidebar';
@@ -31,15 +32,6 @@ import ActivityFeed from '@/features/location/components/ActivityFeed';
 import { useLocationSimulation } from '@/features/location/hooks/useLocationSimulation';
 import type { LocationStatusFilter } from '@/features/location/types';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
-
-const DEFAULT_MAP_BOUNDS = {
-  minLat: 19.05,
-  maxLat: 19.102,
-  minLng: 72.84,
-  maxLng: 72.915,
-};
-
-const DEFAULT_OFFICE_CENTER = { lat: 19.076, lng: 72.8777 };
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -89,6 +81,7 @@ export default function LocationPage() {
   const [isAssignEmployeeOpen, setIsAssignEmployeeOpen] = useState(false);
   const [unassigningEmployee, setUnassigningEmployee] = useState<{id: string, name: string} | null>(null);
   const [deletingOffice, setDeletingOffice] = useState<Office | null>(null);
+  const [isInlineAssignOpen, setIsInlineAssignOpen] = useState(false);
   const [unassigningEmployeeId, setUnassigningEmployeeId] = useState<
     string | null
   >(null);
@@ -118,8 +111,8 @@ export default function LocationPage() {
 
   // Form inputs
   const [siteNameInput, setSiteNameInput] = useState('');
-  const [latInput, setLatInput] = useState('19.187053');
-  const [lngInput, setLngInput] = useState('72.977937');
+  const [latInput, setLatInput] = useState('');
+  const [lngInput, setLngInput] = useState('');
   const [radiusInput, setRadiusInput] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -145,8 +138,10 @@ export default function LocationPage() {
     () =>
       selectedOffice
         ? { lat: selectedOffice.latitude, lng: selectedOffice.longitude }
-        : DEFAULT_OFFICE_CENTER,
-    [selectedOffice]
+        : offices.length > 0
+        ? { lat: offices[0].latitude, lng: offices[0].longitude }
+        : { lat: 0, lng: 0 },
+    [selectedOffice, offices]
   );
 
   const mapBounds = useMemo(
@@ -157,8 +152,14 @@ export default function LocationPage() {
             selectedOffice.longitude,
             selectedOffice.maxPunchRadiusMeters
           )
-        : DEFAULT_MAP_BOUNDS,
-    [selectedOffice]
+        : offices.length > 0
+        ? getMapBoundsForOffice(
+            offices[0].latitude,
+            offices[0].longitude,
+            offices[0].maxPunchRadiusMeters
+          )
+        : null,
+    [selectedOffice, offices]
   );
 
   const geofenceRadius = useMemo(
@@ -245,13 +246,14 @@ export default function LocationPage() {
 
     const L = (window as any).L;
 
-    // Default Thane coords center
-    const defaultLat = parseFloat(latInput) || 19.187053;
-    const defaultLng = parseFloat(lngInput) || 72.977937;
+    // Use first office from database as default, or empty inputs
+    const defaultLat = offices.length > 0 ? offices[0].latitude : (parseFloat(latInput) || 0);
+    const defaultLng = offices.length > 0 ? offices[0].longitude : (parseFloat(lngInput) || 0);
+    const defaultZoom = offices.length > 0 ? 14 : 2;
 
     const map = L.map('leaflet-map', {
       zoomControl: false
-    }).setView([defaultLat, defaultLng], 13);
+    }).setView([defaultLat, defaultLng], defaultZoom);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -277,10 +279,11 @@ export default function LocationPage() {
     }).addTo(map);
 
     const circle = L.circle([defaultLat, defaultLng], {
-      color: '#ffffff',
-      fillColor: '#ffffff',
-      fillOpacity: 0.15,
-      weight: 2,
+      color: '#0d9488',
+      fillColor: '#0d9488',
+      fillOpacity: 0.2,
+      weight: 3,
+      dashArray: '5, 5',
       radius: radiusInput
     }).addTo(map);
 
@@ -359,9 +362,10 @@ export default function LocationPage() {
     setIsSearching(true);
     setOfficeActionError('');
     try {
-      // Add country code and limit results for better accuracy
+      // Improved search query - removed country restriction for global search
+      // Added featuretype to prioritize cities and addresses
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=in&limit=5&addressdetails=1`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=10&addressdetails=1&featuretype=city`,
         {
           headers: {
             'User-Agent': 'QuickBoom-HRM' // Required by Nominatim usage policy
@@ -377,7 +381,7 @@ export default function LocationPage() {
         const nameCandidate = isNaN(Number(shortName)) ? shortName : (displayName.split(',')[1]?.trim() || shortName);
         setSiteNameInput(nameCandidate);
 
-        mapInstance.setView([latitude, longitude], 16);
+        mapInstance.setView([latitude, longitude], 14);
         if (markerInstance && circleInstance) {
           markerInstance.setLatLng([latitude, longitude]);
           circleInstance.setLatLng([latitude, longitude]);
@@ -385,11 +389,38 @@ export default function LocationPage() {
           setLngInput(longitude.toFixed(6));
         }
       } else {
-        setOfficeActionError('Location not found. Try being more specific (e.g., "Thane, Maharashtra" or "Mumbai").');
+        // Try without featuretype restriction
+        const fallbackRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=10&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'QuickBoom-HRM'
+            }
+          }
+        );
+        const fallbackData = await fallbackRes.json();
+        if (fallbackData && fallbackData.length > 0) {
+          const latitude = parseFloat(fallbackData[0].lat);
+          const longitude = parseFloat(fallbackData[0].lon);
+          const displayName = fallbackData[0].display_name || searchQuery;
+          const shortName = displayName.split(',')[0].trim();
+          const nameCandidate = isNaN(Number(shortName)) ? shortName : (displayName.split(',')[1]?.trim() || shortName);
+          setSiteNameInput(nameCandidate);
+
+          mapInstance.setView([latitude, longitude], 14);
+          if (markerInstance && circleInstance) {
+            markerInstance.setLatLng([latitude, longitude]);
+            circleInstance.setLatLng([latitude, longitude]);
+            setLatInput(latitude.toFixed(6));
+            setLngInput(longitude.toFixed(6));
+          }
+        } else {
+          setOfficeActionError('Location not found. Try: city name (e.g., "Mumbai"), address (e.g., "123 Main St"), or landmark.');
+        }
       }
     } catch (err) {
       console.error('Geocoding error:', err);
-      setOfficeActionError('Failed to geocode address. Please try again.');
+      setOfficeActionError('Failed to geocode address. Please check your connection and try again.');
     } finally {
       setIsSearching(false);
     }
@@ -417,18 +448,27 @@ export default function LocationPage() {
   const handleResetEditor = () => {
     setSelectedOfficeId(null);
     setSiteNameInput('');
-    setLatInput('19.187053');
-    setLngInput('72.977937');
+    setLatInput('');
+    setLngInput('');
     setRadiusInput(25);
     setSearchQuery('');
     setOfficeActionMessage('');
     setOfficeActionError('');
 
     if (mapInstance && markerInstance && circleInstance) {
-      mapInstance.setView([19.187053, 72.977937], 13);
-      markerInstance.setLatLng([19.187053, 72.977937]);
-      circleInstance.setLatLng([19.187053, 72.977937]);
-      circleInstance.setRadius(25);
+      // Reset to first office or world view
+      if (offices.length > 0) {
+        const firstOffice = offices[0];
+        mapInstance.setView([firstOffice.latitude, firstOffice.longitude], 14);
+        markerInstance.setLatLng([firstOffice.latitude, firstOffice.longitude]);
+        circleInstance.setLatLng([firstOffice.latitude, firstOffice.longitude]);
+        circleInstance.setRadius(25);
+      } else {
+        mapInstance.setView([0, 0], 2);
+        markerInstance.setLatLng([0, 0]);
+        circleInstance.setLatLng([0, 0]);
+        circleInstance.setRadius(25);
+      }
     }
   };
 
@@ -708,7 +748,7 @@ export default function LocationPage() {
           {/* Left Panel: Form & List */}
           <div className="xl:col-span-4 space-y-6">
             {/* Left Card 1: New Perimeter Form */}
-            <div className="glass-card p-6 space-y-6">
+            <div className="bg-surface border border-border rounded-sm p-6 space-y-6">
               <div className="flex items-center justify-between border-b border-border/50 pb-3">
                 <h3 className="heading-2 font-bold text-text-primary">
                   {selectedOfficeId ? 'Edit Perimeter' : 'New Perimeter'}
@@ -741,7 +781,7 @@ export default function LocationPage() {
                     <label className="text-micro font-black uppercase tracking-wider text-text-secondary ml-1">Latitude</label>
                     <input
                       type="text"
-                      placeholder="e.g. 19.187053"
+                      placeholder="Enter latitude"
                       value={latInput}
                       onChange={(e) => setLatInput(e.target.value)}
                       onBlur={handleCoordsSubmit}
@@ -752,7 +792,7 @@ export default function LocationPage() {
                     <label className="text-micro font-black uppercase tracking-wider text-text-secondary ml-1">Longitude</label>
                     <input
                       type="text"
-                      placeholder="e.g. 72.977937"
+                      placeholder="Enter longitude"
                       value={lngInput}
                       onChange={(e) => setLngInput(e.target.value)}
                       onBlur={handleCoordsSubmit}
@@ -792,7 +832,7 @@ export default function LocationPage() {
             </div>
 
             {/* Left Card 2: Configured Fences Card */}
-            <div className="glass-card p-6 space-y-4">
+            <div className="bg-surface border border-border rounded-sm p-6 space-y-4">
               <h4 className="heading-2 font-bold text-text-primary border-b border-border/50 pb-2">
                 Configured Fences
               </h4>
@@ -847,11 +887,85 @@ export default function LocationPage() {
                 </div>
               )}
             </div>
+
+            {/* Left Card 3: Assign Staff Card */}
+            {selectedOfficeId && (
+              <div className="bg-surface border border-border rounded-sm p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                  <h4 className="heading-2 font-bold text-text-primary">
+                    Assign Staff
+                  </h4>
+                  {!isInlineAssignOpen && (
+                    <button
+                      type="button"
+                      onClick={() => setIsInlineAssignOpen(true)}
+                      className="text-micro font-black text-primary hover:text-primary-dark uppercase tracking-widest"
+                    >
+                      + Assign
+                    </button>
+                  )}
+                  {isInlineAssignOpen && (
+                    <button
+                      type="button"
+                      onClick={() => setIsInlineAssignOpen(false)}
+                      className="text-micro font-black text-error hover:text-error-dark uppercase tracking-widest"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+
+                {isInlineAssignOpen ? (
+                  <InlineAssignForm
+                    officeId={selectedOfficeId}
+                    officeName={selectedOffice?.name ?? 'Selected office'}
+                    onAssigned={handleEmployeeAssigned}
+                    onCancel={() => setIsInlineAssignOpen(false)}
+                  />
+                ) : isOfficeDetailLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-12 bg-surface-variant animate-pulse rounded-sm" />
+                    ))}
+                  </div>
+                ) : assignedEmployees.length === 0 ? (
+                  <div className="text-center py-6 text-xs font-semibold text-muted">
+                    No staff assigned to this perimeter.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                    {assignedEmployees.map((emp) => (
+                      <div
+                        key={emp.id}
+                        className="p-3 rounded-sm border border-border/50 bg-surface-variant/50 flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                            {emp.firstName.charAt(0)}{emp.lastName.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-text-primary">{emp.firstName} {emp.lastName}</p>
+                            <p className="text-[10px] text-text-secondary">{emp.employeeCode}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleUnassignEmployee(emp.id, `${emp.firstName} ${emp.lastName}`)}
+                          className="text-[10px] font-black uppercase text-error hover:text-error-dark opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 hover:bg-error/10 rounded-lg"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Panel: Leaflet Interactive Map View */}
           <div className="xl:col-span-8">
-            <div className="glass-card overflow-hidden flex flex-col relative h-[500px] xl:h-[620px]">
+            <div className="bg-surface border border-border rounded-sm overflow-hidden flex flex-col relative h-[500px] xl:h-[620px]">
               {/* Header Bar */}
               <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-surface/50 backdrop-blur z-[5] relative shrink-0">
                 <p className="text-xs font-semibold text-text-secondary flex items-center gap-1.5">
@@ -902,7 +1016,7 @@ export default function LocationPage() {
           </div>
         </motion.div>
       ) : (
-        /* LIVE TELEMETRY TRACKER VIEW (ORIGINAL FULL FEATURE SET) */
+        /* LIVE TELEMETRY TRACKER VIEW (SIMPLIFIED - NO OFFICES SECTION) */
         <>
           <motion.div variants={itemVariants}>
             <LocationStatsBar
@@ -918,31 +1032,7 @@ export default function LocationPage() {
             variants={itemVariants}
             className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start"
           >
-            <div className="xl:col-span-4 xl:sticky xl:top-4">
-              <OfficeSidebar
-                offices={offices}
-                selectedOfficeId={selectedOfficeId}
-                onSelectOffice={setSelectedOfficeId}
-                onAddOffice={() => setIsCreateOfficeOpen(true)}
-                onEditOffice={setEditingOffice}
-                onDeleteOffice={handleDeleteOffice}
-                isDeletingOfficeId={isDeletingOfficeId}
-                isLoading={isOfficesLoading}
-                assignedEmployees={assignedEmployees}
-                assignedCount={assignedCount}
-                isOfficeDetailLoading={isOfficeDetailLoading}
-                officeDetailError={officeDetailError}
-                onRetryOfficeDetail={() =>
-                  selectedOfficeId && refetchOfficeDetail(selectedOfficeId)
-                }
-                onAssignEmployee={() => setIsAssignEmployeeOpen(true)}
-                onUnassignEmployee={handleUnassignEmployee}
-                unassigningEmployeeId={unassigningEmployeeId}
-                selectedOfficeName={selectedOffice?.name}
-              />
-            </div>
-
-            <div className="xl:col-span-8 space-y-6">
+            <div className="xl:col-span-12 space-y-6">
               <LocationMapView
                 employees={filteredLocations}
                 selectedEmpId={selectedEmpId}

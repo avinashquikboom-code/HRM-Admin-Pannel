@@ -99,11 +99,13 @@ const authSlice = createSlice({
       const portal = state.portal ?? resolvePortalFromWindow();
       if (portal) {
         clearAuthSession(portal, state.user?.role);
+        console.log('🗑️ [AUTH] Session cleared for portal:', portal, 'role:', state.user?.role);
       }
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.portal = null;
+      console.log('🗑️ [AUTH] Redux state reset');
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user && state.token && state.portal) {

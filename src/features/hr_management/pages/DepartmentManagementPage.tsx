@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
+import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Building2, 
   Plus, 
@@ -67,6 +69,8 @@ const DepartmentManagementPage = () => {
     code: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deptToDelete, setDeptToDelete] = useState<Department | null>(null);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
@@ -147,16 +151,23 @@ const DepartmentManagementPage = () => {
     }
   };
 
-  const handleDelete = async (dept: Department) => {
-    if (!confirm(`Are you sure you want to delete "${dept.name}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDelete = (dept: Department) => {
+    setDeptToDelete(dept);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deptToDelete) return;
 
     try {
-      await deleteDepartment(dept.id);
+      await deleteDepartment(deptToDelete.id);
       loadDepartments();
+      toast.success('Department deleted successfully');
     } catch (err: any) {
-      alert(err?.message || 'Failed to delete department. Please try again.');
+      toast.error(err?.message || 'Failed to delete department. Please try again.');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeptToDelete(null);
     }
   };
 
@@ -235,13 +246,13 @@ const DepartmentManagementPage = () => {
 
       {/* Search */}
       <motion.div variants={itemVariants} className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary/50 w-5 h-5" />
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search departments by name or code..."
-          className="w-full pl-13 pr-4 py-4 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
+          className="w-full pl-13 pr-4 py-4 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-text-primary placeholder:text-text-secondary/50"
         />
       </motion.div>
 
@@ -249,7 +260,7 @@ const DepartmentManagementPage = () => {
       {isLoading ? (
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="glass-card p-6 h-32 bg-slate-800/30 border border-white/5 animate-pulse" />
+            <div key={i} className="glass-card p-6 h-32 bg-surface-variant/30 border border-border animate-pulse" />
           ))}
         </motion.div>
       ) : (
@@ -258,7 +269,7 @@ const DepartmentManagementPage = () => {
             <motion.div
               key={dept.id}
               whileHover={{ y: -5, scale: 1.02 }}
-              className="glass-card p-6 border border-white/5 bg-slate-900/40 hover:bg-slate-900/60 hover:border-white/10 transition-all duration-300 relative overflow-hidden group"
+              className="p-6 border border-border bg-surface hover:bg-surface-variant/30 transition-all duration-300 relative overflow-hidden group rounded-sm"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all" />
               
@@ -270,7 +281,7 @@ const DepartmentManagementPage = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEditModal(dept)}
-                      className="p-2 hover:bg-slate-800 rounded-sm text-slate-400 hover:text-primary transition-all"
+                      className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
                       title="Edit"
                     >
                       <Edit size={16} />
@@ -279,10 +290,10 @@ const DepartmentManagementPage = () => {
                       onClick={() => handleDelete(dept)}
                       disabled={dept._count.employees > 0}
                       className={cn(
-                        "p-2 hover:bg-slate-800 rounded-sm transition-all",
+                        "p-2 hover:bg-surface-variant rounded-sm transition-all",
                         dept._count.employees > 0 
-                          ? "text-slate-600 cursor-not-allowed" 
-                          : "text-slate-400 hover:text-rose-400"
+                          ? "text-text-secondary/40 cursor-not-allowed" 
+                          : "text-text-secondary hover:text-rose-500"
                       )}
                       title={dept._count.employees > 0 ? "Cannot delete - has employees" : "Delete"}
                     >
@@ -291,19 +302,19 @@ const DepartmentManagementPage = () => {
                   </div>
                 </div>
 
-                <h3 className="text-lg font-bold text-white mb-1">{dept.name}</h3>
+                <h3 className="text-lg font-bold text-text-primary mb-1">{dept.name}</h3>
                 {dept.code && (
-                  <p className="text-xs text-slate-400 font-mono mb-3">{dept.code}</p>
+                  <p className="text-xs text-text-secondary font-mono mb-3">{dept.code}</p>
                 )}
 
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-text-secondary">
                   <Users size={14} />
                   <span className="font-semibold">{dept._count.employees} employee{dept._count.employees !== 1 ? 's' : ''}</span>
                 </div>
 
                 {dept._count.employees > 0 && (
-                  <div className="mt-3 pt-3 border-t border-white/5">
-                    <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
                       Active department
                     </span>
                   </div>
@@ -318,8 +329,8 @@ const DepartmentManagementPage = () => {
               animate={{ opacity: 1 }}
               className="col-span-full text-center py-16"
             >
-              <Building2 size={48} className="text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400 font-semibold">
+              <Building2 size={48} className="text-text-secondary/50 mx-auto mb-4" />
+              <p className="text-text-secondary font-semibold">
                 {searchTerm ? 'No departments found matching your search.' : 'No departments yet. Create your first department!'}
               </p>
             </motion.div>
@@ -342,9 +353,9 @@ const DepartmentManagementPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-8 w-full max-w-md border border-white/10 bg-slate-900/95"
+              className="p-8 w-full max-w-md border border-border bg-surface rounded-sm"
             >
-              <h2 className="text-xl font-black text-white mb-6">Create Department</h2>
+              <h2 className="text-xl font-black text-text-primary mb-6">Create Department</h2>
               
               {formError && (
                 <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-sm text-rose-400 text-xs font-semibold">
@@ -361,7 +372,7 @@ const DepartmentManagementPage = () => {
 
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2">
                     Department Name *
                   </label>
                   <input
@@ -370,12 +381,12 @@ const DepartmentManagementPage = () => {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                     placeholder="e.g., Engineering"
-                    className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2">
                     Department Code (Optional)
                   </label>
                   <input
@@ -383,7 +394,7 @@ const DepartmentManagementPage = () => {
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                     placeholder="e.g., DEPT-ENG"
-                    className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                   />
                 </div>
 
@@ -432,9 +443,9 @@ const DepartmentManagementPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-card p-8 w-full max-w-md border border-white/10 bg-slate-900/95"
+              className="p-8 w-full max-w-md border border-border bg-surface rounded-sm"
             >
-              <h2 className="text-xl font-black text-white mb-6">Edit Department</h2>
+              <h2 className="text-xl font-black text-text-primary mb-6">Edit Department</h2>
               
               {formError && (
                 <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-sm text-rose-400 text-xs font-semibold">
@@ -451,7 +462,7 @@ const DepartmentManagementPage = () => {
 
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2">
                     Department Name *
                   </label>
                   <input
@@ -460,12 +471,12 @@ const DepartmentManagementPage = () => {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                     placeholder="e.g., Engineering"
-                    className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2">
                     Department Code (Optional)
                   </label>
                   <input
@@ -473,7 +484,7 @@ const DepartmentManagementPage = () => {
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                     placeholder="e.g., DEPT-ENG"
-                    className="w-full px-4 py-3 bg-slate-950 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                   />
                 </div>
 
@@ -506,6 +517,16 @@ const DepartmentManagementPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Department"
+        message={deptToDelete ? `Are you sure you want to delete "${deptToDelete.name}"? This action cannot be undone.` : 'Are you sure you want to delete this department? This action cannot be undone.'}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </motion.div>
   );
 };

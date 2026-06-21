@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   Plus, 
   Search, 
@@ -204,7 +205,7 @@ const CompaniesPage = () => {
       reset();
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
@@ -228,7 +229,7 @@ const CompaniesPage = () => {
       await loadCompanies();
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
@@ -244,7 +245,7 @@ const CompaniesPage = () => {
       await loadCompanies();
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 

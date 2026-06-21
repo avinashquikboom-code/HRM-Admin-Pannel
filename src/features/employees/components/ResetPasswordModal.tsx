@@ -4,16 +4,22 @@ import { useState } from 'react';
 import { X, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import { resetEmployeePassword } from '@/services/employeeService';
 
 interface ResetPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   employee: {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     email?: string;
-    userId?: number;
+    user?: {
+      id: number;
+      email: string;
+      role: string;
+      isActive: boolean;
+    } | null;
   } | null;
   onSuccess: () => void;
 }
@@ -35,7 +41,7 @@ const ResetPasswordModal = ({ isOpen, onClose, employee, onSuccess }: ResetPassw
       return;
     }
 
-    if (!employee?.userId) {
+    if (!employee?.user?.id) {
       setError('Employee user ID not found');
       return;
     }
@@ -43,19 +49,10 @@ const ResetPasswordModal = ({ isOpen, onClose, employee, onSuccess }: ResetPassw
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/users/${employee.userId}/reset-password`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ newPassword, isTemporary }),
+      const result = await resetEmployeePassword(employee.user.id, {
+        newPassword,
+        isTemporary,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to reset password');
-      }
 
       setSuccess(true);
       setTimeout(() => {

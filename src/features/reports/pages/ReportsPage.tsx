@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import { 
@@ -176,7 +177,7 @@ const ReportsPage = () => {
       setNewReportName('');
     } catch (err) {
       console.error('Report generation failed:', err);
-      alert('Report generation failed. Please try again.');
+      toast.error('Report generation failed. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -221,11 +222,11 @@ const ReportsPage = () => {
         const url = `${baseUrl}/api/admin/leaves/report/download?token=${token}`;
         window.open(url, '_blank');
       } else {
-        alert('Download not available for this report type yet.');
+        toast.info('Download not available for this report type yet.');
       }
     } catch (error) {
       console.error('Failed to download report:', error);
-      alert('Failed to download report. Please try again.');
+      toast.error('Failed to download report. Please try again.');
     }
   };
 
@@ -800,7 +801,7 @@ const ReportsPage = () => {
                 </button>
                 <button 
                   onClick={() => {
-                    alert('Exporting data ledger...');
+                    toast.info('Exporting data ledger...');
                   }}
                   className="flex-1 btn-primary py-4 rounded-[20px] shadow-lg shadow-primary/25 text-center flex justify-center items-center gap-2"
                 >

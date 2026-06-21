@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
+import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Calendar as CalendarIcon, 
   Check, 
@@ -104,6 +106,7 @@ export default function LeavePage() {
   // Policy Settings state
   const [carryForwardDays, setCarryForwardDays] = useState(10);
   const [maxLimits, setMaxLimits] = useState(30);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   // Balance adjust modal
   const [isBalanceAdjustOpen, setIsBalanceAdjustOpen] = useState(false);
@@ -159,7 +162,7 @@ export default function LeavePage() {
       setRemarks('');
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
@@ -189,7 +192,7 @@ export default function LeavePage() {
       window.URL.revokeObjectURL(url);
       
       // Show success message
-      alert('Leave report downloaded successfully!');
+      toast.success('Leave report downloaded successfully!');
     } catch (error: any) {
       console.error('Failed to download leave report:', error);
       // When responseType is 'blob', server JSON errors arrive as a Blob — parse it for a useful message
@@ -206,7 +209,7 @@ export default function LeavePage() {
       } else if (error instanceof Error && error.message) {
         message = error.message;
       }
-      alert(message);
+      toast.error(message);
     }
   };
 
@@ -234,7 +237,7 @@ export default function LeavePage() {
       setReason('');
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Failed to apply leave');
+      toast.error(err instanceof Error ? err.message : 'Failed to apply leave');
     }
   };
 
@@ -259,7 +262,10 @@ export default function LeavePage() {
   };
 
   const resetAllBalances = () => {
-    if (!window.confirm('Are you sure you want to reset all employee leave balances to annual standard allocations?')) return;
+    setIsResetConfirmOpen(true);
+  };
+
+  const handleResetConfirm = () => {
     setLeaveBalances(prev => prev.map(bal => ({
       ...bal,
       casual: 12,
@@ -267,10 +273,12 @@ export default function LeavePage() {
       earned: 15,
       paid: 10
     })));
+    setIsResetConfirmOpen(false);
+    toast.success('All leave balances reset to standard allocations');
   };
 
   const exportReport = (format: 'pdf' | 'excel') => {
-    alert(`Exporting Leave Utilization Report in ${format.toUpperCase()} format...`);
+    toast.info(`Exporting Leave Utilization Report in ${format.toUpperCase()} format...`);
   };
 
   // Stats Counters
@@ -352,6 +360,7 @@ export default function LeavePage() {
   }, [leaveRequests]);
 
   return (
+    <>
     <motion.div 
       initial="hidden"
       animate="visible"
@@ -359,12 +368,12 @@ export default function LeavePage() {
       className="space-y-8 pb-16 text-text-primary animate-fadeIn"
     >
       {/* Title Header Command hub */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-border bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest">
             <CalendarRange size={12} className="text-primary animate-pulse" />
             Corporate Time-Off Governance
           </div>
@@ -379,14 +388,14 @@ export default function LeavePage() {
         <div className="relative z-10 shrink-0 flex items-center gap-3">
           <button 
             onClick={() => handleDownloadLeaveReport()}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300"
           >
             <Download size={18} />
             Download All Report
           </button>
           <button 
             onClick={() => setIsApplyModalOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
+            className="btn-primary px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
           >
             <Plus size={18} />
             Apply Time-Off
@@ -395,7 +404,7 @@ export default function LeavePage() {
       </motion.div>
 
       {/* Tab Navigation Controls */}
-      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-slate-950/40 border border-white/5 rounded-sm no-scrollbar max-w-3xl">
+      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-surface-variant/30 border border-border rounded-sm no-scrollbar max-w-3xl">
         {[
           { id: 'dashboard', label: 'Dashboard Overview', icon: BarChart3 },
           { id: 'requests', label: 'Request Logs', icon: FileText },
@@ -411,8 +420,8 @@ export default function LeavePage() {
               className={cn(
                 "flex items-center gap-2 px-5 py-3 rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
                 isSelected 
-                  ? "bg-primary text-white shadow-lg shadow-primary/25 border-primary/30" 
-                  : "text-slate-450 hover:text-white hover:bg-white/5"
+                  ? "bg-primary text-white border-primary/30" 
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-variant/30"
               )}
             >
               <tab.icon size={14} />
@@ -435,25 +444,24 @@ export default function LeavePage() {
             {/* KPI Counters Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
-                { label: 'Total Leave Requests', value: totalRequests, icon: FileText, color: 'from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-400', glow: 'rgba(59,130,246,0.15)' },
-                { label: 'Pending Approvals', value: pendingRequests, icon: Clock, color: 'from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-400', glow: 'rgba(245,158,11,0.15)' },
-                { label: 'Approved Requests', value: approvedRequests, icon: CheckCircle2, color: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-450', glow: 'rgba(16,185,129,0.15)' },
-                { label: 'Upcoming Holidays', value: 0, icon: CalendarIcon, color: 'from-violet-500/20 to-purple-500/10 border-violet-500/30 text-violet-400', glow: 'rgba(139,92,246,0.15)' },
+                { label: 'Total Leave Requests', value: totalRequests, icon: FileText, color: 'from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500 dark:text-blue-400', glowBgClass: 'bg-blue-500/5 group-hover:bg-blue-500/10' },
+                { label: 'Pending Approvals', value: pendingRequests, icon: Clock, color: 'from-amber-500/20 to-amber-500/5 border-amber-500/20 text-amber-500 dark:text-amber-400', glowBgClass: 'bg-amber-500/5 group-hover:bg-amber-500/10' },
+                { label: 'Approved Requests', value: approvedRequests, icon: CheckCircle2, color: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500 dark:text-emerald-400', glowBgClass: 'bg-emerald-500/5 group-hover:bg-emerald-500/10' },
+                { label: 'Upcoming Holidays', value: 0, icon: CalendarIcon, color: 'from-violet-500/20 to-violet-500/5 border-violet-500/20 text-violet-500 dark:text-violet-400', glowBgClass: 'bg-violet-500/5 group-hover:bg-violet-500/10' },
               ].map((stat, i) => (
                 <div 
                   key={i}
-                  className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-6 flex items-center gap-5 shadow-2xl backdrop-blur-xl group hover:border-white/10 transition-all duration-300"
+                  className="relative overflow-hidden border border-border bg-surface hover:bg-surface-variant/30 p-6 flex items-center gap-5 rounded-sm group transition-all duration-300"
                 >
-                  <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                  <div className={cn("absolute -right-8 -bottom-8 w-24 h-24 rounded-full filter blur-xl pointer-events-none transition-all duration-500", stat.glowBgClass)} />
                   <div 
-                    className={`w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
-                    style={{ boxShadow: `0 8px 24px -6px ${stat.glow}` }}
+                    className={cn("w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border", stat.color)}
                   >
                     <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                    <p className="text-3xl font-black text-white mt-1.5 tracking-tight">{stat.value}</p>
+                    <p className="text-[11px] font-black text-text-secondary uppercase tracking-widest leading-none">{stat.label}</p>
+                    <p className="text-3xl font-black text-text-primary mt-1.5 tracking-tight">{stat.value}</p>
                   </div>
                 </div>
               ))}
@@ -462,11 +470,11 @@ export default function LeavePage() {
             {/* Dashboard Analytics & Holiday List */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Analytics Graph */}
-              <div className="xl:col-span-2 relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+              <div className="xl:col-span-2 relative overflow-hidden rounded-sm border border-border bg-surface p-6 sm:p-8">
                 <div className="flex items-center justify-between gap-4 mb-6">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Time-off distributions</p>
-                    <h3 className="text-lg font-black text-white">Monthly Leave Utilization Trends</h3>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1">Time-off distributions</p>
+                    <h3 className="text-lg font-black text-text-primary">Monthly Leave Utilization Trends</h3>
                   </div>
                   <TrendingUp className="text-primary w-5 h-5" />
                 </div>
@@ -477,8 +485,9 @@ export default function LeavePage() {
                       <XAxis dataKey="name" stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
                       <YAxis stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#0F172A', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0px' }}
-                        labelStyle={{ color: '#94A3B8', fontWeight: 'bold' }}
+                        contentStyle={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                        labelStyle={{ color: 'var(--text-primary)', fontWeight: 'bold' }}
+                        itemStyle={{ color: 'var(--text-secondary)' }}
                       />
                       <Bar dataKey="Casual Leave" fill="#F4B860" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="Sick Leave" fill="#EF4444" radius={[4, 4, 0, 0]} />
@@ -489,14 +498,14 @@ export default function LeavePage() {
               </div>
 
               {/* Holiday Quicklist */}
-              <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+              <div className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 sm:p-8 flex flex-col justify-between">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Corporate calendar</p>
-                      <h3 className="text-lg font-black text-white">Upcoming Holidays</h3>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1">Corporate calendar</p>
+                      <h3 className="text-lg font-black text-text-primary">Upcoming Holidays</h3>
                     </div>
-                    <CalendarIcon className="text-violet-400 w-5 h-5 animate-pulse" />
+                    <CalendarIcon className="text-violet-500 w-5 h-5 animate-pulse" />
                   </div>
 
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -506,7 +515,7 @@ export default function LeavePage() {
 
                 <button 
                   onClick={() => setActiveTab('calendar')}
-                  className="w-full mt-6 py-3 border border-white/5 hover:border-primary/20 bg-slate-950/20 hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white transition-all duration-300 cursor-pointer"
+                  className="w-full mt-6 py-3 border border-border hover:border-primary/20 bg-surface-variant/50 hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-text-secondary hover:text-primary transition-all duration-300 cursor-pointer"
                 >
                   View Complete Calendar
                 </button>
@@ -527,7 +536,7 @@ export default function LeavePage() {
             className="space-y-6"
           >
             {/* Filter and Search Hub */}
-            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-white/5 bg-slate-900/40 p-4.5 rounded-sm shadow-2xl backdrop-blur-xl">
+            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-border bg-surface p-4.5 rounded-sm">
               <div className="relative w-full xl:w-96 group">
                 <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
                 <input 
@@ -535,35 +544,35 @@ export default function LeavePage() {
                   placeholder="Search time-off justification..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
+                  className="w-full pl-13 pr-4 py-3.5 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-text-primary placeholder:text-text-secondary/50"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                 <select 
                   value={filterType} 
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="w-full sm:w-48 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-text-secondary hover:text-text-primary transition-all cursor-pointer"
                 >
-                  <option value="All" className="bg-slate-900 text-white">All Leave Types</option>
-                  <option value="Casual Leave" className="bg-slate-900 text-white">Casual Leave</option>
-                  <option value="Sick Leave" className="bg-slate-900 text-white">Sick Leave</option>
-                  <option value="Earned Leave" className="bg-slate-900 text-white">Earned Leave</option>
+                  <option value="All" className="bg-surface text-text-primary">All Leave Types</option>
+                  <option value="Casual Leave" className="bg-surface text-text-primary">Casual Leave</option>
+                  <option value="Sick Leave" className="bg-surface text-text-primary">Sick Leave</option>
+                  <option value="Earned Leave" className="bg-surface text-text-primary">Earned Leave</option>
                 </select>
 
                 <select 
                   value={filterStatus} 
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="w-full sm:w-48 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-text-secondary hover:text-text-primary transition-all cursor-pointer"
                 >
-                  <option value="All" className="bg-slate-900 text-white">All Statuses</option>
-                  <option value="Pending" className="bg-slate-900 text-white">Pending Action</option>
-                  <option value="Approved" className="bg-slate-900 text-white">Approved</option>
-                  <option value="Rejected" className="bg-slate-900 text-white">Rejected</option>
+                  <option value="All" className="bg-surface text-text-primary">All Statuses</option>
+                  <option value="Pending" className="bg-surface text-text-primary">Pending Action</option>
+                  <option value="Approved" className="bg-surface text-text-primary">Approved</option>
+                  <option value="Rejected" className="bg-surface text-text-primary">Rejected</option>
                 </select>
 
                 <button 
                   onClick={() => exportReport('excel')}
-                  className="flex items-center gap-2 px-5 py-3.5 bg-slate-900/50 hover:bg-slate-800 border border-white/5 rounded-sm text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer justify-center w-full sm:w-auto"
+                  className="flex items-center gap-2 px-5 py-3.5 bg-surface-variant/50 hover:bg-surface-variant/80 border border-border rounded-sm text-xs font-bold text-text-secondary hover:text-text-primary transition-all cursor-pointer justify-center w-full sm:w-auto"
                 >
                   <Download size={14} />
                   Export Sheet
@@ -573,24 +582,24 @@ export default function LeavePage() {
 
             {/* Requests Table view */}
             {isLoading ? (
-              <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-8 shadow-2xl backdrop-blur-xl">
+              <div className="relative overflow-hidden rounded-sm border border-border bg-surface p-8">
                 <TableSkeleton rows={4} columns={6} />
               </div>
             ) : (
-              <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-xl">
+              <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-border bg-surface">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-950/30 border-b border-white/5">
-                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Requester</th>
-                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Time-Off Tier</th>
-                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Period Duration</th>
-                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason / Remarks</th>
-                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                        <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                      <tr className="bg-surface-variant/50 border-b border-border">
+                        <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Requester</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Time-Off Tier</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Period Duration</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Reason / Remarks</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Status</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                       <AnimatePresence mode="popLayout">
                         {filteredRequests.length > 0 ? (
                           filteredRequests.map((req) => (
@@ -600,35 +609,35 @@ export default function LeavePage() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               key={req.id}
-                              className="hover:bg-white/[0.02] transition-colors group cursor-default"
+                              className="hover:bg-surface-variant/30 transition-colors group cursor-default"
                             >
-                              <td className="px-6 py-5 font-bold text-white group-hover:text-primary transition-colors tracking-tight">
+                              <td className="px-6 py-5 font-bold text-text-primary group-hover:text-primary transition-colors tracking-tight">
                                 {req.employeeName}
                               </td>
                               <td className="px-6 py-5">
-                                <span className="text-xs font-bold text-slate-400">{req.type}</span>
+                                <span className="text-xs font-bold text-text-secondary">{req.type}</span>
                               </td>
                               <td className="px-6 py-5 text-center">
-                                <span className="font-mono text-[10px] font-black text-slate-400 bg-slate-950/40 px-3 py-1.5 rounded-sm border border-white/5 shadow-sm">
+                                <span className="font-mono text-[10px] font-black text-text-secondary bg-surface-variant border border-border px-3 py-1.5 rounded-sm">
                                   {req.startDate} to {req.endDate}
                                 </span>
                               </td>
                               <td className="px-6 py-5 max-w-xs">
-                                <p className="font-medium text-slate-400 text-xs truncate" title={req.reason}>{req.reason}</p>
+                                <p className="font-medium text-text-secondary text-xs truncate" title={req.reason}>{req.reason}</p>
                                 {req.remarks && (
-                                  <p className="text-[10px] text-slate-500 mt-1 italic">Remarks: {req.remarks}</p>
+                                  <p className="text-[10px] text-text-secondary/65 mt-1 italic">Remarks: {req.remarks}</p>
                                 )}
                               </td>
                               <td className="px-6 py-5">
                                 <span className={cn(
-                                  "px-3.5 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
-                                  req.status === 'Approved' ? "bg-emerald-500/10 text-emerald-450 border-emerald-500/20" : 
-                                  req.status === 'Rejected' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                  "px-3.5 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border",
+                                  req.status === 'Approved' ? "bg-emerald-500/10 text-emerald-555 dark:text-emerald-400 border-emerald-500/20" : 
+                                  req.status === 'Rejected' ? "bg-rose-500/10 text-rose-555 dark:text-rose-400 border-rose-500/20" : "bg-amber-500/10 text-amber-555 dark:text-amber-400 border-amber-500/20"
                                 )}>
                                   <span className={cn(
                                     "w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]",
-                                    req.status === 'Approved' ? "bg-emerald-450" : 
-                                    req.status === 'Rejected' ? "bg-rose-400" : "bg-amber-400 animate-pulse"
+                                    req.status === 'Approved' ? "bg-emerald-500 dark:bg-emerald-400" : 
+                                    req.status === 'Rejected' ? "bg-rose-500 dark:bg-rose-400" : "bg-amber-500 dark:bg-amber-400 animate-pulse"
                                   )} />
                                   {req.status}
                                 </span>
@@ -638,28 +647,28 @@ export default function LeavePage() {
                                   <div className="flex items-center justify-end gap-2">
                                     <button 
                                       onClick={() => openRemarksModal(req, 'approve')}
-                                      className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-emerald-400 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                      className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-emerald-555 dark:text-emerald-400 transition-all active:scale-95 cursor-pointer"
                                       title="Approve time-off"
                                     >
                                       <Check size={16} />
                                     </button>
                                     <button 
                                       onClick={() => openRemarksModal(req, 'reject')}
-                                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 rounded-sm text-rose-400 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 rounded-sm text-rose-555 dark:text-rose-400 transition-all active:scale-95 cursor-pointer"
                                       title="Reject time-off"
                                     >
                                       <X size={16} />
                                     </button>
                                   </div>
                                 ) : (
-                                  <span className="text-[10px] font-black uppercase text-slate-500 select-none tracking-wider">Processed</span>
+                                  <span className="text-[10px] font-black uppercase text-text-secondary/65 select-none tracking-wider">Processed</span>
                                 )}
                               </td>
                             </motion.tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={6} className="px-6 py-12 text-center text-xs font-bold text-slate-500 uppercase tracking-widest bg-slate-900/20">
+                            <td colSpan={6} className="px-6 py-12 text-center text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface">
                               No request logs found.
                             </td>
                           </tr>
@@ -685,22 +694,22 @@ export default function LeavePage() {
             className="space-y-6"
           >
             {/* Balance Options Panel */}
-            <div className="flex items-center justify-between gap-4 p-4.5 border border-white/5 bg-slate-900/40 rounded-sm shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-4 p-4.5 border border-border bg-surface rounded-sm">
               <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Allowance Adjustment Operations</h3>
-                <p className="text-xs text-slate-450 mt-1 font-medium leading-relaxed">Modify individual employee allocation credits or standard parameters.</p>
+                <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">Allowance Adjustment Operations</h3>
+                <p className="text-xs text-text-secondary mt-1 font-medium leading-relaxed">Modify individual employee allocation credits or standard parameters.</p>
               </div>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setIsBalanceAdjustOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-white/5 hover:border-primary/20 bg-slate-950/20 hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-border hover:border-primary/20 bg-surface-variant/50 hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-text-secondary hover:text-primary transition-all cursor-pointer"
                 >
                   <Plus size={13} />
                   Adjust Credit
                 </button>
                 <button 
                   onClick={resetAllBalances}
-                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-rose-500/10 hover:border-rose-500/30 bg-slate-950/20 hover:bg-rose-500/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-350 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-3 border border-rose-500/20 hover:border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 rounded-sm text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-350 transition-all cursor-pointer"
                 >
                   <Trash2 size={13} />
                   Reset Ledger
@@ -709,37 +718,37 @@ export default function LeavePage() {
             </div>
 
             {/* Leave Balance Sheet Table */}
-            <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-sm border border-border bg-surface">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-950/30 border-b border-white/5">
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Details</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Casual Leave</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Sick Leave</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Earned Leave</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Paid Allowances</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Report</th>
+                    <tr className="bg-surface-variant/50 border-b border-border">
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Employee Details</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Casual Leave</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Sick Leave</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Earned Leave</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Paid Allowances</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Status</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Report</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-border">
                     {leaveBalances.map((bal) => (
-                      <tr key={bal.employeeId} className="hover:bg-white/[0.02] transition-colors">
+                      <tr key={bal.employeeId} className="hover:bg-surface-variant/30 transition-colors">
                         <td className="px-6 py-4.5">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-sm bg-primary/20 text-primary flex items-center justify-center font-black text-xs border border-primary/20">
                               {bal.name.substring(0, 2).toUpperCase()}
                             </div>
-                            <span className="font-bold text-white">{bal.name}</span>
+                            <span className="font-bold text-text-primary">{bal.name}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4.5 text-center font-bold text-amber-400 tabular-nums">{bal.casual}</td>
-                        <td className="px-6 py-4.5 text-center font-bold text-rose-400 tabular-nums">{bal.sick}</td>
+                        <td className="px-6 py-4.5 text-center font-bold text-amber-500 dark:text-amber-400 tabular-nums">{bal.casual}</td>
+                        <td className="px-6 py-4.5 text-center font-bold text-rose-500 dark:text-rose-455 tabular-nums">{bal.sick}</td>
                         <td className="px-6 py-4.5 text-center font-bold text-primary tabular-nums">{bal.earned}</td>
-                        <td className="px-6 py-4.5 text-center font-bold text-violet-400 tabular-nums">{bal.paid}</td>
+                        <td className="px-6 py-4.5 text-center font-bold text-violet-500 dark:text-violet-400 tabular-nums">{bal.paid}</td>
                         <td className="px-6 py-4.5 text-center">
-                          <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+                          <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-sm">
                             <UserCheck size={10} />
                             Compliant
                           </span>
@@ -747,7 +756,7 @@ export default function LeavePage() {
                         <td className="px-6 py-4.5 text-center">
                           <button
                             onClick={() => handleDownloadLeaveReport(bal.employeeId, bal.name)}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 transition-all cursor-pointer active:scale-95"
                             title={`Download leave report for ${bal.name}`}
                           >
                             <Download size={13} />
@@ -776,16 +785,16 @@ export default function LeavePage() {
           >
             {/* Standard leave configurations list */}
             <div className="xl:col-span-2 space-y-5">
-              <div className="p-4 border border-white/5 bg-slate-900/40 rounded-sm">
-                <h3 className="text-xs font-black text-white uppercase tracking-widest">Active Time-Off Allocation Categories</h3>
-                <p className="text-[11px] text-slate-500 font-semibold mt-1">Configure baseline allowances for each active category tier.</p>
+              <div className="p-4 border border-border bg-surface rounded-sm">
+                <h3 className="text-xs font-black text-text-primary uppercase tracking-widest">Active Time-Off Allocation Categories</h3>
+                <p className="text-[11px] text-text-secondary font-semibold mt-1">Configure baseline allowances for each active category tier.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {LEAVE_TYPES_CONFIG.map((type) => (
                   <div 
                     key={type.id} 
-                    className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900/40 p-6 flex flex-col justify-between shadow-2xl backdrop-blur-xl group hover:border-white/10 transition-all duration-300"
+                    className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 flex flex-col justify-between group hover:bg-surface-variant/30 transition-all duration-300"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -796,14 +805,14 @@ export default function LeavePage() {
                           {type.code}
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-white">{type.name}</h4>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">{type.allowance} days standard allowance</p>
+                          <h4 className="text-sm font-bold text-text-primary">{type.name}</h4>
+                          <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">{type.allowance} days standard allowance</p>
                         </div>
                       </div>
                     </div>
-                    <div className="mt-5 pt-3.5 border-t border-white/5 flex items-center gap-2">
-                      <Info size={12} className="text-slate-400 shrink-0" />
-                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed">{type.rules}</p>
+                    <div className="mt-5 pt-3.5 border-t border-border flex items-center gap-2">
+                      <Info size={12} className="text-text-secondary shrink-0" />
+                      <p className="text-[10px] text-text-secondary font-medium leading-relaxed">{type.rules}</p>
                     </div>
                   </div>
                 ))}
@@ -811,43 +820,43 @@ export default function LeavePage() {
             </div>
 
             {/* General Time-off settings panel */}
-            <div className="relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-slate-900/40 p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6">
-              <div className="flex items-center gap-3.5 pb-4 border-b border-white/5">
+            <div className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 sm:p-8 space-y-6">
+              <div className="flex items-center gap-3.5 pb-4 border-b border-border">
                 <div className="w-12 h-12 rounded-sm bg-primary/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                   <Settings size={22} />
                 </div>
                 <div>
-                  <h3 className="text-md font-black text-white tracking-tight">Global Policies</h3>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Time-off controls</p>
+                  <h3 className="text-md font-black text-text-primary tracking-tight">Global Policies</h3>
+                  <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">Time-off controls</p>
                 </div>
               </div>
 
-              <div className="space-y-4 text-xs font-semibold text-slate-450">
+              <div className="space-y-4 text-xs font-semibold text-text-secondary">
                 <div className="space-y-2">
-                  <label className="block text-slate-400 uppercase tracking-widest text-[9px] font-black">Maximum Carry-Forward Limit</label>
+                  <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black">Maximum Carry-Forward Limit</label>
                   <input 
                     type="number"
                     value={carryForwardDays}
                     onChange={(e) => setCarryForwardDays(Number(e.target.value))}
-                    className="w-full px-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none text-white transition-all text-xs"
+                    className="w-full px-4 py-3.5 bg-surface-variant/40 border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all text-xs"
                   />
-                  <span className="text-[9px] text-slate-500 block leading-relaxed">Max days allowed to carry over into next calendar cycle.</span>
+                  <span className="text-[9px] text-text-secondary/75 block leading-relaxed">Max days allowed to carry over into next calendar cycle.</span>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-slate-400 uppercase tracking-widest text-[9px] font-black">Maximum Consecutive Leaves</label>
+                  <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black">Maximum Consecutive Leaves</label>
                   <input 
                     type="number"
                     value={maxLimits}
                     onChange={(e) => setMaxLimits(Number(e.target.value))}
-                    className="w-full px-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none text-white transition-all text-xs"
+                    className="w-full px-4 py-3.5 bg-surface-variant/40 border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all text-xs"
                   />
-                  <span className="text-[9px] text-slate-500 block leading-relaxed">Sets default validation checks on submission limits.</span>
+                  <span className="text-[9px] text-text-secondary/75 block leading-relaxed">Sets default validation checks on submission limits.</span>
                 </div>
               </div>
 
               <button 
-                onClick={() => alert('Global Policy parameters saved successfully')}
+                onClick={() => toast.success('Global Policy parameters saved successfully')}
                 className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/20 transition-all duration-300 cursor-pointer"
               >
                 Save Settings
@@ -868,13 +877,13 @@ export default function LeavePage() {
             className="space-y-6"
           >
             {/* Date info hub */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border border-white/5 bg-slate-900/40 rounded-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border border-border bg-surface rounded-sm">
               <div>
-                <h3 className="text-md font-black text-white tracking-tight">May 2026</h3>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Corporate Holiday & Leaves Overview</p>
+                <h3 className="text-md font-black text-text-primary tracking-tight">May 2026</h3>
+                <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">Corporate Holiday & Leaves Overview</p>
               </div>
               <div className="flex flex-wrap gap-2.5">
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-violet-400 bg-violet-500/10 px-2.5 py-1.5 rounded-sm border border-violet-500/20">Holiday</span>
+                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-violet-500 dark:text-violet-400 bg-violet-500/10 px-2.5 py-1.5 rounded-sm border border-violet-500/20">Holiday</span>
                 <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1.5 rounded-sm border border-primary/20">Approved Leave</span>
               </div>
             </div>
@@ -882,7 +891,7 @@ export default function LeavePage() {
             {/* Grid monthly layout */}
             <div className="grid grid-cols-7 gap-2.5">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(w => (
-                <div key={w} className="text-center text-[10px] font-black uppercase tracking-widest text-slate-500 py-2">{w}</div>
+                <div key={w} className="text-center text-[10px] font-black uppercase tracking-widest text-text-secondary py-2">{w}</div>
               ))}
 
               {calendarDays.map((day, idx) => {
@@ -894,14 +903,14 @@ export default function LeavePage() {
                       "min-h-[6.5rem] p-3 rounded-sm border transition-all flex flex-col justify-between",
                       day.day === 0 ? "border-transparent bg-transparent select-none opacity-0" :
                       day.isHoliday ? "border-violet-500/30 bg-violet-500/5" :
-                      hasLeave ? "border-primary/20 bg-primary/5" : "border-white/5 bg-slate-900/40 hover:border-white/10"
+                      hasLeave ? "border-primary/20 bg-primary/5" : "border-border bg-surface hover:bg-surface-variant/30"
                     )}
                   >
                     <div className="flex justify-between items-start">
                       <span className={cn(
                         "text-xs font-black",
-                        day.isHoliday ? "text-violet-400" :
-                        hasLeave ? "text-primary" : "text-slate-400"
+                        day.isHoliday ? "text-violet-500 dark:text-violet-400" :
+                        hasLeave ? "text-primary" : "text-text-secondary"
                       )}>{day.day || ''}</span>
                     </div>
 
@@ -930,14 +939,14 @@ export default function LeavePage() {
       {/* Remarks/Justification input overlay Modal */}
       <Modal isOpen={isRemarksModalOpen} onClose={() => setIsRemarksModalOpen(false)} title={`${remarksAction === 'approve' ? 'Approve' : 'Reject'} Justification Remarks`}>
         <form onSubmit={handleRemarksAction} className="space-y-5">
-          <div className="space-y-2 text-xs font-semibold text-slate-450">
-            <label className="block text-slate-400 uppercase tracking-widest text-[9px] font-black ml-1">Optional remarks / reason details</label>
+          <div className="space-y-2 text-xs font-semibold text-text-secondary">
+            <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black ml-1">Optional remarks / reason details</label>
             <textarea 
               rows={3}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Provide a processing rationale or justification note..."
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-white transition-all placeholder:text-slate-650"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all placeholder:text-text-secondary/50"
             />
           </div>
 
@@ -945,15 +954,15 @@ export default function LeavePage() {
             <button 
               type="button" 
               onClick={() => setIsRemarksModalOpen(false)}
-              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-sm text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
+              className="flex-1 px-5 py-4 bg-surface-variant/50 border border-border rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-surface-variant/80 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               className={cn(
-                "flex-1 py-4 text-white rounded-sm text-xs font-black uppercase tracking-widest shadow-lg cursor-pointer",
-                remarksAction === 'approve' ? "bg-emerald-500 shadow-emerald-500/20 hover:bg-emerald-600" : "bg-rose-500 shadow-rose-500/20 hover:bg-rose-600"
+                "flex-1 py-4 text-white rounded-sm text-xs font-black uppercase tracking-widest cursor-pointer",
+                remarksAction === 'approve' ? "bg-emerald-500 hover:bg-emerald-600" : "bg-rose-500 hover:bg-rose-600"
               )}
             >
               Submit Processing
@@ -966,40 +975,40 @@ export default function LeavePage() {
       <Modal isOpen={isBalanceAdjustOpen} onClose={() => setIsBalanceAdjustOpen(false)} title="Adjust Allowance Ledger">
         <form onSubmit={handleAdjustBalance} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Select Employee</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Select Employee</label>
             <select 
               value={adjustEmployee}
               onChange={(e) => setAdjustEmployee(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
             >
               {leaveBalances.map(bal => (
-                <option key={bal.employeeId} value={bal.name} className="bg-slate-900 text-white">{bal.name}</option>
+                <option key={bal.employeeId} value={bal.name} className="bg-surface text-text-primary">{bal.name}</option>
               ))}
             </select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Allocation Tier</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Allocation Tier</label>
             <select 
               value={adjustType}
               onChange={(e) => setAdjustType(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
             >
-              <option value="Casual" className="bg-slate-900 text-white">Casual Leave (CL)</option>
-              <option value="Sick" className="bg-slate-900 text-white">Sick Leave (SL)</option>
-              <option value="Earned" className="bg-slate-900 text-white">Earned Leave (EL)</option>
-              <option value="Paid" className="bg-slate-900 text-white">Paid Leave (PL)</option>
+              <option value="Casual" className="bg-surface text-text-primary">Casual Leave (CL)</option>
+              <option value="Sick" className="bg-surface text-text-primary">Sick Leave (SL)</option>
+              <option value="Earned" className="bg-surface text-text-primary">Earned Leave (EL)</option>
+              <option value="Paid" className="bg-surface text-text-primary">Paid Leave (PL)</option>
             </select>
           </div>
 
-          <div className="space-y-2 text-xs font-semibold text-slate-450">
-            <label className="block text-slate-400 uppercase tracking-widest text-[9px] font-black ml-1">Allowance Delta (e.g. +5 or -3)</label>
+          <div className="space-y-2 text-xs font-semibold text-text-secondary">
+            <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black ml-1">Allowance Delta (e.g. +5 or -3)</label>
             <input 
               type="number"
               value={adjustValue}
               onChange={(e) => setAdjustValue(Number(e.target.value))}
               required
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-white transition-all text-xs"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all text-xs"
             />
           </div>
 
@@ -1007,13 +1016,13 @@ export default function LeavePage() {
             <button 
               type="button" 
               onClick={() => setIsBalanceAdjustOpen(false)}
-              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-sm text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
+              className="flex-1 px-5 py-4 bg-surface-variant/50 border border-border rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-surface-variant/80 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="flex-1 btn-primary py-4 rounded-sm shadow-lg shadow-primary/25 font-black uppercase tracking-wider text-xs cursor-pointer"
+              className="flex-1 btn-primary py-4 rounded-sm font-black uppercase tracking-wider text-xs cursor-pointer"
             >
               Apply Delta Change
             </button>
@@ -1025,64 +1034,64 @@ export default function LeavePage() {
       <Modal isOpen={isApplyModalOpen} onClose={() => setIsApplyModalOpen(false)} title="Apply Time-Off Allocation">
         <form onSubmit={handleApplyLeave} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Employee Profile</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Employee Profile</label>
             <select 
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
             >
               {leaveBalances.map(bal => (
-                <option key={bal.employeeId} value={bal.name} className="bg-slate-900 text-white">{bal.name}</option>
+                <option key={bal.employeeId} value={bal.name} className="bg-surface text-text-primary">{bal.name}</option>
               ))}
             </select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Time-Off Tier</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Time-Off Tier</label>
             <select 
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white cursor-pointer transition-all"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
             >
-              <option value="Casual Leave" className="bg-slate-900 text-white">Casual Leave (CL)</option>
-              <option value="Sick Leave" className="bg-slate-900 text-white">Sick Leave (SL)</option>
-              <option value="Earned Leave" className="bg-slate-900 text-white">Earned Leave (EL)</option>
-              <option value="Paid Leave" className="bg-slate-900 text-white">Paid Leave (PL)</option>
+              <option value="Casual Leave" className="bg-surface text-text-primary">Casual Leave (CL)</option>
+              <option value="Sick Leave" className="bg-surface text-text-primary">Sick Leave (SL)</option>
+              <option value="Earned Leave" className="bg-surface text-text-primary">Earned Leave (EL)</option>
+              <option value="Paid Leave" className="bg-surface text-text-primary">Paid Leave (PL)</option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Start Date</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Start Date</label>
               <input 
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
-                className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white transition-all"
+                className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">End Date</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">End Date</label>
               <input 
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 required
-                className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-white transition-all"
+                className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all"
               />
             </div>
           </div>
 
-          <div className="space-y-2 text-xs font-semibold text-slate-455">
-            <label className="block text-slate-400 uppercase tracking-widest text-[9px] font-black ml-1">Reason for Request</label>
+          <div className="space-y-2 text-xs font-semibold text-text-secondary">
+            <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black ml-1">Reason for Request</label>
             <textarea 
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a detailed justification for the time-off..."
               required
-              className="w-full px-5 py-4 bg-slate-950/40 border border-white/5 focus:border-primary/30 rounded-sm outline-none text-white transition-all placeholder:text-slate-650"
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all placeholder:text-text-secondary/50"
             />
           </div>
 
@@ -1090,13 +1099,13 @@ export default function LeavePage() {
             <button 
               type="button" 
               onClick={() => setIsApplyModalOpen(false)}
-              className="flex-1 px-5 py-4 bg-white/5 border border-white/5 rounded-sm text-xs font-black uppercase tracking-widest text-slate-350 hover:bg-white/10 transition-all cursor-pointer"
+              className="flex-1 px-5 py-4 bg-surface-variant/50 border border-border rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-surface-variant/80 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="flex-1 btn-primary py-4 rounded-sm shadow-lg shadow-primary/25 font-black uppercase tracking-wider text-xs cursor-pointer"
+              className="flex-1 btn-primary py-4 rounded-sm font-black uppercase tracking-wider text-xs cursor-pointer"
             >
               Submit Allocation
             </button>
@@ -1104,5 +1113,16 @@ export default function LeavePage() {
         </form>
       </Modal>
     </motion.div>
+
+    <ConfirmModal
+      isOpen={isResetConfirmOpen}
+      onClose={() => setIsResetConfirmOpen(false)}
+      onConfirm={handleResetConfirm}
+      title="Reset All Leave Balances"
+      message="Are you sure you want to reset all employee leave balances to annual standard allocations? This action cannot be undone."
+      confirmText="Reset Balances"
+      cancelText="Cancel"
+    />
+    </>
   );
 }

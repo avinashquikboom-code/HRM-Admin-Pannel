@@ -10,11 +10,7 @@ import {
   Building,
   TrendingUp,
   Award,
-  Send,
-  Zap,
-  Sparkles,
   Radio,
-  Check,
   RefreshCw,
   AlertCircle,
   Download
@@ -30,9 +26,7 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer,
-  AreaChart,
-  Area
+  ResponsiveContainer
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
@@ -77,10 +71,7 @@ const itemVariants: Variants = {
   }
 };
 
-const totalAdminsTrend: any[] = [];
-const activeSessionsTrend: any[] = [];
-const hiresTrend: any[] = [];
-const onboardingTrend: any[] = [];
+
 
 const HRManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -113,10 +104,7 @@ const HRManagementPage = () => {
 
   const hasHiringData = stats?.hiringGrowth && stats.hiringGrowth.some(h => h.hires > 0);
 
-  // Broadcast state
-  const [broadcastMsg, setBroadcastMsg] = useState('');
-  const [isBroadcasting, setIsBroadcasting] = useState(false);
-  const [broadcastSuccess, setBroadcastSuccess] = useState(false);
+
 
   // Clock & greetings state
   const [currentTime, setCurrentTime] = useState('');
@@ -179,18 +167,7 @@ const HRManagementPage = () => {
     loadData(true);
   };
 
-  const handleBroadcast = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!broadcastMsg.trim()) return;
 
-    setIsBroadcasting(true);
-    setTimeout(() => {
-      setIsBroadcasting(false);
-      setBroadcastSuccess(true);
-      setBroadcastMsg('');
-      setTimeout(() => setBroadcastSuccess(false), 3000);
-    }, 1000);
-  };
 
   const handleDownloadLeaveReport = async () => {
     try {
@@ -213,7 +190,7 @@ const HRManagementPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-16 text-text-primary animate-fadeIn"
+      className="space-y-6 pb-8 text-text-primary animate-fadeIn"
     >
       {/* 1. Header Command Hub with Glowing Ambient Effects */}
       <motion.div 
@@ -304,12 +281,12 @@ const HRManagementPage = () => {
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="glass-card p-6 h-28 bg-slate-800/30 border border-white/5" />
+                <div key={i} className="glass-card p-6 h-28 bg-surface-variant/30 border border-border" />
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 glass-card p-8 h-80 bg-slate-800/20 border border-white/5" />
-              <div className="glass-card p-8 h-80 bg-slate-800/20 border border-white/5" />
+              <div className="lg:col-span-2 glass-card p-8 h-80 bg-surface-variant/20 border border-border" />
+              <div className="glass-card p-8 h-80 bg-surface-variant/20 border border-border" />
             </div>
           </motion.div>
         ) : (
@@ -321,7 +298,7 @@ const HRManagementPage = () => {
             transition={{ duration: 0.2 }}
             className="space-y-8"
           >
-            {/* 2. Premium Metrics Grid with glowing micro-indicators */}
+            {/* 2. Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { 
@@ -329,110 +306,65 @@ const HRManagementPage = () => {
                   value: stats?.totalHRAdmins ?? 0, 
                   desc: 'Active system administrator profiles', 
                   icon: Users, 
-                  color: 'text-primary', 
-                  bg: 'bg-primary/10',
-                  glow: 'group-hover:shadow-[0_0_45px_rgba(59,163,139,0.3)]',
-                  trendData: totalAdminsTrend,
-                  gradient: 'from-primary/15 to-transparent',
-                  accentColor: '#3BA38B'
+                  iconContainerClass: 'from-primary/20 to-primary/5 border-primary/20 text-primary',
                 },
                 { 
                   label: 'ACTIVE SESSIONS', 
                   value: stats?.activeSessions ?? 0, 
                   desc: 'Workspace logins today', 
                   icon: Activity, 
-                  color: 'text-sky-400', 
-                  bg: 'bg-sky-400/10',
-                  glow: 'group-hover:shadow-[0_0_45px_rgba(14,165,233,0.3)]',
-                  trendData: activeSessionsTrend,
-                  gradient: 'from-sky-500/15 to-transparent',
-                  accentColor: '#0EA5E9'
+                  iconContainerClass: 'from-sky-500/20 to-sky-500/5 border-sky-500/20 text-sky-500',
                 },
                 { 
                   label: 'PLATFORM HIRES', 
                   value: stats?.newHires ?? 0, 
                   desc: 'Onboarded within last 30 days', 
                   icon: UserPlus, 
-                  color: 'text-violet-400', 
-                  bg: 'bg-violet-400/10',
-                  glow: 'group-hover:shadow-[0_0_45px_rgba(139,92,246,0.3)]',
-                  trendData: hiresTrend,
-                  gradient: 'from-violet-500/15 to-transparent',
-                  accentColor: '#8B5CF6'
+                  iconContainerClass: 'from-violet-500/20 to-violet-500/5 border-violet-500/20 text-violet-500',
                 },
                 { 
                   label: 'ONBOARDING RATE', 
                   value: stats?.onboardingRate ?? '100.0%', 
                   desc: 'Successful platform validations', 
                   icon: UserCheck, 
-                  color: 'text-emerald-400', 
-                  bg: 'bg-emerald-400/10',
-                  glow: 'group-hover:shadow-[0_0_45px_rgba(16,185,129,0.3)]',
-                  trendData: onboardingTrend,
-                  gradient: 'from-emerald-500/15 to-transparent',
-                  accentColor: '#10B981'
+                  iconContainerClass: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500',
                 },
               ].map((stat, i) => (
-                <motion.div 
+                <div 
                   key={i}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                  className="glass-card p-6 relative overflow-hidden group border border-white/[0.08] bg-slate-950/70 hover:bg-slate-900/80 hover:border-white/20 shadow-2xl transition-all duration-300 flex flex-col justify-between min-h-[170px]"
+                  className="p-6 border border-border bg-surface flex flex-col justify-between min-h-[150px] rounded-sm"
                 >
-                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-25 group-hover:opacity-40 transition-opacity duration-300", stat.gradient)} />
-                  
-                  <div className="flex items-start justify-between relative z-10">
-                    <div className={cn("w-11 h-11 rounded-sm flex items-center justify-center shadow-inner transition-all duration-300", stat.bg, stat.color, stat.glow)}>
+                  <div className="flex items-start justify-between">
+                    <div className={cn("w-11 h-11 rounded-sm bg-gradient-to-br flex items-center justify-center border", stat.iconContainerClass)}>
                       <stat.icon size={20} />
                     </div>
-                    <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded text-[8px] font-black tracking-widest text-slate-400">
-                      <Sparkles size={8} className="text-primary animate-pulse" /> LIVE
-                    </div>
                   </div>
 
-                  <div className="relative z-10 mt-4 flex items-end justify-between">
-                    <div>
-                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none">{stat.label}</p>
-                      <p className="text-3xl font-black mt-1 text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">{stat.value}</p>
-                      <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-none">{stat.desc}</p>
-                    </div>
-
-                    <div className="w-18 h-10 select-none opacity-80 group-hover:opacity-100 transition-all duration-300">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={stat.trendData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
-                          <Area 
-                            type="monotone" 
-                            dataKey="val" 
-                            stroke={stat.accentColor} 
-                            strokeWidth={2} 
-                            fill={`rgba(${stat.accentColor === '#3BA38B' ? '59,163,139' : stat.accentColor === '#0EA5E9' ? '14,165,233' : stat.accentColor === '#8B5CF6' ? '139,92,246' : '16,185,129'}, 0.08)`}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                    
-                    <div className={cn("absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full", stat.accentColor === '#3BA38B' ? "bg-primary animate-ping" : stat.accentColor === '#0EA5E9' ? "bg-sky-400 animate-pulse" : stat.accentColor === '#8B5CF6' ? "bg-violet-400" : "bg-emerald-400")} />
+                  <div className="mt-4">
+                    <p className="text-[9px] text-text-secondary font-black uppercase tracking-widest leading-none">{stat.label}</p>
+                    <p className="text-3xl font-black mt-1.5 text-text-primary tracking-tight">{stat.value}</p>
+                    <p className="text-[10px] text-text-secondary mt-1 font-semibold leading-none">{stat.desc}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
             {/* 3. High-Fidelity Interactive Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Hiring Growth Graph with Spline area gradient styling */}
-              <div className="lg:col-span-2 glass-card p-8 border border-white/5 bg-slate-900/40 shadow-2xl relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full filter blur-3xl pointer-events-none" />
+              <div className="lg:col-span-2 p-8 border border-border bg-surface relative overflow-hidden flex flex-col rounded-sm group hover:bg-surface-variant/10 transition-all duration-300">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all duration-300" />
                 
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
-                      <h3 className="heading-2 text-white flex items-center gap-2 text-lg font-black tracking-tight">
+                      <h3 className="heading-2 text-text-primary flex items-center gap-2 text-lg font-black tracking-tight">
                         <TrendingUp size={18} className="text-primary animate-pulse" />
                         Ecosystem Hiring Growth
                       </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Comparative platform-wide hiring trends over past months</p>
+                      <p className="text-xs text-text-secondary mt-0.5">Comparative platform-wide hiring trends over past months</p>
                     </div>
-                    <select className="bg-slate-800 border border-white/10 rounded-sm px-3.5 py-2 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300">
+                    <select className="bg-surface-variant border border-border rounded-sm px-3.5 py-2 text-xs outline-none cursor-pointer hover:border-border-hover transition-all font-bold text-text-primary">
                       <option>Last 5 Months</option>
                       <option>Last Year</option>
                     </select>
@@ -447,16 +379,16 @@ const HRManagementPage = () => {
                             <stop offset="100%" stopColor="#10B981" stopOpacity={0.2}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.1} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} dy={8} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} domain={[0, hasHiringData ? 'auto' : 10]} allowDecimals={false} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 11}} dy={8} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 11}} domain={[0, hasHiringData ? 'auto' : 10]} allowDecimals={false} />
                         <Tooltip 
-                          cursor={{fill: 'rgba(255, 255, 255, 0.02)', radius: 12}}
+                          cursor={{fill: 'var(--surface-variant)', radius: 12}}
                           contentStyle={{ 
                             borderRadius: '0px', 
-                            border: '1px solid rgba(255, 255, 255, 0.08)', 
-                            backgroundColor: '#0F172A',
-                            color: '#F1F5F9',
+                            border: '1px solid var(--border)', 
+                            backgroundColor: 'var(--surface)',
+                            color: 'var(--text-primary)',
                             fontSize: '12px'
                           }}
                         />
@@ -473,25 +405,25 @@ const HRManagementPage = () => {
                   </ChartContainer>
                 </div>
 
-                <div className="border-t border-white/5 pt-4.5 mt-6 flex items-center justify-between text-xs font-semibold text-slate-400">
+                <div className="border-t border-border pt-4.5 mt-auto flex items-center justify-between text-xs font-semibold text-text-secondary">
                   <span className="flex items-center gap-1.5">
                     <Award size={14} className="text-primary animate-bounce" />
                     Real-time ecosystem database synchronized
                   </span>
-                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-mono">Operations metrics</span>
+                  <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider font-mono">Operations metrics</span>
                 </div>
               </div>
 
               {/* HR Status Distribution premium donut style */}
-              <div className="glass-card p-8 border border-white/5 bg-slate-900/40 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-36 h-36 bg-sky-500/5 rounded-full filter blur-xl pointer-events-none" />
+              <div className="p-8 border border-border bg-surface flex flex-col relative overflow-hidden rounded-sm group hover:bg-surface-variant/10 transition-all duration-300">
+                <div className="absolute top-0 right-0 w-36 h-36 bg-sky-500/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-sky-500/10 transition-all duration-300" />
                 
                 <div>
-                  <h3 className="heading-2 text-white flex items-center gap-2 text-lg font-black tracking-tight">
+                  <h3 className="heading-2 text-text-primary flex items-center gap-2 text-lg font-black tracking-tight">
                     <Building size={18} className="text-sky-400" />
                     HR Status Distribution
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Active vs Inactive Administrators breakdown</p>
+                  <p className="text-xs text-text-secondary mt-0.5">Active vs Inactive Administrators breakdown</p>
                 </div>
 
                 <div className="my-5 flex justify-center relative items-center">
@@ -517,9 +449,9 @@ const HRManagementPage = () => {
                         <Tooltip 
                           contentStyle={{ 
                             borderRadius: '0px', 
-                            border: '1px solid rgba(255, 255, 255, 0.08)', 
-                            backgroundColor: '#0F172A',
-                            color: '#F1F5F9',
+                            border: '1px solid var(--border)', 
+                            backgroundColor: 'var(--surface)',
+                            color: 'var(--text-primary)',
                             fontSize: '11px'
                           }}
                         />
@@ -527,136 +459,26 @@ const HRManagementPage = () => {
                     </ResponsiveContainer>
                   </ChartContainer>
                   <div className="absolute text-center">
-                    <p className="text-xl font-black text-white">{stats?.totalHRAdmins ?? 0} Admins</p>
-                    <p className="text-[8px] text-slate-400 uppercase tracking-widest font-black">Ecosystem Load</p>
+                    <p className="text-xl font-black text-text-primary">{stats?.totalHRAdmins ?? 0} Admins</p>
+                    <p className="text-[8px] text-text-secondary uppercase tracking-widest font-black">Ecosystem Load</p>
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t border-white/5 pt-4.5">
+                <div className="space-y-2 border-t border-border pt-4.5 mt-auto">
                   {(stats?.hrDistribution || []).map((item) => (
-                    <div key={item.name} className="flex items-center justify-between text-xs font-bold p-1 rounded-lg hover:bg-white/5 transition-all duration-200">
+                    <div key={item.name} className="flex items-center justify-between text-xs font-bold p-1 rounded-lg hover:bg-surface-variant transition-all duration-200">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-slate-300">{item.name}</span>
+                        <span className="text-text-secondary">{item.name}</span>
                       </div>
-                      <span className="text-white font-black">{item.value}%</span>
+                      <span className="text-text-primary font-black">{item.value}%</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* 4. Broadcast Command & Activity timeline feed */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Live Feed Event Stream */}
-              <div className="lg:col-span-2 glass-card p-8 border border-white/5 bg-slate-900/40 shadow-2xl relative overflow-hidden">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <h3 className="heading-2 text-white flex items-center gap-2 text-lg font-black tracking-tight">
-                      <Clock size={18} className="text-primary animate-pulse" />
-                      Administrative Activity Logs
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Real-time chronologies of administrator check-ins</p>
-                  </div>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded">
-                    Live stream
-                  </span>
-                </div>
 
-                <div className="relative border-l border-white/10 pl-5.5 space-y-6 max-h-[300px] overflow-y-auto no-scrollbar">
-                  {[
-                    { id: 1, name: 'Robert Fox', role: 'HR Director', time: '10 mins ago', status: 'Online', desc: 'Authorized department security configurations.' },
-                    { id: 2, name: 'Jane Cooper', role: 'Talent Acquisition', time: '2 hours ago', status: 'Offline', desc: 'Compiled recruiting profiles for placement.' },
-                    { id: 3, name: 'Wade Warren', role: 'HR Manager', time: 'Yesterday', status: 'Offline', desc: 'Approved pending time-off allocations.' },
-                    { id: 4, name: 'Cameron Williamson', role: 'HR Generalist', time: '5 mins ago', status: 'Online', desc: 'Logged in from Delhi Headquarters.' },
-                  ].map((hr, idx) => (
-                    <motion.div 
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      key={hr.id}
-                      className="relative group"
-                    >
-                      <div className={cn(
-                        "absolute -left-[27.5px] top-1.5 w-3 h-3 rounded-full border-2 bg-slate-950 transition-transform group-hover:scale-125 duration-300 shadow-inner",
-                        hr.status === 'Online' ? "border-emerald-400" : "border-slate-600"
-                      )} />
-                      
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-white group-hover:text-primary transition-colors">{hr.name}</span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase bg-slate-800 px-1.5 py-0.5 rounded">
-                              {hr.role}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-1 font-semibold leading-relaxed">{hr.desc}</p>
-                        </div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0">
-                          {hr.time}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Command Center Broadcast Box */}
-              <div className="glass-card p-8 border border-white/5 bg-slate-900/40 shadow-2xl relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full filter blur-xl pointer-events-none" />
-                
-                <div>
-                  <h3 className="heading-2 text-white flex items-center gap-2 text-lg font-black tracking-tight">
-                    <Send size={18} className="text-primary animate-pulse" />
-                    Ecosystem Broadcast
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Post instant operations announcements to all devices</p>
-                </div>
-
-                <form onSubmit={handleBroadcast} className="space-y-4 my-6">
-                  <div className="relative">
-                    <textarea
-                      value={broadcastMsg}
-                      onChange={(e) => setBroadcastMsg(e.target.value)}
-                      placeholder="Type announcements, corporate notices, or alert messages here..."
-                      rows={4}
-                      className="w-full p-4 bg-slate-950 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none leading-relaxed"
-                      maxLength={150}
-                    />
-                    <span className="absolute bottom-3.5 right-3.5 text-[9px] font-black text-slate-600 select-none">
-                      {broadcastMsg.length}/150
-                    </span>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isBroadcasting || !broadcastMsg.trim()}
-                    className="w-full btn-primary py-3 rounded-sm flex items-center justify-center gap-2 text-xs font-black shadow-lg shadow-primary/10 disabled:opacity-40 select-none transition-all"
-                  >
-                    <Zap size={13} />
-                    {isBroadcasting ? 'Broadcasting notice...' : 'Push Announcement broadcast'}
-                  </button>
-                </form>
-
-                <AnimatePresence>
-                  {broadcastSuccess && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-[10px] font-bold text-emerald-400"
-                    >
-                      <Check size={13} className="text-emerald-400" />
-                      <span>Announcement successfully pushed to all devices!</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">
-                  Clearance clearance: Level 3+
-                </span>
-              </div>
-            </div>
 
             {/* 5. HR Employee Management Section */}
             <motion.div

@@ -17,7 +17,7 @@ interface ActivityFeedProps {
 
 export default function ActivityFeed({ logs, onClear }: ActivityFeedProps) {
   return (
-    <div className="glass-card flex flex-col h-full min-h-[320px]">
+    <div className="bg-surface border border-border rounded-sm flex flex-col h-full min-h-[320px]">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
         <div>
           <h3 className="heading-2">Recent activity</h3>

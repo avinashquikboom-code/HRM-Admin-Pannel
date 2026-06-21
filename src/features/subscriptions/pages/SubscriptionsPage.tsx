@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   CreditCard, 
   TrendingUp, 
@@ -205,7 +206,7 @@ const SubscriptionsPage = () => {
     const monthly = parseFloat(editMonthly);
     const yearly = parseFloat(editYearly);
     if (isNaN(monthly) || monthly < 0 || isNaN(yearly) || yearly < 0) {
-      alert('Please enter valid non-negative prices.');
+      toast.error('Please enter valid non-negative prices.');
       return;
     }
     setIsSavingPrice(true);
@@ -226,7 +227,7 @@ const SubscriptionsPage = () => {
         setPriceSaveSuccess('');
       }, 1200);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update pricing');
+      toast.error(err instanceof Error ? err.message : 'Failed to update pricing');
     } finally {
       setIsSavingPrice(false);
     }
@@ -268,7 +269,7 @@ const SubscriptionsPage = () => {
   const handleSaveSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSub) {
-      alert('Please select a company/subscription to configure.');
+      toast.error('Please select a company/subscription to configure.');
       return;
     }
 
@@ -288,7 +289,7 @@ const SubscriptionsPage = () => {
       setSelectedSub(null);
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Failed to update subscription');
+      toast.error(err instanceof Error ? err.message : 'Failed to update subscription');
     } finally {
       setIsSubmitting(false);
     }
@@ -299,7 +300,7 @@ const SubscriptionsPage = () => {
       await downloadSubscriptionReport();
     } catch (err) {
       console.error('Failed to export subscription report:', err);
-      alert(err instanceof Error ? err.message : 'Failed to export subscription report. Please try again.');
+      toast.error(err instanceof Error ? err.message : 'Failed to export subscription report. Please try again.');
     }
   };
 

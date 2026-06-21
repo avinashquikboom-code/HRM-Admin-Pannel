@@ -19,7 +19,7 @@ interface LocationMapViewProps {
   selectedEmpId: number | null;
   onSelectEmployee: (id: number | null) => void;
   officeCenter: MapCenter;
-  mapBounds: MapBounds;
+  mapBounds?: MapBounds | null;
   geofenceRadius: number;
   officeName?: string;
   isLive: boolean;
@@ -250,17 +250,6 @@ function MapCanvas({
 
       <div id={containerId} className="w-full h-full" style={{ zIndex: 1 }} />
 
-      {/* Info Legend Overlay */}
-      <div className="absolute bottom-3 left-3 z-[5] p-3 rounded-sm bg-surface/90 backdrop-blur border border-border shadow-sm text-xs space-y-1 pointer-events-none">
-        <p className="font-semibold text-text-primary flex items-center gap-1.5">
-          <MapPin size={12} className="text-primary" />
-          {officeCenter.lat.toFixed(4)}, {officeCenter.lng.toFixed(4)}
-        </p>
-        <p className="text-text-secondary">
-          Click employee pins to view telemetry profiles
-        </p>
-      </div>
-
       {/* Map Markers Legend */}
       <div className="absolute top-3 right-3 z-[5] p-3 rounded-sm bg-surface/90 backdrop-blur border border-border shadow-sm space-y-1.5 text-[10px] font-semibold pointer-events-none">
         <div className="flex items-center gap-2 text-text-secondary">
@@ -336,7 +325,7 @@ export default function LocationMapView(props: LocationMapViewProps) {
 
   return (
     <>
-      <div className="glass-card overflow-hidden flex flex-col h-full">
+      <div className="bg-surface border border-border rounded-sm overflow-hidden flex flex-col h-full">
         <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Navigation size={18} className="text-primary" />

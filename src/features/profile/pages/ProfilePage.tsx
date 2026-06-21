@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from 'react';
-import { 
-  User as UserIcon, 
-  Shield, 
-  Camera, 
-  Lock, 
+import {
+  User as UserIcon,
+  Shield,
+  Camera,
+  Lock,
   LogOut,
   ChevronRight,
   ShieldCheck,
@@ -72,6 +72,7 @@ const ProfilePage = () => {
 
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
+    console.log('🚪 [PROFILE] Sign out initiated for user:', user?.email);
     dispatch(logout());
     const resolvedPortal = portal ?? (isSuperAdminPath(pathname) ? 'super_admin' : 'platform_admin');
     router.push(getLoginPathForPortal(resolvedPortal));
@@ -103,17 +104,21 @@ const ProfilePage = () => {
     { label: 'Last Login', value: security?.lastLoginAt ? formatLastLogin(security.lastLoginAt) : 'No logs', icon: Activity, color: 'primary' },
   ];
 
+  const memberSinceYear = profile?.createdAt 
+    ? new Date(profile.createdAt).getFullYear().toString() 
+    : 'N/A';
+
   const identityFields = [
     { label: 'Full Name', value: user?.name || profile?.fullName || 'Administrator', icon: UserIcon },
     { label: 'Email Address', value: user?.email || profile?.email || 'N/A', icon: Mail },
     { label: 'Phone Number', value: user?.phone || profile?.phone || 'Not set', icon: Phone },
     { label: 'Time Zone', value: profile?.timezoneLabel || 'Asia/Kolkata', icon: Globe },
     { label: 'Account Role', value: user?.role?.replace('_', ' ') || 'Super Administrator', icon: Shield },
-    { label: 'Member Since', value: '2024', icon: Calendar },
+    { label: 'Member Since', value: memberSinceYear, icon: Calendar },
   ];
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -147,14 +152,14 @@ const ProfilePage = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Column - Avatar, Security, & Activity */}
         <div className="lg:col-span-4 space-y-6">
-          
+
           {/* Avatar Card */}
           <motion.div variants={itemVariants} className="glass-card p-8 text-center relative overflow-hidden group">
             <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
-            
+
             <div className="relative inline-block mb-6">
               <div className="w-32 h-32 rounded-full p-1.5 bg-gradient-to-br from-primary/20 to-transparent shadow-2xl border border-white/10 relative overflow-hidden">
                 <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
@@ -176,7 +181,7 @@ const ProfilePage = () => {
 
             <h3 className="text-xl font-black text-text-primary mb-1">{user?.name || profile?.fullName}</h3>
             <p className="text-sm text-text-secondary font-medium mb-4">{user?.email || profile?.email}</p>
-            
+
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest">
               <ShieldCheck size={12} />
               {security?.clearanceLabel || 'Level 5 Clearance'}
@@ -222,11 +227,11 @@ const ProfilePage = () => {
 
         {/* Right Column - Identity & Actions */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Identity Information */}
           <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden">
             <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            
+
             <div className="flex items-center justify-between mb-6 relative z-10">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-sm bg-primary/10 text-primary shadow-sm border border-primary/10">
@@ -260,7 +265,7 @@ const ProfilePage = () => {
           {/* Action Center */}
           <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 relative overflow-hidden group">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700 pointer-events-none" />
-            
+
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-3 border-b border-border/30 pb-4">
                 <div className="p-2.5 rounded-sm bg-primary/10 text-primary border border-primary/20">
@@ -274,7 +279,7 @@ const ProfilePage = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Update Password Tile */}
-                <div 
+                <div
                   onClick={() => setIsUpdatePasswordModalOpen(true)}
                   className="group/tile p-5 rounded-sm bg-surface-variant/30 border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 cursor-pointer flex gap-4 items-start"
                 >
@@ -290,7 +295,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Sign Out Tile */}
-                <div 
+                <div
                   onClick={() => setIsSignOutModalOpen(true)}
                   className="group/tile p-5 rounded-sm bg-surface-variant/30 border border-border/30 hover:border-error/30 hover:bg-error/5 transition-all duration-300 cursor-pointer flex gap-4 items-start"
                 >
@@ -310,10 +315,10 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      <SignOutModal 
-        isOpen={isSignOutModalOpen} 
-        onClose={() => setIsSignOutModalOpen(false)} 
-        onConfirm={handleSignOut} 
+      <SignOutModal
+        isOpen={isSignOutModalOpen}
+        onClose={() => setIsSignOutModalOpen(false)}
+        onConfirm={handleSignOut}
       />
 
       <UpdatePasswordModal

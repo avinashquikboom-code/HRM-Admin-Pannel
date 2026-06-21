@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ShieldCheck, CheckCircle2, Save, X, RotateCcw, CheckSquare, Square } from 'lucide-react';
 import { ROLE_ACCESS, getModuleDefsForManager } from '@/lib/roleAccess';
@@ -137,7 +138,7 @@ export default function ManageUserPermissionsModal({
       onSaved(`Custom rights for ${user.email} saved successfully!`);
       onClose();
     } catch (error) {
-      alert(getApiErrorMessage(error, 'Failed to save user permissions'));
+      toast.error(getApiErrorMessage(error, 'Failed to save user permissions'));
     } finally {
       setIsSaving(false);
     }

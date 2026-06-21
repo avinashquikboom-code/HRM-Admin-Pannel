@@ -1,6 +1,7 @@
 import type { PortalType } from '@/lib/portals';
-import { isEmployeePath } from '@/lib/portals';
+import { isEmployeePath, isSuperAdminRole } from '@/lib/portals';
 import { api } from '@/lib/api';
+import { getAuthSession } from '@/lib/authStorage';
 
 export type AppRole = 'ADMIN' | 'HR' | 'EMPLOYEE';
 
@@ -223,6 +224,16 @@ export function saveRolePermissions(permissions: RolePermissionsMap) {
 
 export async function fetchRolePermissionsAsync(): Promise<RolePermissionsMap> {
   const defaults = getDefaultRolePermissions();
+
+  if (typeof window === 'undefined') {
+    return defaults;
+  }
+
+  const session = getAuthSession();
+  if (!isSuperAdminRole(session?.user?.role)) {
+    return loadRolePermissions();
+  }
+
   try {
     const { data } = await api.get('/api/permissions/global');
     if (data.ADMIN || data.SUPER_ADMIN) defaults.super_admin = { ...defaults.super_admin, ...(data.ADMIN || data.SUPER_ADMIN) };
@@ -235,6 +246,14 @@ export async function fetchRolePermissionsAsync(): Promise<RolePermissionsMap> {
 }
 
 export async function saveRolePermissionsAsync(permissions: RolePermissionsMap) {
+  if (typeof window === 'undefined') return;
+
+  const session = getAuthSession();
+  if (!isSuperAdminRole(session?.user?.role)) {
+    saveRolePermissions(permissions);
+    return;
+  }
+
   try {
     const payload = {
       ADMIN: permissions.super_admin,

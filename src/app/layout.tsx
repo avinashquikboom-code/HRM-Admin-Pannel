@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Geist } from 'next/font/google';
 import Providers from '@/components/Providers';
 import AuthGuard from '@/components/AuthGuard';
+import { Toaster } from 'sonner';
 import '../index.css';
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export default function RootLayout({
             {children}
           </AuthGuard>
         </Providers>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

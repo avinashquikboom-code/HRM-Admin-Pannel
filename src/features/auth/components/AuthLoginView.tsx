@@ -89,8 +89,10 @@ export default function AuthLoginView({
     try {
       const response = await loginRequest({ email, password }, portal);
       dispatch(login(response));
+      console.log('✅ [LOGIN] User logged in:', response.user.email, 'role:', response.user.role);
       setEmail('');
       setPassword('');
+      // Force full page reload to ensure fresh state
       window.location.href = getHomePathForPortal(portal);
     } catch (err) {
       setError(

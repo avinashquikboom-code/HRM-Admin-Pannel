@@ -1,6 +1,6 @@
 'use client';
 
-import { Battery, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import type { EmployeeLiveLocation } from '@/services/locationService';
 import type { LocationStatusFilter } from '../types';
@@ -47,7 +47,7 @@ export default function LocationRoster({
   onStatusFilterChange,
 }: LocationRosterProps) {
   return (
-    <div className="glass-card overflow-hidden">
+    <div className="bg-surface border border-border rounded-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-border space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -94,7 +94,7 @@ export default function LocationRoster({
               <th className="px-5 py-3 font-bold hidden md:table-cell">
                 Coordinates
               </th>
-              <th className="px-5 py-3 font-bold text-right">Speed / Battery</th>
+              <th className="px-5 py-3 font-bold text-right">Speed</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -158,9 +158,6 @@ export default function LocationRoster({
                   <td className="px-5 py-3.5 text-right">
                     <p className="text-xs font-semibold text-primary pointer-events-none">
                       {emp.speed}
-                    </p>
-                    <p className="text-[10px] text-text-secondary flex items-center justify-end gap-1 mt-0.5 pointer-events-none">
-                      <Battery size={10} /> {emp.battery}
                     </p>
                   </td>
                 </tr>

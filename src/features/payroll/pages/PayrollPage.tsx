@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { sendNotificationToEmployee } from '@/services/notificationService';
 import { 
@@ -282,12 +283,12 @@ const PayrollPage = () => {
       );
       await Promise.allSettled(notifyAll);
 
-      alert('Disbursement completed successfully!');
+      toast.success('Disbursement completed successfully!');
       setIsProcessModalOpen(false);
       await loadPayrollData();
     } catch (err) {
       console.error('Disbursement execution failed:', err);
-      alert('Disbursement failed. Please verify pool balances and try again.');
+      toast.error('Disbursement failed. Please verify pool balances and try again.');
     } finally {
       setIsDisbursing(false);
     }
@@ -320,10 +321,10 @@ const PayrollPage = () => {
         );
       }
 
-      alert('Salary slip approved and generated successfully!');
+      toast.success('Salary slip approved and generated successfully!');
     } catch (err) {
       console.error('Failed to approve slip:', err);
-      alert('Failed to approve salary slip.');
+      toast.error('Failed to approve salary slip.');
     }
   };
 

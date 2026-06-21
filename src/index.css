@@ -698,6 +698,42 @@ html:not(.dark) {
   .text-foreground {
     color: var(--text-primary) !important;
   }
+
+  /* Override color utility classes for better visibility in light mode */
+  .text-success {
+    color: #22C55E !important;
+  }
+
+  .text-error {
+    color: #EF4444 !important;
+  }
+
+  .text-warning {
+    color: #F59E0B !important;
+  }
+
+  .text-info {
+    color: #3B82F6 !important;
+  }
+
+  .text-accent {
+    color: #F4B860 !important;
+  }
+
+  /* Override primary color text */
+  .text-primary {
+    color: #0F172A !important;
+  }
+
+  /* Override dynamic color classes */
+  [class*="text-primary"],
+  [class*="text-success"],
+  [class*="text-error"],
+  [class*="text-warning"],
+  [class*="text-info"],
+  [class*="text-accent"] {
+    opacity: 1 !important;
+  }
 }
 
 .text-always-white,

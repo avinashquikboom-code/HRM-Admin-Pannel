@@ -11,6 +11,7 @@ import {
 import {
   getAuthSession,
   getAuthToken,
+  setAuthSession,
   resolvePortalFromWindow,
 } from '@/lib/authStorage';
 import { getLoginPathForPortal } from '@/lib/portals';
@@ -35,6 +36,18 @@ if (typeof window !== 'undefined' && isApiLoggingEnabled()) {
   console.info('[HRM] API logging enabled — open DevTools Console to inspect requests');
 }
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function subscribeTokenRefresh(callback: (token: string) => void) {
+  refreshSubscribers.push(callback);
+}
+
+function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+}
+
 api.interceptors.request.use((config) => {
   attachRequestMetadata(config);
 
@@ -57,7 +70,7 @@ api.interceptors.response.use(
     logApiResponse(response);
     return response;
   },
-  (error) => {
+  async (error) => {
     if (axios.isCancel(error)) {
       return Promise.reject(error);
     }
@@ -73,21 +86,95 @@ api.interceptors.response.use(
     const requestUrl = error.config?.url ?? '';
     const isAuthRequest =
       requestUrl.includes('/api/auth/login') ||
-      requestUrl.includes('/api/auth/register');
+      requestUrl.includes('/api/auth/register') ||
+      requestUrl.includes('/api/auth/refresh');
 
-    if (isAuthRequest || !getAuthToken()) {
+    if (isAuthRequest) {
       return Promise.reject(error);
     }
 
     const activePortal = resolvePortalFromWindow();
-    const sessionPortal = getAuthSession(activePortal)?.portal ?? activePortal;
-    store.dispatch(logout());
+    const activeRole = store.getState().auth.user?.role;
+    const currentToken = getAuthToken(activePortal, activeRole);
 
-    if (typeof window !== 'undefined') {
-      const loginPath = getLoginPathForPortal(sessionPortal);
-      if (!window.location.pathname.startsWith(loginPath)) {
-        window.location.href = loginPath;
+    if (!currentToken) {
+      const sessionPortal = getAuthSession(activePortal)?.portal ?? activePortal;
+      store.dispatch(logout());
+
+      if (typeof window !== 'undefined') {
+        const loginPath = getLoginPathForPortal(sessionPortal);
+        if (!window.location.pathname.startsWith(loginPath)) {
+          window.location.href = loginPath;
+        }
       }
+
+      return Promise.reject(error);
+    }
+
+    // Try to refresh the token
+    if (!isRefreshing) {
+      isRefreshing = true;
+
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/auth/refresh`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${currentToken}`,
+            },
+            withCredentials: true,
+          }
+        );
+
+        if (response.data.success && response.data.token) {
+          const newToken = response.data.token;
+          const session = getAuthSession(activePortal, activeRole);
+
+          if (session) {
+            setAuthSession({
+              ...session,
+              token: newToken,
+            });
+          }
+
+          onTokenRefreshed(newToken);
+          isRefreshing = false;
+
+          // Retry the original request with new token
+          if (error.config) {
+            error.config.headers.Authorization = `Bearer ${newToken}`;
+            return api.request(error.config);
+          }
+        }
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        isRefreshing = false;
+        refreshSubscribers = [];
+
+        // Refresh failed, logout user
+        const sessionPortal = getAuthSession(activePortal)?.portal ?? activePortal;
+        store.dispatch(logout());
+
+        if (typeof window !== 'undefined') {
+          const loginPath = getLoginPathForPortal(sessionPortal);
+          if (!window.location.pathname.startsWith(loginPath)) {
+            window.location.href = loginPath;
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    } else {
+      // Wait for the refresh to complete
+      return new Promise((resolve) => {
+        subscribeTokenRefresh((token: string) => {
+          if (error.config) {
+            error.config.headers.Authorization = `Bearer ${token}`;
+            resolve(api.request(error.config));
+          }
+        });
+      });
     }
 
     return Promise.reject(error);

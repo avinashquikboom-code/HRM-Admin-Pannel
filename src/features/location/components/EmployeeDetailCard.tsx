@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Battery, MapPin, X, Download, Calendar, Clock, FileText, Loader2 } from 'lucide-react';
+import { MapPin, X, Download, Calendar, Clock, FileText, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import type { EmployeeLiveLocation } from '@/services/locationService';
@@ -105,7 +105,7 @@ export default function EmployeeDetailCard({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          className="glass-card p-5 space-y-4"
+className="bg-surface border border-border rounded-sm p-5 space-y-4"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
@@ -219,20 +219,12 @@ export default function EmployeeDetailCard({
                       : `${employee.lat.toFixed(5)}, ${employee.lng.toFixed(5)}`}
                   </p>
                 </div>
-                <div className="rounded-sm bg-surface-variant/60 p-3">
+                <div className="rounded-sm bg-surface-variant/60 p-3 col-span-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                     Speed
                   </p>
                   <p className="text-xs font-semibold text-primary mt-1">
                     {employee.speed}
-                  </p>
-                </div>
-                <div className="rounded-sm bg-surface-variant/60 p-3 col-span-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted flex items-center gap-1">
-                    <Battery size={10} /> Device battery
-                  </p>
-                  <p className="text-xs font-semibold text-text-primary mt-1">
-                    {employee.battery}
                   </p>
                 </div>
               </div>
@@ -411,7 +403,7 @@ export default function EmployeeDetailCard({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="glass-card p-8 flex flex-col items-center justify-center text-center min-h-[200px]"
+className="bg-surface border border-border rounded-sm p-8 flex flex-col items-center justify-center text-center min-h-[200px]"
         >
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
             <MapPin size={22} />

@@ -74,20 +74,28 @@ const itemVariants: Variants = {
 };
 
 const KPICard = ({ title, value, icon: Icon, change, isPositive, color = 'primary' }: any) => (
-  <motion.div 
+  <motion.div
     variants={itemVariants}
     whileHover={{ y: -5, transition: { duration: 0.2 } }}
     className="glass-card p-6 flex flex-col gap-4 relative overflow-hidden group border-transparent hover:border-primary/20"
   >
     <div className={cn(
-      "absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-20 transition-transform group-hover:scale-150 duration-700",
-      `bg-${color}`
+      "absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-20 transition-transform group-hover:scale-150 duration-700 dark:block hidden",
+      color === 'primary' ? "bg-primary" :
+      color === 'success' ? "bg-success" :
+      color === 'warning' ? "bg-warning" :
+      color === 'error' ? "bg-error" :
+      "bg-primary"
     )} />
-    
+
     <div className="flex items-center justify-between relative z-10">
       <div className={cn(
         "p-3 rounded-sm transition-all duration-300 group-hover:scale-110 shadow-sm",
-        `bg-${color}/10 text-${color}`
+        color === 'primary' ? "bg-primary/10 text-primary" :
+        color === 'success' ? "bg-success/10 text-success" :
+        color === 'warning' ? "bg-warning/10 text-warning" :
+        color === 'error' ? "bg-error/10 text-error" :
+        "bg-primary/10 text-primary"
       )}>
         <Icon size={24} />
       </div>
@@ -99,7 +107,7 @@ const KPICard = ({ title, value, icon: Icon, change, isPositive, color = 'primar
         {change}%
       </div>
     </div>
-    
+
     <div className="relative z-10 mt-2">
       <p className="text-stat-label">{title}</p>
       <h3 className="text-stat-value mt-1">{value}</h3>
@@ -665,7 +673,15 @@ const DashboardPage = () => {
                 ].map((event, i) => (
                   <div key={i} className="p-5 bg-surface-variant rounded-sm border border-border/50 group hover:border-primary/30 transition-all cursor-default">
                     <div className="flex items-center gap-4">
-                      <div className={cn("p-3 rounded-sm shadow-sm", `bg-${event.color}/10 text-${event.color}`)}>
+                      <div className={cn(
+                        "p-3 rounded-sm shadow-sm",
+                        event.color === 'primary' ? "bg-primary/10 text-primary" :
+                        event.color === 'accent' ? "bg-accent/10 text-accent" :
+                        event.color === 'success' ? "bg-success/10 text-success" :
+                        event.color === 'warning' ? "bg-warning/10 text-warning" :
+                        event.color === 'error' ? "bg-error/10 text-error" :
+                        "bg-primary/10 text-primary"
+                      )}>
                         <event.icon size={20} />
                       </div>
                       <div>
@@ -705,7 +721,12 @@ const DashboardPage = () => {
             >
               <div className={cn(
                 "w-12 h-12 rounded-sm flex items-center justify-center transition-all group-hover:scale-110 shadow-sm",
-                `bg-${action.color}/10 text-${action.color}`
+                action.color === 'primary' ? "bg-primary/10 text-primary" :
+                action.color === 'accent' ? "bg-accent/10 text-accent" :
+                action.color === 'success' ? "bg-success/10 text-success" :
+                action.color === 'warning' ? "bg-warning/10 text-warning" :
+                action.color === 'error' ? "bg-error/10 text-error" :
+                "bg-primary/10 text-primary"
               )}>
                 <action.icon size={24} />
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
 import { 
   CheckSquare, 
   Plus, 
@@ -174,7 +175,7 @@ const TasksPage = () => {
       await loadTasks();
     } catch (err) {
       console.error('Failed to update task status:', err);
-      alert(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
@@ -185,7 +186,7 @@ const TasksPage = () => {
     try {
       const selectedEmp = displayEmployees.find(emp => emp.id === assigneeId);
       if (!selectedEmp) {
-        alert('Please select an assignee.');
+        toast.error('Please select an assignee.');
         return;
       }
 
@@ -208,7 +209,7 @@ const TasksPage = () => {
       setPriority('High');
     } catch (err) {
       console.error('Failed to assign task:', err);
-      alert(err instanceof Error ? err.message : 'Failed to assign task');
+      toast.error(err instanceof Error ? err.message : 'Failed to assign task');
     }
   };
 
@@ -224,7 +225,7 @@ const TasksPage = () => {
       await loadTasks();
     } catch (err) {
       console.error('Failed to delete task:', err);
-      alert(err instanceof Error ? err.message : 'Failed to delete task');
+      toast.error(err instanceof Error ? err.message : 'Failed to delete task');
     }
     setDeletingTaskId(null);
   };

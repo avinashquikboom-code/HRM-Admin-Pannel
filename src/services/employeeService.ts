@@ -164,3 +164,42 @@ export async function registerUser(
     );
   }
 }
+
+export interface ResetPasswordRequest {
+  newPassword: string;
+  isTemporary?: boolean;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+export async function resetEmployeePassword(
+  userId: number,
+  payload: ResetPasswordRequest
+): Promise<ResetPasswordResponse> {
+  try {
+    const { data } = await api.put<ResetPasswordResponse>(
+      `/api/admin/users/${userId}/reset-password`,
+      payload
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to reset password. Please try again.')
+    );
+  }
+}
+
+export async function deleteEmployee(employeeId: string): Promise<{ message: string }> {
+  try {
+    const { data } = await api.delete<{ message: string }>(
+      `/api/admin/employees/${employeeId}`
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to delete employee. Please try again.')
+    );
+  }
+}

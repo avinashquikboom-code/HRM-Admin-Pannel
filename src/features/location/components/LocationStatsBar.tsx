@@ -69,7 +69,7 @@ export default function LocationStatsBar({
         <motion.div
           key={stat.label}
           variants={itemVariants}
-          className="glass-card p-5 flex items-start gap-4"
+className="bg-surface border border-border rounded-sm p-5 flex items-start gap-4"
         >
           <div
             className={cn(

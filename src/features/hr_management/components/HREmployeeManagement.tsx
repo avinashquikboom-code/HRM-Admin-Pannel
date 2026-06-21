@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
+import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Users, 
   UserPlus, 
@@ -86,6 +88,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<HREmployee | null>(null);
   
   // Success message state
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -241,20 +245,26 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     }
   };
 
-  const handleDeleteEmployee = async (employeeId: number) => {
-    if (!confirm('Are you sure you want to delete this employee? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteEmployee = (employee: HREmployee) => {
+    setEmployeeToDelete(employee);
+    setDeleteConfirmOpen(true);
+  };
 
-    setIsDeleting(employeeId);
+  const confirmDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+
+    setIsDeleting(employeeToDelete.id);
     try {
-      await deleteHREmployee(employeeId);
-      showSuccessMessage('Employee deleted successfully!');
+      await deleteHREmployee(employeeToDelete.id);
+      toast.success('Employee deleted successfully!');
       loadEmployees();
     } catch (err: any) {
       setError(err?.message || 'Failed to delete employee.');
+      toast.error(err?.message || 'Failed to delete employee.');
     } finally {
       setIsDeleting(null);
+      setDeleteConfirmOpen(false);
+      setEmployeeToDelete(null);
     }
   };
 
@@ -283,11 +293,11 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
       case 'inactive':
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+        return 'bg-slate-500/10 text-text-secondary border-border';
       default:
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+        return 'bg-slate-500/10 text-text-secondary border-border';
     }
   };
 
@@ -296,11 +306,11 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="heading-2 text-white flex items-center gap-2 text-lg font-black tracking-tight">
+          <h3 className="heading-2 text-text-primary flex items-center gap-2 text-lg font-black tracking-tight">
             <Users size={18} className="text-primary animate-pulse" />
             Employee Management
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">Add, edit, and manage employee records with company assignments</p>
+          <p className="text-xs text-text-secondary mt-0.5">Add, edit, and manage employee records with company assignments</p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -314,19 +324,19 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary/50" />
           <input
             type="text"
             placeholder="Search employees by name, code, or designation..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+            className="w-full pl-10 pr-4 py-2.5 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-900 border border-white/10 rounded-sm px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300"
+          className="bg-surface-variant border border-border rounded-sm px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-border-hover transition-all font-bold text-text-primary"
         >
           <option value="">All Status</option>
           <option value="active">Active</option>
@@ -335,7 +345,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         <select
           value={departmentFilter}
           onChange={(e) => setDepartmentFilter(e.target.value)}
-          className="bg-slate-900 border border-white/10 rounded-sm px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-white/20 transition-all font-bold text-slate-300"
+          className="bg-surface-variant border border-border rounded-sm px-4 py-2.5 text-xs outline-none cursor-pointer hover:border-border-hover transition-all font-bold text-text-primary"
         >
           <option value="">All Departments</option>
           {departments.map((dept) => (
@@ -345,7 +355,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         <button
           onClick={() => loadEmployees(true)}
           disabled={isRefreshing}
-          className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-primary rounded-sm border border-white/10 transition-all duration-300 active:scale-95 disabled:opacity-50"
+          className="p-2.5 bg-surface-variant/50 hover:bg-surface-variant/80 text-text-secondary hover:text-primary rounded-sm border border-border/50 transition-all duration-300 active:scale-95 disabled:opacity-50"
         >
           <RefreshCw size={14} className={cn(isRefreshing && "animate-spin")} />
         </button>
@@ -395,49 +405,49 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       )}
 
       {/* Employee Table */}
-      <div className="glass-card border border-white/5 bg-slate-900/40 shadow-2xl overflow-hidden">
+      <div className="border border-border bg-surface shadow-sm overflow-hidden rounded-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-800/50 border-b border-white/5">
+            <thead className="bg-surface-variant/50 border-b border-border">
               <tr>
-                <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Employee</th>
-                <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Contact</th>
-                <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Company</th>
-                <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Department</th>
-                <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Actions</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Employee</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Contact</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Company</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Department</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Status</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="p-4">
-                      <div className="h-4 bg-slate-700 rounded w-3/4"></div>
+                      <div className="h-4 bg-surface-variant rounded w-3/4"></div>
                     </td>
                     <td className="p-4">
-                      <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+                      <div className="h-4 bg-surface-variant rounded w-1/2"></div>
                     </td>
                     <td className="p-4">
-                      <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                      <div className="h-4 bg-surface-variant rounded w-1/3"></div>
                     </td>
                     <td className="p-4">
-                      <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                      <div className="h-4 bg-surface-variant rounded w-1/3"></div>
                     </td>
                     <td className="p-4">
-                      <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+                      <div className="h-4 bg-surface-variant rounded w-1/4"></div>
                     </td>
                     <td className="p-4">
-                      <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+                      <div className="h-4 bg-surface-variant rounded w-1/2"></div>
                     </td>
                   </tr>
                 ))
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={6} className="p-8 text-center text-text-secondary">
                     <Users size={48} className="mx-auto mb-4 opacity-50" />
-                    <p className="text-sm font-medium text-white">No employees found</p>
-                    <p className="text-xs mt-2 text-slate-400">
+                    <p className="text-sm font-medium text-text-primary">No employees found</p>
+                    <p className="text-xs mt-2 text-text-secondary">
                       {searchTerm || statusFilter || departmentFilter 
                         ? 'Try adjusting your search or filters to see more results'
                         : 'Start by adding your first employee to the system'
@@ -456,33 +466,33 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                 </tr>
               ) : (
                 employees.map((employee) => (
-                  <tr key={employee.id} className="hover:bg-white/5 transition-colors">
+                  <tr key={employee.id} className="hover:bg-surface-variant/30 transition-colors">
                     <td className="p-4">
                       <div>
-                        <p className="text-sm font-bold text-white">{employee.fullName}</p>
-                        <p className="text-xs text-slate-400">{employee.employeeCode}</p>
-                        <p className="text-xs text-slate-500">{employee.designation}</p>
+                        <p className="text-sm font-bold text-text-primary">{employee.fullName}</p>
+                        <p className="text-xs text-text-secondary">{employee.employeeCode}</p>
+                        <p className="text-xs text-text-secondary/70">{employee.designation}</p>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="space-y-1">
                         {employee.email && (
-                          <div className="flex items-center gap-2 text-xs text-slate-300">
-                            <Mail size={12} className="text-slate-500" />
+                          <div className="flex items-center gap-2 text-xs text-text-primary">
+                            <Mail size={12} className="text-text-secondary/50" />
                             {employee.email}
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-slate-300">
-                        <Building size={12} className="text-slate-500" />
+                      <div className="flex items-center gap-2 text-xs text-text-primary">
+                        <Building size={12} className="text-text-secondary/50" />
                         {employee.office}
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-slate-300">
-                        <Briefcase size={12} className="text-slate-500" />
+                      <div className="flex items-center gap-2 text-xs text-text-primary">
+                        <Briefcase size={12} className="text-text-secondary/50" />
                         {employee.department}
                       </div>
                     </td>
@@ -498,15 +508,15 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditModal(employee)}
-                          className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors"
+                          className="p-1.5 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary hover:text-primary rounded-sm transition-colors border border-border/50"
                           title="Edit employee"
                         >
                           <Edit size={14} />
                         </button>
                         <button
-                          onClick={() => handleDeleteEmployee(employee.id)}
+                          onClick={() => handleDeleteEmployee(employee)}
                           disabled={isDeleting === employee.id}
-                          className="p-1.5 bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                          className="p-1.5 bg-surface-variant hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 rounded-sm transition-colors disabled:opacity-50 border border-border/50"
                           title="Delete employee"
                         >
                           {isDeleting === employee.id ? (
@@ -526,8 +536,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-white/5">
-            <p className="text-xs text-slate-400">
+          <div className="flex items-center justify-between p-4 border-t border-border">
+            <p className="text-xs text-text-secondary">
               Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
               {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} employees
             </p>
@@ -535,17 +545,17 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
               <button
                 onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
                 disabled={pagination.page === 1}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary rounded-sm transition-colors border border-border/50 disabled:opacity-50"
               >
                 Previous
               </button>
-              <span className="text-xs text-slate-400 px-2">
+              <span className="text-xs text-text-secondary px-2 font-semibold">
                 Page {pagination.page} of {pagination.totalPages}
               </span>
               <button
                 onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
                 disabled={pagination.page === pagination.totalPages}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary rounded-sm transition-colors border border-border/50 disabled:opacity-50"
               >
                 Next
               </button>
@@ -568,17 +578,17 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-card border border-white/5 bg-slate-900/90 shadow-2xl rounded-sm p-6 w-full max-w-md"
+              className="border border-border bg-surface rounded-sm p-8 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-black text-text-primary mb-6 flex items-center gap-2">
                 <UserPlus size={18} className="text-primary" />
                 Add New Employee
               </h3>
               
               <form onSubmit={handleCreateEmployee} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Email Address *
                   </label>
                   <input
@@ -586,14 +596,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     required
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="employee@company.com"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       First Name *
                     </label>
                     <input
@@ -601,59 +611,59 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       required
                       value={formData.firstName}
                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                       placeholder="John"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Last Name
                     </label>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                       placeholder="Doe"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Designation
                   </label>
                   <input
                     type="text"
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="Software Engineer"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="+91 9876543210"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Aadhar Number
                   </label>
                   <input
                     type="text"
                     value={formData.aadharNumber}
                     onChange={(e) => setFormData(prev => ({ ...prev, aadharNumber: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="12-digit Aadhar number"
                     maxLength={12}
                   />
@@ -661,32 +671,32 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       PF Number (Optional)
                     </label>
                     <input
                       type="text"
                       value={formData.pfNumber}
                       onChange={(e) => setFormData(prev => ({ ...prev, pfNumber: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                       placeholder="PF Number"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       ESIC Number (Optional)
                     </label>
                     <input
                       type="text"
                       value={formData.esicNumber}
                       onChange={(e) => setFormData(prev => ({ ...prev, esicNumber: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                       placeholder="ESIC Number"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                <div className="flex items-center gap-3 p-3 bg-surface-variant/50 border border-border rounded-sm">
                   <input
                     type="checkbox"
                     id="isHandicapped"
@@ -694,13 +704,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     onChange={(e) => setFormData(prev => ({ ...prev, isHandicapped: e.target.checked }))}
                     className="w-4 h-4 rounded"
                   />
-                  <label htmlFor="isHandicapped" className="text-xs font-bold text-slate-300 cursor-pointer">
+                  <label htmlFor="isHandicapped" className="text-xs font-bold text-text-primary cursor-pointer">
                     Handicapped
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Permanent Address
                   </label>
                   <textarea
@@ -711,13 +721,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                         setFormData(prev => ({ ...prev, currentAddress: e.target.value }));
                       }
                     }}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50 resize-none"
                     placeholder="Enter permanent address"
                     rows={3}
                   />
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                <div className="flex items-center gap-3 p-3 bg-surface-variant/50 border border-border rounded-sm">
                   <input
                     type="checkbox"
                     id="sameAsPermanent"
@@ -730,13 +740,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     }}
                     className="w-4 h-4 rounded"
                   />
-                  <label htmlFor="sameAsPermanent" className="text-xs font-bold text-slate-300 cursor-pointer">
+                  <label htmlFor="sameAsPermanent" className="text-xs font-bold text-text-primary cursor-pointer">
                     Same as permanent address
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Current Address
                   </label>
                   <textarea
@@ -744,7 +754,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     onChange={(e) => setFormData(prev => ({ ...prev, currentAddress: e.target.value }))}
                     disabled={sameAsPermanent}
                     className={cn(
-                      "w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none",
+                      "w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50 resize-none",
                       sameAsPermanent && "opacity-50 cursor-not-allowed"
                     )}
                     placeholder="Enter current address"
@@ -754,13 +764,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Company
                     </label>
                     <select
                       value={formData.officeId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, officeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
                       <option value="">Select Company</option>
                       {offices.map((office) => (
@@ -769,14 +779,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Department *
                     </label>
                     <select
                       required
                       value={formData.departmentId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -790,7 +800,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="flex-1 p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-sm transition-colors font-bold text-xs"
+                    className="flex-1 p-3 border border-border text-text-secondary rounded-sm transition-colors font-bold text-xs"
                   >
                     Cancel
                   </button>
@@ -822,23 +832,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-card border border-white/5 bg-slate-900/90 shadow-2xl rounded-sm p-6 w-full max-w-md"
+              className="border border-border bg-surface rounded-sm p-8 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-black text-text-primary mb-6 flex items-center gap-2">
                 <Edit size={18} className="text-primary" />
                 Edit Employee
               </h3>
               
               <form onSubmit={handleUpdateEmployee} className="space-y-4">
-                <div className="p-3 bg-slate-800/50 rounded-sm">
-                  <p className="text-xs text-slate-400 font-medium">Employee Code</p>
-                  <p className="text-sm font-bold text-white">{selectedEmployee.employeeCode}</p>
+                <div className="p-3 bg-surface-variant/50 border border-border rounded-sm">
+                  <p className="text-xs text-text-secondary font-medium">Employee Code</p>
+                  <p className="text-sm font-bold text-text-primary">{selectedEmployee.employeeCode}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       First Name *
                     </label>
                     <input
@@ -846,56 +856,56 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       required
                       value={formData.firstName}
                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Last Name
                     </label>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Designation
                   </label>
                   <input
                     type="text"
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="+91 9876543210"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Aadhar Number
                   </label>
                   <input
                     type="text"
                     value={formData.aadharNumber}
                     onChange={(e) => setFormData(prev => ({ ...prev, aadharNumber: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="12-digit Aadhar number"
                     maxLength={12}
                   />
@@ -903,32 +913,32 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       PF Number (Optional)
                     </label>
                     <input
                       type="text"
                       value={formData.pfNumber}
                       onChange={(e) => setFormData(prev => ({ ...prev, pfNumber: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                       placeholder="PF Number"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       ESIC Number (Optional)
                     </label>
                     <input
                       type="text"
                       value={formData.esicNumber}
                       onChange={(e) => setFormData(prev => ({ ...prev, esicNumber: e.target.value }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                       placeholder="ESIC Number"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                <div className="flex items-center gap-3 p-3 bg-surface-variant/50 border border-border rounded-sm">
                   <input
                     type="checkbox"
                     id="editIsHandicapped"
@@ -936,13 +946,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     onChange={(e) => setFormData(prev => ({ ...prev, isHandicapped: e.target.checked }))}
                     className="w-4 h-4 rounded"
                   />
-                  <label htmlFor="editIsHandicapped" className="text-xs font-bold text-slate-300 cursor-pointer">
+                  <label htmlFor="editIsHandicapped" className="text-xs font-bold text-text-primary cursor-pointer">
                     Handicapped
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Permanent Address
                   </label>
                   <textarea
@@ -953,13 +963,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                         setFormData(prev => ({ ...prev, currentAddress: e.target.value }));
                       }
                     }}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50 resize-none"
                     placeholder="Enter permanent address"
                     rows={3}
                   />
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-white/10 rounded-sm">
+                <div className="flex items-center gap-3 p-3 bg-surface-variant/50 border border-border rounded-sm">
                   <input
                     type="checkbox"
                     id="editSameAsPermanent"
@@ -972,13 +982,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     }}
                     className="w-4 h-4 rounded"
                   />
-                  <label htmlFor="editSameAsPermanent" className="text-xs font-bold text-slate-300 cursor-pointer">
+                  <label htmlFor="editSameAsPermanent" className="text-xs font-bold text-text-primary cursor-pointer">
                     Same as permanent address
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Current Address
                   </label>
                   <textarea
@@ -986,7 +996,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     onChange={(e) => setFormData(prev => ({ ...prev, currentAddress: e.target.value }))}
                     disabled={sameAsPermanent}
                     className={cn(
-                      "w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-white placeholder:text-slate-500 resize-none",
+                      "w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50 resize-none",
                       sameAsPermanent && "opacity-50 cursor-not-allowed"
                     )}
                     placeholder="Enter current address"
@@ -995,13 +1005,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Status
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -1010,13 +1020,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Company
                     </label>
                     <select
                       value={formData.officeId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, officeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
                       <option value="">Select Company</option>
                       {offices.map((office) => (
@@ -1025,14 +1035,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Department *
                     </label>
                     <select
                       required
                       value={formData.departmentId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-slate-800 border border-white/10 rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-slate-300"
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -1046,7 +1056,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                   <button
                     type="button"
                     onClick={() => setIsEditModalOpen(false)}
-                    className="flex-1 p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-sm transition-colors font-bold text-xs"
+                    className="flex-1 p-3 border border-border text-text-secondary rounded-sm transition-colors font-bold text-xs"
                   >
                     Cancel
                   </button>
@@ -1063,6 +1073,16 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteEmployee}
+        title="Delete Employee"
+        message={employeeToDelete ? `Are you sure you want to delete "${employeeToDelete.firstName} ${employeeToDelete.lastName}"? This action cannot be undone.` : 'Are you sure you want to delete this employee? This action cannot be undone.'}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };
