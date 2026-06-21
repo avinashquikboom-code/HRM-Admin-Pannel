@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   Users, 
   UserCheck, 
@@ -76,7 +77,6 @@ const itemVariants: Variants = {
 const HRManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // States for backend data
   const [stats, setStats] = useState<HRStats | null>(null);
@@ -128,7 +128,6 @@ const HRManagementPage = () => {
   const loadData = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setIsRefreshing(true);
     else setIsLoading(true);
-    setError(null);
 
     try {
       const [
@@ -152,7 +151,7 @@ const HRManagementPage = () => {
       setActivityList(activityRes);
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'Failed to communicate with the operational database.');
+      toast.error(err?.message || 'Failed to communicate with the operational database.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -172,16 +171,20 @@ const HRManagementPage = () => {
   const handleDownloadLeaveReport = async () => {
     try {
       await downloadHRLeaveReport();
+      toast.success('Leave report downloaded successfully');
     } catch (error) {
       console.error('Failed to download leave report:', error);
+      toast.error('Failed to download leave report');
     }
   };
 
   const handleDownloadAttendanceReport = async () => {
     try {
       await downloadHRAttendanceReport();
+      toast.success('Attendance report downloaded successfully');
     } catch (error) {
       console.error('Failed to download attendance report:', error);
+      toast.error('Failed to download attendance report');
     }
   };
 
@@ -248,26 +251,6 @@ const HRManagementPage = () => {
           </div>
         </div>
       </motion.div>
-
-      {/* Error state display */}
-      {error && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between p-4 bg-error/10 border border-error/20 rounded-sm text-error-text text-sm shadow-sm"
-        >
-          <div className="flex items-center gap-3">
-            <AlertCircle size={20} className="text-error" />
-            <span className="font-medium">{error}</span>
-          </div>
-          <button 
-            onClick={() => loadData()}
-            className="px-4 py-1.5 bg-error text-white font-bold rounded-sm text-xs hover:bg-error/90 transition-all duration-200"
-          >
-            Re-sync Databases
-          </button>
-        </motion.div>
-      )}
 
       {/* Main Operational Panel */}
       <AnimatePresence mode="wait">
