@@ -13,10 +13,13 @@ export function useEmployees(enabled = true) {
     setError('');
 
     try {
+      console.log('[useEmployees] Fetching employees...');
       const response = await fetchEmployees();
+      console.log('[useEmployees] Employees fetched successfully:', response.employees.length);
       setEmployees(response.employees);
       return response.employees;
     } catch (err) {
+      console.error('[useEmployees] Error fetching employees:', err);
       const message =
         err instanceof Error ? err.message : 'Failed to load employees';
       setError(message);

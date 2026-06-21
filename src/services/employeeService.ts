@@ -60,9 +60,12 @@ interface AssignEmployeeResponse {
 
 export async function fetchEmployees(): Promise<EmployeesResponse> {
   try {
+    console.log('[employeeService] Fetching employees from /api/admin/employees');
     const { data } = await api.get<EmployeesResponse>('/api/admin/employees');
+    console.log('[employeeService] Employees response received:', data);
     return data;
   } catch (error) {
+    console.error('[employeeService] Error fetching employees:', error);
     throw new Error(
       getApiErrorMessage(error, 'Failed to load employees. Please try again.')
     );
