@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Search,
   MoreVertical,
@@ -14,7 +14,9 @@ import {
   RefreshCw,
   UserCheck,
   Lock,
-  Trash2
+  Trash2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
@@ -82,6 +84,13 @@ const EmployeesPage = () => {
   const [employeeToUnassignDept, setEmployeeToUnassignDept] = useState<any>(null);
   const [isUnassigningDept, setIsUnassigningDept] = useState<string | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredEmployees = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
     if (!query) return employees;
@@ -103,7 +112,13 @@ const EmployeesPage = () => {
     });
   }, [employees, searchTerm]);
 
+  const paginatedEmployees = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredEmployees, currentPage, itemsPerPage]);
+
   const activeCount = employees.filter((employee) => employee.status?.toUpperCase() === 'ACTIVE').length;
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
 
   const handleResetPassword = (employee: any) => {
     setSelectedEmployee(employee);
@@ -299,8 +314,8 @@ const EmployeesPage = () => {
             </div>
           </div>
 
-          {filteredEmployees.length > 0 ? (
-            filteredEmployees.map((employee) => {
+          {paginatedEmployees.length > 0 ? (
+            paginatedEmployees.map((employee) => {
               const fullName = `${employee.firstName} ${employee.lastName}`;
               const initials = `${employee.firstName[0] ?? ''}${employee.lastName[0] ?? ''}`.toUpperCase();
               const statusLabel = formatStatus(employee.status);
@@ -390,9 +405,44 @@ const EmployeesPage = () => {
               No employees found.
             </div>
           )}
-          <div className="p-4.5 bg-surface-variant rounded-sm border border-border text-xs text-text-secondary font-semibold text-center">
-            Showing <span className="text-text-primary font-bold">{filteredEmployees.length}</span> of{' '}
-            <span className="text-text-primary font-bold">{employees.length}</span> employees
+          
+          {/* Mobile pagination controls */}
+          <div className="p-4.5 bg-surface border border-border rounded-sm flex flex-col gap-3">
+            <div className="text-xs text-text-secondary font-semibold text-center">
+              {filteredEmployees.length > 0 ? (
+                <>
+                  Showing <span className="text-text-primary font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredEmployees.length)}</span> to{' '}
+                  <span className="text-text-primary font-bold">{Math.min(currentPage * itemsPerPage, filteredEmployees.length)}</span> of{' '}
+                  <span className="text-text-primary font-bold">{filteredEmployees.length}</span> employees
+                </>
+              ) : (
+                "No employees found"
+              )}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-2 mt-1">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="flex-1 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <ChevronLeft size={14} />
+                  Prev
+                </button>
+                <span className="text-xs text-text-secondary px-3 font-semibold shrink-0">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex-1 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  Next
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -430,8 +480,8 @@ const EmployeesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredEmployees.length > 0 ? (
-                  filteredEmployees.map((employee) => {
+                {paginatedEmployees.length > 0 ? (
+                  paginatedEmployees.map((employee) => {
                     const fullName = `${employee.firstName} ${employee.lastName}`;
                     const initials = `${employee.firstName[0] ?? ''}${employee.lastName[0] ?? ''}`.toUpperCase();
                     const statusLabel = formatStatus(employee.status);
@@ -536,11 +586,79 @@ const EmployeesPage = () => {
               </tbody>
             </table>
           </div>
-          <div className="p-6.5 bg-surface-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border">
-            <p className="text-sm text-text-secondary font-semibold">
-              Showing <span className="text-text-primary font-bold">{filteredEmployees.length}</span> of{' '}
-              <span className="text-text-primary font-bold">{employees.length}</span> employees
-            </p>
+          <div className="p-6.5 bg-surface-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <p className="text-xs font-semibold text-text-secondary">
+                {filteredEmployees.length > 0 ? (
+                  <>
+                    Showing <span className="text-text-primary font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredEmployees.length)}</span> to{' '}
+                    <span className="text-text-primary font-bold">{Math.min(currentPage * itemsPerPage, filteredEmployees.length)}</span> of{' '}
+                    <span className="text-text-primary font-bold">{filteredEmployees.length}</span> employees
+                  </>
+                ) : (
+                  "No employees found"
+                )}
+              </p>
+              
+              {filteredEmployees.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-text-secondary font-semibold">Show:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-surface border border-border rounded-sm text-xs font-semibold px-2 py-1 outline-none text-text-primary focus:border-primary/30 transition-colors"
+                  >
+                    {[5, 10, 20, 50].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3.5 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+                >
+                  <ChevronLeft size={14} />
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={cn(
+                        "w-8 h-8 rounded-sm text-xs font-black transition-all cursor-pointer border flex items-center justify-center",
+                        currentPage === page
+                          ? "bg-primary text-white border-primary"
+                          : "bg-surface hover:bg-surface-variant text-text-secondary border-border"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3.5 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+                >
+                  Next
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
         </>
