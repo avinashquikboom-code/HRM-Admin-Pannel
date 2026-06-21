@@ -8,7 +8,7 @@ import { registerUser, type RegisterRole } from '@/services/authService';
 import { getAuthSession } from '@/lib/authStorage';
 import type { PortalType } from '@/lib/portals';
 import { cn } from '@/utils/cn';
-import { fetchHRDepartments } from '@/services/hrService';
+import { fetchHRDepartments, fetchHROffices } from '@/services/hrService';
 
 interface RegisterUserWithRightsProps {
   managerPortal: 'super_admin' | 'platform_admin';
@@ -49,8 +49,11 @@ export default function RegisterUserWithRights({
   const [lastName, setLastName] = useState('');
   const [selectedRole, setSelectedRole] = useState<RegisterRole>(registerRole);
   const [departmentId, setDepartmentId] = useState<number | undefined>();
+  const [officeId, setOfficeId] = useState<number | undefined>();
   const [departments, setDepartments] = useState<any[]>([]);
+  const [offices, setOffices] = useState<any[]>([]);
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
+  const [isLoadingOffices, setIsLoadingOffices] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -67,8 +70,21 @@ export default function RegisterUserWithRights({
     }
   };
 
+  const loadOffices = async () => {
+    setIsLoadingOffices(true);
+    try {
+      const HROffices = await fetchHROffices();
+      setOffices(HROffices);
+    } catch (err) {
+      console.error('Failed to load offices:', err);
+    } finally {
+      setIsLoadingOffices(false);
+    }
+  };
+
   useEffect(() => {
     loadDepartments();
+    loadOffices();
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -85,6 +101,7 @@ export default function RegisterUserWithRights({
         password,
         role: selectedRole,
         departmentId,
+        officeId,
         firstName: firstName.trim() || undefined,
         lastName: lastName.trim() || undefined,
       });
@@ -98,6 +115,7 @@ export default function RegisterUserWithRights({
       setFirstName('');
       setLastName('');
       setDepartmentId(undefined);
+      setOfficeId(undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
     } finally {
@@ -255,6 +273,37 @@ export default function RegisterUserWithRights({
                 <RotateCcw size={14} className={isLoadingDepartments ? 'animate-spin' : ''} />
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Office Assignment (strictly required for Employee role for mobile login) */}
+        <div>
+          <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+            Office / Branch Allotment {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
+          </label>
+          <div className="relative group">
+            <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+            <select
+              value={officeId || ''}
+              onChange={(e) => setOfficeId(e.target.value ? parseInt(e.target.value) : undefined)}
+              disabled={isLoading || isLoadingOffices}
+              required={selectedRole === 'EMPLOYEE'}
+              className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+            >
+              <option value="">Select Office Location</option>
+              {offices.map((off) => (
+                <option key={off.id} value={off.id}>{off.name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={loadOffices}
+              disabled={isLoadingOffices}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+              title="Refresh offices"
+            >
+              <RotateCcw size={14} className={isLoadingOffices ? 'animate-spin' : ''} />
+            </button>
           </div>
         </div>
 
