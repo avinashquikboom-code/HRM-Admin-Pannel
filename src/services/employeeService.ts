@@ -135,6 +135,26 @@ export async function unassignEmployeeFromOffice(
   }
 }
 
+export async function unassignEmployeeFromDepartment(
+  employeeId: string
+): Promise<{ message: string; employee: AssignedEmployeeResult }> {
+  try {
+    const { data } = await api.put<AssignEmployeeResponse>(
+      `/api/admin/offices/assign-employee/${employeeId}`,
+      { departmentId: null }
+    );
+
+    return {
+      message: data.message,
+      employee: data.employee,
+    };
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to unassign employee from department. Please try again.')
+    );
+  }
+}
+
 export interface RegisterUserRequest {
   email: string;
   password: string;

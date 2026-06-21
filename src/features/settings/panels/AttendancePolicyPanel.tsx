@@ -9,12 +9,14 @@ interface AttendancePolicyPanelProps {
   halfDayThreshold: number;
   absentThreshold: number;
   autoMarkAbsent: boolean;
+  enableGeofence: boolean;
   workingHours: { start: string; end: string };
   workingDays: string[];
   onLateThresholdChange: (value: number) => void;
   onHalfDayThresholdChange: (value: number) => void;
   onAbsentThresholdChange: (value: number) => void;
   onAutoMarkAbsentChange: (value: boolean) => void;
+  onEnableGeofenceChange: (value: boolean) => void;
   onWorkingHoursChange: (start: string, end: string) => void;
   onWorkingDaysChange: (days: string[]) => void;
 }
@@ -26,12 +28,14 @@ export default function AttendancePolicyPanel({
   halfDayThreshold,
   absentThreshold,
   autoMarkAbsent,
+  enableGeofence,
   workingHours,
   workingDays,
   onLateThresholdChange,
   onHalfDayThresholdChange,
   onAbsentThresholdChange,
   onAutoMarkAbsentChange,
+  onEnableGeofenceChange,
   onWorkingHoursChange,
   onWorkingDaysChange,
 }: AttendancePolicyPanelProps) {
@@ -76,7 +80,7 @@ export default function AttendancePolicyPanel({
               onClick={(e) => {
                 try {
                   e.currentTarget.showPicker();
-                } catch (err) {}
+                } catch (err) { }
               }}
               className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium cursor-pointer"
             />
@@ -93,7 +97,7 @@ export default function AttendancePolicyPanel({
               onClick={(e) => {
                 try {
                   e.currentTarget.showPicker();
-                } catch (err) {}
+                } catch (err) { }
               }}
               className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium cursor-pointer"
             />
@@ -212,6 +216,28 @@ export default function AttendancePolicyPanel({
                 className={cn(
                   'absolute top-1 w-4 h-4 rounded-sm transition-all',
                   autoMarkAbsent ? 'left-7 bg-white' : 'left-1 bg-text-secondary'
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-sm border border-border">
+            <div>
+              <p className="text-sm font-bold text-text-primary">Enable Geofence Validation</p>
+              <p className="text-xs text-text-secondary mt-1">Enforce location restriction for mobile punches</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onEnableGeofenceChange(!enableGeofence)}
+              className={cn(
+                'w-12 h-6 rounded-sm transition-all relative',
+                enableGeofence ? 'bg-primary' : 'bg-surface-variant border border-border'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-1 w-4 h-4 rounded-sm transition-all',
+                  enableGeofence ? 'left-7 bg-white' : 'left-1 bg-text-secondary'
                 )}
               />
             </button>

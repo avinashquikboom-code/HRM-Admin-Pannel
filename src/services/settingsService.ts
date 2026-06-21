@@ -16,6 +16,7 @@ export interface AdminSettings {
     halfDayThreshold: number;
     autoMarkAbsent: boolean;
     absentThreshold: number;
+    enableGeofence?: boolean;
   };
   leave: {
     casualLeavePerYear: number;

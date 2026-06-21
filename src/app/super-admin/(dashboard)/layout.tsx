@@ -17,7 +17,7 @@ export default function SuperAdminLayout({
       <SidebarResponsiveInit />
       <SuperAdminSidebar />
 
-      <div className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+      <div id="app-content-area" className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         <Header portal="super_admin" />
 
         <main className="flex-grow p-3 sm:p-4 md:p-6 lg:p-8">

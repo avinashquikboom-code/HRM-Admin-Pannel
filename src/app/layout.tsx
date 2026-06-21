@@ -34,13 +34,13 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
-      <body className="min-h-full flex flex-col no-scrollbar">
+      <body className="min-h-full flex flex-col no-scrollbar" suppressHydrationWarning>
         <Providers>
           <AuthGuard>
             {children}
           </AuthGuard>
         </Providers>
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="bottom-right" richColors closeButton toastOptions={{ style: { zIndex: 99999 } }} />
       </body>
     </html>
   );

@@ -192,7 +192,7 @@ export default function PoliciesPage() {
   const renderPanel = () => {
     const defaultSettings: AdminSettings = {
       company: {
-        name: settings?.company.name || 'QuickBoom HRM',
+        name: settings?.company.name || 'HRM Portal',
         logo: settings?.company.logo || '',
         timezone: settings?.company.timezone || 'Asia/Kolkata',
         workingDays: settings?.company.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
@@ -203,6 +203,7 @@ export default function PoliciesPage() {
         halfDayThreshold: settings?.attendance.halfDayThreshold || 180,
         autoMarkAbsent: settings?.attendance.autoMarkAbsent ?? true,
         absentThreshold: settings?.attendance.absentThreshold || 240,
+        enableGeofence: settings?.attendance.enableGeofence ?? true,
       },
       leave: {
         casualLeavePerYear: settings?.leave.casualLeavePerYear || 12,
@@ -242,79 +243,75 @@ export default function PoliciesPage() {
           : currentSettings.company.workingDays;
 
         return (
-          <div className="space-y-6">
-            {/* Office Selector Dropdown */}
-            <div className="glass-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h4 className="text-sm font-bold text-text-primary uppercase tracking-wider">Configure Policy For</h4>
-                <p className="text-xs text-text-secondary">Select default company-wide policy or a specific office override</p>
-              </div>
-              <select
-                value={selectedOfficeId}
-                onChange={(e) => setSelectedOfficeId(e.target.value)}
-                className="px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-w-[200px]"
-              >
-                <option value="default">Default Company Policy</option>
-                {offices.map(office => (
-                  <option key={office.id} value={office.id}>
-                    {office.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <AttendancePolicyPanel
-              lateThreshold={currentSettings.attendance.lateThreshold}
-              halfDayThreshold={currentSettings.attendance.halfDayThreshold}
-              absentThreshold={currentSettings.attendance.absentThreshold}
-              autoMarkAbsent={currentSettings.attendance.autoMarkAbsent}
-              workingHours={currentWorkingHours}
-              workingDays={currentWorkingDays}
-              onLateThresholdChange={(value) => updateAttendanceSettings({ lateThreshold: value })}
-              onHalfDayThresholdChange={(value) => updateAttendanceSettings({ halfDayThreshold: value })}
-              onAbsentThresholdChange={(value) => updateAttendanceSettings({ absentThreshold: value })}
-              onAutoMarkAbsentChange={(value) => updateAttendanceSettings({ autoMarkAbsent: value })}
-              onWorkingHoursChange={(start, end) => {
-                if (isOfficeSelected) {
-                  updateOfficeWorkingHours(start, end);
-                } else {
-                  updateCompanySettings({ workingHours: { start, end } });
-                }
-              }}
-              onWorkingDaysChange={(days) => {
-                if (isOfficeSelected) {
-                  updateOfficeWorkingDays(days);
-                } else {
-                  updateCompanySettings({ workingDays: days });
-                }
-              }}
-            />
-          </div>
+          <AttendancePolicyPanel
+            lateThreshold={currentSettings.attendance.lateThreshold}
+            halfDayThreshold={currentSettings.attendance.halfDayThreshold}
+            absentThreshold={currentSettings.attendance.absentThreshold}
+            autoMarkAbsent={currentSettings.attendance.autoMarkAbsent}
+            enableGeofence={currentSettings.attendance.enableGeofence ?? true}
+            workingHours={currentWorkingHours}
+            workingDays={currentWorkingDays}
+            onLateThresholdChange={(value) => updateAttendanceSettings({ lateThreshold: value })}
+            onHalfDayThresholdChange={(value) => updateAttendanceSettings({ halfDayThreshold: value })}
+            onAbsentThresholdChange={(value) => updateAttendanceSettings({ absentThreshold: value })}
+            onAutoMarkAbsentChange={(value) => updateAttendanceSettings({ autoMarkAbsent: value })}
+            onEnableGeofenceChange={(value) => updateAttendanceSettings({ enableGeofence: value })}
+            onWorkingHoursChange={(start, end) => {
+              if (isOfficeSelected) {
+                updateOfficeWorkingHours(start, end);
+              } else {
+                updateCompanySettings({ workingHours: { start, end } });
+              }
+            }}
+            onWorkingDaysChange={(days) => {
+              if (isOfficeSelected) {
+                updateOfficeWorkingDays(days);
+              } else {
+                updateCompanySettings({ workingDays: days });
+              }
+            }}
+          />
         );
       }
       case 'leave-policy':
         return (
-          <LeavePolicyPanel
-            leaveTypes={currentSettings.leave.leaveTypes}
-            onLeaveTypesChange={(newLeaveTypes) => {
-              const casual = newLeaveTypes.find(lt => lt.code === 'CL')?.daysPerYear ?? 12;
-              const sick = newLeaveTypes.find(lt => lt.code === 'SL')?.daysPerYear ?? 10;
-              const earned = newLeaveTypes.find(lt => lt.code === 'EL')?.daysPerYear ?? 15;
-              updateLeaveSettings({
-                leaveTypes: newLeaveTypes,
-                casualLeavePerYear: casual,
-                sickLeavePerYear: sick,
-                earnedLeavePerYear: earned,
-              });
-            }}
-            requireApproval={currentSettings.leave.requireApproval}
-            maxConsecutiveDays={currentSettings.leave.maxConsecutiveDays}
-            onRequireApprovalChange={(value) => updateLeaveSettings({ requireApproval: value })}
-            onMaxConsecutiveDaysChange={(value) => updateLeaveSettings({ maxConsecutiveDays: value })}
-          />
+          <div className="space-y-6">
+            {selectedOfficeId !== 'default' && (
+              <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500 text-xs font-bold uppercase tracking-wider">
+                <span>⚠️ Note: Leave Policies are configured globally for {settings?.company?.name || 'HRM Portal'}. Office-specific overrides do not apply here.</span>
+              </div>
+            )}
+            <LeavePolicyPanel
+              leaveTypes={currentSettings.leave.leaveTypes}
+              onLeaveTypesChange={(newLeaveTypes) => {
+                const casual = newLeaveTypes.find(lt => lt.code === 'CL')?.daysPerYear ?? 12;
+                const sick = newLeaveTypes.find(lt => lt.code === 'SL')?.daysPerYear ?? 10;
+                const earned = newLeaveTypes.find(lt => lt.code === 'EL')?.daysPerYear ?? 15;
+                updateLeaveSettings({
+                  leaveTypes: newLeaveTypes,
+                  casualLeavePerYear: casual,
+                  sickLeavePerYear: sick,
+                  earnedLeavePerYear: earned,
+                });
+              }}
+              requireApproval={currentSettings.leave.requireApproval}
+              maxConsecutiveDays={currentSettings.leave.maxConsecutiveDays}
+              onRequireApprovalChange={(value) => updateLeaveSettings({ requireApproval: value })}
+              onMaxConsecutiveDaysChange={(value) => updateLeaveSettings({ maxConsecutiveDays: value })}
+            />
+          </div>
         );
       case 'holidays':
-        return <HolidaysPanel />;
+        return (
+          <div className="space-y-6">
+            {selectedOfficeId !== 'default' && (
+              <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500 text-xs font-bold uppercase tracking-wider">
+                <span>⚠️ Note: Company Holidays are configured globally for {settings?.company?.name || 'HRM Portal'}. Office-specific overrides do not apply here.</span>
+              </div>
+            )}
+            <HolidaysPanel />
+          </div>
+        );
       default:
         return null;
     }
@@ -382,7 +379,29 @@ export default function PoliciesPage() {
               />
             </motion.div>
 
-            <motion.div variants={itemVariants} className="lg:col-span-8 xl:col-span-9">
+            <motion.div variants={itemVariants} className="lg:col-span-8 xl:col-span-9 space-y-6">
+              {/* Office Selector Dropdown */}
+              <div className="glass-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-sm font-bold text-text-primary uppercase tracking-wider">Configure Policy For</h4>
+                  <p className="text-xs text-text-secondary font-semibold">Select default company-wide policy or a specific office override</p>
+                </div>
+                <select
+                  value={selectedOfficeId}
+                  onChange={(e) => setSelectedOfficeId(e.target.value)}
+                  className="px-4 py-2.5 bg-surface-variant border border-border rounded-lg text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/40 min-w-[200px] cursor-pointer"
+                >
+                  <option value="default" className="bg-surface-variant text-text-primary">
+                    {settings?.company?.name || 'HRM'} (Default Policy)
+                  </option>
+                  {offices.map(office => (
+                    <option key={office.id} value={office.id} className="bg-surface-variant text-text-primary">
+                      {office.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}

@@ -122,7 +122,7 @@ const CompaniesPage = () => {
         status: off.isActive ? 'Active' : 'Suspended',
         joiningDate: new Date(off.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         logo: off.name.substring(0, 2).toUpperCase(),
-        website: off.code ? `https://${off.code.toLowerCase()}.quickboom.com` : 'https://quickboom.com',
+        website: off.code ? `https://${off.code.toLowerCase()}.hrmportal.com` : 'https://hrmportal.com',
         adminEmail: `admin@${off.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
         address: off.address,
         latitude: off.latitude,

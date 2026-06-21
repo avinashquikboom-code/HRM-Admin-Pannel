@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface ConfirmModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  isLoading?: boolean;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -21,26 +22,84 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
+  isLoading = false,
 }) => {
   const [mounted, setMounted] = useState(false);
+  // Force a re-render (to recompute the content-area rect) when the sidebar
+  // collapses/expands or the window is resized.
+  const [, forceTick] = useReducer((x: number) => x + 1, 0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const container = document.getElementById('app-content-area');
+
+    // Keep the overlay aligned with responsive layout changes.
+    const onChange = () => forceTick();
+    const resizeObserver =
+      container && typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(onChange)
+        : null;
+    resizeObserver?.observe(container as Element);
+    window.addEventListener('resize', onChange);
+
+    // Prevent page scrolling while the modal is open.
+    const prevContainerOverflow = container?.style.overflow;
+    if (container) container.style.overflow = 'hidden';
+    const prevBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', onChange);
+      if (container) container.style.overflow = prevContainerOverflow ?? '';
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  }, [isOpen]);
+
   if (!mounted) return null;
+
+  const handleClose = () => {
+    if (!isLoading) onClose();
+  };
+
+  // Measure the content area synchronously during render so the modal is
+  // pinned to it on the very first paint (no full-screen flash). Pinning to
+  // the content area keeps the sidebar visible and undimmed. Falls back to
+  // full-viewport if the container is not present.
+  let overlayStyle: React.CSSProperties = { position: 'fixed', inset: 0 };
+  if (isOpen) {
+    const container = document.getElementById('app-content-area');
+    if (container) {
+      const r = container.getBoundingClientRect();
+      overlayStyle = {
+        position: 'fixed',
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      };
+    }
+  }
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4">
+        <div
+          style={overlayStyle}
+          className="z-[9999] flex items-end sm:items-center justify-center p-4"
+        >
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-background-dark/60 backdrop-blur-sm"
+            onClick={handleClose}
+            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
           />
 
           {/* Modal */}
@@ -56,8 +115,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                   <AlertTriangle size={28} />
                 </div>
                 <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-surface-variant rounded-sm text-muted transition-colors"
+                  onClick={handleClose}
+                  disabled={isLoading}
+                  className="p-2 hover:bg-surface-variant rounded-sm text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <X size={20} />
                 </button>
@@ -70,19 +130,27 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
                 <button
-                  onClick={onClose}
-                  className="flex-1 py-4 bg-surface-variant text-text-primary font-bold rounded-sm hover:bg-border transition-all active:scale-95"
+                  onClick={handleClose}
+                  disabled={isLoading}
+                  className="flex-1 py-4 bg-surface-variant text-text-primary font-bold rounded-sm hover:bg-border transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {cancelText}
                 </button>
                 <button
                   onClick={() => {
-                    onConfirm();
-                    onClose();
+                    if (!isLoading) onConfirm();
                   }}
-                  className="flex-1 py-4 bg-error text-white font-bold rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-95"
+                  disabled={isLoading}
+                  className="flex-1 py-4 bg-error text-white font-bold rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {confirmText}
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    confirmText
+                  )}
                 </button>
               </div>
             </div>

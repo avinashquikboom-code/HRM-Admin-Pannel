@@ -50,7 +50,9 @@ export function useLiveLocations(isAutoRefreshing = true) {
           setError('');
         })
         .catch((err) => {
-          console.error('[Telemetry Polling Error]:', err);
+          // Use console.warn (not console.error) so transient polling
+          // failures don't trigger the Next.js dev-overlay error popup.
+          console.warn('[Telemetry Polling Error]:', err);
         });
     }, 15000); // 15 seconds polling interval to match mobile app
 

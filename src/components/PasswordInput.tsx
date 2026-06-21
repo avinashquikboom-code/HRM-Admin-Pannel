@@ -19,7 +19,7 @@ export default function PasswordInput({
 
   return (
     <div className={cn('relative', className)}>
-      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5 pointer-events-none" />
+      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary w-5 h-5 pointer-events-none" />
       <input
         {...props}
         type={visible ? 'text' : 'password'}
@@ -33,7 +33,7 @@ export default function PasswordInput({
         type="button"
         onClick={() => setVisible((current) => !current)}
         disabled={disabled}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-text-primary transition-colors disabled:opacity-60"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors disabled:opacity-60"
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
         {visible ? <EyeOff size={20} /> : <Eye size={20} />}

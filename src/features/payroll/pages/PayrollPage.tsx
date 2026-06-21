@@ -511,7 +511,7 @@ const PayrollPage = () => {
           <motion.div 
             variants={itemVariants}
             whileHover={{ scale: 1.01 }}
-            className="glass-card p-8 bg-gradient-to-br from-secondary to-primary-dark text-white border-none shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between"
+            className="glass-card p-8 bg-gradient-to-br from-[#0D9488] via-[#0F766E] to-[#134E4A] text-white border-none shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between"
           >
             {/* Animated Radial Glow */}
             <motion.div 
@@ -520,42 +520,42 @@ const PayrollPage = () => {
                 opacity: [0.2, 0.4, 0.2]
               }}
               transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="absolute -right-20 -top-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none"
+              className="absolute -right-20 -top-20 w-96 h-96 bg-teal-300/20 rounded-full blur-[100px] pointer-events-none"
             />
             
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-8">
-                <div className="p-4 bg-white/5 backdrop-blur-2xl rounded-sm group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/10 shadow-sm">
-                  <IndianRupee size={32} className="text-primary" />
+                <div className="p-4 bg-black/20 backdrop-blur-2xl rounded-sm group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/20 shadow-sm">
+                  <IndianRupee size={32} className="text-white" />
                 </div>
-                <div className="px-4 py-1.5 bg-white/5 backdrop-blur-2xl rounded-full text-micro font-black tracking-[0.2em] flex items-center gap-2 border border-white/10 shadow-sm">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_12px_#3BA38B]" />
+                <div className="px-4 py-1.5 bg-black/20 backdrop-blur-2xl rounded-full text-micro font-black tracking-[0.2em] flex items-center gap-2 border border-white/20 shadow-sm text-white">
+                  <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse shadow-[0_0_12px_#86efac]" />
                   ACTIVE LIQUIDITY
                 </div>
               </div>
               
               <div className="mt-auto pt-10">
-                <p className="text-white/40 text-micro font-black tracking-[0.2em] uppercase mb-2">Global Disbursement Pool</p>
-                <h3 className="text-5xl font-black mb-8 tracking-tighter tabular-nums text-white group-hover:text-primary transition-colors duration-500">₹24,842,100</h3>
+                <p className="text-white/60 text-micro font-black tracking-[0.2em] uppercase mb-2">Global Disbursement Pool</p>
+                <h3 className="text-5xl font-black mb-8 tracking-tighter tabular-nums text-white group-hover:text-teal-200 transition-colors duration-500">₹24,842,100</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-micro font-black uppercase tracking-[0.2em]">
-                    <span className="text-white/60">Pool utilization</span>
-                    <span className="text-primary">75.4%</span>
+                    <span className="text-white/70">Pool utilization</span>
+                    <span className="text-teal-200">75.4%</span>
                   </div>
-                  <div className="h-2.5 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10 shadow-sm">
+                  <div className="h-2.5 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/20 shadow-sm">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: '75.4%' }}
                       transition={{ duration: 2, delay: 0.5, ease: "circOut" }}
-                      className="h-full bg-gradient-to-r from-primary/50 to-primary rounded-full shadow-[0_0_20px_rgba(59,163,139,0.5)]"
+                      className="h-full bg-gradient-to-r from-teal-300/70 to-teal-200 rounded-full shadow-[0_0_20px_rgba(45,212,191,0.5)]"
                     />
                   </div>
                 </div>
                 <div className="mt-10 flex items-center gap-3">
-                  <button className="flex-1 py-4 bg-primary text-white text-micro font-black uppercase tracking-[0.2em] rounded-sm hover:bg-primary-light transition-all active:scale-95 shadow-xl shadow-primary/30">
+                  <button className="flex-1 py-4 bg-white/15 border border-white/30 text-white text-micro font-black uppercase tracking-[0.2em] rounded-sm hover:bg-white/25 transition-all active:scale-95 shadow-xl backdrop-blur-sm">
                     Rebalance Pool
                   </button>
-                  <button className="p-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-sm hover:bg-white/10 transition-all active:scale-95 shadow-sm">
+                  <button className="p-4 bg-black/20 backdrop-blur-2xl border border-white/20 rounded-sm hover:bg-white/20 transition-all active:scale-95 shadow-sm">
                     <ArrowUpRight size={20} className="text-white" />
                   </button>
                 </div>

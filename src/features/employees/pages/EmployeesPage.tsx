@@ -6,6 +6,8 @@ import {
   MoreVertical,
   Mail,
   Building2,
+  X,
+  Briefcase,
   Calendar,
   Users,
   UserPlus,
@@ -23,7 +25,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import ResetPasswordModal from '../components/ResetPasswordModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
-import { deleteEmployee } from '@/services/employeeService';
+import { deleteEmployee, unassignEmployeeFromOffice, unassignEmployeeFromDepartment } from '@/services/employeeService';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -73,6 +75,12 @@ const EmployeesPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [unassignConfirmOpen, setUnassignConfirmOpen] = useState(false);
+  const [employeeToUnassign, setEmployeeToUnassign] = useState<any>(null);
+  const [isUnassigning, setIsUnassigning] = useState<string | null>(null);
+  const [unassignDeptConfirmOpen, setUnassignDeptConfirmOpen] = useState(false);
+  const [employeeToUnassignDept, setEmployeeToUnassignDept] = useState<any>(null);
+  const [isUnassigningDept, setIsUnassigningDept] = useState<string | null>(null);
 
   const filteredEmployees = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -125,6 +133,50 @@ const EmployeesPage = () => {
       setIsDeleting(null);
       setDeleteConfirmOpen(false);
       setEmployeeToDelete(null);
+    }
+  };
+
+  const handleUnassignOffice = (employee: any) => {
+    setEmployeeToUnassign(employee);
+    setUnassignConfirmOpen(true);
+  };
+
+  const confirmUnassignOffice = async () => {
+    if (!employeeToUnassign) return;
+
+    setIsUnassigning(employeeToUnassign.id);
+    try {
+      await unassignEmployeeFromOffice(employeeToUnassign.id);
+      toast.success('Employee unassigned from office successfully!');
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to unassign employee from office.');
+    } finally {
+      setIsUnassigning(null);
+      setUnassignConfirmOpen(false);
+      setEmployeeToUnassign(null);
+    }
+  };
+
+  const handleUnassignDepartment = (employee: any) => {
+    setEmployeeToUnassignDept(employee);
+    setUnassignDeptConfirmOpen(true);
+  };
+
+  const confirmUnassignDepartment = async () => {
+    if (!employeeToUnassignDept) return;
+
+    setIsUnassigningDept(employeeToUnassignDept.id);
+    try {
+      await unassignEmployeeFromDepartment(employeeToUnassignDept.id);
+      toast.success('Employee unassigned from department successfully!');
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to unassign employee from department.');
+    } finally {
+      setIsUnassigningDept(null);
+      setUnassignDeptConfirmOpen(false);
+      setEmployeeToUnassignDept(null);
     }
   };
 
@@ -268,6 +320,26 @@ const EmployeesPage = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      {employee.office && (
+                        <button
+                          onClick={() => handleUnassignOffice(employee)}
+                          disabled={isUnassigning === employee.id}
+                          className="p-2.5 hover:bg-amber-500/10 rounded-sm text-text-secondary hover:text-amber-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Unassign Office"
+                        >
+                          <X size={18} />
+                        </button>
+                      )}
+                      {employee.department && (
+                        <button
+                          onClick={() => handleUnassignDepartment(employee)}
+                          disabled={isUnassigningDept === employee.id}
+                          className="p-2.5 hover:bg-purple-500/10 rounded-sm text-text-secondary hover:text-purple-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Unassign Department"
+                        >
+                          <Briefcase size={18} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleResetPassword(employee)}
                         className="p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary border border-border shrink-0 cursor-pointer transition-all active:scale-95"
@@ -414,6 +486,26 @@ const EmployeesPage = () => {
                         </td>
                         <td className="px-8 py-4.5 text-right">
                           <div className="flex justify-end gap-2">
+                            {employee.office && (
+                              <button
+                                onClick={() => handleUnassignOffice(employee)}
+                                disabled={isUnassigning === employee.id}
+                                className="p-2.5 hover:bg-amber-500/10 rounded-sm text-text-secondary hover:text-amber-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Unassign Office"
+                              >
+                                <X size={18} />
+                              </button>
+                            )}
+                            {employee.department && (
+                              <button
+                                onClick={() => handleUnassignDepartment(employee)}
+                                disabled={isUnassigningDept === employee.id}
+                                className="p-2.5 hover:bg-purple-500/10 rounded-sm text-text-secondary hover:text-purple-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Unassign Department"
+                              >
+                                <Briefcase size={18} />
+                              </button>
+                            )}
                             <button
                               onClick={() => handleResetPassword(employee)}
                               className="p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all duration-300 border border-border active:scale-95 cursor-pointer"
@@ -469,6 +561,26 @@ const EmployeesPage = () => {
       title="Delete Employee"
       message={employeeToDelete ? `Are you sure you want to delete "${employeeToDelete.firstName} ${employeeToDelete.lastName}"? This action cannot be undone.` : 'Are you sure you want to delete this employee? This action cannot be undone.'}
       confirmText="Delete"
+      cancelText="Cancel"
+    />
+
+    <ConfirmModal
+      isOpen={unassignConfirmOpen}
+      onClose={() => setUnassignConfirmOpen(false)}
+      onConfirm={confirmUnassignOffice}
+      title="Unassign Office"
+      message={employeeToUnassign ? `Are you sure you want to unassign "${employeeToUnassign.firstName} ${employeeToUnassign.lastName}" from "${employeeToUnassign.office?.name}"?` : 'Are you sure you want to unassign this employee from their office?'}
+      confirmText="Unassign"
+      cancelText="Cancel"
+    />
+
+    <ConfirmModal
+      isOpen={unassignDeptConfirmOpen}
+      onClose={() => setUnassignDeptConfirmOpen(false)}
+      onConfirm={confirmUnassignDepartment}
+      title="Unassign Department"
+      message={employeeToUnassignDept ? `Are you sure you want to unassign "${employeeToUnassignDept.firstName} ${employeeToUnassignDept.lastName}" from "${employeeToUnassignDept.department?.name}"?` : 'Are you sure you want to unassign this employee from their department?'}
+      confirmText="Unassign"
       cancelText="Cancel"
     />
     </>

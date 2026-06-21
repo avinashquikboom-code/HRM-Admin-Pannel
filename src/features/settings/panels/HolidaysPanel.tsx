@@ -308,12 +308,15 @@ export default function HolidaysPanel() {
         <h4 className="text-lg font-bold text-text-primary mb-4">All Holidays ({currentYear})</h4>
         <div className="space-y-3">
           {holidays
-            .filter(h => new Date(h.date).getFullYear() === currentYear || h.recurring)
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .filter(h => {
+              const year = parseInt(h.date.split('-')[0], 10);
+              return year === currentYear || h.recurring;
+            })
+            .sort((a, b) => a.date.localeCompare(b.date))
             .map((holiday) => {
-              const holidayDate = new Date(holiday.date);
+              const [_, month, day] = holiday.date.split('-').map(Number);
               const displayDate = holiday.recurring 
-                ? `${holidayDate.getDate()}/${holidayDate.getMonth() + 1} (Recurring)`
+                ? `${day}/${month} (Recurring)`
                 : holiday.date;
 
               return (
@@ -323,7 +326,7 @@ export default function HolidaysPanel() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/10 text-primary rounded-sm flex items-center justify-center font-bold text-lg">
-                      {holidayDate.getDate()}
+                      {day}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-text-primary">{holiday.name}</p>

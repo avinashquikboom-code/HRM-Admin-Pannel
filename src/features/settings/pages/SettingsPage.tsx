@@ -180,7 +180,7 @@ export default function SettingsPage() {
     // Use default values if settings haven't loaded yet
     const defaultSettings: AdminSettings = {
       company: {
-        name: settings?.company.name || 'QuickBoom HRM',
+        name: settings?.company.name || 'HRM Portal',
         logo: settings?.company.logo || '',
         timezone: settings?.company.timezone || 'Asia/Kolkata',
         workingDays: settings?.company.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
@@ -191,6 +191,7 @@ export default function SettingsPage() {
         halfDayThreshold: settings?.attendance.halfDayThreshold || 180,
         autoMarkAbsent: settings?.attendance.autoMarkAbsent ?? true,
         absentThreshold: settings?.attendance.absentThreshold || 240,
+        enableGeofence: settings?.attendance.enableGeofence ?? true,
       },
       leave: {
         casualLeavePerYear: settings?.leave.casualLeavePerYear || 12,
@@ -250,12 +251,14 @@ export default function SettingsPage() {
             halfDayThreshold={currentSettings.attendance.halfDayThreshold}
             absentThreshold={currentSettings.attendance.absentThreshold}
             autoMarkAbsent={currentSettings.attendance.autoMarkAbsent}
+            enableGeofence={currentSettings.attendance.enableGeofence ?? true}
             workingHours={currentSettings.company.workingHours}
             workingDays={currentSettings.company.workingDays}
             onLateThresholdChange={(value) => updateAttendanceSettings({ lateThreshold: value })}
             onHalfDayThresholdChange={(value) => updateAttendanceSettings({ halfDayThreshold: value })}
             onAbsentThresholdChange={(value) => updateAttendanceSettings({ absentThreshold: value })}
             onAutoMarkAbsentChange={(value) => updateAttendanceSettings({ autoMarkAbsent: value })}
+            onEnableGeofenceChange={(value) => updateAttendanceSettings({ enableGeofence: value })}
             onWorkingHoursChange={(start, end) => updateCompanySettings({ workingHours: { start, end } })}
             onWorkingDaysChange={(days) => updateCompanySettings({ workingDays: days })}
           />

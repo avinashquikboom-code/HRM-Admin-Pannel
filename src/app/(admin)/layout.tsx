@@ -16,7 +16,7 @@ export default function AdminRouteLayout({ children }: { children: React.ReactNo
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+      <div id="app-content-area" className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         {/* Header */}
         <Header portal="platform_admin" />
 

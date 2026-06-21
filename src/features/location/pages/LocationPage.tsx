@@ -23,6 +23,7 @@ import EditOfficeModal from '@/features/location/components/EditOfficeModal';
 import AssignEmployeeModal from '@/features/location/components/AssignEmployeeModal';
 import InlineAssignForm from '@/features/location/components/InlineAssignForm';
 import ConfirmModal from '@/components/ConfirmModal';
+import { toast } from 'sonner';
 import LocationStatsBar from '@/features/location/components/LocationStatsBar';
 import OfficeSidebar from '@/features/location/components/OfficeSidebar';
 import LocationMapView from '@/features/location/components/LocationMapView';
@@ -180,7 +181,7 @@ export default function LocationPage() {
       const data = await fetchLiveLocationLogs();
       setLogs(data);
     } catch (err) {
-      console.error('[Telemetry Logs Fetch Error]:', err);
+      console.warn('[Telemetry Logs Fetch Error]:', err);
     }
   }, []);
 
@@ -205,7 +206,7 @@ export default function LocationPage() {
       await clearLiveLocationLogs();
       setLogs([]);
     } catch (err) {
-      console.error('Clear logs error:', err);
+      console.warn('Clear logs error:', err);
     }
   };
 
@@ -361,18 +362,62 @@ export default function LocationPage() {
     if (!searchQuery.trim() || !mapInstance) return;
     setIsSearching(true);
     setOfficeActionError('');
+
+    // Helper to query Nominatim
+    const queryNominatim = async (q: string): Promise<any[]> => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=10&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'HRM-Portal'
+            }
+          }
+        );
+        return await res.json();
+      } catch (err) {
+        console.error('Nominatim fetch failed for query:', q, err);
+        return [];
+      }
+    };
+
     try {
-      // Improved search query - removed country restriction for global search
-      // Added featuretype to prioritize cities and addresses
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=10&addressdetails=1&featuretype=city`,
-        {
-          headers: {
-            'User-Agent': 'QuickBoom-HRM' // Required by Nominatim usage policy
+      // 1. Try raw query first
+      let data = await queryNominatim(searchQuery);
+
+      // 2. If it fails, try a cleaned up query (remove flat/floor numbers and abbreviations)
+      if (!data || data.length === 0) {
+        let cleaned = searchQuery;
+        cleaned = cleaned.replace(/\b\d{2,4}\b,?/g, ''); // Remove small numbers like 603,
+        cleaned = cleaned.replace(/(flat|room|office|shop|floor|suite|unit|sector)\b\s*\d*/gi, '');
+        cleaned = cleaned.replace(/\s*-\s*/g, ' '); // Replace " - " with space
+        cleaned = cleaned.replace(/\bRd\b/gi, 'Road');
+        cleaned = cleaned.replace(/\s+/g, ' ').trim();
+        if (cleaned && cleaned !== searchQuery) {
+          data = await queryNominatim(cleaned);
+        }
+      }
+
+      // 3. If it still fails, iteratively drop specific parts from the front of comma-separated address
+      if (!data || data.length === 0) {
+        const parts = searchQuery.split(',').map(p => p.trim()).filter(Boolean);
+        // If we have "Kamdhenu 23 West, 603, Thane - Belapur Rd, TTC Industrial Area, Kopar Khairane..."
+        // try successive fallbacks:
+        // - Thane - Belapur Rd, TTC Industrial Area, Kopar Khairane...
+        // - TTC Industrial Area, Kopar Khairane...
+        // - Kopar Khairane, Navi Mumbai...
+        for (let i = 1; i < parts.length - 1; i++) {
+          const fallbackQuery = parts.slice(i).join(', ').replace(/\s*-\s*/g, ' ').replace(/\bRd\b/gi, 'Road');
+          if (fallbackQuery.length > 5) {
+            data = await queryNominatim(fallbackQuery);
+            if (data && data.length > 0) {
+              console.log(`Geocoding succeeded with fallback query: "${fallbackQuery}"`);
+              break;
+            }
           }
         }
-      );
-      const data = await res.json();
+      }
+
       if (data && data.length > 0) {
         const latitude = parseFloat(data[0].lat);
         const longitude = parseFloat(data[0].lon);
@@ -389,38 +434,11 @@ export default function LocationPage() {
           setLngInput(longitude.toFixed(6));
         }
       } else {
-        // Try without featuretype restriction
-        const fallbackRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=10&addressdetails=1`,
-          {
-            headers: {
-              'User-Agent': 'QuickBoom-HRM'
-            }
-          }
-        );
-        const fallbackData = await fallbackRes.json();
-        if (fallbackData && fallbackData.length > 0) {
-          const latitude = parseFloat(fallbackData[0].lat);
-          const longitude = parseFloat(fallbackData[0].lon);
-          const displayName = fallbackData[0].display_name || searchQuery;
-          const shortName = displayName.split(',')[0].trim();
-          const nameCandidate = isNaN(Number(shortName)) ? shortName : (displayName.split(',')[1]?.trim() || shortName);
-          setSiteNameInput(nameCandidate);
-
-          mapInstance.setView([latitude, longitude], 14);
-          if (markerInstance && circleInstance) {
-            markerInstance.setLatLng([latitude, longitude]);
-            circleInstance.setLatLng([latitude, longitude]);
-            setLatInput(latitude.toFixed(6));
-            setLngInput(longitude.toFixed(6));
-          }
-        } else {
-          setOfficeActionError('Location not found. Try: city name (e.g., "Mumbai"), address (e.g., "123 Main St"), or landmark.');
-        }
+        toast.error('Location not found. Try simplifying the address (e.g., "Kopar Khairane, Navi Mumbai" or "Connaught Place, Delhi").');
       }
     } catch (err) {
       console.error('Geocoding error:', err);
-      setOfficeActionError('Failed to geocode address. Please check your connection and try again.');
+      toast.error('Failed to geocode address. Please check your connection and try again.');
     } finally {
       setIsSearching(false);
     }
@@ -476,20 +494,18 @@ export default function LocationPage() {
   const handleSaveGeofence = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!siteNameInput.trim()) {
-      setOfficeActionError('Site Name is required.');
+      toast.error('Site Name is required.');
       return;
     }
 
     const lat = parseFloat(latInput);
     const lng = parseFloat(lngInput);
     if (isNaN(lat) || isNaN(lng)) {
-      setOfficeActionError('Latitude and Longitude must be valid numbers.');
+      toast.error('Latitude and Longitude must be valid numbers.');
       return;
     }
 
     setIsSaving(true);
-    setOfficeActionError('');
-    setOfficeActionMessage('');
 
     const payload = {
       name: siteNameInput.trim(),
@@ -505,15 +521,15 @@ export default function LocationPage() {
     try {
       if (selectedOfficeId) {
         const result = await updateOffice(selectedOfficeId, payload);
-        setOfficeActionMessage(result.message);
+        toast.success(result.message || 'Geo-fence updated successfully!');
       } else {
         const result = await createOffice(payload);
-        setOfficeActionMessage(result.message);
+        toast.success(result.message || 'Geo-fence created successfully!');
         setSelectedOfficeId(result.office.id);
       }
       await refetch();
     } catch (err) {
-      setOfficeActionError(err instanceof Error ? err.message : 'Save operation failed.');
+      toast.error(err instanceof Error ? err.message : 'Save operation failed.');
     } finally {
       setIsSaving(false);
     }
@@ -556,16 +572,14 @@ export default function LocationPage() {
   };
 
   const handleOfficeCreated = async (officeId: string, message: string) => {
-    setOfficeActionMessage(message);
-    setOfficeActionError('');
+    toast.success(message);
     setSelectedOfficeId(officeId);
     await refetch();
     await refetchOfficeDetail(officeId);
   };
 
   const handleOfficeUpdated = async (officeId: string, message: string) => {
-    setOfficeActionMessage(message);
-    setOfficeActionError('');
+    toast.success(message);
     setSelectedOfficeId(officeId);
     await refetch();
     await refetchOfficeDetail(officeId);
@@ -585,7 +599,7 @@ export default function LocationPage() {
 
     try {
       const result = await deleteOffice(office.id);
-      setOfficeActionMessage(result.message);
+      toast.success(result.message || 'Office deleted successfully!');
       
       const updatedOffices = await refetch();
       
@@ -594,7 +608,7 @@ export default function LocationPage() {
         setSelectedOfficeId(remaining.length > 0 ? remaining[0].id : null);
       }
     } catch (err) {
-      setOfficeActionError(
+      toast.error(
         err instanceof Error ? err.message : 'Failed to delete office.'
       );
     } finally {
@@ -604,8 +618,7 @@ export default function LocationPage() {
   };
 
   const handleEmployeeAssigned = async (message: string, officeId: string) => {
-    setOfficeActionMessage(message);
-    setOfficeActionError('');
+    toast.success(message);
     await refetch();
     await refetchOfficeDetail(officeId);
   };
@@ -627,11 +640,11 @@ export default function LocationPage() {
 
     try {
       const result = await unassignEmployeeFromOffice(employeeId);
-      setOfficeActionMessage(result.message);
+      toast.success(result.message || 'Employee unassigned successfully!');
       await refetch();
       if (selectedOfficeId) await refetchOfficeDetail(selectedOfficeId);
     } catch (err) {
-      setOfficeActionError(
+      toast.error(
         err instanceof Error ? err.message : 'Failed to unassign employee.'
       );
     } finally {
@@ -720,23 +733,32 @@ export default function LocationPage() {
           )}
       </SuperAdminHeader>
 
-      {/* Global alert feedback */}
-      {(officeActionMessage || officeActionError || officesError || locationsError) && (
-        <motion.div variants={itemVariants} className="space-y-2">
-          {officeActionMessage && (
-            <div className="rounded-sm bg-success/10 border border-success/20 px-4 py-3 text-sm font-semibold text-success flex items-center gap-2">
-              <ShieldCheck size={16} />
-              {officeActionMessage}
-            </div>
-          )}
-          {(officeActionError || officesError || locationsError) && (
-            <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-semibold text-error flex items-center gap-2">
-              <ShieldAlert size={16} />
-              {officeActionError || officesError || locationsError}
-            </div>
-          )}
-        </motion.div>
-      )}
+      {/* Tab-scoped alert feedback.
+          Office errors belong to the editor tab; live-location (telemetry)
+          errors belong to the tracker tab, so messages never bleed across screens. */}
+      {(() => {
+        const scopedError =
+          activeTab === 'editor'
+            ? officeActionError || officesError
+            : locationsError;
+        if (!officeActionMessage && !scopedError) return null;
+        return (
+          <motion.div variants={itemVariants} className="space-y-2">
+            {officeActionMessage && (
+              <div className="rounded-sm bg-success/10 border border-success/20 px-4 py-3 text-sm font-semibold text-success flex items-center gap-2">
+                <ShieldCheck size={16} />
+                {officeActionMessage}
+              </div>
+            )}
+            {scopedError && (
+              <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-semibold text-error flex items-center gap-2">
+                <ShieldAlert size={16} />
+                {scopedError}
+              </div>
+            )}
+          </motion.div>
+        );
+      })()}
 
       {/* RENDER ACTIVE TAB */}
       {activeTab === 'editor' ? (
@@ -977,8 +999,8 @@ export default function LocationPage() {
                 </span>
               </div>
 
-              {/* Autocomplete Address geocoder absolute positioned */}
-              <form
+              {/* Autocomplete Address geocoder absolute positioned - Commented out for now */}
+              {/* <form
                 onSubmit={handleAddressSearch}
                 className="absolute top-[76px] left-4 z-[10] w-[280px] sm:w-[360px] bg-surface/95 backdrop-blur border border-border shadow-xl rounded-sm flex items-center p-1"
               >
@@ -1000,7 +1022,7 @@ export default function LocationPage() {
                     <Search size={14} />
                   )}
                 </button>
-              </form>
+              </form> */}
 
               {/* Leaflet map container */}
               <div className="flex-1 min-h-0 relative">

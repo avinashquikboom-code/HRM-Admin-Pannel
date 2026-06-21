@@ -23,7 +23,7 @@ messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
   // Customize notification here
-  const notificationTitle = payload.notification.title || 'QuickBoom Notification';
+  const notificationTitle = payload.notification.title || 'HRM Notification';
   const notificationOptions = {
     body: payload.notification.body,
     icon: '/favicon.svg'

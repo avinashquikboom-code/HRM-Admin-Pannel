@@ -354,10 +354,10 @@ export default function LeavePage() {
         
         // Find if this date is a holiday in the database
         const holiday = holidays.find(h => {
-          const hDate = new Date(h.date);
-          return hDate.getFullYear() === 2026 && 
-                 hDate.getMonth() === 4 && // May is 0-indexed month 4
-                 hDate.getDate() === i;
+          const [year, month, day] = h.date.split('-').map(Number);
+          return year === 2026 && 
+                 month === 5 && // May is month 5
+                 day === i;
         });
 
         const activeLeaves = leaveRequests.filter(req => {
@@ -541,7 +541,10 @@ export default function LeavePage() {
                           <div>
                             <span className="text-xs font-bold text-text-primary block">{h.name}</span>
                             <span className="text-[10px] text-text-secondary font-semibold mt-1 block">
-                              {new Date(h.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {(() => {
+                                const [year, month, day] = h.date.split('-').map(Number);
+                                return new Date(year, month - 1, day).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                              })()}
                             </span>
                           </div>
                           <span className="inline-flex items-center text-[9px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 bg-rose-500/10 px-2 py-0.5 rounded-sm border border-rose-500/20">
