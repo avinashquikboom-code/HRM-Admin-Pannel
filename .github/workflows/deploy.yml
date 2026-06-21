@@ -16,6 +16,8 @@ jobs:
   build-and-push:
     name: Build image and push to ECR
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     steps:
       - name: Setup Node.js
