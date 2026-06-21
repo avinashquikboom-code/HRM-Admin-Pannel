@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Users, 
@@ -90,9 +89,19 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<HREmployee | null>(null);
 
+  // Error and success message state
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   const loadEmployees = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setIsRefreshing(true);
     else setIsLoading(true);
+    setError(null);
 
     try {
       const params: any = {
@@ -114,7 +123,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       });
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.message || 'Failed to fetch employees.');
+      setError(err?.message || 'Failed to fetch employees.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -142,10 +151,11 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const newEmployee = await createHREmployee(formData);
-      toast.success('Employee created successfully!');
+      showSuccessMessage('Employee created successfully!');
       setIsCreateModalOpen(false);
 
       // Send mobile notification if an office was selected during creation
@@ -179,7 +189,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       setSameAsPermanent(false);
       loadEmployees();
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to create employee.');
+      setError(err?.message || 'Failed to create employee.');
     } finally {
       setIsSubmitting(false);
     }
@@ -190,6 +200,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     if (!selectedEmployee) return;
     
     setIsSubmitting(true);
+    setError(null);
 
     // Capture the old office name before update to detect office change
     const previousOfficeName = selectedEmployee.office;
@@ -206,7 +217,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
       };
       
       const updatedEmployee = await updateHREmployee(selectedEmployee.id, updateData);
-      toast.success('Employee updated successfully!');
+      showSuccessMessage('Employee updated successfully!');
       setIsEditModalOpen(false);
       setSelectedEmployee(null);
 
@@ -227,7 +238,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
 
       loadEmployees();
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to update employee.');
+      setError(err?.message || 'Failed to update employee.');
     } finally {
       setIsSubmitting(false);
     }
@@ -244,10 +255,10 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
     setIsDeleting(employeeToDelete.id);
     try {
       await deleteHREmployee(employeeToDelete.id);
-      toast.success('Employee deleted successfully!');
+      showSuccessMessage('Employee deleted successfully!');
       loadEmployees();
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to delete employee.');
+      setError(err?.message || 'Failed to delete employee.');
     } finally {
       setIsDeleting(null);
       setDeleteConfirmOpen(false);
@@ -347,6 +358,49 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
           <RefreshCw size={14} className={cn(isRefreshing && "animate-spin")} />
         </button>
       </div>
+
+      {/* Success Message Display */}
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-emerald-400 text-sm"
+          >
+            <div className="flex items-center gap-3">
+              <Check size={18} className="text-emerald-400" />
+              <span className="font-medium">{successMessage}</span>
+            </div>
+            <button 
+              onClick={() => setSuccessMessage(null)}
+              className="p-1 hover:bg-emerald-500/20 rounded-lg transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Display */}
+      {error && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between p-4 bg-error/10 border border-error/20 rounded-sm text-error-text text-sm"
+        >
+          <div className="flex items-center gap-3">
+            <AlertCircle size={18} className="text-error" />
+            <span className="font-medium">{error}</span>
+          </div>
+          <button 
+            onClick={() => setError(null)}
+            className="p-1 hover:bg-error/20 rounded-lg transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </motion.div>
+      )}
 
       {/* Employee Table */}
       <div className="border border-border bg-surface shadow-sm overflow-hidden rounded-sm">
