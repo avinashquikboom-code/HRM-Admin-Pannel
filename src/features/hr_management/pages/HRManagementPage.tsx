@@ -12,8 +12,7 @@ import {
   Award,
   Radio,
   RefreshCw,
-  AlertCircle,
-  Download
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { 
@@ -36,8 +35,6 @@ import {
   fetchLeaveOverview,
   fetchAttendanceTrend,
   fetchHRActivity,
-  downloadHRLeaveReport,
-  downloadHRAttendanceReport,
   HRStats,
   HRDepartmentOverview,
   HRLeaveOverview,
@@ -77,6 +74,7 @@ const HRManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // States for backend data
   const [stats, setStats] = useState<HRStats | null>(null);
@@ -164,38 +162,23 @@ const HRManagementPage = () => {
   }, [loadData]);
 
   const handleRefresh = () => {
+    setRefreshTrigger((prev) => prev + 1);
     loadData(true);
   };
 
 
-
-  const handleDownloadLeaveReport = async () => {
-    try {
-      await downloadHRLeaveReport();
-    } catch (error) {
-      console.error('Failed to download leave report:', error);
-    }
-  };
-
-  const handleDownloadAttendanceReport = async () => {
-    try {
-      await downloadHRAttendanceReport();
-    } catch (error) {
-      console.error('Failed to download attendance report:', error);
-    }
-  };
 
   return (
     <motion.div 
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-6 pb-8 text-text-primary animate-fadeIn"
+      className="space-y-6 text-text-primary animate-fadeIn"
     >
       {/* 1. Header Command Hub with Glowing Ambient Effects */}
       <motion.div 
         variants={itemVariants}
-        className="relative overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8 animate-slideDown"
+        className="relative overflow-hidden rounded-sm border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8 animate-slideDown"
       >
         <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
@@ -223,20 +206,6 @@ const HRManagementPage = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button 
-              onClick={handleDownloadLeaveReport}
-              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-sm border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
-              title="Download Leave Report"
-            >
-              <Download size={15} />
-            </button>
-            <button 
-              onClick={handleDownloadAttendanceReport}
-              className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 dark:bg-white/5 dark:hover:bg-white/10 text-text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-primary rounded-sm border border-border/50 dark:border-white/10 transition-all duration-300 active:scale-95 shadow-sm shrink-0"
-              title="Download Attendance Report"
-            >
-              <Download size={15} />
-            </button>
             <button 
               onClick={handleRefresh} 
               disabled={isLoading || isRefreshing}
@@ -296,7 +265,7 @@ const HRManagementPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.2 }}
-            className="space-y-8"
+            className="space-y-6"
           >
             {/* 2. Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -352,7 +321,7 @@ const HRManagementPage = () => {
             {/* 3. High-Fidelity Interactive Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Hiring Growth Graph with Spline area gradient styling */}
-              <div className="lg:col-span-2 p-8 border border-border bg-surface relative overflow-hidden flex flex-col rounded-sm group hover:bg-surface-variant/10 transition-all duration-300">
+              <div className="lg:col-span-2 p-8 border border-border bg-surface relative overflow-hidden rounded-sm group hover:bg-surface-variant/10 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all duration-300" />
                 
                 <div>
@@ -405,7 +374,7 @@ const HRManagementPage = () => {
                   </ChartContainer>
                 </div>
 
-                <div className="border-t border-border pt-4.5 mt-auto flex items-center justify-between text-xs font-semibold text-text-secondary">
+                <div className="border-t border-border pt-4 mt-6 flex items-center justify-between text-xs font-semibold text-text-secondary">
                   <span className="flex items-center gap-1.5">
                     <Award size={14} className="text-primary animate-bounce" />
                     Real-time ecosystem database synchronized
@@ -415,7 +384,7 @@ const HRManagementPage = () => {
               </div>
 
               {/* HR Status Distribution premium donut style */}
-              <div className="p-8 border border-border bg-surface flex flex-col relative overflow-hidden rounded-sm group hover:bg-surface-variant/10 transition-all duration-300">
+              <div className="p-8 border border-border bg-surface relative overflow-hidden rounded-sm group hover:bg-surface-variant/10 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-36 h-36 bg-sky-500/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-sky-500/10 transition-all duration-300" />
                 
                 <div>
@@ -464,7 +433,7 @@ const HRManagementPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t border-border pt-4.5 mt-auto">
+                <div className="space-y-2 border-t border-border pt-4 mt-4">
                   {(stats?.hrDistribution || []).map((item) => (
                     <div key={item.name} className="flex items-center justify-between text-xs font-bold p-1 rounded-lg hover:bg-surface-variant transition-all duration-200">
                       <div className="flex items-center gap-2">
@@ -478,14 +447,12 @@ const HRManagementPage = () => {
               </div>
             </div>
 
-
-
             {/* 5. HR Employee Management Section */}
             <motion.div
               variants={itemVariants}
               className="w-full"
             >
-              <HREmployeeManagement />
+              <HREmployeeManagement refreshTrigger={refreshTrigger} />
             </motion.div>
           </motion.div>
         )}

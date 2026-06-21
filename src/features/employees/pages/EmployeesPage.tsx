@@ -175,46 +175,44 @@ const EmployeesPage = () => {
             label: 'Total Employees', 
             value: employees.length, 
             description: 'Across all departments',
-            color: 'from-blue-500/20 to-blue-500/5 text-blue-500 border-blue-500/20', 
+            iconClass: 'from-blue-500/20 to-blue-500/5 text-blue-500 border-blue-500/20', 
             icon: Users 
           },
           { 
             label: 'Currently Active', 
             value: activeCount, 
             description: 'Available for assignments',
-            color: 'from-emerald-500/20 to-emerald-500/5 text-emerald-500 border-emerald-500/20', 
+            iconClass: 'from-emerald-500/20 to-emerald-500/5 text-emerald-500 border-emerald-500/20', 
             icon: UserCheck 
           },
           { 
             label: 'Assigned Offices', 
             value: employees.filter((e) => e.office).length, 
             description: 'With physical locations',
-            color: 'from-amber-500/20 to-amber-500/5 text-amber-500 border-amber-500/20', 
+            iconClass: 'from-amber-500/20 to-amber-500/5 text-amber-500 border-amber-500/20', 
             icon: Building2 
           },
         ].map((stat, i) => (
           <motion.div
             key={i}
             variants={itemVariants}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className={`p-6 border bg-gradient-to-br ${stat.color} hover:shadow-xl transition-all duration-300 relative overflow-hidden group rounded-[2px]`}
+            whileHover={{ y: -3, scale: 1.01 }}
+            className="p-6 border border-border bg-surface hover:shadow-md transition-all duration-300 relative overflow-hidden group rounded-[2px]"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-white/10 transition-all duration-500" />
-            
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
-                <div className={`w-14 h-14 rounded-[2px] flex items-center justify-center shrink-0 bg-surface/60 backdrop-blur-sm border ${stat.color}`}>
-                  <stat.icon size={28} className="group-hover:scale-110 transition-transform duration-300" />
+                <div className={`w-11 h-11 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.iconClass}`}>
+                  <stat.icon size={20} className="group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
               
               <div>
-                <p className="text-xs font-bold text-text-secondary uppercase tracking-widest">{stat.label}</p>
+                <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-none">{stat.label}</p>
                 <div className="flex items-end gap-2 mt-2">
-                  <p className="text-3xl font-black text-text-primary leading-none group-hover:scale-105 origin-left transition-transform duration-300">{stat.value}</p>
+                  <p className="text-3xl font-black text-text-primary leading-none">{stat.value}</p>
                 </div>
                 {stat.description && (
-                  <p className="text-xs font-medium text-text-secondary/70 mt-2">{stat.description}</p>
+                  <p className="text-xs font-semibold text-text-secondary mt-1 leading-none">{stat.description}</p>
                 )}
               </div>
             </div>

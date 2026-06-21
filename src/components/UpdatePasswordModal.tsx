@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -112,10 +113,18 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ isOpen, onClo
     }
   };
 
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 overflow-y-auto">
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -317,7 +326,8 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ isOpen, onClo
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

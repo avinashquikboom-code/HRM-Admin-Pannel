@@ -73,7 +73,12 @@ export default function AttendancePolicyPanel({
               type="time"
               value={localWorkingHours.start}
               onChange={(e) => setLocalWorkingHours({ ...localWorkingHours, start: e.target.value })}
-              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker();
+                } catch (err) {}
+              }}
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium cursor-pointer"
             />
           </div>
 
@@ -85,7 +90,12 @@ export default function AttendancePolicyPanel({
               type="time"
               value={localWorkingHours.end}
               onChange={(e) => setLocalWorkingHours({ ...localWorkingHours, end: e.target.value })}
-              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker();
+                } catch (err) {}
+              }}
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium cursor-pointer"
             />
           </div>
         </div>

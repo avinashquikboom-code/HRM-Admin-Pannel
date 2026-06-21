@@ -323,7 +323,14 @@ const ShiftManagementPage = () => {
                         type="time"
                         value={formData.startTime}
                         onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                        className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-lg outline-none focus:border-primary/50 transition-colors text-sm text-white"
+                        onClick={(e) => {
+                          try {
+                            e.currentTarget.showPicker();
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-lg outline-none focus:border-primary/50 transition-colors text-sm text-white cursor-pointer"
                       />
                     </div>
                     <div>
@@ -334,7 +341,14 @@ const ShiftManagementPage = () => {
                         type="time"
                         value={formData.endTime}
                         onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                        className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-lg outline-none focus:border-primary/50 transition-colors text-sm text-white"
+                        onClick={(e) => {
+                          try {
+                            e.currentTarget.showPicker();
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-lg outline-none focus:border-primary/50 transition-colors text-sm text-white cursor-pointer"
                       />
                     </div>
                   </div>

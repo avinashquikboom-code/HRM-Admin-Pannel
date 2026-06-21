@@ -25,11 +25,11 @@ export function useAdminProfile() {
       const message =
         err instanceof Error ? err.message : 'Failed to load profile';
       setError(message);
-      return user;
+      return null;
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, user]);
+  }, [dispatch]);
 
   useEffect(() => {
     // Only fetch profile if authenticated

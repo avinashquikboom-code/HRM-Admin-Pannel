@@ -263,14 +263,20 @@ export default function SettingsPage() {
       case 'leave-policy':
         return (
           <LeavePolicyPanel
-            casualLeavePerYear={currentSettings.leave.casualLeavePerYear}
-            sickLeavePerYear={currentSettings.leave.sickLeavePerYear}
-            earnedLeavePerYear={currentSettings.leave.earnedLeavePerYear}
+            leaveTypes={currentSettings.leave.leaveTypes}
+            onLeaveTypesChange={(newLeaveTypes) => {
+              const casual = newLeaveTypes.find(lt => lt.code === 'CL')?.daysPerYear ?? 12;
+              const sick = newLeaveTypes.find(lt => lt.code === 'SL')?.daysPerYear ?? 10;
+              const earned = newLeaveTypes.find(lt => lt.code === 'EL')?.daysPerYear ?? 15;
+              updateLeaveSettings({
+                leaveTypes: newLeaveTypes,
+                casualLeavePerYear: casual,
+                sickLeavePerYear: sick,
+                earnedLeavePerYear: earned,
+              });
+            }}
             requireApproval={currentSettings.leave.requireApproval}
             maxConsecutiveDays={currentSettings.leave.maxConsecutiveDays}
-            onCasualLeaveChange={(value) => updateLeaveSettings({ casualLeavePerYear: value })}
-            onSickLeaveChange={(value) => updateLeaveSettings({ sickLeavePerYear: value })}
-            onEarnedLeaveChange={(value) => updateLeaveSettings({ earnedLeavePerYear: value })}
             onRequireApprovalChange={(value) => updateLeaveSettings({ requireApproval: value })}
             onMaxConsecutiveDaysChange={(value) => updateLeaveSettings({ maxConsecutiveDays: value })}
           />

@@ -29,6 +29,7 @@ export const MODULE_PATHS: Record<PortalType, Record<string, string>> = {
     'pa-tasks': '/tasks',
     'pa-payroll': '/payroll',
     'pa-attendance': '/attendance',
+    'pa-policies': '/policies',
     'pa-analytics': '/analytics',
     'pa-reports': '/reports',
     'pa-notifications': '/notifications',

@@ -16,7 +16,7 @@ const RegisterUserPage = () => {
   const isSuperAdmin = portal === 'super_admin';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-10">
+    <div className="space-y-6 pb-10 text-text-primary animate-fadeIn">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -25,14 +25,14 @@ const RegisterUserPage = () => {
         <button
           type="button"
           onClick={() => router.back()}
-          className="p-3 bg-surface border border-border rounded-sm text-text-secondary hover:text-primary transition-all"
+          className="p-3 bg-surface border border-border rounded-sm text-text-secondary hover:text-primary transition-all shrink-0"
         >
           <ArrowLeft size={20} />
         </button>
         <div>
           <h1 className="heading-1 tracking-tight">Register User</h1>
           <p className="text-page-desc mt-1">
-            Create an account and assign module rights with checkboxes.
+            Create a new user account and assign a department.
           </p>
         </div>
       </motion.div>
@@ -41,7 +41,7 @@ const RegisterUserPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-card p-6 sm:p-8 lg:p-10"
+        className="glass-card p-6 sm:p-8"
       >
         <RegisterUserWithRights
           managerPortal={isSuperAdmin ? 'super_admin' : 'platform_admin'}

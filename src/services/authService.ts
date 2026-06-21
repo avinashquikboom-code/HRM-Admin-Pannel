@@ -121,6 +121,8 @@ export interface RegisterRequest {
   password: string;
   role: RegisterRole;
   departmentId?: number;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface RegisteredUser {
@@ -159,6 +161,8 @@ export async function registerUser(payload: RegisterRequest) {
         password: payload.password,
         role: normalizedRole,
         departmentId: payload.departmentId,
+        firstName: payload.firstName?.trim() || undefined,
+        lastName: payload.lastName?.trim() || undefined,
       },
       {
         headers: {

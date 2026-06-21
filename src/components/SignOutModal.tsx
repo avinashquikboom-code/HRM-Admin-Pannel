@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, X, AlertTriangle } from 'lucide-react';
 
@@ -9,10 +10,18 @@ interface SignOutModalProps {
 }
 
 const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm }) => {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4">
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -69,7 +78,8 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
+import LinkEmployeeToOfficeModal from './LinkEmployeeToOfficeModal';
 import { 
   Users, 
   UserPlus, 
@@ -38,9 +39,10 @@ import { sendOfficeAssignedNotification } from '@/services/notificationService';
 
 interface HREmployeeManagementProps {
   className?: string;
+  refreshTrigger?: number;
 }
 
-const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }) => {
+const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, refreshTrigger }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -88,6 +90,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<HREmployee | null>(null);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [employeeToLink, setEmployeeToLink] = useState<HREmployee | null>(null);
 
   // Error and success message state
   const [error, setError] = useState<string | null>(null);
@@ -144,9 +148,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
   }, []);
 
   useEffect(() => {
-    loadEmployees();
+    loadEmployees(refreshTrigger !== undefined && refreshTrigger > 0);
     loadOfficesAndDepartments();
-  }, [loadEmployees, loadOfficesAndDepartments]);
+  }, [loadEmployees, loadOfficesAndDepartments, refreshTrigger]);
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -483,9 +487,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-text-primary">
-                        <Building size={12} className="text-text-secondary/50" />
-                        {employee.office}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-xs text-text-primary">
+                          <Building size={12} className="text-text-secondary/50" />
+                          {employee.office}
+                        </div>
+                        {employee.office === 'Remote' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEmployeeToLink(employee);
+                              setIsLinkModalOpen(true);
+                            }}
+                            className="text-[10px] font-bold text-primary hover:text-primary-dark transition-colors cursor-pointer hover:underline text-left"
+                          >
+                            Link to Office
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="p-4">
@@ -1080,6 +1098,18 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className }
         message={employeeToDelete ? `Are you sure you want to delete "${employeeToDelete.firstName} ${employeeToDelete.lastName}"? This action cannot be undone.` : 'Are you sure you want to delete this employee? This action cannot be undone.'}
         confirmText="Delete"
         cancelText="Cancel"
+      />
+
+      <LinkEmployeeToOfficeModal
+        isOpen={isLinkModalOpen}
+        employee={employeeToLink}
+        onClose={() => {
+          setIsLinkModalOpen(false);
+          setEmployeeToLink(null);
+        }}
+        onLinked={() => {
+          loadEmployees();
+        }}
       />
     </div>
   );

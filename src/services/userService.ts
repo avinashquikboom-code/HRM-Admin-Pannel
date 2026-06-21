@@ -52,3 +52,15 @@ export async function updateUserStatus(userId: number, isActive: boolean): Promi
     );
   }
 }
+
+export async function deletePlatformUser(userId: number): Promise<{ message: string }> {
+  try {
+    const { data } = await api.delete<{ success: boolean; message: string }>(`/api/admin/users/${userId}`);
+    return { message: data.message };
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to delete user. Please try again.')
+    );
+  }
+}
+

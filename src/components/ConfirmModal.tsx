@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X } from 'lucide-react';
 
@@ -21,10 +22,18 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
 }) => {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4">
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -83,7 +92,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

@@ -49,6 +49,24 @@ function formatCheckInTime(value: string | null) {
   });
 }
 
+function calculateWorkingHours(checkIn: string | null, checkOut: string | null, totalBreakSeconds: number = 0) {
+  if (!checkIn) return '—';
+  
+  const start = new Date(checkIn).getTime();
+  const end = checkOut ? new Date(checkOut).getTime() : Date.now();
+  
+  const totalMs = end - start;
+  const totalSeconds = Math.max(0, Math.floor(totalMs / 1000) - totalBreakSeconds);
+  
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  
+  if (!checkOut) {
+    return `${hours}h ${minutes}m (Active)`;
+  }
+  return `${hours}h ${minutes}m`;
+}
+
 function formatAttendanceStatus(status: string) {
   switch (status) {
     case 'PRESENT':
@@ -297,121 +315,118 @@ const AttendancePage = () => {
         ))}
       </div>
 
-      {/* Summary Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div variants={itemVariants} className="glass-card p-8 relative overflow-hidden group">
-          <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
-          
-          <h3 className="heading-2 relative z-10">Presence Breakdown</h3>
-          <p className="text-page-desc mt-1 mb-8 relative z-10 font-medium">System-wide daily status distribution</p>
-          
-          <div className="relative z-10">
-          <ChartContainer heightClassName="h-[250px]">
-              <PieChart>
-                <Pie
-                  data={distribution.length > 0 ? distribution : [{ name: 'No Data', value: 1, color: '#64748B' }]}
-                  innerRadius={70}
-                  outerRadius={90}
-                  paddingAngle={8}
-                  dataKey="value"
-                  animationDuration={1500}
-                  stroke="none"
-                >
-                  {(distribution.length > 0 ? distribution : [{ name: 'No Data', value: 1, color: '#64748B' }]).map((entry: { color: string }, index: number) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} className="outline-none" />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '0px', 
-                    border: 'none', 
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                    backgroundColor: 'var(--surface)',
-                    backdropFilter: 'blur(8px)',
-                    color: 'var(--text-primary)'
-                  }}
-                  itemStyle={{ color: 'var(--text-primary)' }}
-                />
-              </PieChart>
-          </ChartContainer>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <span className="text-stat-value">{distribution.length > 0 ? Math.round((distribution.filter((d: { name: string }) => d.name === 'PRESENT').reduce((a: number, c: { value: number }) => a + c.value, 0) / distribution.reduce((a: number, c: { value: number }) => a + c.value, 0)) * 100) : 0}%</span>
-              <p className="text-label text-text-secondary">Present</p>
+      {/* Live Activity Feed Table */}
+      <motion.div variants={itemVariants} className="glass-card overflow-hidden">
+        <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-sm bg-primary/10 text-primary flex items-center justify-center animate-pulse shadow-sm">
+              <Activity size={24} />
             </div>
-          </div>
-          
-          <div className="mt-8 space-y-3 relative z-10">
-            {distribution.map((item: { name: string; value: number; color: string }) => (
-              <div key={item.name} className="flex items-center justify-between p-3 rounded-sm hover:bg-surface-variant transition-colors border border-transparent hover:border-border shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                  <span className="text-sm font-bold text-text-primary">{item.name}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-text-secondary">
-                    {Math.round((item.value / Math.max(1, distribution.reduce((a: number, c: { value: number }) => a + c.value, 0))) * 100)}%
-                  </span>
-                  <span className="text-sm font-black text-text-primary tracking-tight">{item.value.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="lg:col-span-2 glass-card p-8 relative overflow-hidden group">
-          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-accent/5 rounded-full blur-3xl group-hover:bg-accent/10 transition-colors duration-1000" />
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
             <div>
-              <h3 className="heading-2">Peak Check-in Activity</h3>
-              <p className="text-sm text-page-desc mt-1">Hourly density of employee arrivals across the platform</p>
-            </div>
-            <div className="flex items-center gap-4 text-label bg-surface-variant p-2.5 rounded-sm border border-border/50 shadow-sm">
-              <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /> On-time</span>
-              <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-accent" /> Late</span>
+              <h3 className="heading-2">Live Activity Feed</h3>
+              <p className="text-sm text-page-desc mt-1">Real-time check-in stream from across all client companies</p>
             </div>
           </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-grow sm:flex-grow-0 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors w-4 h-4" />
+              <input 
+                type="text" 
+                placeholder="Search employees..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-11 pr-4 py-3 bg-surface-variant border-none rounded-sm text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-64 font-bold text-text-primary"
+              />
+            </div>
+          </div>
+        </div>
 
-          <ChartContainer heightClassName="h-[320px]" className="relative z-10">
-              {isLoading ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-full h-full animate-pulse bg-surface-variant/30 rounded-sm" />
-                </div>
-              ) : (
-                <BarChart data={[]}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis 
-                    dataKey="time" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}}
-                  />
-                  <Tooltip 
-                    cursor={{fill: 'var(--primary)', opacity: 0.05}} 
-                    contentStyle={{ 
-                      borderRadius: '0px', 
-                      border: 'none', 
-                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                      padding: '16px',
-                      background: 'var(--surface)',
-                      backdropFilter: 'blur(8px)',
-                      color: 'var(--text-primary)'
-                    }}
-                    itemStyle={{ color: 'var(--text-primary)' }}
-                  />
-                  <Bar dataKey="ontime" stackId="a" fill="#3BA38B" radius={[0, 0, 0, 0]} animationDuration={1500} />
-                  <Bar dataKey="late" stackId="a" fill="#F4B860" radius={[10, 10, 0, 0]} animationDuration={2000} />
-                </BarChart>
-              )}
-          </ChartContainer>
-        </motion.div>
-      </div>
+        {isLoading ? (
+          <div className="p-8">
+            <TableSkeleton rows={5} columns={5} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-variant/50">
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-text-secondary border-b border-border">Employee</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-text-secondary border-b border-border">Punch In</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-text-secondary border-b border-border">Punch Out</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-text-secondary border-b border-border">Break Time</th>
+                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-text-secondary border-b border-border">Total Working Hours</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredRecords.length > 0 ? (
+                  filteredRecords.map((record) => {
+                    const employeeName = `${record.employee.firstName} ${record.employee.lastName}`;
+                    const avatar = `${record.employee.firstName[0] ?? ''}${record.employee.lastName[0] ?? ''}`.toUpperCase();
+
+                    return (
+                      <motion.tr
+                        key={record.id}
+                        variants={itemVariants}
+                        className="hover:bg-surface-variant/30 transition-all group cursor-pointer"
+                        onClick={() => handleViewEmployeeDetails(record.employee)}
+                      >
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-surface-variant border border-border flex items-center justify-center font-bold text-xs text-text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
+                              {avatar}
+                            </div>
+                            <div>
+                              <span className="block font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{employeeName}</span>
+                              <span className="text-micro font-black text-text-secondary tracking-wider">{record.employee.employeeCode}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
+                          <div className="flex items-center gap-2 text-sm text-text-primary font-black tabular-nums">
+                            <Clock size={16} className="text-primary" />
+                            {formatCheckInTime(record.checkIn)}
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
+                          <div className="flex items-center gap-2 text-sm text-text-primary font-black tabular-nums">
+                            <Clock size={16} className="text-primary" />
+                            {formatCheckInTime(record.checkOut)}
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
+                          {record.isOnBreak ? (
+                            <span className="px-2.5 py-1 bg-amber-500/15 text-amber-500 border border-amber-500/20 rounded-sm text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-ping" />
+                              On Break
+                            </span>
+                          ) : record.totalBreakSeconds && record.totalBreakSeconds > 0 ? (
+                            <span className="text-sm font-bold text-text-primary tabular-nums">
+                              {Math.floor(record.totalBreakSeconds / 60)}m {record.totalBreakSeconds % 60}s
+                            </span>
+                          ) : (
+                            <span className="text-sm font-bold text-text-secondary">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
+                          <span className="text-sm font-bold text-text-primary tabular-nums">
+                            {calculateWorkingHours(record.checkIn, record.checkOut, record.totalBreakSeconds)}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
+                      No attendance records for today yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
 
       {error && (
         <div className="rounded-sm bg-error/10 border border-error/20 px-4 py-3 text-sm font-medium text-error flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -426,141 +441,7 @@ const AttendancePage = () => {
         </div>
       )}
 
-      {/* Real-time Feed */}
-      <motion.div variants={itemVariants} className="glass-card overflow-hidden">
-        <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-sm bg-primary/10 text-primary flex items-center justify-center animate-pulse shadow-sm">
-              <Activity size={24} />
-            </div>
-            <div>
-              <h3 className="heading-2">Live Activity Feed</h3>
-              <p className="text-sm text-page-desc mt-1">Real-time check-in stream from across all client companies</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-grow sm:flex-grow-0 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="Search employees..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 pr-4 py-3 bg-surface-variant border-none rounded-sm text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-64 font-bold text-text-primary"
-              />
-            </div>
-            <button className="p-3 bg-surface-variant hover:bg-border/50 rounded-sm text-text-secondary transition-all active:scale-95 border border-border/50 shadow-sm">
-              <Filter size={20} />
-            </button>
-          </div>
-        </div>
 
-        {isLoading ? (
-          <div className="p-8">
-            <TableSkeleton rows={5} columns={5} />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-variant/50">
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Employee</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Company</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Log Time</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Method</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border">Break Status</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-right">Status</th>
-                  <th className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 text-label text-muted border-b border-border text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredRecords.length > 0 ? (
-                  filteredRecords.map((record) => {
-                    const employeeName = `${record.employee.firstName} ${record.employee.lastName}`;
-                    const avatar = `${record.employee.firstName[0] ?? ''}${record.employee.lastName[0] ?? ''}`.toUpperCase();
-                    const statusLabel = formatAttendanceStatus(record.status);
-
-                    return (
-                  <motion.tr
-                    key={record.id}
-                    variants={itemVariants}
-                    className="hover:bg-surface-variant/30 transition-all group cursor-pointer"
-                    onClick={() => handleViewEmployeeDetails(record.employee)}
-                  >
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-surface-variant border border-border flex items-center justify-center font-bold text-xs text-text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
-                          {avatar}
-                        </div>
-                        <div>
-                          <span className="block font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{employeeName}</span>
-                          <span className="text-micro font-black text-muted tracking-wider">{record.employee.employeeCode}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
-                      <span className="text-sm font-bold text-text-secondary uppercase tracking-tight">{record.office?.name ?? 'Unassigned'}</span>
-                    </td>
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
-                      <div className="flex items-center gap-2 text-sm text-text-primary font-black tabular-nums">
-                        <Clock size={16} className="text-primary" />
-                        {formatCheckInTime(record.checkIn)}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
-                      <div className="flex items-center gap-2 text-xs font-bold text-text-secondary uppercase tracking-widest">
-                        <MapPin size={14} className="text-muted" />
-                        {record.status === 'REMOTE' ? 'Remote' : 'Office'}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6">
-                      {record.isOnBreak ? (
-                        <span className="px-2.5 py-1 bg-amber-500/15 text-amber-500 border border-amber-500/20 rounded-sm text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-ping" />
-                          On Break
-                        </span>
-                      ) : record.totalBreakSeconds && record.totalBreakSeconds > 0 ? (
-                        <span className="text-sm font-bold text-text-primary tabular-nums">
-                          {Math.floor(record.totalBreakSeconds / 60)}m {record.totalBreakSeconds % 60}s
-                        </span>
-                      ) : (
-                        <span className="text-sm font-bold text-muted">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-right">
-                      <span className={cn(
-                        "px-4 py-1.5 rounded-sm text-label inline-flex items-center gap-2 transition-all group-hover:scale-110 border shadow-sm",
-                        statusLabel === 'On-time' ? 'bg-success/10 text-success border-success/10' : 'bg-warning/10 text-warning border-warning/10'
-                      )}>
-                        {statusLabel === 'On-time' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                        {statusLabel}
-                      </span>
-                    </td>
-                    <td className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-center">
-                      <button
-                        onClick={() => handleDownloadAttendanceReport(record.employee.id, employeeName)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-all cursor-pointer active:scale-95"
-                        title={`Download attendance report for ${employeeName}`}
-                      >
-                        <Download size={13} />
-                        Download
-                      </button>
-                    </td>
-                  </motion.tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="px-4 sm:px-6 md:px-8 py-8 sm:py-10 text-center text-sm font-medium text-text-secondary">
-                      No attendance records for today yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </motion.div>
 
       {/* Employee Detail Modal */}
       <Modal

@@ -52,6 +52,7 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
       { id: 'pa-tasks', label: 'Task Management', group: 'Operations', description: 'Assign and track team tasks' },
       { id: 'pa-payroll', label: 'Payroll', group: 'Finance', description: 'Salary runs and disbursements' },
       { id: 'pa-attendance', label: 'Attendance', group: 'Operations', description: 'Attendance logs and policies' },
+      { id: 'pa-policies', label: 'Policies', group: 'Operations', description: 'Manage company attendance and leave policies' },
       { id: 'pa-analytics', label: 'Analytics', group: 'Insights', description: 'Workforce analytics dashboards' },
       { id: 'pa-reports', label: 'Reports', group: 'Insights', description: 'Exportable HR and payroll reports' },
       { id: 'pa-notifications', label: 'Notifications', group: 'Communication', description: 'Alerts and system messages' },

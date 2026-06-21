@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import {
   fetchDepartments,
   createDepartment,
@@ -196,33 +197,28 @@ const DepartmentManagementPage = () => {
       className="space-y-8 pb-16 text-text-primary animate-fadeIn"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-text-primary tracking-tight">
-            Department Management
-          </h1>
-          <p className="text-sm text-text-secondary mt-1.5">
-            Create and manage organizational departments
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRefresh}
-            disabled={isLoading || isRefreshing}
-            className="p-3 bg-surface-variant/50 hover:bg-surface-variant/80 text-text-secondary hover:text-primary rounded-sm border border-border/50 transition-all duration-300 active:scale-95 disabled:opacity-50"
-            title="Refresh"
-          >
-            <RefreshCw size={18} className={cn(isRefreshing && "animate-spin")} />
-          </button>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="btn-primary px-5 py-3 rounded-sm flex items-center gap-2 text-xs font-black"
-          >
-            <Plus size={18} />
-            Add Department
-          </button>
-        </div>
-      </motion.div>
+      <SuperAdminHeader
+        title="Department Management"
+        subtitle="Create and manage organizational departments."
+        badgeText="Active Organization Registry"
+        badgeIcon={Building2}
+      >
+        <button
+          onClick={handleRefresh}
+          disabled={isLoading || isRefreshing}
+          className="p-4 bg-surface-variant/50 hover:bg-surface-variant/80 text-text-secondary hover:text-primary rounded-sm border border-border/50 transition-all duration-300 active:scale-95 disabled:opacity-50"
+          title="Refresh"
+        >
+          <RefreshCw size={18} className={cn(isRefreshing && "animate-spin")} />
+        </button>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="btn-primary px-6 py-4 shrink-0 rounded-sm flex items-center gap-2 text-xs font-black uppercase tracking-wider"
+        >
+          <Plus size={18} />
+          Add Department
+        </button>
+      </SuperAdminHeader>
 
       {/* Error state */}
       {error && (

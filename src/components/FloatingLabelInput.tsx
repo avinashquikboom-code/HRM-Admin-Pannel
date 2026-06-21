@@ -34,7 +34,7 @@ export default function FloatingLabelInput({
         type={type}
         placeholder={placeholder}
         {...register(id, { required })}
-        className={`w-full px-6 pt-7 pb-3 bg-surface-variant/50 border-2 border-transparent rounded-[24px] outline-none focus:bg-surface focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-text-primary text-sm font-bold ${error ? 'border-error/50 bg-error/5 focus:ring-error/5' : ''}`}
+        className={`w-full px-6 pt-7 pb-3 bg-surface-variant/50 border-2 border-transparent rounded-sm outline-none focus:bg-surface focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-text-primary text-sm font-bold ${error ? 'border-error/50 bg-error/5 focus:ring-error/5' : ''}`}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
       />

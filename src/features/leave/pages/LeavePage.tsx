@@ -32,6 +32,7 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import { api } from '@/lib/api';
+import { fetchAdminHolidays } from '@/services/settingsService';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -78,7 +79,7 @@ const LEAVE_TYPES_CONFIG = [
 ];
 
 export default function LeavePage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'requests' | 'balances' | 'policies' | 'calendar'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'requests' | 'balances' | 'calendar'>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -89,6 +90,7 @@ export default function LeavePage() {
   // Live Integration States
   const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
   const [realEmployees, setRealEmployees] = useState<any[]>([]);
+  const [holidays, setHolidays] = useState<any[]>([]);
 
   // Remarks drawer state
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -103,9 +105,6 @@ export default function LeavePage() {
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
 
-  // Policy Settings state
-  const [carryForwardDays, setCarryForwardDays] = useState(10);
-  const [maxLimits, setMaxLimits] = useState(30);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   // Balance adjust modal
@@ -117,28 +116,38 @@ export default function LeavePage() {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const leavesRes = await api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves');
+      const [leavesRes, balancesRes, empRes, holidaysRes] = await Promise.all([
+        api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves'),
+        api.get<{ success: boolean; balances: any[] }>('/api/admin/leaves/balances'),
+        api.get<{ success: boolean; employees: any[] }>('/api/admin/employees'),
+        fetchAdminHolidays().catch(err => {
+          console.error('Failed to fetch holidays:', err);
+          return [];
+        })
+      ]);
+
       if (leavesRes.data.success) {
         setLeaveRequests(leavesRes.data.leaves);
       }
 
-      const balancesRes = await api.get<{ success: boolean; balances: any[] }>('/api/admin/leaves/balances');
       if (balancesRes.data.success) {
         setLeaveBalances(balancesRes.data.balances);
       }
 
-      const empRes = await api.get<{ success: boolean; employees: any[] }>('/api/admin/employees');
       if (empRes.data.success && empRes.data.employees.length > 0) {
         setRealEmployees(empRes.data.employees);
         setEmployeeName(`${empRes.data.employees[0].firstName} ${empRes.data.employees[0].lastName}`);
         setAdjustEmployee(`${empRes.data.employees[0].firstName} ${empRes.data.employees[0].lastName}`);
       }
+
+      setHolidays(Array.isArray(holidaysRes) ? holidaysRes : []);
     } catch (err) {
       console.error('Failed to load leave admin data:', err);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     loadData();
@@ -334,17 +343,34 @@ export default function LeavePage() {
     const startOffset = 5; // Friday starting May 1st 2026
     const days = [];
 
-    for (let i = 1 - startOffset; i <= totalDays; i++) {
-      if (i <= 0) {
+    // Complete the calendar grid cells to complete rows of 7
+    const totalCells = Math.ceil((totalDays + startOffset) / 7) * 7;
+
+    for (let i = 1 - startOffset; i <= totalCells - startOffset; i++) {
+      if (i <= 0 || i > totalDays) {
         days.push({ day: 0, date: '', isHoliday: false, leaves: [] });
       } else {
         const dateStr = `2026-05-${i.toString().padStart(2, '0')}`;
-        let holiday: any = undefined;
+        
+        // Find if this date is a holiday in the database
+        const holiday = holidays.find(h => {
+          const hDate = new Date(h.date);
+          return hDate.getFullYear() === 2026 && 
+                 hDate.getMonth() === 4 && // May is 0-indexed month 4
+                 hDate.getDate() === i;
+        });
+
         const activeLeaves = leaveRequests.filter(req => {
           if (req.status !== 'Approved') return false;
-          const s = new Date(req.startDate).getDate();
-          const e = new Date(req.endDate).getDate();
-          return i >= s && i <= e;
+          const start = new Date(req.startDate);
+          const end = new Date(req.endDate);
+          const currentDayDate = new Date(2026, 4, i);
+          
+          start.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
+          currentDayDate.setHours(0, 0, 0, 0);
+          
+          return currentDayDate >= start && currentDayDate <= end;
         });
 
         days.push({
@@ -357,7 +383,8 @@ export default function LeavePage() {
       }
     }
     return days;
-  }, [leaveRequests]);
+  }, [leaveRequests, holidays]);
+
 
   return (
     <>
@@ -409,7 +436,6 @@ export default function LeavePage() {
           { id: 'dashboard', label: 'Dashboard Overview', icon: BarChart3 },
           { id: 'requests', label: 'Request Logs', icon: FileText },
           { id: 'balances', label: 'Balance Ledger', icon: Layers },
-          { id: 'policies', label: 'Policies & Types', icon: Settings },
           { id: 'calendar', label: 'Ecosystem Calendar', icon: CalendarIcon },
         ].map((tab) => {
           const isSelected = activeTab === tab.id;
@@ -447,7 +473,7 @@ export default function LeavePage() {
                 { label: 'Total Leave Requests', value: totalRequests, icon: FileText, color: 'from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500 dark:text-blue-400', glowBgClass: 'bg-blue-500/5 group-hover:bg-blue-500/10' },
                 { label: 'Pending Approvals', value: pendingRequests, icon: Clock, color: 'from-amber-500/20 to-amber-500/5 border-amber-500/20 text-amber-500 dark:text-amber-400', glowBgClass: 'bg-amber-500/5 group-hover:bg-amber-500/10' },
                 { label: 'Approved Requests', value: approvedRequests, icon: CheckCircle2, color: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500 dark:text-emerald-400', glowBgClass: 'bg-emerald-500/5 group-hover:bg-emerald-500/10' },
-                { label: 'Upcoming Holidays', value: 0, icon: CalendarIcon, color: 'from-violet-500/20 to-violet-500/5 border-violet-500/20 text-violet-500 dark:text-violet-400', glowBgClass: 'bg-violet-500/5 group-hover:bg-violet-500/10' },
+                { label: 'Upcoming Holidays', value: holidays.length, icon: CalendarIcon, color: 'from-rose-500/20 to-rose-500/5 border-rose-500/20 text-rose-500 dark:text-rose-455', glowBgClass: 'bg-rose-500/5 group-hover:bg-rose-500/10' },
               ].map((stat, i) => (
                 <div 
                   key={i}
@@ -505,11 +531,29 @@ export default function LeavePage() {
                       <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1">Corporate calendar</p>
                       <h3 className="text-lg font-black text-text-primary">Upcoming Holidays</h3>
                     </div>
-                    <CalendarIcon className="text-violet-500 w-5 h-5 animate-pulse" />
+                    <CalendarIcon className="text-rose-500 w-5 h-5 animate-pulse" />
                   </div>
 
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                    {[]}
+                    {holidays.length > 0 ? (
+                      holidays.slice(0, 4).map((h) => (
+                        <div key={h.id} className="flex items-center justify-between p-3.5 bg-surface-variant/40 border border-border/50 rounded-sm hover:border-rose-500/20 transition-all">
+                          <div>
+                            <span className="text-xs font-bold text-text-primary block">{h.name}</span>
+                            <span className="text-[10px] text-text-secondary font-semibold mt-1 block">
+                              {new Date(h.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <span className="inline-flex items-center text-[9px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 bg-rose-500/10 px-2 py-0.5 rounded-sm border border-rose-500/20">
+                            {h.type}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-xs font-bold text-text-secondary/50 py-8">
+                        No upcoming holidays scheduled
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -773,98 +817,6 @@ export default function LeavePage() {
         )}
       </AnimatePresence>
 
-      {/* 4. POLICIES TAB */}
-      <AnimatePresence mode="wait">
-        {activeTab === 'policies' && (
-          <motion.div
-            key="policies"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="grid grid-cols-1 xl:grid-cols-3 gap-6"
-          >
-            {/* Standard leave configurations list */}
-            <div className="xl:col-span-2 space-y-5">
-              <div className="p-4 border border-border bg-surface rounded-sm">
-                <h3 className="text-xs font-black text-text-primary uppercase tracking-widest">Active Time-Off Allocation Categories</h3>
-                <p className="text-[11px] text-text-secondary font-semibold mt-1">Configure baseline allowances for each active category tier.</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {LEAVE_TYPES_CONFIG.map((type) => (
-                  <div 
-                    key={type.id} 
-                    className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 flex flex-col justify-between group hover:bg-surface-variant/30 transition-all duration-300"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-10 h-10 rounded-sm flex items-center justify-center font-black text-xs text-white"
-                          style={{ backgroundColor: type.color }}
-                        >
-                          {type.code}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-text-primary">{type.name}</h4>
-                          <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">{type.allowance} days standard allowance</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-5 pt-3.5 border-t border-border flex items-center gap-2">
-                      <Info size={12} className="text-text-secondary shrink-0" />
-                      <p className="text-[10px] text-text-secondary font-medium leading-relaxed">{type.rules}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* General Time-off settings panel */}
-            <div className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 sm:p-8 space-y-6">
-              <div className="flex items-center gap-3.5 pb-4 border-b border-border">
-                <div className="w-12 h-12 rounded-sm bg-primary/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                  <Settings size={22} />
-                </div>
-                <div>
-                  <h3 className="text-md font-black text-text-primary tracking-tight">Global Policies</h3>
-                  <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">Time-off controls</p>
-                </div>
-              </div>
-
-              <div className="space-y-4 text-xs font-semibold text-text-secondary">
-                <div className="space-y-2">
-                  <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black">Maximum Carry-Forward Limit</label>
-                  <input 
-                    type="number"
-                    value={carryForwardDays}
-                    onChange={(e) => setCarryForwardDays(Number(e.target.value))}
-                    className="w-full px-4 py-3.5 bg-surface-variant/40 border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all text-xs"
-                  />
-                  <span className="text-[9px] text-text-secondary/75 block leading-relaxed">Max days allowed to carry over into next calendar cycle.</span>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-text-secondary uppercase tracking-widest text-[9px] font-black">Maximum Consecutive Leaves</label>
-                  <input 
-                    type="number"
-                    value={maxLimits}
-                    onChange={(e) => setMaxLimits(Number(e.target.value))}
-                    className="w-full px-4 py-3.5 bg-surface-variant/40 border border-border focus:border-primary/30 rounded-sm outline-none text-text-primary transition-all text-xs"
-                  />
-                  <span className="text-[9px] text-text-secondary/75 block leading-relaxed">Sets default validation checks on submission limits.</span>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => toast.success('Global Policy parameters saved successfully')}
-                className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/20 transition-all duration-300 cursor-pointer"
-              >
-                Save Settings
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* 5. CALENDAR TAB */}
       <AnimatePresence mode="wait">
@@ -883,55 +835,58 @@ export default function LeavePage() {
                 <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">Corporate Holiday & Leaves Overview</p>
               </div>
               <div className="flex flex-wrap gap-2.5">
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-violet-500 dark:text-violet-400 bg-violet-500/10 px-2.5 py-1.5 rounded-sm border border-violet-500/20">Holiday</span>
+                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-455 bg-rose-500/10 px-2.5 py-1.5 rounded-sm border border-rose-500/20">Holiday</span>
                 <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1.5 rounded-sm border border-primary/20">Approved Leave</span>
               </div>
             </div>
 
-            {/* Grid monthly layout */}
-            <div className="grid grid-cols-7 gap-2.5">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(w => (
-                <div key={w} className="text-center text-[10px] font-black uppercase tracking-widest text-text-secondary py-2">{w}</div>
-              ))}
+            {/* Grid monthly layout wrapped in scrollable container to prevent cutting off */}
+            <div className="overflow-x-auto pb-4 no-scrollbar">
+              <div className="grid grid-cols-7 gap-2.5 min-w-[768px]">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(w => (
+                  <div key={w} className="text-center text-[10px] font-black uppercase tracking-widest text-text-secondary py-2">{w}</div>
+                ))}
 
-              {calendarDays.map((day, idx) => {
-                const hasLeave = day.leaves.length > 0;
-                return (
-                  <div 
-                    key={idx}
-                    className={cn(
-                      "min-h-[6.5rem] p-3 rounded-sm border transition-all flex flex-col justify-between",
-                      day.day === 0 ? "border-transparent bg-transparent select-none opacity-0" :
-                      day.isHoliday ? "border-violet-500/30 bg-violet-500/5" :
-                      hasLeave ? "border-primary/20 bg-primary/5" : "border-border bg-surface hover:bg-surface-variant/30"
-                    )}
-                  >
-                    <div className="flex justify-between items-start">
-                      <span className={cn(
-                        "text-xs font-black",
-                        day.isHoliday ? "text-violet-500 dark:text-violet-400" :
-                        hasLeave ? "text-primary" : "text-text-secondary"
-                      )}>{day.day || ''}</span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {day.isHoliday && (
-                        <p className="text-[8px] font-black uppercase tracking-wider text-violet-450 leading-relaxed truncate" title={day.holidayName}>{day.holidayName}</p>
+                {calendarDays.map((day, idx) => {
+                  const hasLeave = day.leaves.length > 0;
+                  return (
+                    <div 
+                      key={idx}
+                      className={cn(
+                        "min-h-[6.5rem] p-3 rounded-sm border transition-all flex flex-col justify-between",
+                        day.day === 0 ? "border-transparent bg-transparent select-none opacity-0" :
+                        day.isHoliday ? "border-rose-500/30 bg-rose-500/5" :
+                        hasLeave ? "border-primary/20 bg-primary/5" : "border-border bg-surface hover:bg-surface-variant/30"
                       )}
-                      {hasLeave && day.leaves.map((l: any, lidx: number) => (
-                        <div 
-                          key={lidx} 
-                          className="px-2 py-0.5 rounded bg-primary/25 text-primary text-[8px] font-black uppercase truncate tracking-wide"
-                          title={`${l.employeeName} (${l.type})`}
-                        >
-                          {l.employeeName.split(' ')[0]}
-                        </div>
-                      ))}
+                    >
+                      <div className="flex justify-between items-start">
+                        <span className={cn(
+                          "text-xs font-black",
+                          day.isHoliday ? "text-rose-500 dark:text-rose-450" :
+                          hasLeave ? "text-primary" : "text-text-secondary"
+                        )}>{day.day || ''}</span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {day.isHoliday && (
+                          <p className="text-[8px] font-black uppercase tracking-wider text-rose-500 leading-relaxed truncate" title={day.holidayName}>{day.holidayName}</p>
+                        )}
+                        {hasLeave && day.leaves.map((l: any, lidx: number) => (
+                          <div 
+                            key={lidx} 
+                            className="px-2 py-0.5 rounded bg-primary/25 text-primary text-[8px] font-black uppercase truncate tracking-wide"
+                            title={`${l.employeeName} (${l.type})`}
+                          >
+                            {l.employeeName.split(' ')[0]}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -1067,8 +1022,13 @@ export default function LeavePage() {
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {}
+                }}
                 required
-                className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all"
+                className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all cursor-pointer"
               />
             </div>
             <div className="space-y-2">
@@ -1077,8 +1037,13 @@ export default function LeavePage() {
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {}
+                }}
                 required
-                className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all"
+                className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all cursor-pointer"
               />
             </div>
           </div>

@@ -52,8 +52,11 @@ export default function SuperAdminHeader({
   return (
     <motion.div
       variants={itemVariants}
-      className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 sm:p-8 md:p-10"
+      className="relative overflow-hidden rounded-sm border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl"
     >
+      <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
+
       <div className="relative z-10 grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
         <div>
           {badgeText && (

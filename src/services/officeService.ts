@@ -14,6 +14,9 @@ interface ApiOffice {
   subscriptionPlan?: string;
   billingCycle?: string;
   invoiceStatus?: string;
+  workingHoursStart?: string;
+  workingHoursEnd?: string;
+  workingDays?: string[];
   createdAt: string;
   updatedAt: string;
   _count: {
@@ -42,6 +45,9 @@ export interface Office {
   subscriptionPlan: string;
   billingCycle: string;
   invoiceStatus: string;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  workingDays: string[];
   createdAt: string;
   updatedAt: string;
   _count: {
@@ -80,6 +86,9 @@ export interface UpdateOfficeRequest {
   subscriptionPlan?: string;
   billingCycle?: string;
   invoiceStatus?: string;
+  workingHoursStart?: string;
+  workingHoursEnd?: string;
+  workingDays?: string[];
 }
 
 export type CreateOfficeRequest = Omit<UpdateOfficeRequest, 'isActive'> & {
@@ -110,6 +119,9 @@ function mapOffice(api: ApiOffice): Office {
     subscriptionPlan: api.subscriptionPlan || 'Basic',
     billingCycle: api.billingCycle || 'monthly',
     invoiceStatus: api.invoiceStatus || 'Paid',
+    workingHoursStart: api.workingHoursStart || '09:00',
+    workingHoursEnd: api.workingHoursEnd || '18:00',
+    workingDays: api.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
     createdAt: api.createdAt,
     updatedAt: api.updatedAt,
     _count: api._count ?? { employees: 0 },
@@ -206,6 +218,9 @@ export async function createOffice(
     subscriptionPlan: payload.subscriptionPlan,
     billingCycle: payload.billingCycle,
     invoiceStatus: payload.invoiceStatus,
+    workingHoursStart: payload.workingHoursStart,
+    workingHoursEnd: payload.workingHoursEnd,
+    workingDays: payload.workingDays,
   };
 
   try {
@@ -248,6 +263,9 @@ export async function updateOffice(
     subscriptionPlan: payload.subscriptionPlan,
     billingCycle: payload.billingCycle,
     invoiceStatus: payload.invoiceStatus,
+    workingHoursStart: payload.workingHoursStart,
+    workingHoursEnd: payload.workingHoursEnd,
+    workingDays: payload.workingDays,
   };
 
   try {

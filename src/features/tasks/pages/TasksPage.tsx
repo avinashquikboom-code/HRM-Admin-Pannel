@@ -511,8 +511,13 @@ const TasksPage = () => {
                 type="date" 
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {}
+                }}
                 required
-                className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary transition-all"
+                className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary transition-all cursor-pointer"
               />
             </div>
           </div>

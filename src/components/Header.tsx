@@ -11,11 +11,9 @@ import NotificationBell from './NotificationBell';
 import { 
   Sun, 
   Moon, 
-  Search, 
   ChevronDown,
   Settings,
   User,
-  ArrowRight,
   Menu,
   LogOut,
   MapPin
@@ -43,29 +41,14 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
       : '/profile';
   const settingsPath = `${SUPER_ADMIN_PREFIX}/settings`;
   const roleLabel = PORTAL_AUTH_KEYS[portal].displayName;
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-
-  // ... (keep search logic)
 
   const loginLocation = user?.profile?.security?.lastLoginLocation;
 
-  const filteredCompanies: any[] = [];
-  const filteredEmployees: any[] = [];
-
-  const hasResults = filteredCompanies.length > 0 || filteredEmployees.length > 0;
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchFocused(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
       }
@@ -80,114 +63,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
     router.push(getLoginPathForPortal(portal));
   };
 
-  // Keyboard shortcut for search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        const searchInput = document.getElementById('global-search') as HTMLInputElement;
-        searchInput?.focus();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
-  const closeSearch = () => {
-    setIsSearchFocused(false);
-    setIsMobileSearchOpen(false);
-    setSearchQuery('');
-  };
-
-  const searchResultsContent = searchQuery ? (
-    <div className="p-2">
-      {hasResults ? (
-        <>
-          {filteredCompanies.length > 0 && (
-            <div className="mb-2">
-              <p className="px-4 py-2 text-label font-bold text-muted">Companies</p>
-              {filteredCompanies.map((company) => (
-                <button
-                  key={company.id}
-                  onClick={() => {
-                    router.push(`${SUPER_ADMIN_PREFIX}/companies`);
-                    closeSearch();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-variant rounded-sm transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary font-bold">
-                    {company.logo}
-                  </div>
-                  <div className="text-left flex-grow min-w-0">
-                    <p className="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors truncate">
-                      {company.name}
-                    </p>
-                    <p className="text-xs text-text-secondary truncate">
-                      {company.plan} • {company.employees} Employees
-                    </p>
-                  </div>
-                  <ArrowRight
-                    size={14}
-                    className="text-muted/30 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 shrink-0"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {filteredEmployees.length > 0 && (
-            <div>
-              <p className="px-4 py-2 text-label font-bold text-muted">Employees</p>
-              {filteredEmployees.map((employee) => (
-                <button
-                  key={employee.id}
-                  onClick={() => {
-                    router.push('/employees');
-                    closeSearch();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-variant rounded-sm transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold">
-                    {employee.avatar}
-                  </div>
-                  <div className="text-left flex-grow min-w-0">
-                    <p className="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors truncate">
-                      {employee.name}
-                    </p>
-                    <p className="text-xs text-text-secondary truncate">
-                      {employee.role} at {employee.company}
-                    </p>
-                  </div>
-                  <ArrowRight
-                    size={14}
-                    className="text-muted/30 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 shrink-0"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              router.push('/analytics');
-              closeSearch();
-            }}
-            className="w-full mt-2 p-3 text-center text-xs font-bold text-primary hover:bg-primary/5 rounded-sm transition-colors border-t border-border"
-          >
-            View all results for "{searchQuery}"
-          </button>
-        </>
-      ) : (
-        <div className="px-6 py-8 text-center">
-          <div className="w-12 h-12 bg-surface-variant rounded-sm flex items-center justify-center mx-auto mb-3">
-            <Search size={20} className="text-muted" />
-          </div>
-          <p className="text-sm font-semibold text-text-primary">No results found</p>
-          <p className="text-xs text-text-secondary mt-1">Try searching for a different name or company.</p>
-        </div>
-      )}
-    </div>
-  ) : null;
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between h-28 md:h-36 px-3 sm:px-6 bg-[var(--header-bg)] backdrop-blur-xl border-b border-border transition-colors text-[var(--header-text)]">
@@ -201,50 +77,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Search Bar — hidden for employee self-service portal */}
-        {!isEmployee && (
-        <>
-        <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="flex items-center gap-3 w-full bg-surface-variant px-6 py-1.5 rounded-sm border border-transparent focus-within:border-primary/50 focus-within:bg-surface transition-all group duration-300">
-          <Search className="w-5 h-5 text-muted group-focus-within:text-primary transition-colors shrink-0" />
-          <input
-            id="global-search"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            placeholder="Search analytics, companies..."
-            className="bg-transparent border-none outline-none text-sm text-text-primary w-full min-w-0 placeholder:text-muted"
-          />
-          <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-surface border border-border rounded-lg shrink-0">
-            <span className="text-micro font-bold text-muted">⌘</span>
-            <span className="text-micro font-bold text-muted">K</span>
-          </div>
-        </div>
-        <AnimatePresence>
-          {isSearchFocused && searchResultsContent && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full left-0 right-0 mt-3 bg-surface border border-border rounded-sm overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
-            >
-              {searchResultsContent}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
-      <button
-        type="button"
-        onClick={() => setIsMobileSearchOpen(true)}
-        className="p-2.5 rounded-sm hover:bg-surface-variant text-text-secondary md:hidden transition-colors shrink-0"
-        aria-label="Search"
-      >
-        <Search className="w-5 h-5" />
-      </button>
-        </>
-        )}
     </div>
 
       {/* Right Actions */}
@@ -376,50 +209,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
         onConfirm={handleSignOut} 
       />
 
-      {/* Mobile search overlay */}
-      <AnimatePresence>
-        {!isEmployee && isMobileSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-md md:hidden"
-          >
-            <div className="p-4 pt-[max(1rem,env(safe-area-inset-top))]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
-                  <input
-                    autoFocus
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    placeholder="Search analytics, companies..."
-                    className="w-full pl-12 pr-4 py-3.5 bg-surface-variant border border-border rounded-sm outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileSearchOpen(false);
-                    setIsSearchFocused(false);
-                    setSearchQuery('');
-                  }}
-                  className="px-4 py-3.5 text-sm font-bold text-primary shrink-0"
-                >
-                  Cancel
-                </button>
-              </div>
-              {searchQuery && (
-                <div className="bg-surface border border-border rounded-sm overflow-hidden max-h-[calc(100vh-8rem)] overflow-y-auto">
-                  {searchResultsContent}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </header>
   );
 };

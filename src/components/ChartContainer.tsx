@@ -33,7 +33,7 @@ export default function ChartContainer({
 
   return (
     <div className={cn('w-full min-w-0', heightClassName, className)}>
-      <ShadcnChartContainer config={config} className="h-full w-full">
+      <ShadcnChartContainer config={config} className="h-full w-full aspect-auto">
         {children}
       </ShadcnChartContainer>
     </div>

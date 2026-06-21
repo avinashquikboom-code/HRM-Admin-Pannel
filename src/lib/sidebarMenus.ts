@@ -4,6 +4,7 @@ import {
   Building2,
   CreditCard,
   Settings,
+  Shield,
   ShieldCheck,
   MapPin,
   Users,
@@ -11,8 +12,6 @@ import {
   Calendar,
   CheckSquare,
   Wallet,
-  BarChart3,
-  FileText,
   User,
   Navigation,
 } from 'lucide-react';
@@ -47,8 +46,7 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
-  { name: 'Analytics', icon: BarChart3, path: '/analytics', moduleId: 'pa-analytics' },
-  { name: 'Reports', icon: FileText, path: '/reports', moduleId: 'pa-reports' },
+  { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
 ];
 
 export const PLATFORM_ADMIN_ACCOUNT_ITEMS: SidebarMenuItem[] = [

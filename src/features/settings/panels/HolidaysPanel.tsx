@@ -1,26 +1,21 @@
-'use client';
-
-import { useState } from 'react';
-import { Calendar, Plus, X, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Calendar, Plus, X, Save, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
-
-interface Holiday {
-  id: string;
-  name: string;
-  date: string;
-  type: 'mandatory' | 'optional' | 'restricted';
-  recurring: boolean;
-}
+import {
+  fetchAdminHolidays,
+  createAdminHoliday,
+  deleteAdminHoliday,
+  type Holiday
+} from '@/services/settingsService';
 
 export default function HolidaysPanel() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [holidays, setHolidays] = useState<Holiday[]>([
-    { id: '1', name: 'New Year', date: '2024-01-01', type: 'mandatory', recurring: true },
-    { id: '2', name: 'Republic Day', date: '2024-01-26', type: 'mandatory', recurring: true },
-    { id: '3', name: 'Independence Day', date: '2024-08-15', type: 'mandatory', recurring: true },
-    { id: '4', name: 'Gandhi Jayanti', date: '2024-10-02', type: 'mandatory', recurring: true },
-  ]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
+  
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHoliday, setNewHoliday] = useState({
     name: '',
@@ -28,6 +23,23 @@ export default function HolidaysPanel() {
     type: 'mandatory' as Holiday['type'],
     recurring: true,
   });
+
+  const loadHolidays = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await fetchAdminHolidays();
+      setHolidays(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load holidays.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHolidays();
+  }, [loadHolidays]);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -52,26 +64,42 @@ export default function HolidaysPanel() {
     }
   };
 
-  const handleAddHoliday = () => {
+  const handleAddHoliday = async () => {
     if (!newHoliday.name || !newHoliday.date) return;
     
-    const holiday: Holiday = {
-      id: Date.now().toString(),
-      ...newHoliday,
-    };
-    
-    setHolidays([...holidays, holiday]);
-    setNewHoliday({
-      name: '',
-      date: '',
-      type: 'mandatory',
-      recurring: true,
-    });
-    setShowAddForm(false);
+    setIsSaving(true);
+    setError('');
+    try {
+      const savedHoliday = await createAdminHoliday({
+        name: newHoliday.name,
+        date: newHoliday.date,
+        type: newHoliday.type,
+        recurring: newHoliday.recurring
+      });
+      
+      setHolidays([...holidays, savedHoliday]);
+      setNewHoliday({
+        name: '',
+        date: '',
+        type: 'mandatory',
+        recurring: true,
+      });
+      setShowAddForm(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save holiday.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleRemoveHoliday = (id: string) => {
-    setHolidays(holidays.filter(h => h.id !== id));
+  const handleRemoveHoliday = async (id: string) => {
+    setError('');
+    try {
+      await deleteAdminHoliday(id);
+      setHolidays(holidays.filter(h => h.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete holiday.');
+    }
   };
 
   const getHolidayForDate = (day: number) => {
@@ -84,8 +112,23 @@ export default function HolidaysPanel() {
     return dayOfWeek === 0 || dayOfWeek === 6;
   };
 
+  if (isLoading) {
+    return (
+      <div className="glass-card p-6 flex flex-col items-center justify-center min-h-[300px]">
+        <RefreshCw size={24} className="animate-spin text-primary mb-2" />
+        <p className="text-xs font-black uppercase tracking-widest text-text-secondary">Loading holidays...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="flex items-center gap-2.5 p-4 bg-error/10 border border-error/20 rounded-sm text-error text-xs font-black uppercase tracking-wider">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
       {/* Calendar View */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-6">
@@ -205,7 +248,12 @@ export default function HolidaysPanel() {
                 type="date"
                 value={newHoliday.date}
                 onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
-                className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {}
+                }}
+                className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium cursor-pointer"
               />
             </div>
 

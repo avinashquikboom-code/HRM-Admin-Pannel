@@ -161,10 +161,11 @@ export function logApiError(error: AxiosError): void {
   const status = error.response?.status ?? 'NETWORK';
   const message = extractErrorMessage(error);
 
-  // 4xx are expected client errors (wrong password, not found, etc.)
-  // Reserve console.error only for 5xx server errors or network failures
-  const isClientError = typeof status === 'number' && status >= 400 && status < 500;
-  const logFn = isClientError ? console.warn : console.error;
+  // Use console.warn for ALL API errors (4xx, 5xx, network).
+  // console.error is intentionally avoided here because Next.js DevTools
+  // intercepts it and surfaces it as a red dev-overlay popup — which is
+  // misleading for transient network failures or expected backend errors.
+  const logFn = console.warn;
 
   console.groupCollapsed(
     `${LOG_PREFIX} ✗ ${method} ${url} ${status}${formatDuration(config)}`

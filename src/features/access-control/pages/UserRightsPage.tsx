@@ -16,14 +16,19 @@ import {
   Calendar,
   Lock,
   RefreshCw,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import UserRightsControl from '@/components/UserRightsControl';
 import TableSkeleton from '@/components/TableSkeleton';
-import RegisterUserWithRights from '@/features/access-control/components/RegisterUserWithRights';
+import ConfirmModal from '@/components/ConfirmModal';
+import { toast } from 'sonner';
+
 import ManageUserPermissionsModal from '@/features/access-control/components/ManageUserPermissionsModal';
+import LinkUserToOfficeModal from '@/features/access-control/components/LinkUserToOfficeModal';
 import { usePlatformUsers } from '@/hooks/usePlatformUsers';
-import type { PlatformUser } from '@/services/userService';
+import { deletePlatformUser, type PlatformUser } from '@/services/userService';
 import { cn } from '@/utils/cn';
 import {
   SUPER_ADMIN_MANAGED_ROLES,
@@ -94,6 +99,11 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
   const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [userActionSuccess, setUserActionSuccess] = useState('');
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [userToLink, setUserToLink] = useState<PlatformUser | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<PlatformUser | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [stats, setStats] = useState({
     roles: config.managedRoles.length,
@@ -121,6 +131,24 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
 
     setStats({ roles: config.managedRoles.length, modules, enabled });
   }, [config.managedRoles]);
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deletePlatformUser(userToDelete.id);
+      toast.success(`User ${userToDelete.name} deleted successfully!`);
+      setUserActionSuccess(`User ${userToDelete.name} deleted successfully!`);
+      refetchUsers();
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to delete user.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
+      setUserToDelete(null);
+    }
+  };
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -201,67 +229,64 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
           </p>
         </div>
         
-        <Link
-          href="#register-user-rights"
-          className="relative z-10 btn-primary px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider self-start md:self-auto"
-        >
-          <UserPlus size={16} />
-          Register User
-        </Link>
+        {variant === 'super_admin' && (
+          <Link
+            href="/users/register"
+            className="relative z-10 btn-primary px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider self-start md:self-auto"
+          >
+            <UserPlus size={16} />
+            Register User
+          </Link>
+        )}
       </motion.div>
 
-      {/* 2. Stats Grid */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {[
           {
             label: 'Roles you manage',
             value: stats.roles,
             icon: Users,
-            color: 'from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-400',
-            glow: 'rgba(59,130,246,0.15)',
+            color: 'from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-500',
           },
           {
             label: 'Total modules',
             value: stats.modules,
             icon: Layers,
             color: 'from-primary/20 to-teal-500/10 border-primary/30 text-primary',
-            glow: 'rgba(59,163,139,0.15)',
           },
           {
             label: 'Enabled access',
             value: stats.enabled,
             icon: CheckSquare,
-            color: 'from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-400',
-            glow: 'rgba(245,158,11,0.15)',
+            color: 'from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-500',
           },
         ].map((stat) => (
           <div 
             key={stat.label} 
-            className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-6 flex items-center gap-5 backdrop-blur-xl group hover:border-white/10 transition-all duration-300"
+            className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 flex items-center gap-5 group hover:bg-surface-variant/10 transition-all duration-300"
           >
-            <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/5 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
             <div 
-              className={`w-14 h-14 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
+              className={`w-12 h-12 rounded-sm flex items-center justify-center shrink-0 bg-gradient-to-br border ${stat.color}`}
             >
-              <stat.icon size={24} className="group-hover:scale-110 transition-transform duration-300" />
+              <stat.icon size={20} className="group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <p className="text-3xl font-black text-white mt-1.5 tracking-tight">{stat.value}</p>
+              <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-none">{stat.label}</p>
+              <p className="text-3xl font-black text-text-primary mt-1.5 tracking-tight">{stat.value}</p>
             </div>
           </div>
         ))}
       </motion.div>
 
       {/* 3. Module Checklist Control Panel */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 backdrop-blur-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-5 mb-8 pb-6 border-b border-white/5">
-          <div className="w-14 h-14 rounded-sm bg-gradient-to-br from-primary/20 to-teal-500/10 border border-primary/30 text-primary flex items-center justify-center shrink-0">
-            <ShieldCheck size={26} />
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-border bg-surface p-6 sm:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-5 mb-8 pb-6 border-b border-border">
+          <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-teal-500/10 border border-primary/30 text-primary flex items-center justify-center shrink-0">
+            <ShieldCheck size={22} />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-black text-white tracking-tight">{config.panelTitle}</h2>
-            <p className="text-xs text-slate-400 mt-1.5 font-medium">{config.panelDescription}</p>
+            <h2 className="text-lg font-black text-text-primary tracking-tight">{config.panelTitle}</h2>
+            <p className="text-xs text-text-secondary mt-1 font-medium">{config.panelDescription}</p>
           </div>
         </div>
 
@@ -364,7 +389,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">System Role</th>
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Profile Link</th>
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Created Date</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Access Override</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -406,10 +431,22 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                                 Linked
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-sm">
-                                <UserX size={12} />
-                                Unlinked
-                              </span>
+                              <div className="flex flex-col items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-sm">
+                                  <UserX size={12} />
+                                  Unlinked
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setUserToLink(userItem);
+                                    setIsLinkModalOpen(true);
+                                  }}
+                                  className="text-[10px] font-bold text-primary hover:text-primary-dark transition-colors cursor-pointer hover:underline"
+                                >
+                                  Link to Office
+                                </button>
+                              </div>
                             )}
                           </td>
                           <td className="px-6 py-4.5 text-xs font-bold text-slate-400">
@@ -419,17 +456,31 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                             </div>
                           </td>
                           <td className="px-6 py-4.5 text-right">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedUser(userItem);
-                                setIsCustomModalOpen(true);
-                              }}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-sm border border-white/5 bg-slate-950/40 hover:border-primary/30 text-xs font-bold text-slate-400 hover:text-white transition-all active:scale-95 cursor-pointer"
-                            >
-                              <SlidersHorizontal size={13} className="text-slate-500 group-hover:text-primary transition-colors" />
-                              Configure Override
-                            </button>
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedUser(userItem);
+                                  setIsCustomModalOpen(true);
+                                }}
+                                className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all cursor-pointer"
+                                title="Edit user permissions"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setUserToDelete(userItem);
+                                  setDeleteConfirmOpen(true);
+                                }}
+                                disabled={isDeleting}
+                                className="p-1.5 bg-slate-900 hover:bg-rose-500/10 text-slate-300 hover:text-rose-500 rounded-sm border border-white/5 transition-all cursor-pointer"
+                                title="Delete user"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -448,13 +499,6 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
         )}
       </motion.div>
 
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-white/5 bg-slate-900/40 p-6 sm:p-8 lg:p-10 backdrop-blur-xl">
-        <RegisterUserWithRights
-          managerPortal={variant}
-          registerRole={variant === 'super_admin' ? 'HR' : 'EMPLOYEE'}
-          targetPortal={variant === 'super_admin' ? 'platform_admin' : 'employee'}
-        />
-      </motion.div>
 
       <ManageUserPermissionsModal
         isOpen={isCustomModalOpen}
@@ -468,6 +512,28 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
           setUserActionSuccess(msg);
           refetchUsers();
         }}
+      />
+
+      <LinkUserToOfficeModal
+        isOpen={isLinkModalOpen}
+        user={userToLink}
+        onClose={() => {
+          setIsLinkModalOpen(false);
+          setUserToLink(null);
+        }}
+        onLinked={() => {
+          refetchUsers();
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteUser}
+        title="Delete Platform User"
+        message={userToDelete ? `Are you sure you want to delete "${userToDelete.name}"? This will permanently remove their user credentials and any associated employee profiles.` : 'Are you sure you want to delete this user?'}
+        confirmText={isDeleting ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
       />
     </motion.div>
   );
