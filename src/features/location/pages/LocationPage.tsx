@@ -80,7 +80,7 @@ export default function LocationPage() {
   const [isCreateOfficeOpen, setIsCreateOfficeOpen] = useState(false);
   const [editingOffice, setEditingOffice] = useState<Office | null>(null);
   const [isAssignEmployeeOpen, setIsAssignEmployeeOpen] = useState(false);
-  const [unassigningEmployee, setUnassigningEmployee] = useState<{id: string, name: string} | null>(null);
+  const [unassigningEmployee, setUnassigningEmployee] = useState<{ id: string, name: string } | null>(null);
   const [deletingOffice, setDeletingOffice] = useState<Office | null>(null);
   const [isInlineAssignOpen, setIsInlineAssignOpen] = useState(false);
   const [unassigningEmployeeId, setUnassigningEmployeeId] = useState<
@@ -140,8 +140,8 @@ export default function LocationPage() {
       selectedOffice
         ? { lat: selectedOffice.latitude, lng: selectedOffice.longitude }
         : offices.length > 0
-        ? { lat: offices[0].latitude, lng: offices[0].longitude }
-        : { lat: 0, lng: 0 },
+          ? { lat: offices[0].latitude, lng: offices[0].longitude }
+          : { lat: 0, lng: 0 },
     [selectedOffice, offices]
   );
 
@@ -149,17 +149,17 @@ export default function LocationPage() {
     () =>
       selectedOffice
         ? getMapBoundsForOffice(
-            selectedOffice.latitude,
-            selectedOffice.longitude,
-            selectedOffice.maxPunchRadiusMeters
-          )
+          selectedOffice.latitude,
+          selectedOffice.longitude,
+          selectedOffice.maxPunchRadiusMeters
+        )
         : offices.length > 0
-        ? getMapBoundsForOffice(
+          ? getMapBoundsForOffice(
             offices[0].latitude,
             offices[0].longitude,
             offices[0].maxPunchRadiusMeters
           )
-        : null,
+          : null,
     [selectedOffice, offices]
   );
 
@@ -167,9 +167,9 @@ export default function LocationPage() {
     () =>
       selectedOffice
         ? metersToDegreeRadius(
-            selectedOffice.maxPunchRadiusMeters,
-            selectedOffice.latitude
-          )
+          selectedOffice.maxPunchRadiusMeters,
+          selectedOffice.latitude
+        )
         : 0.015,
     [selectedOffice]
   );
@@ -216,8 +216,8 @@ export default function LocationPage() {
     }
   };
 
-  const handleManualBreachTrigger = () => {};
-  const handleManualOfficeTrigger = () => {};
+  const handleManualBreachTrigger = () => { };
+  const handleManualOfficeTrigger = () => { };
 
   useEffect(() => {
     if (offices.length > 0 && selectedOfficeId === null && activeTab === 'tracker') {
@@ -606,9 +606,9 @@ export default function LocationPage() {
     try {
       const result = await deleteOffice(office.id);
       toast.success(result.message || 'Office deleted successfully!');
-      
+
       const updatedOffices = await refetch();
-      
+
       if (selectedOfficeId === office.id) {
         const remaining = updatedOffices?.filter((o: Office) => o.id !== office.id) ?? [];
         setSelectedOfficeId(remaining.length > 0 ? remaining[0].id : null);
@@ -670,7 +670,8 @@ export default function LocationPage() {
       className="space-y-6 pb-10"
     >
       {/* Platform styled global styles for Leaflet custom adaptations */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .leaflet-container {
           font-family: inherit !important;
           z-index: 1 !important;
@@ -710,33 +711,33 @@ export default function LocationPage() {
         ]}
       >
 
-          {activeTab === 'tracker' && (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsAutoRefreshing((prev) => !prev)}
-                className={cn(
-                  'btn-secondary flex items-center gap-2 text-sm',
-                  isAutoRefreshing && 'border-primary/25 bg-primary/5 text-primary'
-                )}
-              >
-                {isAutoRefreshing ? <Pause size={16} /> : <Play size={16} />}
-                {isAutoRefreshing ? 'Pause live' : 'Resume live'}
-              </button>
-              <button
-                type="button"
-                onClick={handleRefresh}
-                disabled={isLoadingAny}
-                className="p-3 rounded-sm bg-surface-variant hover:bg-border text-text-primary transition-all disabled:opacity-60"
-                title="Refresh data"
-              >
-                <RefreshCw
-                  size={18}
-                  className={cn(isLoadingAny && 'animate-spin')}
-                />
-              </button>
-            </>
-          )}
+        {activeTab === 'tracker' && (
+          <>
+            <button
+              type="button"
+              onClick={() => setIsAutoRefreshing((prev) => !prev)}
+              className={cn(
+                'btn-secondary flex items-center gap-2 text-sm',
+                isAutoRefreshing && 'border-primary/25 bg-primary/5 text-primary'
+              )}
+            >
+              {isAutoRefreshing ? <Pause size={16} /> : <Play size={16} />}
+              {isAutoRefreshing ? 'Pause live' : 'Resume live'}
+            </button>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoadingAny}
+              className="p-3 rounded-sm bg-surface-variant hover:bg-border text-text-primary transition-all disabled:opacity-60"
+              title="Refresh data"
+            >
+              <RefreshCw
+                size={18}
+                className={cn(isLoadingAny && 'animate-spin')}
+              />
+            </button>
+          </>
+        )}
       </SuperAdminHeader>
 
       {/* Tab-scoped alert feedback.
@@ -753,7 +754,7 @@ export default function LocationPage() {
             {officeActionMessage && (
               <div className="rounded-sm bg-success/10 border border-success/20 px-4 py-3 text-sm font-semibold text-success flex items-center gap-2">
                 <ShieldCheck size={16} />
-                {officeActionMessage}
+                {officeActionMessage}hhhhhhs
               </div>
             )}
             {scopedError && (
@@ -1097,8 +1098,8 @@ export default function LocationPage() {
               />
             </div>
             <div className="lg:col-span-5">
-              <ActivityFeed 
-                logs={logs} 
+              <ActivityFeed
+                logs={logs}
                 onClear={handleClearLogs}
                 currentPage={currentPage}
                 totalPages={totalPages}

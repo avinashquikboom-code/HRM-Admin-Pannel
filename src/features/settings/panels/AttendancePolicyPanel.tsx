@@ -10,15 +10,23 @@ interface AttendancePolicyPanelProps {
   absentThreshold: number;
   autoMarkAbsent: boolean;
   enableGeofence: boolean;
+  enablePunchOutGeofence: boolean;
   workingHours: { start: string; end: string };
   workingDays: string[];
+  fullDayMinHours: number;
+  halfDayMinHours: number;
+  graceMinutes: number;
   onLateThresholdChange: (value: number) => void;
   onHalfDayThresholdChange: (value: number) => void;
   onAbsentThresholdChange: (value: number) => void;
   onAutoMarkAbsentChange: (value: boolean) => void;
   onEnableGeofenceChange: (value: boolean) => void;
+  onEnablePunchOutGeofenceChange: (value: boolean) => void;
   onWorkingHoursChange: (start: string, end: string) => void;
   onWorkingDaysChange: (days: string[]) => void;
+  onFullDayMinHoursChange: (value: number) => void;
+  onHalfDayMinHoursChange: (value: number) => void;
+  onGraceMinutesChange: (value: number) => void;
 }
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -29,15 +37,23 @@ export default function AttendancePolicyPanel({
   absentThreshold,
   autoMarkAbsent,
   enableGeofence,
+  enablePunchOutGeofence,
   workingHours,
   workingDays,
+  fullDayMinHours,
+  halfDayMinHours,
+  graceMinutes,
   onLateThresholdChange,
   onHalfDayThresholdChange,
   onAbsentThresholdChange,
   onAutoMarkAbsentChange,
   onEnableGeofenceChange,
+  onEnablePunchOutGeofenceChange,
   onWorkingHoursChange,
   onWorkingDaysChange,
+  onFullDayMinHoursChange,
+  onHalfDayMinHoursChange,
+  onGraceMinutesChange,
 }: AttendancePolicyPanelProps) {
   const [localWorkingHours, setLocalWorkingHours] = useState(workingHours);
   const [localWorkingDays, setLocalWorkingDays] = useState(workingDays);
@@ -199,6 +215,48 @@ export default function AttendancePolicyPanel({
             <p className="text-xs text-text-secondary mt-1">Employees working less than this will be marked as Absent</p>
           </div>
 
+          <div className="space-y-2">
+            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
+              Full Day Minimum Hours
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={fullDayMinHours}
+              onChange={(e) => onFullDayMinHoursChange(parseFloat(e.target.value) || 0)}
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+            />
+            <p className="text-xs text-text-secondary mt-1">Minimum hours required to be marked as Full Day Present (e.g. 8)</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
+              Half Day Minimum Hours
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={halfDayMinHours}
+              onChange={(e) => onHalfDayMinHoursChange(parseFloat(e.target.value) || 0)}
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+            />
+            <p className="text-xs text-text-secondary mt-1">Minimum hours required to be marked as Half Day Present (e.g. 4)</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">
+              Grace Time (minutes)
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={graceMinutes}
+              onChange={(e) => onGraceMinutesChange(parseInt(e.target.value, 10) || 0)}
+              className="w-full px-4 py-3 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-text-primary font-medium"
+            />
+            <p className="text-xs text-text-secondary mt-1">Grace time allowed for late check-ins in minutes</p>
+          </div>
+
           <div className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-sm border border-border">
             <div>
               <p className="text-sm font-bold text-text-primary">Auto-Mark Absent</p>
@@ -238,6 +296,28 @@ export default function AttendancePolicyPanel({
                 className={cn(
                   'absolute top-1 w-4 h-4 rounded-sm transition-all',
                   enableGeofence ? 'left-7 bg-white' : 'left-1 bg-text-secondary'
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-surface-variant/50 rounded-sm border border-border">
+            <div>
+              <p className="text-sm font-bold text-text-primary">Enable Geofence Validation for Punch Out</p>
+              <p className="text-xs text-text-secondary mt-1">Enforce location restriction when checking out via mobile</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onEnablePunchOutGeofenceChange(!enablePunchOutGeofence)}
+              className={cn(
+                'w-12 h-6 rounded-sm transition-all relative',
+                enablePunchOutGeofence ? 'bg-primary' : 'bg-surface-variant border border-border'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-1 w-4 h-4 rounded-sm transition-all',
+                  enablePunchOutGeofence ? 'left-7 bg-white' : 'left-1 bg-text-secondary'
                 )}
               />
             </button>

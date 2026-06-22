@@ -244,3 +244,67 @@ export async function assignEmployeeToDepartment(
   }
 }
 
+export interface CreateEmployeeRequest {
+  firstName: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+  departmentId?: number;
+  officeId?: number;
+  mobileNumber?: string;
+  joiningDate?: string;
+  reportingManagerId?: number;
+  shiftId?: number;
+  designationId?: number;
+  salaryStructure?: {
+    basicSalary?: number;
+    hra?: number;
+    medicalAllowance?: number;
+    travelAllowance?: number;
+    specialAllowance?: number;
+    incentive?: number;
+    bonus?: number;
+    pfEnabled?: boolean;
+    employeePfRate?: number;
+    employerPfRate?: number;
+    esicEnabled?: boolean;
+    employeeEsicRate?: number;
+    employerEsicRate?: number;
+  };
+}
+
+export async function createEmployee(
+  payload: CreateEmployeeRequest
+): Promise<{ success: boolean; message: string; employee: any }> {
+  try {
+    const { data } = await api.post<{ success: boolean; message: string; employee: any }>(
+      '/api/admin/employees',
+      payload
+    );
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to create employee. Please try again.')
+    );
+  }
+}
+
+export async function fetchShifts(): Promise<any[]> {
+  try {
+    const { data } = await api.get<{ success: boolean; shifts: any[] }>('/api/admin/shifts');
+    return data.shifts;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch shifts.'));
+  }
+}
+
+export async function fetchDesignations(): Promise<any[]> {
+  try {
+    const { data } = await api.get<{ success: boolean; data: any[] }>('/api/admin/designations');
+    return data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch designations.'));
+  }
+}
+

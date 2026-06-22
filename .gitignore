@@ -28,3 +28,6 @@ frontend.env
 *.sln
 *.sw?
 .next
+
+# Agent files
+AGENT.md

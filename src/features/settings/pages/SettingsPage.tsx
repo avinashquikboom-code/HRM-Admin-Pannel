@@ -192,6 +192,10 @@ export default function SettingsPage() {
         autoMarkAbsent: settings?.attendance.autoMarkAbsent ?? true,
         absentThreshold: settings?.attendance.absentThreshold || 240,
         enableGeofence: settings?.attendance.enableGeofence ?? true,
+        enablePunchOutGeofence: settings?.attendance.enablePunchOutGeofence ?? false,
+        fullDayMinHours: settings?.attendance.fullDayMinHours || 8,
+        halfDayMinHours: settings?.attendance.halfDayMinHours || 4,
+        graceMinutes: settings?.attendance.graceMinutes || 15,
       },
       leave: {
         casualLeavePerYear: settings?.leave.casualLeavePerYear || 12,
@@ -252,15 +256,23 @@ export default function SettingsPage() {
             absentThreshold={currentSettings.attendance.absentThreshold}
             autoMarkAbsent={currentSettings.attendance.autoMarkAbsent}
             enableGeofence={currentSettings.attendance.enableGeofence ?? true}
+            enablePunchOutGeofence={currentSettings.attendance.enablePunchOutGeofence ?? false}
             workingHours={currentSettings.company.workingHours}
             workingDays={currentSettings.company.workingDays}
+            fullDayMinHours={currentSettings.attendance.fullDayMinHours ?? 8}
+            halfDayMinHours={currentSettings.attendance.halfDayMinHours ?? 4}
+            graceMinutes={currentSettings.attendance.graceMinutes ?? 15}
             onLateThresholdChange={(value) => updateAttendanceSettings({ lateThreshold: value })}
             onHalfDayThresholdChange={(value) => updateAttendanceSettings({ halfDayThreshold: value })}
             onAbsentThresholdChange={(value) => updateAttendanceSettings({ absentThreshold: value })}
             onAutoMarkAbsentChange={(value) => updateAttendanceSettings({ autoMarkAbsent: value })}
             onEnableGeofenceChange={(value) => updateAttendanceSettings({ enableGeofence: value })}
+            onEnablePunchOutGeofenceChange={(value) => updateAttendanceSettings({ enablePunchOutGeofence: value })}
             onWorkingHoursChange={(start, end) => updateCompanySettings({ workingHours: { start, end } })}
             onWorkingDaysChange={(days) => updateCompanySettings({ workingDays: days })}
+            onFullDayMinHoursChange={(value) => updateAttendanceSettings({ fullDayMinHours: value })}
+            onHalfDayMinHoursChange={(value) => updateAttendanceSettings({ halfDayMinHours: value })}
+            onGraceMinutesChange={(value) => updateAttendanceSettings({ graceMinutes: value })}
           />
         );
       case 'leave-policy':
