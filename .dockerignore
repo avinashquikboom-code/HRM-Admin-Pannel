@@ -13,3 +13,5 @@ README.md
 .idea
 .DS_Store
 tsconfig.tsbuildinfo
+capture_console.ts
+capture_console.js
