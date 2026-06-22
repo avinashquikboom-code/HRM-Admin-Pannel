@@ -32,6 +32,9 @@ export interface GeofenceActivityLog {
 export interface LiveLocationLogsResponse {
   success: boolean;
   count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
   logs: GeofenceActivityLog[];
 }
 
@@ -46,10 +49,12 @@ export async function fetchLiveLocations(): Promise<EmployeeLiveLocation[]> {
   }
 }
 
-export async function fetchLiveLocationLogs(): Promise<GeofenceActivityLog[]> {
+export async function fetchLiveLocationLogs(page: number = 1, limit: number = 20): Promise<LiveLocationLogsResponse> {
   try {
-    const { data } = await api.get<LiveLocationLogsResponse>('/api/admin/location/logs');
-    return data.logs ?? [];
+    const { data } = await api.get<LiveLocationLogsResponse>('/api/admin/location/logs', {
+      params: { page, limit }
+    });
+    return data;
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load geofence activity logs. Please try again.')

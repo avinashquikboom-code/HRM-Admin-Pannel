@@ -28,13 +28,16 @@ export function useTodayAttendance() {
     setError('');
 
     try {
+      console.log('Fetching today attendance...');
       const data = await fetchTodayAttendance();
+      console.log('Attendance data received:', data);
       setRecords(data.attendances);
       setDistribution(data.attendanceDistribution || []);
       return data.attendances;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to load attendance';
+      console.error('Attendance fetch error:', err);
       setError(message);
       setRecords([]);
       setDistribution([]);

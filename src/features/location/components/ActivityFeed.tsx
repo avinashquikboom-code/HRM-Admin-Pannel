@@ -5,6 +5,8 @@ import {
   CheckCircle2,
   MapPin,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -13,9 +15,18 @@ import type { LocationLog } from '../types';
 interface ActivityFeedProps {
   logs: LocationLog[];
   onClear: () => void;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export default function ActivityFeed({ logs, onClear }: ActivityFeedProps) {
+export default function ActivityFeed({ 
+  logs, 
+  onClear, 
+  currentPage = 1, 
+  totalPages = 1,
+  onPageChange 
+}: ActivityFeedProps) {
   return (
     <div className="bg-surface border border-border rounded-sm flex flex-col h-full min-h-[320px]">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
@@ -110,6 +121,39 @@ export default function ActivityFeed({ logs, onClear }: ActivityFeedProps) {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-3">
+          <span className="text-xs text-text-secondary font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onPageChange?.(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={cn(
+                'p-2 rounded-sm border border-border hover:bg-surface-variant transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+                currentPage === 1 && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onPageChange?.(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={cn(
+                'p-2 rounded-sm border border-border hover:bg-surface-variant transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+                currentPage === totalPages && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

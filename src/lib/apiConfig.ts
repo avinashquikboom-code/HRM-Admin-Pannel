@@ -1,4 +1,5 @@
-const LOCAL_API_DEFAULT = 'http://69.62.80.20:5004';
+const PRODUCTION_API_DEFAULT = 'https://api.voxiqai.com';
+const LOCAL_API_DEFAULT = 'http://localhost:5004';
 
 /**
  * Backend base URL (no trailing slash).
@@ -14,13 +15,13 @@ export function getApiBaseUrl(): string {
   if (fromEnv) {
     return fromEnv.replace(/\/$/, '');
   }
-  return LOCAL_API_DEFAULT;
+  return PRODUCTION_API_DEFAULT;
 }
 
 /** Where API traffic is forwarded in dev (shown in errors). */
 export function getBackendApiTarget(): string {
   const fromEnv = process.env.NEXT_PUBLIC_API_URL?.trim();
-  return (fromEnv || LOCAL_API_DEFAULT).replace(/\/$/, '');
+  return (fromEnv || PRODUCTION_API_DEFAULT).replace(/\/$/, '');
 }
 
 export function isApiMisconfigured(): boolean {

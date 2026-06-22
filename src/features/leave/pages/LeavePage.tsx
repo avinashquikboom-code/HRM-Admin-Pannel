@@ -25,7 +25,9 @@ import {
   SlidersHorizontal,
   Layers,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -95,8 +97,16 @@ export default function LeavePage() {
 
   // Live Integration States
   const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
+  const [balancesCurrentPage, setBalancesCurrentPage] = useState(1);
+  const [balancesTotalPages, setBalancesTotalPages] = useState(1);
+  const [balancesCount, setBalancesCount] = useState(0);
   const [realEmployees, setRealEmployees] = useState<any[]>([]);
   const [holidays, setHolidays] = useState<any[]>([]);
+  
+  // Request logs pagination state
+  const [requestsCurrentPage, setRequestsCurrentPage] = useState(1);
+  const [requestsTotalPages, setRequestsTotalPages] = useState(1);
+  const [requestsCount, setRequestsCount] = useState(0);
 
   // Remarks drawer state
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -105,7 +115,7 @@ export default function LeavePage() {
   const [remarksAction, setRemarksAction] = useState<'approve' | 'reject'>('approve');
 
   // Form State for applying leave
-  const [employeeName, setEmployeeName] = useState('Sarah Johnson');
+  const [employeeName, setEmployeeName] = useState('');
   const [leaveType, setLeaveType] = useState('Casual Leave');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -119,12 +129,18 @@ export default function LeavePage() {
   const [adjustType, setAdjustType] = useState('Casual');
   const [adjustValue, setAdjustValue] = useState(0);
 
-  const loadData = useCallback(async () => {
+  // Helper function to safely format pagination numbers
+  const formatPaginationNumber = (value: number | undefined | null): number => {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const loadData = useCallback(async (requestsPage: number = 1, balancesPage: number = 1) => {
     setIsLoading(true);
     try {
       const [leaves, balances, empRes, holidaysRes] = await Promise.all([
-        fetchAllLeaves(),
-        fetchLeaveBalances(),
+        fetchAllLeaves(requestsPage, 20),
+        fetchLeaveBalances(balancesPage, 20),
         api.get<{ success: boolean; employees: any[] }>('/api/admin/employees'),
         fetchAdminHolidays().catch(err => {
           console.error('Failed to fetch holidays:', err);
@@ -132,8 +148,16 @@ export default function LeavePage() {
         })
       ]);
 
-      setLeaveRequests(leaves);
-      setLeaveBalances(balances);
+      console.log('Loaded leaves:', leaves);
+      console.log('Loaded balances:', balances);
+      setLeaveRequests(leaves.leaves);
+      setRequestsCurrentPage(leaves.page);
+      setRequestsTotalPages(leaves.totalPages);
+      setRequestsCount(leaves.count);
+      setLeaveBalances(balances.balances);
+      setBalancesCurrentPage(balances.page);
+      setBalancesTotalPages(balances.totalPages);
+      setBalancesCount(balances.count);
 
       if (empRes.data.success && empRes.data.employees.length > 0) {
         setRealEmployees(empRes.data.employees);
@@ -154,6 +178,16 @@ export default function LeavePage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Auto-refresh leave requests every 30 seconds to show new submissions from mobile app
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing leave requests...');
+      loadData(requestsCurrentPage, balancesCurrentPage);
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [requestsCurrentPage, balancesCurrentPage, loadData]);
 
   // WebSocket connection for real-time leave balance updates
 
@@ -308,37 +342,64 @@ export default function LeavePage() {
     });
   }, [leaveRequests, searchTerm, filterType, filterStatus]);
 
-  // Chart data calculation
+  // Chart data calculation - dynamic based on actual leave data
   const chartData = useMemo(() => {
-    const monthlyStats: Record<string, { cl: number; sl: number; el: number }> = {
-      'Jan': { cl: 0, sl: 0, el: 0 },
-      'Feb': { cl: 0, sl: 0, el: 0 },
-      'Mar': { cl: 0, sl: 0, el: 0 },
-      'Apr': { cl: 0, sl: 0, el: 0 },
-      'May': { cl: 0, sl: 0, el: 0 },
-    };
+    const monthlyStats: Record<string, { cl: number; sl: number; el: number }> = {};
+    const currentYear = new Date().getFullYear();
+
+    // Initialize all months for the current year
+    const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    allMonths.forEach(month => {
+      monthlyStats[month] = { cl: 0, sl: 0, el: 0 };
+    });
 
     leaveRequests.forEach(req => {
-      if (req.status === 'Approved') {
+      if (req.status === 'Approved' || req.status === 'APPROVED') {
         const date = new Date(req.startDate);
-        if (!isNaN(date.getTime())) {
+        if (!isNaN(date.getTime()) && date.getFullYear() === currentYear) {
           const monthName = date.toLocaleDateString('en-US', { month: 'short' });
           if (monthlyStats[monthName]) {
             if (req.type === 'Casual Leave') monthlyStats[monthName].cl += 1;
             else if (req.type === 'Sick Leave') monthlyStats[monthName].sl += 1;
-            else monthlyStats[monthName].el += 1;
+            else if (req.type === 'Earned Leave') monthlyStats[monthName].el += 1;
+            else monthlyStats[monthName].el += 1; // Count other types as earned for visualization
           }
         }
       }
     });
 
-    return Object.entries(monthlyStats).map(([name, val]) => ({
-      name,
-      'Casual Leave': val.cl,
-      'Sick Leave': val.sl,
-      'Earned Leave': val.el
-    }));
+    // Filter to only show months that have data or are in the current year up to current month
+    const currentMonth = new Date().getMonth();
+    const result = Object.entries(monthlyStats)
+      .filter(([name, val]) => {
+        const monthIndex = allMonths.indexOf(name);
+        // Show months up to current month, or any month that has data
+        return monthIndex <= currentMonth || (val.cl > 0 || val.sl > 0 || val.el > 0);
+      })
+      .map(([name, val]) => ({
+        name,
+        'Casual Leave': val.cl,
+        'Sick Leave': val.sl,
+        'Earned Leave': val.el
+      }));
+
+    console.log('Chart data calculated:', result);
+    return result;
   }, [leaveRequests]);
+
+  // Filter upcoming holidays (future dates only)
+  const upcomingHolidays = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return holidays
+      .filter(h => {
+        const holidayDate = new Date(h.date);
+        holidayDate.setHours(0, 0, 0, 0);
+        return holidayDate >= today;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [holidays]);
 
   // Calendar visualizer matrix days (May 2026 for showcase)
   const calendarDays = useMemo(() => {
@@ -434,7 +495,7 @@ export default function LeavePage() {
       </motion.div>
 
       {/* Tab Navigation Controls */}
-      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-surface-variant/30 border border-border rounded-sm no-scrollbar max-w-3xl">
+      <motion.div variants={itemVariants} className="flex overflow-x-auto gap-2 p-1.5 bg-surface-variant/30 border border-border rounded-sm no-scrollbar w-fit max-w-full">
         {[
           { id: 'dashboard', label: 'Dashboard Overview', icon: BarChart3 },
           { id: 'requests', label: 'Request Logs', icon: FileText },
@@ -447,7 +508,7 @@ export default function LeavePage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2 px-5 py-3 rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-300 cursor-pointer",
+                "flex items-center gap-2 px-5 py-3 rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 whitespace-nowrap transition-all duration-300 cursor-pointer",
                 isSelected 
                   ? "bg-primary text-white border-primary/30" 
                   : "text-text-secondary hover:text-text-primary hover:bg-surface-variant/30"
@@ -470,13 +531,27 @@ export default function LeavePage() {
             exit={{ opacity: 0, y: -15 }}
             className="space-y-8"
           >
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="relative overflow-hidden border border-border bg-surface p-6 flex items-center gap-5 rounded-sm">
+                    <div className="w-14 h-14 rounded-sm bg-surface-variant animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-surface-variant rounded animate-pulse w-3/4" />
+                      <div className="h-8 bg-surface-variant rounded animate-pulse w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
             {/* KPI Counters Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
                 { label: 'Total Leave Requests', value: totalRequests, icon: FileText, color: 'from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500 dark:text-blue-400', glowBgClass: 'bg-blue-500/5 group-hover:bg-blue-500/10' },
                 { label: 'Pending Approvals', value: pendingRequests, icon: Clock, color: 'from-amber-500/20 to-amber-500/5 border-amber-500/20 text-amber-500 dark:text-amber-400', glowBgClass: 'bg-amber-500/5 group-hover:bg-amber-500/10' },
                 { label: 'Approved Requests', value: approvedRequests, icon: CheckCircle2, color: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500 dark:text-emerald-400', glowBgClass: 'bg-emerald-500/5 group-hover:bg-emerald-500/10' },
-                { label: 'Upcoming Holidays', value: holidays.length, icon: CalendarIcon, color: 'from-rose-500/20 to-rose-500/5 border-rose-500/20 text-rose-500 dark:text-rose-455', glowBgClass: 'bg-rose-500/5 group-hover:bg-rose-500/10' },
+                { label: 'Upcoming Holidays', value: upcomingHolidays.length, icon: CalendarIcon, color: 'from-rose-500/20 to-rose-500/5 border-rose-500/20 text-rose-500 dark:text-rose-455', glowBgClass: 'bg-rose-500/5 group-hover:bg-rose-500/10' },
               ].map((stat, i) => (
                 <div 
                   key={i}
@@ -509,20 +584,26 @@ export default function LeavePage() {
                 </div>
                 
                 <div className="h-72 w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                      <XAxis dataKey="name" stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                        labelStyle={{ color: 'var(--text-primary)', fontWeight: 'bold' }}
-                        itemStyle={{ color: 'var(--text-secondary)' }}
-                      />
-                      <Bar dataKey="Casual Leave" fill="#F4B860" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Sick Leave" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Earned Leave" fill="#3BA38B" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData}>
+                        <XAxis dataKey="name" stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          labelStyle={{ color: 'var(--text-primary)', fontWeight: 'bold' }}
+                          itemStyle={{ color: 'var(--text-secondary)' }}
+                        />
+                        <Bar dataKey="Casual Leave" fill="#F4B860" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="Sick Leave" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="Earned Leave" fill="#3BA38B" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-text-secondary text-xs font-semibold">
+                      No leave data available for chart
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -538,8 +619,8 @@ export default function LeavePage() {
                   </div>
 
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                    {holidays.length > 0 ? (
-                      holidays.slice(0, 4).map((h) => (
+                    {upcomingHolidays.length > 0 ? (
+                      upcomingHolidays.slice(0, 4).map((h) => (
                         <div key={h.id} className="flex items-center justify-between p-3.5 bg-surface-variant/40 border border-border/50 rounded-sm hover:border-rose-500/20 transition-all">
                           <div>
                             <span className="text-xs font-bold text-text-primary block">{h.name}</span>
@@ -571,6 +652,8 @@ export default function LeavePage() {
                 </button>
               </div>
             </div>
+            </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -604,9 +687,9 @@ export default function LeavePage() {
                   className="w-full sm:w-48 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-text-secondary hover:text-text-primary transition-all cursor-pointer"
                 >
                   <option value="All" className="bg-surface text-text-primary">All Leave Types</option>
-                  <option value="Casual Leave" className="bg-surface text-text-primary">Casual Leave</option>
-                  <option value="Sick Leave" className="bg-surface text-text-primary">Sick Leave</option>
-                  <option value="Earned Leave" className="bg-surface text-text-primary">Earned Leave</option>
+                  {LEAVE_TYPES_CONFIG.map(type => (
+                    <option key={type.id} value={type.name} className="bg-surface text-text-primary">{type.name}</option>
+                  ))}
                 </select>
 
                 <select 
@@ -636,7 +719,7 @@ export default function LeavePage() {
                 <TableSkeleton rows={4} columns={6} />
               </div>
             ) : (
-              <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-border bg-surface">
+              <div className="relative overflow-hidden rounded-sm border border-border bg-surface">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -727,7 +810,41 @@ export default function LeavePage() {
                     </tbody>
                   </table>
                 </div>
-              </motion.div>
+                
+                {/* Pagination Controls */}
+                <div className="p-4.5 bg-surface border border-border rounded-sm flex flex-col gap-3">
+                  <div className="text-xs text-text-secondary font-semibold text-center">
+                    Showing <span className="text-text-primary font-bold">{formatPaginationNumber(Math.min((requestsCurrentPage - 1) * 20 + 1, requestsCount))}</span> to{' '}
+                    <span className="text-text-primary font-bold">{formatPaginationNumber(Math.min(requestsCurrentPage * 20, requestsCount))}</span> of{' '}
+                    <span className="text-text-primary font-bold">{formatPaginationNumber(requestsCount)}</span> requests
+                  </div>
+                  {requestsTotalPages > 1 && (
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => loadData(requestsCurrentPage - 1, balancesCurrentPage)}
+                        disabled={requestsCurrentPage === 1}
+                        className="flex-1 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <ChevronLeft size={14} />
+                        Prev
+                      </button>
+                      <span className="text-xs text-text-secondary px-3 font-semibold shrink-0">
+                        Page {requestsCurrentPage} of {requestsTotalPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => loadData(requestsCurrentPage + 1, balancesCurrentPage)}
+                        disabled={requestsCurrentPage === requestsTotalPages}
+                        className="flex-1 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        Next
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </motion.div>
         )}
@@ -817,6 +934,40 @@ export default function LeavePage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              <div className="p-4.5 bg-surface border border-border rounded-sm flex flex-col gap-3">
+                <div className="text-xs text-text-secondary font-semibold text-center">
+                  Showing <span className="text-text-primary font-bold">{formatPaginationNumber(Math.min((balancesCurrentPage - 1) * 20 + 1, balancesCount))}</span> to{' '}
+                  <span className="text-text-primary font-bold">{formatPaginationNumber(Math.min(balancesCurrentPage * 20, balancesCount))}</span> of{' '}
+                  <span className="text-text-primary font-bold">{formatPaginationNumber(balancesCount)}</span> employees
+                </div>
+                {balancesTotalPages > 1 && (
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => loadData(requestsCurrentPage, balancesCurrentPage - 1)}
+                      disabled={balancesCurrentPage === 1}
+                      className="flex-1 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <ChevronLeft size={14} />
+                      Prev
+                    </button>
+                    <span className="text-xs text-text-secondary px-3 font-semibold shrink-0">
+                      Page {balancesCurrentPage} of {balancesTotalPages}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => loadData(requestsCurrentPage, balancesCurrentPage + 1)}
+                      disabled={balancesCurrentPage === balancesTotalPages}
+                      className="flex-1 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      Next
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -955,10 +1106,9 @@ export default function LeavePage() {
               onChange={(e) => setAdjustType(e.target.value)}
               className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
             >
-              <option value="Casual" className="bg-surface text-text-primary">Casual Leave (CL)</option>
-              <option value="Sick" className="bg-surface text-text-primary">Sick Leave (SL)</option>
-              <option value="Earned" className="bg-surface text-text-primary">Earned Leave (EL)</option>
-              <option value="Paid" className="bg-surface text-text-primary">Paid Leave (PL)</option>
+              {LEAVE_TYPES_CONFIG.map(type => (
+                <option key={type.id} value={type.name.replace(' Leave', '')} className="bg-surface text-text-primary">{type.name} ({type.code})</option>
+              ))}
             </select>
           </div>
 
@@ -1014,10 +1164,9 @@ export default function LeavePage() {
               onChange={(e) => setLeaveType(e.target.value)}
               className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
             >
-              <option value="Casual Leave" className="bg-surface text-text-primary">Casual Leave (CL)</option>
-              <option value="Sick Leave" className="bg-surface text-text-primary">Sick Leave (SL)</option>
-              <option value="Earned Leave" className="bg-surface text-text-primary">Earned Leave (EL)</option>
-              <option value="Paid Leave" className="bg-surface text-text-primary">Paid Leave (PL)</option>
+              {LEAVE_TYPES_CONFIG.map(type => (
+                <option key={type.id} value={type.name} className="bg-surface text-text-primary">{type.name} ({type.code})</option>
+              ))}
             </select>
           </div>
 

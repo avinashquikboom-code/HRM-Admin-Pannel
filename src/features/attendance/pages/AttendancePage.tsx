@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { 
   Calendar, 
@@ -147,6 +147,16 @@ const AttendancePage = () => {
   const [employeeAttendance, setEmployeeAttendance] = useState<any[]>([]);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
   const [isLoadingEmployeeData, setIsLoadingEmployeeData] = useState(false);
+
+  // Auto-refresh attendance every 30 seconds to show new submissions from mobile app
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing attendance data...');
+      refetch();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [refetch]);
 
 
   // Handle employee detail view

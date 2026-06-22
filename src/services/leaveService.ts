@@ -17,6 +17,10 @@ export interface LeaveRequest {
 
 export interface LeaveHistoryResponse {
   success: boolean;
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
   leaves: LeaveRequest[];
 }
 
@@ -31,6 +35,10 @@ export interface LeaveBalance {
 
 export interface LeaveBalancesResponse {
   success: boolean;
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
   balances: LeaveBalance[];
 }
 
@@ -60,21 +68,41 @@ export async function fetchEmployeeLeaves(employeeId: number): Promise<LeaveRequ
   }
 }
 
-export async function fetchAllLeaves(): Promise<LeaveRequest[]> {
+export async function fetchAllLeaves(page: number = 1, limit: number = 20): Promise<LeaveHistoryResponse> {
   try {
-    const { data } = await api.get<LeaveHistoryResponse>('/api/admin/leaves');
-    return data.leaves;
+    console.log('=== FRONTEND: Fetching all leaves ===');
+    console.log('API Endpoint: /api/admin/leaves');
+    console.log('Backend URL:', process.env.NEXT_PUBLIC_API_URL || 'https://api.voxiqai.com');
+    console.log('Pagination params:', { page, limit });
+    
+    const { data } = await api.get<LeaveHistoryResponse>('/api/admin/leaves', {
+      params: { page, limit }
+    });
+    
+    console.log('=== FRONTEND: API Response received ===');
+    console.log('Success:', data.success);
+    console.log('Number of leaves returned:', data.leaves?.length || 0);
+    console.log('Total count:', data.count);
+    console.log('Page:', data.page, 'of', data.totalPages);
+    console.log('=== FRONTEND: Fetch complete ===');
+    
+    return data;
   } catch (error) {
+    console.error('=== FRONTEND: API Error ===');
+    console.error('Error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     throw new Error(
       getApiErrorMessage(error, 'Failed to load leave requests. Please try again.')
     );
   }
 }
 
-export async function fetchLeaveBalances(): Promise<LeaveBalance[]> {
+export async function fetchLeaveBalances(page: number = 1, limit: number = 20): Promise<LeaveBalancesResponse> {
   try {
-    const { data } = await api.get<LeaveBalancesResponse>('/api/admin/leaves/balances');
-    return data.balances;
+    const { data } = await api.get<LeaveBalancesResponse>('/api/admin/leaves/balances', {
+      params: { page, limit }
+    });
+    return data;
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load leave balances. Please try again.')

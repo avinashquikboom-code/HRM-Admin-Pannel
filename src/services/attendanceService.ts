@@ -53,11 +53,14 @@ interface AttendanceHistoryResponse {
 
 export async function fetchTodayAttendance(): Promise<TodayAttendanceResponse> {
   try {
+    console.log('Fetching attendance from /api/admin/attendance/today');
     const { data } = await api.get<TodayAttendanceResponse>(
       '/api/admin/attendance/today'
     );
+    console.log('Attendance API response:', data);
     return data;
   } catch (error) {
+    console.error('Attendance API error:', error);
     throw new Error(
       getApiErrorMessage(error, 'Failed to load today attendance. Please try again.')
     );

@@ -175,11 +175,17 @@ export default function LocationPage() {
   );
 
   const [logs, setLogs] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [logsCount, setLogsCount] = useState(0);
 
-  const loadTelemetryLogs = useCallback(async () => {
+  const loadTelemetryLogs = useCallback(async (page: number = 1) => {
     try {
-      const data = await fetchLiveLocationLogs();
-      setLogs(data);
+      const data = await fetchLiveLocationLogs(page, 20);
+      setLogs(data.logs);
+      setCurrentPage(data.page);
+      setTotalPages(data.totalPages);
+      setLogsCount(data.count);
     } catch (err) {
       console.warn('[Telemetry Logs Fetch Error]:', err);
     }
@@ -1091,7 +1097,13 @@ export default function LocationPage() {
               />
             </div>
             <div className="lg:col-span-5">
-              <ActivityFeed logs={logs} onClear={handleClearLogs} />
+              <ActivityFeed 
+                logs={logs} 
+                onClear={handleClearLogs}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => loadTelemetryLogs(page)}
+              />
             </div>
           </motion.div>
 
