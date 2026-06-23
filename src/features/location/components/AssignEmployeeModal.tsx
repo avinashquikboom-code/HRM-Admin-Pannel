@@ -90,8 +90,8 @@ export default function AssignEmployeeModal({
 
   // Filter out users already assigned to this office
   const availableUsers = users.filter((user) => {
-    if (!user.employee) return true;
-    return user.employee.office?.id.toString() !== officeId;
+    if (!user.employee || !user.employee.office) return true;
+    return String(user.employee.office.id) !== String(officeId);
   });
 
   return (
