@@ -74,12 +74,16 @@ export default function RegisterUserWithRights({
   const [bonus, setBonus] = useState<number>(0);
 
   const [pfEnabled, setPfEnabled] = useState(false);
-  const [employeePfRate, setEmployeePfRate] = useState<number>(12.0);
-  const [employerPfRate, setEmployerPfRate] = useState<number>(12.0);
+  const [pfNumber, setPfNumber] = useState('');
 
   const [esicEnabled, setEsicEnabled] = useState(false);
-  const [employeeEsicRate, setEmployeeEsicRate] = useState<number>(0.75);
-  const [employerEsicRate, setEmployerEsicRate] = useState<number>(3.25);
+  const [esicNumber, setEsicNumber] = useState('');
+
+  // Identity Documents
+  const [aadharNumber, setAadharNumber] = useState('');
+  const [panNumber, setPanNumber] = useState('');
+  const [voterId, setVoterId] = useState('');
+  const [passportNumber, setPassportNumber] = useState('');
 
   const [departments, setDepartments] = useState<any[]>([]);
   const [offices, setOffices] = useState<any[]>([]);
@@ -184,6 +188,12 @@ export default function RegisterUserWithRights({
         payload.reportingManagerId = reportingManagerId || undefined;
         payload.shiftId = shiftId || undefined;
         payload.designationId = designationId || undefined;
+        payload.pfNumber = pfEnabled ? pfNumber.trim() : undefined;
+        payload.esicNumber = esicEnabled ? esicNumber.trim() : undefined;
+        payload.aadharNumber = aadharNumber.trim() || undefined;
+        payload.panNumber = panNumber.trim() || undefined;
+        payload.voterId = voterId.trim() || undefined;
+        payload.passportNumber = passportNumber.trim() || undefined;
         payload.salaryStructure = {
           basicSalary,
           hra,
@@ -193,11 +203,11 @@ export default function RegisterUserWithRights({
           incentive,
           bonus,
           pfEnabled,
-          employeePfRate,
-          employerPfRate,
+          employeePfRate: 12.0,
+          employerPfRate: 12.0,
           esicEnabled,
-          employeeEsicRate,
-          employerEsicRate,
+          employeeEsicRate: 0.75,
+          employerEsicRate: 3.25,
         };
       }
 
@@ -227,7 +237,13 @@ export default function RegisterUserWithRights({
       setIncentive(0);
       setBonus(0);
       setPfEnabled(false);
+      setPfNumber('');
       setEsicEnabled(false);
+      setEsicNumber('');
+      setAadharNumber('');
+      setPanNumber('');
+      setVoterId('');
+      setPassportNumber('');
 
       // Refresh additional data list to include the newly created employee in manager options
       loadAdditionalData();
@@ -466,6 +482,75 @@ export default function RegisterUserWithRights({
               </div>
             </div>
 
+            {/* Identity Documents */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Aadhaar Number */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  Aadhaar Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={12}
+                  value={aadharNumber}
+                  onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ''))}
+                  disabled={isLoading}
+                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                  placeholder="12-digit Aadhaar"
+                />
+              </div>
+
+              {/* PAN Number */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  PAN Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={panNumber}
+                  onChange={(e) => setPanNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  disabled={isLoading}
+                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                  placeholder="10-digit PAN (e.g. ABCDE1234F)"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Voter ID */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  Voter ID Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={voterId}
+                  onChange={(e) => setVoterId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  disabled={isLoading}
+                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                  placeholder="Voter ID"
+                />
+              </div>
+
+              {/* Passport Number */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  Passport Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={9}
+                  value={passportNumber}
+                  onChange={(e) => setPassportNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  disabled={isLoading}
+                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                  placeholder="Passport Number"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Designation */}
               <div>
@@ -672,31 +757,18 @@ export default function RegisterUserWithRights({
                     </button>
                   </div>
                   {pfEnabled && (
-                    <div className="grid grid-cols-2 gap-3 pt-1 animate-fadeIn">
-                      <div>
-                        <label className="block text-[9px] font-black text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
-                          Emp Rate (%)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={employeePfRate}
-                          onChange={(e) => setEmployeePfRate(parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 bg-surface-variant rounded-sm outline-none focus:ring-1 focus:ring-primary text-text-primary text-xs font-semibold"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-black text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
-                          Employer Rate (%)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={employerPfRate}
-                          onChange={(e) => setEmployerPfRate(parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 bg-slate-700 rounded-sm outline-none focus:ring-1 focus:ring-primary text-text-primary text-xs font-semibold"
-                        />
-                      </div>
+                    <div className="pt-1 animate-fadeIn">
+                      <label className="block text-[9px] font-black text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                        UAN (Universal Account Number)
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={12}
+                        value={pfNumber}
+                        onChange={(e) => setPfNumber(e.target.value.replace(/\D/g, ''))}
+                        className="w-full px-3 py-2 bg-surface-variant rounded-sm outline-none focus:ring-1 focus:ring-primary text-text-primary text-xs font-semibold"
+                        placeholder="12-digit UAN"
+                      />
                     </div>
                   )}
                 </div>
@@ -725,31 +797,18 @@ export default function RegisterUserWithRights({
                     </button>
                   </div>
                   {esicEnabled && (
-                    <div className="grid grid-cols-2 gap-3 pt-1 animate-fadeIn">
-                      <div>
-                        <label className="block text-[9px] font-black text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
-                          Emp Rate (%)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={employeeEsicRate}
-                          onChange={(e) => setEmployeeEsicRate(parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 bg-surface-variant rounded-sm outline-none focus:ring-1 focus:ring-primary text-text-primary text-xs font-semibold"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-black text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
-                          Employer Rate (%)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={employerEsicRate}
-                          onChange={(e) => setEmployerEsicRate(parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 bg-slate-700 rounded-sm outline-none focus:ring-1 focus:ring-primary text-text-primary text-xs font-semibold"
-                        />
-                      </div>
+                    <div className="pt-1 animate-fadeIn">
+                      <label className="block text-[9px] font-black text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                        IP (Insured Person) Number
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={10}
+                        value={esicNumber}
+                        onChange={(e) => setEsicNumber(e.target.value.replace(/\D/g, ''))}
+                        className="w-full px-3 py-2 bg-surface-variant rounded-sm outline-none focus:ring-1 focus:ring-primary text-text-primary text-xs font-semibold"
+                        placeholder="10-digit ESIC IP Number"
+                      />
                     </div>
                   )}
                 </div>
