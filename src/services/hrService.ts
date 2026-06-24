@@ -305,3 +305,40 @@ export async function downloadHRAttendanceReport(params?: {
   }
 }
 
+// ─── HR Payroll ─────────────────────────────────────────────────────────
+
+export interface HRPayrollStats {
+  totalEmployees: number;
+  activeEmployees: number;
+  totalMonthlyPayroll: number;
+  averageSalary: number;
+  currency: string;
+}
+
+export interface HRPayrollRun {
+  id: number;
+  officeName: string;
+  employeeCount: number;
+  lastRunDate: string;
+  status: string;
+  totalAmount: number;
+}
+
+export async function fetchHRPayrollStats(): Promise<HRPayrollStats> {
+  try {
+    const { data } = await api.get<{ data: HRPayrollStats }>('/api/hr/payroll/stats');
+    return data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch HR payroll stats.'));
+  }
+}
+
+export async function fetchHRPayrollRuns(): Promise<HRPayrollRun[]> {
+  try {
+    const { data } = await api.get<{ payrollRuns: HRPayrollRun[] }>('/api/hr/payroll/runs');
+    return data.payrollRuns;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch HR payroll runs.'));
+  }
+}
+

@@ -35,11 +35,15 @@ import {
   fetchLeaveOverview,
   fetchAttendanceTrend,
   fetchHRActivity,
+  fetchHRPayrollStats,
+  fetchHRPayrollRuns,
   HRStats,
   HRDepartmentOverview,
   HRLeaveOverview,
   HRAttendanceDay,
-  HRActivityItem
+  HRActivityItem,
+  HRPayrollStats,
+  HRPayrollRun
 } from '@/services/hrService';
 import HREmployeeManagement from '../components/HREmployeeManagement';
 
@@ -82,6 +86,8 @@ const HRManagementPage = () => {
   const [leaveData, setLeaveData] = useState<HRLeaveOverview | null>(null);
   const [attendanceTrend, setAttendanceTrend] = useState<HRAttendanceDay[]>([]);
   const [activityList, setActivityList] = useState<HRActivityItem[]>([]);
+  const [payrollStats, setPayrollStats] = useState<HRPayrollStats | null>(null);
+  const [payrollRuns, setPayrollRuns] = useState<HRPayrollRun[]>([]);
 
   const getMonthsArray = () => {
     const months = [];
@@ -134,13 +140,17 @@ const HRManagementPage = () => {
         deptRes,
         leaveRes,
         trendRes,
-        activityRes
+        activityRes,
+        payrollStatsRes,
+        payrollRunsRes
       ] = await Promise.all([
         fetchHRStats(),
         fetchDepartmentOverview(),
         fetchLeaveOverview(),
         fetchAttendanceTrend(),
-        fetchHRActivity()
+        fetchHRActivity(),
+        fetchHRPayrollStats(),
+        fetchHRPayrollRuns()
       ]);
 
       setStats(statsRes);
@@ -148,6 +158,8 @@ const HRManagementPage = () => {
       setLeaveData(leaveRes);
       setAttendanceTrend(trendRes);
       setActivityList(activityRes);
+      setPayrollStats(payrollStatsRes);
+      setPayrollRuns(payrollRunsRes);
     } catch (err: any) {
       console.error(err);
       setError(err?.message || 'Failed to communicate with the operational database.');
@@ -446,6 +458,68 @@ const HRManagementPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* 4. Payroll Overview Section */}
+            <motion.div
+              variants={itemVariants}
+              className="p-8 border border-border bg-surface relative overflow-hidden rounded-sm group hover:bg-surface-variant/10 transition-all duration-300"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-300" />
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="heading-2 text-text-primary flex items-center gap-2 text-lg font-black tracking-tight">
+                    <Award size={18} className="text-emerald-400" />
+                    Payroll Overview
+                  </h3>
+                  <p className="text-xs text-text-secondary mt-0.5">Monthly payroll statistics and recent runs</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="p-4 bg-surface-variant/30 border border-border rounded-sm">
+                  <p className="text-[9px] text-text-secondary font-black uppercase tracking-widest">Total Employees</p>
+                  <p className="text-2xl font-black text-text-primary mt-1">{payrollStats?.totalEmployees ?? 0}</p>
+                </div>
+                <div className="p-4 bg-surface-variant/30 border border-border rounded-sm">
+                  <p className="text-[9px] text-text-secondary font-black uppercase tracking-widest">Active Employees</p>
+                  <p className="text-2xl font-black text-text-primary mt-1">{payrollStats?.activeEmployees ?? 0}</p>
+                </div>
+                <div className="p-4 bg-surface-variant/30 border border-border rounded-sm">
+                  <p className="text-[9px] text-text-secondary font-black uppercase tracking-widest">Monthly Payroll</p>
+                  <p className="text-2xl font-black text-primary mt-1">₹{(payrollStats?.totalMonthlyPayroll ?? 0).toLocaleString('en-IN')}</p>
+                </div>
+                <div className="p-4 bg-surface-variant/30 border border-border rounded-sm">
+                  <p className="text-[9px] text-text-secondary font-black uppercase tracking-widest">Avg Salary</p>
+                  <p className="text-2xl font-black text-text-primary mt-1">₹{(payrollStats?.averageSalary ?? 0).toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4">
+                <h4 className="text-sm font-black text-text-primary mb-3">Recent Payroll Runs</h4>
+                {payrollRuns.length === 0 ? (
+                  <p className="text-xs text-text-secondary">No payroll runs found.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {payrollRuns.slice(0, 5).map((run) => (
+                      <div key={run.id} className="flex items-center justify-between p-3 bg-surface-variant/20 border border-border rounded-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                          <div>
+                            <p className="text-xs font-bold text-text-primary">{run.officeName}</p>
+                            <p className="text-[10px] text-text-secondary">{run.employeeCount} employees · {run.lastRunDate}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-primary">₹{run.totalAmount.toLocaleString('en-IN')}</p>
+                          <p className="text-[10px] font-bold text-text-secondary">{run.status}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
 
             {/* 5. HR Employee Management Section */}
             <motion.div
