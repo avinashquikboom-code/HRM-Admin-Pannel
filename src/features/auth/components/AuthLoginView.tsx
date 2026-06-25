@@ -29,11 +29,11 @@ const PORTAL_COPY: Record<
   { emailPlaceholder: string; buttonLabel: string }
 > = {
   super_admin: {
-    emailPlaceholder: 'Enter your work email',
+    emailPlaceholder: 'Enter your email or employee ID',
     buttonLabel: 'Enter Super HRM',
   },
   platform_admin: {
-    emailPlaceholder: 'Enter your work email',
+    emailPlaceholder: 'Enter your email or employee ID',
     buttonLabel: 'Enter HRM Admin',
   },
 };
