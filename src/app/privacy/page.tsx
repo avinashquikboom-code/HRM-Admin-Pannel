@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Hopkid HRM',
+  title: 'Privacy Policy | VoxiqAI HRM',
   description:
-    'Privacy Policy for Hopkid HRM — how we collect, use, share, and protect your data on our Human Resource Management platform.',
+    'Privacy Policy for VoxiqAI HRM — how we collect, use, share, and protect your data on our Human Resource Management platform.',
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'Privacy Policy | Hopkid HRM',
+    title: 'Privacy Policy | VoxiqAI HRM',
     description:
-      'How Hopkid HRM collects, uses, shares, and protects your data.',
+      'How VoxiqAI HRM collects, uses, shares, and protects your data.',
     type: 'article',
   },
 };
@@ -28,7 +28,7 @@ const SECTIONS: Section[] = [
     heading: 'Overview',
     body: (
       <p>
-        Hopkid HRM is a Human Resource Management platform that helps
+        VoxiqAI HRM is a Human Resource Management platform that helps
         organizations manage workforce operations digitally, including
         attendance, payroll, leave management, and employee communication.
       </p>
@@ -141,8 +141,8 @@ const SECTIONS: Section[] = [
       <p>
         Employees cannot always delete their accounts independently because
         accounts are managed by their employer. Contact your HR department or{' '}
-        <a href="mailto:support@hopkid.in" className="text-primary underline-offset-2 hover:underline">
-          support@hopkid.in
+        <a href="mailto:support@voxiqai.com" className="text-primary underline-offset-2 hover:underline">
+          support@voxiqai.com
         </a>
         .
       </p>
@@ -165,7 +165,7 @@ export default function PrivacyPolicyPage() {
       <div className="mx-auto w-full max-w-3xl px-6 py-12 sm:py-16">
         <header className="mb-10 border-b border-border pb-8">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Privacy Policy for Hopkid HRM
+            Privacy Policy for VoxiqAI HRM
           </h1>
           <p className="mt-3 text-sm text-text-secondary">
             <span className="font-semibold text-text-primary">
@@ -197,20 +197,20 @@ export default function PrivacyPolicyPage() {
           <p>
             <span className="font-semibold text-text-primary">Support:</span>{' '}
             <a
-              href="mailto:support@hopkid.in"
+              href="mailto:support@voxiqai.com"
               className="text-primary underline-offset-2 hover:underline"
             >
-              support@hopkid.in
+              support@voxiqai.com
             </a>
             <span className="mx-2 text-border">|</span>
             <span className="font-semibold text-text-primary">Website:</span>{' '}
             <a
-              href="https://hopkid.in"
+              href="https://voxiqai.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary underline-offset-2 hover:underline"
             >
-              hopkid.in
+              voxiqai.com
             </a>
           </p>
         </footer>
