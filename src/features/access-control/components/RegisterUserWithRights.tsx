@@ -84,6 +84,7 @@ export default function RegisterUserWithRights({
   const [panNumber, setPanNumber] = useState('');
   const [voterId, setVoterId] = useState('');
   const [passportNumber, setPassportNumber] = useState('');
+  const [showVoterId, setShowVoterId] = useState(false);
 
   const [departments, setDepartments] = useState<any[]>([]);
   const [offices, setOffices] = useState<any[]>([]);
@@ -339,7 +340,7 @@ export default function RegisterUserWithRights({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
-              required
+              required={selectedRole === 'EMPLOYEE'}
               minLength={8}
               inputClassName="input-dark border-border hover:border-border/80 focus:border-primary/50 shadow-none py-4 text-xs"
               placeholder="Password@123"
@@ -528,7 +529,7 @@ export default function RegisterUserWithRights({
                   maxLength={10}
                   value={voterId}
                   onChange={(e) => setVoterId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                  disabled={isLoading}
+                  disabled={isLoading || !showVoterId}
                   className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
                   placeholder="Voter ID"
                 />
@@ -549,6 +550,29 @@ export default function RegisterUserWithRights({
                   placeholder="Passport Number"
                 />
               </div>
+            </div>
+
+            {/* Voter ID Toggle Switch */}
+            <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-sm border border-border/60">
+              <div>
+                <p className="text-xs font-bold text-text-primary">Include Voter ID</p>
+                <p className="text-[10px] text-text-secondary mt-0.5 font-medium">Optional - Enable if voter ID is available</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVoterId(!showVoterId)}
+                className={cn(
+                  'w-10 h-5 rounded-sm transition-all relative shrink-0 cursor-pointer',
+                  showVoterId ? 'bg-primary' : 'bg-slate-700'
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute top-0.5 w-4 h-4 rounded-sm transition-all bg-white',
+                    showVoterId ? 'left-5.5' : 'left-0.5'
+                  )}
+                />
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

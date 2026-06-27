@@ -22,6 +22,13 @@ export interface AdminEmployeeDepartment {
   code: string | null;
 }
 
+export interface AdminEmployeeShift {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+}
+
 export interface AdminEmployee {
   id: string;
   employeeCode: string;
@@ -33,6 +40,7 @@ export interface AdminEmployee {
   office: AdminEmployeeOffice | null;
   user: AdminEmployeeUser | null;
   department: AdminEmployeeDepartment | null;
+  shift: AdminEmployeeShift | null;
 }
 
 export interface EmployeesResponse {
