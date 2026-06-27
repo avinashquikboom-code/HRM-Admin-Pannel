@@ -63,6 +63,8 @@ export default function RegisterUserWithRights({
   const [reportingManagerId, setReportingManagerId] = useState<number | undefined>();
   const [shiftId, setShiftId] = useState<number | undefined>();
   const [designationId, setDesignationId] = useState<number | undefined>();
+  const [workModeId, setWorkModeId] = useState('OFFICE');
+  const [shiftTypeId, setShiftTypeId] = useState('MORNING');
 
   // Salary Structure
   const [basicSalary, setBasicSalary] = useState<number>(0);
@@ -189,6 +191,8 @@ export default function RegisterUserWithRights({
         payload.reportingManagerId = reportingManagerId || undefined;
         payload.shiftId = shiftId || undefined;
         payload.designationId = designationId || undefined;
+        payload.workModeId = workModeId;
+        payload.shiftTypeId = shiftTypeId;
         payload.pfNumber = pfEnabled ? pfNumber.trim() : undefined;
         payload.esicNumber = esicEnabled ? esicNumber.trim() : undefined;
         payload.aadharNumber = aadharNumber.trim() || undefined;
@@ -229,6 +233,8 @@ export default function RegisterUserWithRights({
       setReportingManagerId(undefined);
       setShiftId(undefined);
       setDesignationId(undefined);
+      setWorkModeId('OFFICE');
+      setShiftTypeId('MORNING');
       
       setBasicSalary(0);
       setHra(0);
@@ -635,6 +641,49 @@ export default function RegisterUserWithRights({
                     {employeesList.map((emp) => (
                       <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.employeeCode})</option>
                     ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Work Mode */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  Work Mode
+                </label>
+                <div className="relative group">
+                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                  <select
+                    value={workModeId}
+                    onChange={(e) => setWorkModeId(e.target.value)}
+                    disabled={isLoading}
+                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                  >
+                    <option value="OFFICE">Office (On-site)</option>
+                    <option value="HYBRID">Hybrid</option>
+                    <option value="REMOTE">Remote</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Shift Type */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  Shift Type
+                </label>
+                <div className="relative group">
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                  <select
+                    value={shiftTypeId}
+                    onChange={(e) => setShiftTypeId(e.target.value)}
+                    disabled={isLoading}
+                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                  >
+                    <option value="MORNING">Morning Shift</option>
+                    <option value="EVENING">Evening Shift</option>
+                    <option value="NIGHT">Night Shift</option>
+                    <option value="ON_FIELD">On Field Shift</option>
                   </select>
                 </div>
               </div>

@@ -476,6 +476,8 @@ const EmployeesPage = () => {
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Department</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Shift</th>
+                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Work Mode</th>
+                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Shift Type</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -523,6 +525,12 @@ const EmployeesPage = () => {
                         </td>
                         <td className="px-8 py-4.5">
                           <span className="text-sm font-medium text-text-secondary">{employee.shift?.name ?? '—'}</span>
+                        </td>
+                        <td className="px-8 py-4.5">
+                          <span className="text-xs font-bold text-text-primary capitalize">{employee.workModeId?.toLowerCase() || 'office'}</span>
+                        </td>
+                        <td className="px-8 py-4.5">
+                          <span className="text-xs font-bold text-text-primary capitalize">{employee.shiftTypeId?.toLowerCase().replace('_', ' ') || 'morning'}</span>
                         </td>
                         <td className="px-8 py-4.5">
                           <span className={cn(
@@ -582,7 +590,7 @@ const EmployeesPage = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-8 py-12 text-center text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface-variant/30">
+                    <td colSpan={9} className="px-8 py-12 text-center text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface-variant/30">
                       No employees found.
                     </td>
                   </tr>

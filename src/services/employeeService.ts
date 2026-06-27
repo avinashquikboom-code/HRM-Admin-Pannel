@@ -36,6 +36,10 @@ export interface AdminEmployee {
   lastName: string;
   designation: string | null;
   status: string;
+  workMode: string;
+  shiftType: string;
+  workModeId: string;
+  shiftTypeId: string;
   officeId: string | null;
   office: AdminEmployeeOffice | null;
   user: AdminEmployeeUser | null;
@@ -265,6 +269,10 @@ export interface CreateEmployeeRequest {
   reportingManagerId?: number;
   shiftId?: number;
   designationId?: number;
+  workMode?: string;
+  shiftType?: string;
+  workModeId?: string;
+  shiftTypeId?: string;
   salaryStructure?: {
     basicSalary?: number;
     hra?: number;

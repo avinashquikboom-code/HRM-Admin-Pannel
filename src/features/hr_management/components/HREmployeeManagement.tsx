@@ -17,7 +17,9 @@ import {
   X,
   Check,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Clock,
+  Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -36,6 +38,7 @@ import {
   HREmployeesResponse
 } from '@/services/hrService';
 import { sendOfficeAssignedNotification } from '@/services/notificationService';
+import { fetchShifts } from '@/services/employeeService';
 
 interface HREmployeeManagementProps {
   className?: string;
@@ -75,8 +78,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
     esicNumber: '',
     isHandicapped: false,
     currentAddress: '',
-    permanentAddress: ''
+    permanentAddress: '',
+    workModeId: 'OFFICE',
+    shiftTypeId: 'MORNING',
+    shiftId: undefined,
+    effectiveFrom: ''
   });
+
+  const [shiftsList, setShiftsList] = useState<any[]>([]);
 
   const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
@@ -136,17 +145,20 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
 
   const loadOfficesAndDepartments = useCallback(async () => {
     try {
-      const [officesRes, departmentsRes] = await Promise.all([
+      const [officesRes, departmentsRes, shiftsRes] = await Promise.all([
         fetchHROffices(),
-        fetchHRDepartments()
+        fetchHRDepartments(),
+        fetchShifts()
       ]);
       setOffices(officesRes);
       setDepartments(departmentsRes);
+      setShiftsList(shiftsRes || []);
     } catch (err: any) {
-      console.error('Failed to load offices and departments:', err);
+      console.error('Failed to load offices, departments, and shifts:', err);
       // Set empty arrays to prevent UI from hanging
       setOffices([]);
       setDepartments([]);
+      setShiftsList([]);
     }
   }, []);
 
@@ -191,7 +203,11 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         esicNumber: '',
         isHandicapped: false,
         currentAddress: '',
-        permanentAddress: ''
+        permanentAddress: '',
+        workModeId: 'OFFICE',
+        shiftTypeId: 'MORNING',
+        shiftId: undefined,
+        effectiveFrom: ''
       });
       setSameAsPermanent(false);
       loadEmployees();
@@ -295,7 +311,11 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       esicNumber: employee.esicNumber || '',
       isHandicapped: employee.isHandicapped || false,
       currentAddress: employee.currentAddress || '',
-      permanentAddress: employee.permanentAddress || ''
+      permanentAddress: employee.permanentAddress || '',
+      workModeId: employee.workModeId || 'OFFICE',
+      shiftTypeId: employee.shiftTypeId || 'MORNING',
+      shiftId: employee.shift ? Number(employee.shift.id) : undefined,
+      effectiveFrom: ''
     });
     setSameAsPermanent(false);
     setIsEditModalOpen(true);
@@ -425,6 +445,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                 <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Contact</th>
                 <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Company</th>
                 <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Department</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Work Mode</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Shift Type</th>
+                <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Shift</th>
                 <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Status</th>
                 <th className="text-left p-4 text-xs font-black text-text-secondary uppercase tracking-wider">Actions</th>
               </tr>
@@ -449,13 +472,22 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       <div className="h-4 bg-surface-variant rounded w-1/4"></div>
                     </td>
                     <td className="p-4">
+                      <div className="h-4 bg-surface-variant rounded w-1/4"></div>
+                    </td>
+                    <td className="p-4">
+                      <div className="h-4 bg-surface-variant rounded w-1/4"></div>
+                    </td>
+                    <td className="p-4">
+                      <div className="h-4 bg-surface-variant rounded w-1/4"></div>
+                    </td>
+                    <td className="p-4">
                       <div className="h-4 bg-surface-variant rounded w-1/2"></div>
                     </td>
                   </tr>
                 ))
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-text-secondary">
+                  <td colSpan={9} className="p-8 text-center text-text-secondary">
                     <Users size={48} className="mx-auto mb-4 opacity-50" />
                     <p className="text-sm font-medium text-text-primary">No employees found</p>
                     <p className="text-xs mt-2 text-text-secondary">
@@ -524,6 +556,15 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                           ? (typeof employee.department === 'object' ? employee.department.name : employee.department) 
                           : 'Unassigned'}
                       </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-xs font-bold text-text-primary capitalize">{employee.workModeId?.toLowerCase() || 'office'}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-xs font-bold text-text-primary capitalize">{employee.shiftTypeId?.toLowerCase().replace('_', ' ') || 'morning'}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-xs font-bold text-text-primary">{employee.shift?.name || '—'}</span>
                     </td>
                     <td className="p-4">
                       <span className={cn(
@@ -832,6 +873,67 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Work Mode
+                    </label>
+                    <select
+                      value={formData.workModeId || 'OFFICE'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, workModeId: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="OFFICE">Office (On-site)</option>
+                      <option value="HYBRID">Hybrid</option>
+                      <option value="REMOTE">Remote</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Shift Type
+                    </label>
+                    <select
+                      value={formData.shiftTypeId || 'MORNING'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, shiftTypeId: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="MORNING">Morning Shift</option>
+                      <option value="EVENING">Evening Shift</option>
+                      <option value="NIGHT">Night Shift</option>
+                      <option value="ON_FIELD">On Field Shift</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Shift Allocation
+                    </label>
+                    <select
+                      value={formData.shiftId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, shiftId: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Shift</option>
+                      {shiftsList.map((shift) => (
+                        <option key={shift.id} value={shift.id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Assignment Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.effectiveFrom || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, effectiveFrom: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -1085,6 +1187,67 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                         <option key={dept.id} value={dept.id}>{dept.name}</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Work Mode
+                    </label>
+                    <select
+                      value={formData.workModeId || 'OFFICE'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, workModeId: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="OFFICE">Office (On-site)</option>
+                      <option value="HYBRID">Hybrid</option>
+                      <option value="REMOTE">Remote</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Shift Type
+                    </label>
+                    <select
+                      value={formData.shiftTypeId || 'MORNING'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, shiftTypeId: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="MORNING">Morning Shift</option>
+                      <option value="EVENING">Evening Shift</option>
+                      <option value="NIGHT">Night Shift</option>
+                      <option value="ON_FIELD">On Field Shift</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Shift Allocation
+                    </label>
+                    <select
+                      value={formData.shiftId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, shiftId: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Shift</option>
+                      {shiftsList.map((shift) => (
+                        <option key={shift.id} value={shift.id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Assignment Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.effectiveFrom || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, effectiveFrom: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    />
                   </div>
                 </div>
 

@@ -64,6 +64,11 @@ export interface HREmployee {
   fullName: string;
   designation: string;
   status: string;
+  workMode: string;
+  shiftType: string;
+  workModeId: string;
+  shiftTypeId: string;
+  shift?: { id: string; name: string; startTime: string; endTime: string; color?: string | null } | null;
   department: string | { id: string; name: string; code: string | null } | null;
   office: string | { id: string; name: string; latitude: number; longitude: number; idealRadiusMeters: number; maxPunchRadiusMeters: number } | null;
   email: string | null;
@@ -199,6 +204,12 @@ export interface CreateHREmployeeRequest {
   isHandicapped?: boolean;
   currentAddress?: string;
   permanentAddress?: string;
+  workMode?: string;
+  shiftType?: string;
+  workModeId?: string;
+  shiftTypeId?: string;
+  shiftId?: number;
+  effectiveFrom?: string;
 }
 
 export interface UpdateHREmployeeRequest {
@@ -215,6 +226,12 @@ export interface UpdateHREmployeeRequest {
   isHandicapped?: boolean;
   currentAddress?: string;
   permanentAddress?: string;
+  workMode?: string;
+  shiftType?: string;
+  workModeId?: string;
+  shiftTypeId?: string;
+  shiftId?: number;
+  effectiveFrom?: string;
 }
 
 export async function fetchHROffices(): Promise<HROffice[]> {
