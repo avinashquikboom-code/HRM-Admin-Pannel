@@ -226,6 +226,34 @@ export async function resetEmployeePassword(
   }
 }
 
+export async function updateEmployee(
+  employeeId: string,
+  employeeData: {
+    firstName?: string;
+    lastName?: string;
+    designation?: string;
+    status?: string;
+    officeId?: string;
+    departmentId?: string;
+    shiftId?: string;
+    workMode?: string;
+    shiftType?: string;
+  }
+): Promise<{ message: string; employee: any }> {
+  try {
+    const { data } = await api.put<{ message: string; employee: any }>(
+      `/api/admin/employees/${employeeId}`,
+      employeeData
+    );
+    return data;
+  } catch (error) {
+    console.error('Update employee API error:', error);
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to update employee. Please try again.')
+    );
+  }
+}
+
 export async function deleteEmployee(employeeId: string): Promise<{ message: string }> {
   try {
     const { data } = await api.delete<{ message: string }>(

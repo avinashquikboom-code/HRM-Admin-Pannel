@@ -6,7 +6,6 @@ import {
   MoreVertical,
   Mail,
   Building2,
-  X,
   Briefcase,
   Calendar,
   Users,
@@ -16,7 +15,8 @@ import {
   Lock,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Edit
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
@@ -25,6 +25,7 @@ import TableSkeleton from '@/components/TableSkeleton';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useEmployees } from '@/hooks/useEmployees';
 import ResetPasswordModal from '../components/ResetPasswordModal';
+import EditEmployeeModal from '../components/EditEmployeeModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 import { deleteEmployee, unassignEmployeeFromOffice, unassignEmployeeFromDepartment } from '@/services/employeeService';
@@ -83,6 +84,8 @@ const EmployeesPage = () => {
   const [unassignDeptConfirmOpen, setUnassignDeptConfirmOpen] = useState(false);
   const [employeeToUnassignDept, setEmployeeToUnassignDept] = useState<any>(null);
   const [isUnassigningDept, setIsUnassigningDept] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [employeeToEdit, setEmployeeToEdit] = useState<any>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -151,7 +154,12 @@ const EmployeesPage = () => {
     }
   };
 
-  const handleUnassignOffice = (employee: any) => {
+  const handleEditEmployee = (employee: any) => {
+    setEmployeeToEdit(employee);
+    setEditModalOpen(true);
+  };
+
+  const handleUnassignAll = (employee: any) => {
     setEmployeeToUnassign(employee);
     setUnassignConfirmOpen(true);
   };
@@ -171,6 +179,11 @@ const EmployeesPage = () => {
       setUnassignConfirmOpen(false);
       setEmployeeToUnassign(null);
     }
+  };
+
+  const handleUnassignOffice = (employee: any) => {
+    setEmployeeToUnassign(employee);
+    setUnassignConfirmOpen(true);
   };
 
   const handleUnassignDepartment = (employee: any) => {
@@ -300,7 +313,13 @@ const EmployeesPage = () => {
           <div className="p-5 bg-surface border border-border rounded-sm flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">All Employees</h3>
-              <span className="text-xs text-text-secondary font-semibold">{filteredEmployees.length} total</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-text-secondary font-semibold">{filteredEmployees.length} total</span>
+                <Link href="/users/register" className="btn-primary px-4 py-2 rounded-sm text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2">
+                  <UserPlus size={16} />
+                  Add Employee
+                </Link>
+              </div>
             </div>
             <div className="relative w-full group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-hover:text-primary transition-colors w-4 h-4" />
@@ -335,26 +354,13 @@ const EmployeesPage = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {employee.office && (
-                        <button
-                          onClick={() => handleUnassignOffice(employee)}
-                          disabled={isUnassigning === employee.id}
-                          className="p-2.5 hover:bg-amber-500/10 rounded-sm text-text-secondary hover:text-amber-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Unassign Office"
-                        >
-                          <X size={18} />
-                        </button>
-                      )}
-                      {employee.department && (
-                        <button
-                          onClick={() => handleUnassignDepartment(employee)}
-                          disabled={isUnassigningDept === employee.id}
-                          className="p-2.5 hover:bg-purple-500/10 rounded-sm text-text-secondary hover:text-purple-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Unassign Department"
-                        >
-                          <Briefcase size={18} />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleEditEmployee(employee)}
+                        className="p-2.5 hover:bg-blue-500/10 rounded-sm text-text-secondary hover:text-blue-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95"
+                        title="Edit Employee"
+                      >
+                        <Edit size={18} />
+                      </button>
                       <button
                         onClick={() => handleResetPassword(employee)}
                         className="p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary border border-border shrink-0 cursor-pointer transition-all active:scale-95"
@@ -455,15 +461,21 @@ const EmployeesPage = () => {
               <p className="text-xs text-text-secondary mt-1">Manage, verify, and search employee registry details</p>
             </div>
             
-            <div className="relative w-80 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-hover:text-primary transition-colors w-4 h-4" />
-              <input 
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search employees..." 
-                className="w-full pl-11 pr-4 py-2.5 bg-surface-variant border border-border hover:border-border/80 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-text-primary placeholder-text-secondary/50"
-              />
+            <div className="flex items-center gap-3">
+              <div className="relative w-80 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-hover:text-primary transition-colors w-4 h-4" />
+                <input 
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search employees..." 
+                  className="w-full pl-11 pr-4 py-2.5 bg-surface-variant border border-border hover:border-border/80 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-text-primary placeholder-text-secondary/50"
+                />
+              </div>
+              <Link href="/users/register" className="btn-primary px-4 py-2.5 rounded-sm text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2 shrink-0">
+                <UserPlus size={16} />
+                Add Employee
+              </Link>
             </div>
           </div>
 
@@ -548,26 +560,13 @@ const EmployeesPage = () => {
                         </td>
                         <td className="px-8 py-4.5 text-right">
                           <div className="flex justify-end gap-2">
-                            {employee.office && (
-                              <button
-                                onClick={() => handleUnassignOffice(employee)}
-                                disabled={isUnassigning === employee.id}
-                                className="p-2.5 hover:bg-amber-500/10 rounded-sm text-text-secondary hover:text-amber-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Unassign Office"
-                              >
-                                <X size={18} />
-                              </button>
-                            )}
-                            {employee.department && (
-                              <button
-                                onClick={() => handleUnassignDepartment(employee)}
-                                disabled={isUnassigningDept === employee.id}
-                                className="p-2.5 hover:bg-purple-500/10 rounded-sm text-text-secondary hover:text-purple-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Unassign Department"
-                              >
-                                <Briefcase size={18} />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleEditEmployee(employee)}
+                              className="p-2.5 hover:bg-blue-500/10 rounded-sm text-text-secondary hover:text-blue-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer"
+                              title="Edit Employee"
+                            >
+                              <Edit size={18} />
+                            </button>
                             <button
                               onClick={() => handleResetPassword(employee)}
                               className="p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all duration-300 border border-border active:scale-95 cursor-pointer"
@@ -712,6 +711,16 @@ const EmployeesPage = () => {
       message={employeeToUnassignDept ? `Are you sure you want to unassign "${employeeToUnassignDept.firstName} ${employeeToUnassignDept.lastName}" from "${employeeToUnassignDept.department?.name}"?` : 'Are you sure you want to unassign this employee from their department?'}
       confirmText="Unassign"
       cancelText="Cancel"
+    />
+
+    <EditEmployeeModal
+      isOpen={editModalOpen}
+      employee={employeeToEdit}
+      onClose={() => setEditModalOpen(false)}
+      onUpdated={() => {
+        refetch();
+        setEditModalOpen(false);
+      }}
     />
     </>
   );
