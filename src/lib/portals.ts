@@ -18,11 +18,19 @@ export const SUPER_ADMIN_ROUTES = [
   `${SUPER_ADMIN_PREFIX}/settings`,
 ];
 
+// Paths that are public to everyone, including signed-in users (legal pages,
+// etc.). Unlike auth pages, a logged-in visitor is NOT redirected away from
+// these.
+export const ALWAYS_PUBLIC_PATHS = [
+  '/privacy',
+];
+
 export const PUBLIC_PATHS = [
   '/',
   PLATFORM_LOGIN_PATH,
   SUPER_ADMIN_LOGIN_PATH,
   '/forgot-password',
+  ...ALWAYS_PUBLIC_PATHS,
 ];
 
 export function isSuperAdminPath(pathname: string) {
@@ -44,6 +52,11 @@ export function isEmployeePath(pathname: string) {
 
 export function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.includes(pathname);
+}
+
+// Public to everyone, including signed-in users (no redirect away).
+export function isAlwaysPublicPath(pathname: string) {
+  return ALWAYS_PUBLIC_PATHS.includes(pathname);
 }
 
 export function getLoginPathForPortal(portal: PortalType) {

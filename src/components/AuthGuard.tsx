@@ -7,6 +7,7 @@ import { canAccessPath } from '@/lib/roleAccess';
 import {
   getLoginPathForPortal,
   isPublicPath,
+  isAlwaysPublicPath,
   isSuperAdminPath,
   isEmployeePath,
   type PortalType,
@@ -52,6 +53,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     [pathname]
   );
   const publicPath = isPublicPath(pathname);
+  const alwaysPublicPath = isAlwaysPublicPath(pathname);
   const [isReady, setIsReady] = useState(false);
 
   useLayoutEffect(() => {
@@ -100,6 +102,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     if (!activePortal) return;
 
+    // Legal/always-public pages stay accessible to signed-in users too.
+    if (alwaysPublicPath) return;
+
     if (publicPath) {
       if (pathname !== landingPath) {
         router.replace(landingPath);
@@ -112,6 +117,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [
     activePortal,
+    alwaysPublicPath,
     isLoggedInForRoute,
     isReady,
     landingPath,
@@ -130,7 +136,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     return <AuthLoader message="Redirecting to login..." />;
   }
 
-  if (isLoggedInForRoute && publicPath && pathname !== landingPath) {
+  if (
+    isLoggedInForRoute &&
+    publicPath &&
+    !alwaysPublicPath &&
+    pathname !== landingPath
+  ) {
     return <AuthLoader message="Redirecting..." />;
   }
 
