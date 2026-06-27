@@ -9,9 +9,6 @@ import {
   RefreshCw,
   Save,
   Settings,
-  Calendar,
-  Clock,
-  Users,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { api, getApiErrorMessage } from '@/lib/api';
@@ -27,9 +24,6 @@ import NotificationsSettingsPanel, {
   defaultNotificationPreferences,
 } from '@/features/settings/panels/NotificationsSettingsPanel';
 import ApiSettingsPanel from '@/features/settings/panels/ApiSettingsPanel';
-import AttendancePolicyPanel from '@/features/settings/panels/AttendancePolicyPanel';
-import LeavePolicyPanel from '@/features/settings/panels/LeavePolicyPanel';
-import HolidaysPanel from '@/features/settings/panels/HolidaysPanel';
 import {
   fetchSettings,
   updateSettings,
@@ -43,30 +37,11 @@ const tabs: SettingsTab[] = [
     description: 'Platform name, email, and locale',
     icon: Globe,
   },
-
   {
     id: 'security',
     label: 'Security',
     description: 'Authentication and audit policies',
     icon: Shield,
-  },
-  {
-    id: 'attendance-policy',
-    label: 'Attendance Policy',
-    description: 'Check-in rules, working hours, and thresholds',
-    icon: Clock,
-  },
-  {
-    id: 'leave-policy',
-    label: 'Leave Policy',
-    description: 'Leave types, limits, and approval rules',
-    icon: Users,
-  },
-  {
-    id: 'holidays',
-    label: 'Holidays',
-    description: 'Company holidays and calendar configuration',
-    icon: Calendar,
   },
   {
     id: 'notifications',
@@ -148,19 +123,7 @@ export default function SettingsPage() {
     handleSaveSettings('company', newSettings.company);
   };
 
-  const updateAttendanceSettings = (updates: Partial<AdminSettings['attendance']>) => {
-    if (!settings) return;
-    const newSettings = { ...settings, attendance: { ...settings.attendance, ...updates } };
-    setSettings(newSettings);
-    handleSaveSettings('attendance', newSettings.attendance);
-  };
 
-  const updateLeaveSettings = (updates: Partial<AdminSettings['leave']>) => {
-    if (!settings) return;
-    const newSettings = { ...settings, leave: { ...settings.leave, ...updates } };
-    setSettings(newSettings);
-    handleSaveSettings('leave', newSettings.leave);
-  };
 
   const updateNotificationSettings = (updates: Partial<AdminSettings['notifications']>) => {
     if (!settings) return;
@@ -248,56 +211,7 @@ export default function SettingsPage() {
             onIpRestrictionChange={(value) => console.log('IP restriction update:', value)}
           />
         );
-      case 'attendance-policy':
-        return (
-          <AttendancePolicyPanel
-            lateThreshold={currentSettings.attendance.lateThreshold}
-            halfDayThreshold={currentSettings.attendance.halfDayThreshold}
-            absentThreshold={currentSettings.attendance.absentThreshold}
-            autoMarkAbsent={currentSettings.attendance.autoMarkAbsent}
-            enableGeofence={currentSettings.attendance.enableGeofence ?? true}
-            enablePunchOutGeofence={currentSettings.attendance.enablePunchOutGeofence ?? false}
-            workingHours={currentSettings.company.workingHours}
-            workingDays={currentSettings.company.workingDays}
-            fullDayMinHours={currentSettings.attendance.fullDayMinHours ?? 8}
-            halfDayMinHours={currentSettings.attendance.halfDayMinHours ?? 4}
-            graceMinutes={currentSettings.attendance.graceMinutes ?? 15}
-            onLateThresholdChange={(value) => updateAttendanceSettings({ lateThreshold: value })}
-            onHalfDayThresholdChange={(value) => updateAttendanceSettings({ halfDayThreshold: value })}
-            onAbsentThresholdChange={(value) => updateAttendanceSettings({ absentThreshold: value })}
-            onAutoMarkAbsentChange={(value) => updateAttendanceSettings({ autoMarkAbsent: value })}
-            onEnableGeofenceChange={(value) => updateAttendanceSettings({ enableGeofence: value })}
-            onEnablePunchOutGeofenceChange={(value) => updateAttendanceSettings({ enablePunchOutGeofence: value })}
-            onWorkingHoursChange={(start, end) => updateCompanySettings({ workingHours: { start, end } })}
-            onWorkingDaysChange={(days) => updateCompanySettings({ workingDays: days })}
-            onFullDayMinHoursChange={(value) => updateAttendanceSettings({ fullDayMinHours: value })}
-            onHalfDayMinHoursChange={(value) => updateAttendanceSettings({ halfDayMinHours: value })}
-            onGraceMinutesChange={(value) => updateAttendanceSettings({ graceMinutes: value })}
-          />
-        );
-      case 'leave-policy':
-        return (
-          <LeavePolicyPanel
-            leaveTypes={currentSettings.leave.leaveTypes}
-            onLeaveTypesChange={(newLeaveTypes) => {
-              const casual = newLeaveTypes.find(lt => lt.code === 'CL')?.daysPerYear ?? 12;
-              const sick = newLeaveTypes.find(lt => lt.code === 'SL')?.daysPerYear ?? 10;
-              const earned = newLeaveTypes.find(lt => lt.code === 'EL')?.daysPerYear ?? 15;
-              updateLeaveSettings({
-                leaveTypes: newLeaveTypes,
-                casualLeavePerYear: casual,
-                sickLeavePerYear: sick,
-                earnedLeavePerYear: earned,
-              });
-            }}
-            requireApproval={currentSettings.leave.requireApproval}
-            maxConsecutiveDays={currentSettings.leave.maxConsecutiveDays}
-            onRequireApprovalChange={(value) => updateLeaveSettings({ requireApproval: value })}
-            onMaxConsecutiveDaysChange={(value) => updateLeaveSettings({ maxConsecutiveDays: value })}
-          />
-        );
-      case 'holidays':
-        return <HolidaysPanel />;
+
       case 'notifications':
         return (
           <NotificationsSettingsPanel
