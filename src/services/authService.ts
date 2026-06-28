@@ -96,15 +96,25 @@ export async function loginRequest(
   credentials: LoginRequest,
   portal: PortalType
 ) {
-  // Use dev auth for local development when credentials match
-  if (matchesDevCredentialsForPortal(credentials.email, credentials.password, portal)) {
-    const devSession = createDevAuthSession(portal);
-    return devSession;
-  }
-
+  // Always try the real API first so we get a valid JWT token
   try {
     return await tryApiLogin(credentials, portal);
   } catch (apiError) {
+    // If the backend is completely unreachable (network error, not a 4xx/5xx),
+    // fall back to dev auth for offline local development.
+    const isNetworkError =
+      apiError instanceof Error &&
+      ('code' in apiError || apiError.message === 'Network Error') &&
+      !(apiError as { response?: unknown }).response;
+
+    if (
+      isNetworkError &&
+      matchesDevCredentialsForPortal(credentials.email, credentials.password, portal)
+    ) {
+      console.warn('[AUTH] Backend unreachable — using offline dev auth fallback');
+      return createDevAuthSession(portal);
+    }
+
     throw new Error(
       getApiErrorMessage(
         apiError,
