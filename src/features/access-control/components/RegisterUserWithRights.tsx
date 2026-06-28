@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, UserPlus, Loader2, RotateCcw, Building, User, Phone, Calendar as CalendarIcon, Briefcase, Clock, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, UserPlus, Loader2, RotateCcw, Building, User, Phone, Calendar as CalendarIcon, Briefcase, Clock, ShieldCheck, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
 import { type RegisterRole } from '@/services/authService';
 import {
@@ -11,6 +11,7 @@ import {
   fetchShifts,
   fetchDesignations
 } from '@/services/employeeService';
+import { fetchWorkModes, WorkMode } from '@/services/workModeService';
 import { getAuthSession } from '@/lib/authStorage';
 import type { PortalType } from '@/lib/portals';
 import { cn } from '@/utils/cn';
@@ -93,6 +94,7 @@ export default function RegisterUserWithRights({
   const [employeesList, setEmployeesList] = useState<any[]>([]);
   const [shiftsList, setShiftsList] = useState<any[]>([]);
   const [designationsList, setDesignationsList] = useState<any[]>([]);
+  const [workModesList, setWorkModesList] = useState<WorkMode[]>([]);
 
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
   const [isLoadingOffices, setIsLoadingOffices] = useState(false);
@@ -103,6 +105,8 @@ export default function RegisterUserWithRights({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = selectedRole === 'EMPLOYEE' ? 6 : 2;
 
   const loadDepartments = async () => {
     setIsLoadingDepartments(true);
@@ -158,6 +162,13 @@ export default function RegisterUserWithRights({
     } finally {
       setIsLoadingDesignations(false);
     }
+
+    try {
+      const workModesRes = await fetchWorkModes();
+      setWorkModesList(workModesRes || []);
+    } catch (err) {
+      console.error('Failed to load work modes:', err);
+    }
   };
 
   useEffect(() => {
@@ -165,6 +176,20 @@ export default function RegisterUserWithRights({
     loadOffices();
     loadAdditionalData();
   }, []);
+
+  const handleNext = () => {
+    setError('');
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    setError('');
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -254,6 +279,7 @@ export default function RegisterUserWithRights({
 
       // Refresh additional data list to include the newly created employee in manager options
       loadAdditionalData();
+      setCurrentStep(1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
     } finally {
@@ -266,6 +292,46 @@ export default function RegisterUserWithRights({
       <div className="mb-6">
         <h2 className="text-xl font-black text-text-primary tracking-tight">{copy.title}</h2>
         <p className="text-xs text-text-secondary mt-1.5 font-medium">{copy.description}</p>
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          {Array.from({ length: totalSteps }, (_, i) => (
+            <div key={i} className="flex items-center">
+              <div className="flex flex-col items-center">
+                <div
+                  className={cn(
+                    'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all',
+                    currentStep > i + 1
+                      ? 'bg-primary text-white'
+                      : currentStep === i + 1
+                      ? 'bg-primary text-white ring-4 ring-primary/20'
+                      : 'bg-surface-variant text-text-secondary'
+                  )}
+                >
+                  {currentStep > i + 1 ? <CheckCircle size={16} /> : i + 1}
+                </div>
+                <span className="text-[10px] mt-1 font-semibold text-text-secondary">
+                  {i === 0 && 'Basic Info'}
+                  {i === 1 && selectedRole === 'EMPLOYEE' ? 'Role & Dept' : 'Assignment'}
+                  {i === 2 && selectedRole === 'EMPLOYEE' && 'Contact & ID'}
+                  {i === 3 && selectedRole === 'EMPLOYEE' && 'Work Assignment'}
+                  {i === 4 && selectedRole === 'EMPLOYEE' && 'Salary'}
+                  {i === 5 && selectedRole === 'EMPLOYEE' && 'Deductions'}
+                </span>
+              </div>
+              {i < totalSteps - 1 && (
+                <div
+                  className={cn(
+                    'w-12 h-0.5 mx-2 transition-all',
+                    currentStep > i + 1 ? 'bg-primary' : 'bg-surface-variant'
+                  )}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -281,418 +347,489 @@ export default function RegisterUserWithRights({
           </div>
         )}
 
-        {/* First Name & Last Name */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-              First Name
-            </label>
-            <div className="relative group">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                disabled={isLoading}
-                className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
-                placeholder="John"
-              />
-            </div>
-          </div>
+        <AnimatePresence mode="wait">
+          {/* Step 1: Basic Info */}
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
+            >
+              {/* First Name & Last Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    First Name
+                  </label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
+                      placeholder="John"
+                    />
+                  </div>
+                </div>
 
-          <div>
-            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-              Last Name
-            </label>
-            <div className="relative group">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                disabled={isLoading}
-                className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
-                placeholder="Doe"
-              />
-            </div>
-          </div>
-        </div>
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Last Name
+                  </label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+              </div>
 
-        {/* Email & Password */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-              Email Address *
-            </label>
-            <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                required
-                className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
-                placeholder="newuser@company.com"
-              />
-            </div>
-          </div>
+              {/* Email & Password */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Email Address *
+                  </label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                      required
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
+                      placeholder="newuser@company.com"
+                    />
+                  </div>
+                </div>
 
-          <div>
-            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-              Account Password *
-            </label>
-            <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              required={selectedRole === 'EMPLOYEE'}
-              minLength={8}
-              inputClassName="input-dark border-border hover:border-border/80 focus:border-primary/50 shadow-none py-4 text-xs"
-              placeholder="Password@123"
-              autoComplete="new-password"
-            />
-          </div>
-        </div>
-
-        {/* Role & Department */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {allowRoleSelection && (
-            <div>
-              <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                User Role
-              </label>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as RegisterRole)}
-                disabled={isLoading}
-                className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-              >
-                {managerPortal === 'super_admin' ? (
-                  <>
-                    <option value="HR">HR Manager</option>
-                    <option value="ADMIN">Admin</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="EMPLOYEE">Employee</option>
-                    <option value="HR">HR Manager</option>
-                  </>
-                )}
-              </select>
-            </div>
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Account Password *
+                  </label>
+                  <PasswordInput
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    required={selectedRole === 'EMPLOYEE'}
+                    minLength={8}
+                    inputClassName="input-dark border-border hover:border-border/80 focus:border-primary/50 shadow-none py-4 text-xs"
+                    placeholder="Password@123"
+                    autoComplete="new-password"
+                  />
+                </div>
+              </div>
+            </motion.div>
           )}
 
-          <div className={cn(!allowRoleSelection && 'sm:col-span-2')}>
-            <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-              Department *
-            </label>
-            <div className="relative group">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-              <select
-                value={departmentId || ''}
-                onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
-                disabled={isLoading || isLoadingDepartments}
-                required
-                className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-              >
-                <option value="">Select Department</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>{dept.name}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={loadDepartments}
-                disabled={isLoadingDepartments}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
-                title="Refresh departments"
-              >
-                <RotateCcw size={14} className={isLoadingDepartments ? 'animate-spin' : ''} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Office Assignment (strictly required for Employee role for mobile login) */}
-        <div>
-          <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-            Office / Branch Allotment {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
-          </label>
-          <div className="relative group">
-            <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-            <select
-              value={officeId || ''}
-              onChange={(e) => setOfficeId(e.target.value ? parseInt(e.target.value) : undefined)}
-              disabled={isLoading || isLoadingOffices}
-              required={selectedRole === 'EMPLOYEE'}
-              className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+          {/* Step 2: Role & Department / Assignment */}
+          {currentStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
             >
-              <option value="">Select Office Location</option>
-              {offices.map((off) => (
-                <option key={off.id} value={off.id}>{off.name}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={loadOffices}
-              disabled={isLoadingOffices}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
-              title="Refresh offices"
-            >
-              <RotateCcw size={14} className={isLoadingOffices ? 'animate-spin' : ''} />
-            </button>
-          </div>
-        </div>
-
-        {selectedRole === 'EMPLOYEE' && (
-          <div className="space-y-5 pt-4 border-t border-border/60">
-            <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
-              <ShieldCheck size={16} />
-              Employee Details & Assignment
-            </h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Mobile Number */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Mobile Number
-                </label>
-                <div className="relative group">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <input
-                    type="tel"
-                    value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value)}
-                    disabled={isLoading}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
-                    placeholder="e.g. +91 9876543210"
-                  />
-                </div>
-              </div>
-
-              {/* Joining Date */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Joining Date
-                </label>
-                <div className="relative group">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <input
-                    type="date"
-                    value={joiningDate}
-                    onChange={(e) => setJoiningDate(e.target.value)}
-                    disabled={isLoading}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Identity Documents */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Aadhaar Number */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Aadhaar Number
-                </label>
-                <input
-                  type="text"
-                  maxLength={12}
-                  value={aadharNumber}
-                  onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ''))}
-                  disabled={isLoading}
-                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
-                  placeholder="12-digit Aadhaar"
-                />
-              </div>
-
-              {/* PAN Number */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  PAN Number
-                </label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  value={panNumber}
-                  onChange={(e) => setPanNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                  disabled={isLoading}
-                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
-                  placeholder="10-digit PAN (e.g. ABCDE1234F)"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Voter ID */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Voter ID Number
-                </label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  value={voterId}
-                  onChange={(e) => setVoterId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                  disabled={isLoading || !showVoterId}
-                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
-                  placeholder="Voter ID"
-                />
-              </div>
-
-              {/* Passport Number */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Passport Number
-                </label>
-                <input
-                  type="text"
-                  maxLength={9}
-                  value={passportNumber}
-                  onChange={(e) => setPassportNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                  disabled={isLoading}
-                  className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
-                  placeholder="Passport Number"
-                />
-              </div>
-            </div>
-
-            {/* Voter ID Toggle Switch */}
-            <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-sm border border-border/60">
-              <div>
-                <p className="text-xs font-bold text-text-primary">Include Voter ID</p>
-                <p className="text-[10px] text-text-secondary mt-0.5 font-medium">Optional - Enable if voter ID is available</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowVoterId(!showVoterId)}
-                className={cn(
-                  'w-10 h-5 rounded-sm transition-all relative shrink-0 cursor-pointer',
-                  showVoterId ? 'bg-primary' : 'bg-slate-700'
+              {/* Role & Department */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {allowRoleSelection && (
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                      User Role
+                    </label>
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value as RegisterRole)}
+                      disabled={isLoading}
+                      className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      {managerPortal === 'super_admin' ? (
+                        <>
+                          <option value="HR">HR Manager</option>
+                          <option value="ADMIN">Admin</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="EMPLOYEE">Employee</option>
+                          <option value="HR">HR Manager</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
                 )}
-              >
-                <span
+
+                <div className={cn(!allowRoleSelection && 'sm:col-span-2')}>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Department *
+                  </label>
+                  <div className="relative group">
+                    <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={departmentId || ''}
+                      onChange={(e) => setDepartmentId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingDepartments}
+                      required
+                      className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={loadDepartments}
+                      disabled={isLoadingDepartments}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Refresh departments"
+                    >
+                      <RotateCcw size={14} className={isLoadingDepartments ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Office Assignment */}
+              <div>
+                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                  Office / Branch Allotment {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
+                </label>
+                <div className="relative group">
+                  <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                  <select
+                    value={officeId || ''}
+                    onChange={(e) => setOfficeId(e.target.value ? parseInt(e.target.value) : undefined)}
+                    disabled={isLoading || isLoadingOffices}
+                    required={selectedRole === 'EMPLOYEE'}
+                    className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                  >
+                    <option value="">Select Office Location</option>
+                    {offices.map((off) => (
+                      <option key={off.id} value={off.id}>{off.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={loadOffices}
+                    disabled={isLoadingOffices}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+                    title="Refresh offices"
+                  >
+                    <RotateCcw size={14} className={isLoadingOffices ? 'animate-spin' : ''} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Contact & ID (Employee only) */}
+          {currentStep === 3 && selectedRole === 'EMPLOYEE' && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
+            >
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                <ShieldCheck size={16} />
+                Contact & Identity Documents
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Mobile Number */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Mobile Number
+                  </label>
+                  <div className="relative group">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <input
+                      type="tel"
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60"
+                      placeholder="e.g. +91 9876543210"
+                    />
+                  </div>
+                </div>
+
+                {/* Joining Date */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Joining Date
+                  </label>
+                  <div className="relative group">
+                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <input
+                      type="date"
+                      value={joiningDate}
+                      onChange={(e) => setJoiningDate(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Identity Documents */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Aadhaar Number */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Aadhaar Number
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={12}
+                    value={aadharNumber}
+                    onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ''))}
+                    disabled={isLoading}
+                    className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                    placeholder="12-digit Aadhaar"
+                  />
+                </div>
+
+                {/* PAN Number */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    PAN Number
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    value={panNumber}
+                    onChange={(e) => setPanNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    disabled={isLoading}
+                    className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                    placeholder="10-digit PAN (e.g. ABCDE1234F)"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Voter ID */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Voter ID Number
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    value={voterId}
+                    onChange={(e) => setVoterId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    disabled={isLoading || !showVoterId}
+                    className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                    placeholder="Voter ID"
+                  />
+                </div>
+
+                {/* Passport Number */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Passport Number
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={9}
+                    value={passportNumber}
+                    onChange={(e) => setPassportNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    disabled={isLoading}
+                    className="input-dark px-4 py-4 text-xs font-semibold disabled:opacity-60"
+                    placeholder="Passport Number"
+                  />
+                </div>
+              </div>
+
+              {/* Voter ID Toggle Switch */}
+              <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-sm border border-border/60">
+                <div>
+                  <p className="text-xs font-bold text-text-primary">Include Voter ID</p>
+                  <p className="text-[10px] text-text-secondary mt-0.5 font-medium">Optional - Enable if voter ID is available</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowVoterId(!showVoterId)}
                   className={cn(
-                    'absolute top-0.5 w-4 h-4 rounded-sm transition-all bg-white',
-                    showVoterId ? 'left-5.5' : 'left-0.5'
+                    'w-10 h-5 rounded-sm transition-all relative shrink-0 cursor-pointer',
+                    showVoterId ? 'bg-primary' : 'bg-slate-700'
                   )}
-                />
-              </button>
-            </div>
+                >
+                  <span
+                    className={cn(
+                      'absolute top-0.5 w-4 h-4 rounded-sm transition-all bg-white',
+                      showVoterId ? 'left-5.5' : 'left-0.5'
+                    )}
+                  />
+                </button>
+              </div>
+            </motion.div>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Designation */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Designation
-                </label>
-                <div className="relative group">
-                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <select
-                    value={designationId || ''}
-                    onChange={(e) => setDesignationId(e.target.value ? parseInt(e.target.value) : undefined)}
-                    disabled={isLoading || isLoadingDesignations}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="">Select Designation</option>
-                    {designationsList.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
+          {/* Step 4: Work Assignment (Employee only) */}
+          {currentStep === 4 && selectedRole === 'EMPLOYEE' && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
+            >
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                <ShieldCheck size={16} />
+                Work Assignment
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Designation */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Designation
+                  </label>
+                  <div className="relative group">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={designationId || ''}
+                      onChange={(e) => setDesignationId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingDesignations}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Designation</option>
+                      {designationsList.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Shift */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Shift Allocation
+                  </label>
+                  <div className="relative group">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={shiftId || ''}
+                      onChange={(e) => setShiftId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingShifts}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Shift</option>
+                      {shiftsList.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.startTime} - {s.endTime})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Reporting Manager */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Reporting Manager
+                  </label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={reportingManagerId || ''}
+                      onChange={(e) => setReportingManagerId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingManagers}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Reporting Manager</option>
+                      {employeesList.map((emp) => (
+                        <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.employeeCode})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Shift */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Shift Allocation
-                </label>
-                <div className="relative group">
-                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <select
-                    value={shiftId || ''}
-                    onChange={(e) => setShiftId(e.target.value ? parseInt(e.target.value) : undefined)}
-                    disabled={isLoading || isLoadingShifts}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="">Select Shift</option>
-                    {shiftsList.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.startTime} - {s.endTime})</option>
-                    ))}
-                  </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Work Mode */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Work Mode
+                  </label>
+                  <div className="relative group">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={workModeId}
+                      onChange={(e) => setWorkModeId(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      {workModesList.length > 0 ? (
+                        workModesList.map((mode) => (
+                          <option key={mode.id} value={mode.id}>
+                            {mode.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="OFFICE">Office (On-site)</option>
+                          <option value="HYBRID">Hybrid</option>
+                          <option value="REMOTE">Remote</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Shift Type */}
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Shift Type
+                  </label>
+                  <div className="relative group">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={shiftTypeId}
+                      onChange={(e) => setShiftTypeId(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="MORNING">Morning Shift</option>
+                      <option value="EVENING">Evening Shift</option>
+                      <option value="NIGHT">Night Shift</option>
+                      <option value="ON_FIELD">On Field Shift</option>
+                    </select>
+                  </div>
                 </div>
               </div>
+            </motion.div>
+          )}
 
-              {/* Reporting Manager */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Reporting Manager
-                </label>
-                <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <select
-                    value={reportingManagerId || ''}
-                    onChange={(e) => setReportingManagerId(e.target.value ? parseInt(e.target.value) : undefined)}
-                    disabled={isLoading || isLoadingManagers}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="">Select Reporting Manager</option>
-                    {employeesList.map((emp) => (
-                      <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.employeeCode})</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Work Mode */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Work Mode
-                </label>
-                <div className="relative group">
-                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <select
-                    value={workModeId}
-                    onChange={(e) => setWorkModeId(e.target.value)}
-                    disabled={isLoading}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="OFFICE">Office (On-site)</option>
-                    <option value="HYBRID">Hybrid</option>
-                    <option value="REMOTE">Remote</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Shift Type */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Shift Type
-                </label>
-                <div className="relative group">
-                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <select
-                    value={shiftTypeId}
-                    onChange={(e) => setShiftTypeId(e.target.value)}
-                    disabled={isLoading}
-                    className="input-dark pl-11 pr-4 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="MORNING">Morning Shift</option>
-                    <option value="EVENING">Evening Shift</option>
-                    <option value="NIGHT">Night Shift</option>
-                    <option value="ON_FIELD">On Field Shift</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Salary Structure Section */}
-            <div className="space-y-4 pt-4 border-t border-border/40">
-              <h3 className="text-xs font-black text-primary uppercase tracking-widest">
-                Salary & Deductions Structure
+          {/* Step 5: Salary Structure (Employee only) */}
+          {currentStep === 5 && selectedRole === 'EMPLOYEE' && (
+            <motion.div
+              key="step5"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
+            >
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                <ShieldCheck size={16} />
+                Salary Structure
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -803,8 +940,24 @@ export default function RegisterUserWithRights({
                   />
                 </div>
               </div>
+            </motion.div>
+          )}
 
-              {/* PF and ESIC Switches */}
+          {/* Step 6: Deductions (Employee only) */}
+          {currentStep === 6 && selectedRole === 'EMPLOYEE' && (
+            <motion.div
+              key="step6"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
+            >
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                <ShieldCheck size={16} />
+                Deductions & Benefits
+              </h3>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                 {/* PF Group */}
                 <div className="p-4 bg-slate-800/40 rounded-sm border border-border/60 space-y-3">
@@ -886,28 +1039,57 @@ export default function RegisterUserWithRights({
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        <motion.button
-          type="submit"
-          disabled={isLoading}
-          whileTap={{ scale: 0.98 }}
-          className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/30 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer transition-all"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 size={18} className="animate-spin" />
-              Registering Account...
-            </>
-          ) : (
-            <>
-              <UserPlus size={18} />
-              Register User
-            </>
+            </motion.div>
           )}
-        </motion.button>
+        </AnimatePresence>
+
+        {/* Navigation Buttons */}
+        <div className="flex gap-3 pt-4">
+          {currentStep > 1 && (
+            <motion.button
+              type="button"
+              onClick={handlePrevious}
+              disabled={isLoading}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 py-4 bg-surface-variant hover:bg-surface-variant/80 border border-border text-text-primary font-black uppercase tracking-wider text-xs rounded-sm flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer transition-all"
+            >
+              <ChevronLeft size={18} />
+              Previous
+            </motion.button>
+          )}
+
+          {currentStep < totalSteps ? (
+            <motion.button
+              type="button"
+              onClick={handleNext}
+              disabled={isLoading}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer transition-all"
+            >
+              Next
+              <ChevronRight size={18} />
+            </motion.button>
+          ) : (
+            <motion.button
+              type="submit"
+              disabled={isLoading}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-wider text-xs rounded-sm shadow-xl shadow-primary/30 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer transition-all"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Registering Account...
+                </>
+              ) : (
+                <>
+                  <UserPlus size={18} />
+                  Register User
+                </>
+              )}
+            </motion.button>
+          )}
+        </div>
       </form>
     </div>
   );

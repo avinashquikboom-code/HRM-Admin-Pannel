@@ -14,12 +14,14 @@ import {
   Mail,
   CheckCircle,
   XCircle,
-  Store
+  Store,
+  Loader2
 } from 'lucide-react';
-import { fetchBranches, createBranch, updateBranch, deleteBranch, type Branch } from '@/services/branchService';
+import { fetchBranches, createBranch, updateBranch, deleteBranch, type Branch, type CreateBranchRequest, type UpdateBranchRequest } from '@/services/branchService';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import { cn } from '@/utils/cn';
+import { fetchOffices, type Office } from '@/services/officeService';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -40,7 +42,9 @@ const itemVariants: Variants = {
 
 export default function BranchManagementPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingOffices, setIsLoadingOffices] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
@@ -58,7 +62,11 @@ export default function BranchManagementPage() {
     pincode: '',
     phone: '',
     email: '',
+    officeId: 0,
+    latitude: 0,
+    longitude: 0,
   });
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const fetchBranchesData = async () => {
     try {
@@ -72,8 +80,21 @@ export default function BranchManagementPage() {
     }
   };
 
+  const fetchOfficesData = async () => {
+    try {
+      setIsLoadingOffices(true);
+      const data = await fetchOffices();
+      setOffices(data);
+    } catch (error) {
+      toast.error('Failed to fetch offices');
+    } finally {
+      setIsLoadingOffices(false);
+    }
+  };
+
   useEffect(() => {
     fetchBranchesData();
+    fetchOfficesData();
   }, []);
 
   const resetForm = () => {
@@ -86,6 +107,9 @@ export default function BranchManagementPage() {
       pincode: '',
       phone: '',
       email: '',
+      officeId: 0,
+      latitude: 0,
+      longitude: 0,
     });
   };
 
@@ -94,10 +118,27 @@ export default function BranchManagementPage() {
       toast.error('Branch name is required');
       return;
     }
+    if (!formData.officeId) {
+      toast.error('Please select a store');
+      return;
+    }
 
     try {
       setIsSaving(true);
-      await createBranch(formData);
+      const createData: CreateBranchRequest = {
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        pincode: formData.pincode,
+        phone: formData.phone,
+        email: formData.email,
+        officeId: formData.officeId,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      };
+      await createBranch(createData);
       toast.success('Branch created successfully');
       resetForm();
       setIsCreateModalOpen(false);
@@ -117,7 +158,20 @@ export default function BranchManagementPage() {
 
     try {
       setIsSaving(true);
-      await updateBranch(editingBranch.id.toString(), formData);
+      const updateData: UpdateBranchRequest = {
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        pincode: formData.pincode,
+        phone: formData.phone,
+        email: formData.email,
+        officeId: formData.officeId || undefined,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      };
+      await updateBranch(editingBranch.id.toString(), updateData);
       toast.success('Branch updated successfully');
       setEditingBranch(null);
       resetForm();
@@ -126,6 +180,47 @@ export default function BranchManagementPage() {
       toast.error(error.response?.data?.message || 'Failed to update branch');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleGetCurrentLocation = () => {
+    setIsGettingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          setFormData((prev) => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+          }));
+
+          // Reverse geocoding to get address
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await res.json();
+            if (data && data.display_name) {
+              setFormData((prev) => ({
+                ...prev,
+                address: data.display_name,
+              }));
+            }
+          } catch (err) {
+            console.error('Reverse geocoding failed:', err);
+          }
+
+          setIsGettingLocation(false);
+        },
+        (error) => {
+          toast.error('Failed to get current location. Please enter manually.');
+          setIsGettingLocation(false);
+        }
+      );
+    } else {
+      toast.error('Geolocation is not supported by your browser.');
+      setIsGettingLocation(false);
     }
   };
 
@@ -157,6 +252,9 @@ export default function BranchManagementPage() {
       pincode: branch.pincode || '',
       phone: branch.phone || '',
       email: branch.email || '',
+      officeId: branch.officeId || 0,
+      latitude: branch.latitude || 0,
+      longitude: branch.longitude || 0,
     });
   };
 
@@ -171,7 +269,12 @@ export default function BranchManagementPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Branch Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage retail branches and their hierarchy</p>
+          <p className="text-sm text-gray-500 mt-1">Create organizational branches and assign them to specific stores/offices</p>
+          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <strong>How it works:</strong> First create stores/offices in Location page, then create branches here and assign them to those stores. Branches help organize employees within a store location.
+            </p>
+          </div>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -264,10 +367,10 @@ export default function BranchManagementPage() {
                             <span>{branch.email}</span>
                           </div>
                         )}
-                        {branch.stores && branch.stores.length > 0 && (
+                        {branch.officeName && (
                           <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
                             <Store className="w-3 h-3" />
-                            <span>{branch.stores.length} store{branch.stores.length !== 1 ? 's' : ''}</span>
+                            <span>{branch.officeName}</span>
                           </div>
                         )}
                       </div>
@@ -316,6 +419,25 @@ export default function BranchManagementPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Store *</label>
+                <select
+                  value={formData.officeId}
+                  onChange={(e) => setFormData({ ...formData, officeId: parseInt(e.target.value) || 0 })}
+                  disabled={isLoadingOffices}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
+                >
+                  <option value="">Select a store</option>
+                  {offices.map((office) => (
+                    <option key={office.id} value={office.id}>
+                      {office.name} {office.officeType === 'HEAD_OFFICE' ? '(Head Office)' : '(Store)'}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select the store/office where this branch is located. If no stores appear, first create them in the Location page.
+                </p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <input
                   type="text"
@@ -325,6 +447,48 @@ export default function BranchManagementPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Latitude"
+                    value={formData.latitude}
+                    onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Longitude"
+                    value={formData.longitude}
+                    onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={isGettingLocation}
+                className="w-full py-2 rounded-sm border border-primary/30 bg-primary/5 text-primary font-bold uppercase tracking-widest text-xs hover:bg-primary/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isGettingLocation ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Getting Location...
+                  </>
+                ) : (
+                  <>
+                    <MapPin size={14} />
+                    Get Current Location
+                  </>
+                )}
+              </button>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">City</label>

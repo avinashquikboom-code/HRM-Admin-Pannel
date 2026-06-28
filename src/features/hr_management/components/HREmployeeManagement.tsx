@@ -39,6 +39,7 @@ import {
 } from '@/services/hrService';
 import { sendOfficeAssignedNotification } from '@/services/notificationService';
 import { fetchShifts } from '@/services/employeeService';
+import { fetchWorkModes, WorkMode } from '@/services/workModeService';
 
 interface HREmployeeManagementProps {
   className?: string;
@@ -53,6 +54,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
   const [employees, setEmployees] = useState<HREmployee[]>([]);
   const [offices, setOffices] = useState<HROffice[]>([]);
   const [departments, setDepartments] = useState<HRDepartment[]>([]);
+  const [workModesList, setWorkModesList] = useState<WorkMode[]>([]);
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -82,7 +84,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
     workModeId: 'OFFICE',
     shiftTypeId: 'MORNING',
     shiftId: undefined,
-    effectiveFrom: ''
+    effectiveFrom: '',
+    role: ''
   });
 
   const [shiftsList, setShiftsList] = useState<any[]>([]);
@@ -145,20 +148,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
 
   const loadOfficesAndDepartments = useCallback(async () => {
     try {
-      const [officesRes, departmentsRes, shiftsRes] = await Promise.all([
+      const [officesRes, departmentsRes, shiftsRes, workModesRes] = await Promise.all([
         fetchHROffices(),
         fetchHRDepartments(),
-        fetchShifts()
+        fetchShifts(),
+        fetchWorkModes().catch(() => []) // Fallback in case endpoint is not available
       ]);
       setOffices(officesRes);
       setDepartments(departmentsRes);
       setShiftsList(shiftsRes || []);
+      setWorkModesList(workModesRes || []);
     } catch (err: any) {
       console.error('Failed to load offices, departments, and shifts:', err);
       // Set empty arrays to prevent UI from hanging
       setOffices([]);
       setDepartments([]);
       setShiftsList([]);
+      setWorkModesList([]);
     }
   }, []);
 
@@ -207,7 +213,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         workModeId: 'OFFICE',
         shiftTypeId: 'MORNING',
         shiftId: undefined,
-        effectiveFrom: ''
+        effectiveFrom: '',
+        role: ''
       });
       setSameAsPermanent(false);
       loadEmployees();
@@ -238,7 +245,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         status: formData.status,
         officeId: formData.officeId,
         departmentId: formData.departmentId,
-        phone: formData.phone
+        phone: formData.phone,
+        role: formData.role
       };
       
       const updatedEmployee = await updateHREmployee(selectedEmployee.id, updateData);
@@ -315,7 +323,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       workModeId: employee.workModeId || 'OFFICE',
       shiftTypeId: employee.shiftTypeId || 'MORNING',
       shiftId: employee.shift ? Number(employee.shift.id) : undefined,
-      effectiveFrom: ''
+      effectiveFrom: '',
+      role: ''
     });
     setSameAsPermanent(false);
     setIsEditModalOpen(true);
@@ -876,6 +885,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Role
+                    </label>
+                    <select
+                      value={formData.role || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Role</option>
+                      <option value="SUPER_ADMIN">Super Admin (Head Office)</option>
+                      <option value="HR">HR Manager (Head Office)</option>
+                      <option value="STORE_MANAGER">Store Manager (Store)</option>
+                      <option value="SALESMAN">Salesman (Store)</option>
+                      <option value="HELPER">Helper (Store)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Work Mode
                     </label>
                     <select
@@ -883,11 +909,24 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       onChange={(e) => setFormData(prev => ({ ...prev, workModeId: e.target.value }))}
                       className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
-                      <option value="OFFICE">Office (On-site)</option>
-                      <option value="HYBRID">Hybrid</option>
-                      <option value="REMOTE">Remote</option>
+                      {workModesList.length > 0 ? (
+                        workModesList.map((mode) => (
+                          <option key={mode.id} value={mode.id}>
+                            {mode.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="OFFICE">Office (On-site)</option>
+                          <option value="HYBRID">Hybrid</option>
+                          <option value="REMOTE">Remote</option>
+                        </>
+                      )}
                     </select>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Shift Type
@@ -1142,18 +1181,37 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Role
+                    </label>
+                    <select
+                      value={formData.role || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Role</option>
+                      <option value="SUPER_ADMIN">Super Admin (Head Office)</option>
+                      <option value="HR">HR Manager (Head Office)</option>
+                      <option value="STORE_MANAGER">Store Manager (Store)</option>
+                      <option value="SALESMAN">Salesman (Store)</option>
+                      <option value="HELPER">Helper (Store)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -1198,11 +1256,21 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                     <select
                       value={formData.workModeId || 'OFFICE'}
                       onChange={(e) => setFormData(prev => ({ ...prev, workModeId: e.target.value }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                      className="w-full p-3 bg-surface border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
-                      <option value="OFFICE">Office (On-site)</option>
-                      <option value="HYBRID">Hybrid</option>
-                      <option value="REMOTE">Remote</option>
+                      {workModesList.length > 0 ? (
+                        workModesList.map((mode) => (
+                          <option key={mode.id} value={mode.id}>
+                            {mode.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="OFFICE">Office (On-site)</option>
+                          <option value="HYBRID">Hybrid</option>
+                          <option value="REMOTE">Remote</option>
+                        </>
+                      )}
                     </select>
                   </div>
                   <div>

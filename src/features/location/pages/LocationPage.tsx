@@ -779,9 +779,14 @@ export default function LocationPage() {
             {/* Left Card 1: New Perimeter Form */}
             <div className="bg-surface border border-border rounded-sm p-6 space-y-6">
               <div className="flex items-center justify-between border-b border-border/50 pb-3">
-                <h3 className="heading-2 font-bold text-text-primary">
-                  {selectedOfficeId ? 'Edit Perimeter' : 'New Perimeter'}
-                </h3>
+                <div>
+                  <h3 className="heading-2 font-bold text-text-primary">
+                    {selectedOfficeId ? 'Edit Perimeter' : 'New Perimeter'}
+                  </h3>
+                  <p className="text-xs text-text-secondary mt-1">
+                    Create physical office locations with geofencing for employee attendance tracking
+                  </p>
+                </div>
                 {selectedOfficeId && (
                   <button
                     type="button"

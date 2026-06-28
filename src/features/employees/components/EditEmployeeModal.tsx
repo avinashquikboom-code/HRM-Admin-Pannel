@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { fetchDepartments } from '@/services/departmentService';
 import { fetchOffices } from '@/services/officeService';
 import { fetchShifts, updateEmployee } from '@/services/employeeService';
+import { fetchWorkModes, WorkMode } from '@/services/workModeService';
 
 interface EditEmployeeModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export default function EditEmployeeModal({
   const [offices, setOffices] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
+  const [workModesList, setWorkModesList] = useState<WorkMode[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   useEffect(() => {
@@ -61,14 +63,16 @@ export default function EditEmployeeModal({
   const loadDropdownData = async () => {
     setIsLoadingData(true);
     try {
-      const [officesRes, departmentsRes, shiftsRes] = await Promise.all([
+      const [officesRes, departmentsRes, shiftsRes, workModesRes] = await Promise.all([
         fetchOffices(),
         fetchDepartments(),
         fetchShifts(),
+        fetchWorkModes().catch(() => [])
       ]);
       setOffices(Array.isArray(officesRes) ? officesRes : []);
       setDepartments(Array.isArray(departmentsRes) ? departmentsRes : departmentsRes?.departments || []);
       setShifts(Array.isArray(shiftsRes) ? shiftsRes : []);
+      setWorkModesList(workModesRes || []);
     } catch (err) {
       console.error('Failed to load dropdown data:', err);
     } finally {
@@ -226,10 +230,23 @@ export default function EditEmployeeModal({
               onChange={(e) => setForm({ ...form, workMode: e.target.value })}
               className="w-full px-4 py-3 bg-surface-variant border border-border rounded-sm outline-none focus:border-primary/30 transition-all text-xs font-semibold text-text-primary"
             >
-              <option value="">Select Work Mode</option>
-              <option value="onsite">On-site</option>
-              <option value="remote">Remote</option>
-              <option value="hybrid">Hybrid</option>
+              {workModesList.length > 0 ? (
+                <>
+                  <option value="">Select Work Mode</option>
+                  {workModesList.map((mode) => (
+                    <option key={mode.id} value={mode.id}>
+                      {mode.name}
+                    </option>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <option value="">Select Work Mode</option>
+                  <option value="OFFICE">Office (On-site)</option>
+                  <option value="REMOTE">Remote</option>
+                  <option value="HYBRID">Hybrid</option>
+                </>
+              )}
             </select>
           </div>
         </div>

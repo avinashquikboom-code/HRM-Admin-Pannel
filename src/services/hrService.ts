@@ -210,6 +210,7 @@ export interface CreateHREmployeeRequest {
   shiftTypeId?: string;
   shiftId?: number;
   effectiveFrom?: string;
+  role?: string;
 }
 
 export interface UpdateHREmployeeRequest {
@@ -232,6 +233,7 @@ export interface UpdateHREmployeeRequest {
   shiftTypeId?: string;
   shiftId?: number;
   effectiveFrom?: string;
+  role?: string;
 }
 
 export async function fetchHROffices(): Promise<HROffice[]> {

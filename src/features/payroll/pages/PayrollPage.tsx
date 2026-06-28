@@ -35,6 +35,7 @@ import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
 import { useLoadingData } from '@/hooks/useLoadingData';
 import Modal from '@/components/Modal';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 
 const payrollStats = [
   { name: 'Jan', amount: 2400000, trend: 1500000 },
@@ -378,78 +379,26 @@ const PayrollPage = () => {
       animate="visible"
       className="space-y-8 pb-10 text-text-primary animate-fadeIn"
     >
-      {/* Title Header Command hub */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-sm border border-border/50 dark:border-white/10 bg-surface dark:bg-gradient-to-br dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-xl p-8 md:p-10 shadow-sm dark:shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        <div className="absolute -top-12 -right-12 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/5 rounded-full filter blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-emerald-500/10 border border-primary/30 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
-            <Wallet size={12} className="text-primary animate-pulse" />
-            Corporate Treasury & Remuneration
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-text-primary tracking-tight leading-none">
-            Payroll <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal-400 to-emerald-400">Governance</span>
-          </h1>
-          <p className="text-xs md:text-sm text-text-secondary font-medium max-w-xl leading-relaxed">
-            Strategic oversight of fund flows, compliance standards, salary slips generation, and platform-wide disbursement operations.
-          </p>
-        </div>
-
-        <div className="relative z-10 shrink-0 flex items-center gap-3">
-          <button 
-            onClick={() => setIsProcessModalOpen(true)}
-            className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
-          >
-            <Wallet size={18} />
-            Bulk Process
-          </button>
-        </div>
-      </motion.div>
-
-
-      {/* Top Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Total Volume (MTD)', value: `₹${stats.mtdVolume.toLocaleString('en-IN')}`, icon: Wallet, color: 'primary', trend: '+12.5%', glowColor: 'rgba(59, 163, 139, 0.3)' },
-          { label: 'Total Disbursed', value: `₹${stats.disbursed.toLocaleString('en-IN')}`, icon: CheckCircle2, color: 'success', trend: '+8.2%', glowColor: 'rgba(34, 197, 94, 0.3)' },
-          { label: 'Pending Approval', value: `₹${stats.pending.toLocaleString('en-IN')}`, icon: Clock, color: 'warning', trend: '-2.4%', glowColor: 'rgba(245, 158, 11, 0.3)' },
-          { label: 'Critical Errors', value: stats.errors > 0 ? `${stats.errors} Batches` : '0 Batches', icon: IndianRupee, color: 'error', trend: stats.errors > 0 ? 'CRITICAL' : 'SECURE', glowColor: 'rgba(239, 68, 68, 0.3)' },
-        ].map((stat) => (
-          <motion.div
-            key={stat.label}
-            variants={itemVariants}
-            whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
-            className="glass-card p-6 group hover:border-primary/50 transition-all cursor-default relative overflow-hidden shadow-premium"
-          >
-            {/* Radial Glow Effect */}
-            <div 
-              className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"
-              style={{ background: stat.glowColor }}
-            />
-            
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className={cn(
-                "p-3.5 rounded-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm",
-                `bg-${stat.color}/10 text-${stat.color}`
-              )}>
-                <stat.icon size={22} />
-              </div>
-              <span className={cn(
-                "text-micro font-black px-2.5 py-1.5 rounded-sm uppercase tracking-wider border shadow-sm",
-                stat.trend.startsWith('+') || stat.trend === 'SECURE' ? "bg-success/10 text-success border-success/10" : 
-                stat.trend.startsWith('-') ? "bg-warning/10 text-warning border-warning/10" : "bg-error/20 text-error border-error/20 animate-pulse"
-              )}>
-                {stat.trend}
-              </span>
-            </div>
-            <div className="relative z-10">
-              <p className="text-micro font-black text-text-secondary uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-              <h3 className="text-stat-value tabular-nums">{stat.value}</h3>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      <SuperAdminHeader
+        title="Payroll Governance"
+        subtitle="Strategic oversight of fund flows, compliance standards, salary slips generation, and platform-wide disbursement operations."
+        badgeText="Corporate Treasury & Remuneration"
+        badgeIcon={Wallet}
+        stats={[
+          { label: 'Total Volume (MTD)', value: `₹${stats.mtdVolume.toLocaleString('en-IN')}`, icon: Wallet },
+          { label: 'Total Disbursed', value: `₹${stats.disbursed.toLocaleString('en-IN')}`, icon: CheckCircle2 },
+          { label: 'Pending Approval', value: `₹${stats.pending.toLocaleString('en-IN')}`, icon: Clock },
+          { label: 'Critical Errors', value: stats.errors > 0 ? `${stats.errors} Batches` : '0 Batches', icon: IndianRupee },
+        ]}
+      >
+        <button 
+          onClick={() => setIsProcessModalOpen(true)}
+          className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
+        >
+          <Wallet size={18} />
+          Bulk Process
+        </button>
+      </SuperAdminHeader>
 
       {/* Analytics Summary */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

@@ -12,16 +12,44 @@ export interface Branch {
   phone?: string;
   email?: string;
   isActive: boolean;
+  officeId?: number;
+  officeName?: string;
+  latitude?: number;
+  longitude?: number;
   createdAt: string;
   updatedAt: string;
-  stores?: Store[];
 }
 
-export interface Store {
-  id: number;
+export interface CreateBranchRequest {
   name: string;
   code?: string;
-  isActive: boolean;
+  address?: string;
+  city?: string;
+  state?: string;
+  country: string;
+  pincode?: string;
+  phone?: string;
+  email?: string;
+  isActive?: boolean;
+  officeId: number;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface UpdateBranchRequest {
+  name?: string;
+  code?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  phone?: string;
+  email?: string;
+  isActive?: boolean;
+  officeId?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {
@@ -34,12 +62,12 @@ export const fetchBranchById = async (id: string): Promise<Branch> => {
   return response.data.data;
 };
 
-export const createBranch = async (data: Partial<Branch>): Promise<Branch> => {
+export const createBranch = async (data: CreateBranchRequest): Promise<Branch> => {
   const response = await api.post('/admin/branches', data);
   return response.data.data;
 };
 
-export const updateBranch = async (id: string, data: Partial<Branch>): Promise<Branch> => {
+export const updateBranch = async (id: string, data: UpdateBranchRequest): Promise<Branch> => {
   const response = await api.put(`/admin/branches/${id}`, data);
   return response.data.data;
 };

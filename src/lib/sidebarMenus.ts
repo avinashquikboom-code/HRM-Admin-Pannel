@@ -14,6 +14,11 @@ import {
   Wallet,
   User,
   Navigation,
+  DollarSign,
+  Briefcase,
+  Clock,
+  Store,
+  GitBranch,
 } from 'lucide-react';
 import type { PortalType } from '@/lib/portals';
 import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
@@ -30,7 +35,7 @@ export const ADMIN_REMOVED_MODULE_IDS = new Set(['pa-location']);
 
 export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX, moduleId: 'sa-dashboard' },
-  { name: 'Geofence Editor', icon: MapPin, path: `${SUPER_ADMIN_PREFIX}/location?tab=editor`, moduleId: 'sa-location' },
+  { name: 'Store & Branch', icon: Store, path: `${SUPER_ADMIN_PREFIX}/store-branch`, moduleId: 'sa-store-branch' },
   { name: 'Live Location', icon: Navigation, path: `${SUPER_ADMIN_PREFIX}/location?tab=tracker`, moduleId: 'sa-location-new' },
   { name: 'Companies', icon: Building2, path: `${SUPER_ADMIN_PREFIX}/companies`, moduleId: 'sa-companies' },
   { name: 'Subscriptions', icon: CreditCard, path: `${SUPER_ADMIN_PREFIX}/subscriptions`, moduleId: 'sa-subscriptions' },
@@ -43,9 +48,12 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
   { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
   { name: 'Departments', icon: Building2, path: '/departments', moduleId: 'pa-departments' },
+  { name: 'Designations', icon: Briefcase, path: '/designations', moduleId: 'pa-designations' },
+  { name: 'Shifts', icon: Clock, path: '/shifts', moduleId: 'pa-shifts' },
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
+  { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },
   { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
 ];
 

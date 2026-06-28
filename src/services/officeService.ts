@@ -11,6 +11,7 @@ interface ApiOffice {
   idealRadiusMeters: number | null;
   maxPunchRadiusMeters: number | null;
   isActive: boolean | null;
+  officeType?: string;
   subscriptionPlan?: string;
   billingCycle?: string;
   invoiceStatus?: string;
@@ -42,6 +43,7 @@ export interface Office {
   idealRadiusMeters: number;
   maxPunchRadiusMeters: number;
   isActive: boolean;
+  officeType: string;
   subscriptionPlan: string;
   billingCycle: string;
   invoiceStatus: string;
@@ -83,6 +85,7 @@ export interface UpdateOfficeRequest {
   idealRadiusMeters: number;
   maxPunchRadiusMeters: number;
   isActive: boolean;
+  officeType?: string;
   subscriptionPlan?: string;
   billingCycle?: string;
   invoiceStatus?: string;
@@ -116,6 +119,7 @@ function mapOffice(api: ApiOffice): Office {
     idealRadiusMeters: api.idealRadiusMeters ?? 25,
     maxPunchRadiusMeters: api.maxPunchRadiusMeters ?? 50,
     isActive: api.isActive ?? true,
+    officeType: api.officeType || 'STORE',
     subscriptionPlan: api.subscriptionPlan || 'Basic',
     billingCycle: api.billingCycle || 'monthly',
     invoiceStatus: api.invoiceStatus || 'Paid',
@@ -215,6 +219,7 @@ export async function createOffice(
     idealRadiusMeters: payload.idealRadiusMeters,
     maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
     isActive: payload.isActive ?? true,
+    officeType: payload.officeType || 'STORE',
     subscriptionPlan: payload.subscriptionPlan,
     billingCycle: payload.billingCycle,
     invoiceStatus: payload.invoiceStatus,
@@ -260,6 +265,7 @@ export async function updateOffice(
     idealRadiusMeters: payload.idealRadiusMeters,
     maxPunchRadiusMeters: payload.maxPunchRadiusMeters,
     isActive: payload.isActive,
+    officeType: payload.officeType || 'STORE',
     subscriptionPlan: payload.subscriptionPlan,
     billingCycle: payload.billingCycle,
     invoiceStatus: payload.invoiceStatus,
