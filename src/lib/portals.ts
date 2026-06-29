@@ -23,6 +23,7 @@ export const SUPER_ADMIN_ROUTES = [
 // these.
 export const ALWAYS_PUBLIC_PATHS = [
   '/privacy',
+  '/delete-account',
 ];
 
 export const PUBLIC_PATHS = [
