@@ -336,13 +336,13 @@ const ShiftManagementPage = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-3"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         <AnimatePresence>
           {filteredShifts.length === 0 ? (
             <motion.div
               variants={itemVariants}
-              className="text-center py-12 text-text-secondary"
+              className="col-span-full text-center py-12 text-text-secondary"
             >
               <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm">No shifts found</p>
@@ -352,41 +352,43 @@ const ShiftManagementPage = () => {
               <motion.div
                 key={shift.id}
                 variants={itemVariants}
-                className="flex items-center justify-between p-4 bg-surface-variant border border-border rounded-sm hover:border-primary/30 transition-all"
+                className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-start gap-4">
                   <div 
-                    className="p-3 rounded-sm"
+                    className="p-3 rounded-sm shrink-0"
                     style={{ backgroundColor: `${shift.color}20`, color: shift.color }}
                   >
                     <Clock className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{shift.name}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-text-secondary">
-                      <span className="flex items-center gap-1">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-text-primary truncate">{shift.name}</h4>
+                    <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-text-secondary">
+                      <span className="flex items-center gap-1 whitespace-nowrap">
                         <Timer className="w-3 h-3" />
                         {shift.startTime} - {shift.endTime}
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="w-3 h-3" />
                         {shift.workingDays.length} days
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
                   <button
                     onClick={() => openEditModal(shift)}
-                    className="p-2 hover:bg-surface-variant/80 rounded-sm transition-all"
+                    className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
+                    title="Edit"
                   >
-                    <Edit className="w-4 h-4 text-text-primary" />
+                    <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(shift)}
-                    className="p-2 hover:bg-red-500/10 rounded-sm transition-all"
+                    className="p-2 hover:bg-red-500/10 rounded-sm text-text-secondary hover:text-red-500 transition-all"
+                    title="Delete"
                   >
-                    <Trash2 className="w-4 h-4 text-red-500" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </motion.div>

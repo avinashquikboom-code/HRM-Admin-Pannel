@@ -111,7 +111,7 @@ export async function createCommissionPolicy(
 ): Promise<{ success: boolean; message: string; policy: CommissionPolicy }> {
   try {
     const { data } = await api.post<{ success: boolean; message: string; policy: CommissionPolicy }>(
-      '/api/commission/policies',
+      '/api/admin/commission/policies',
       policyData
     );
     return data;
@@ -130,7 +130,7 @@ export async function getCommissionPolicies(
 ): Promise<{ success: boolean; policies: CommissionPolicy[] }> {
   try {
     const { data } = await api.get<{ success: boolean; policies: CommissionPolicy[] }>(
-      '/api/commission/policies',
+      '/api/admin/commission/policies',
       { params }
     );
     return data;
@@ -145,7 +145,7 @@ export async function getCommissionPolicyById(
 ): Promise<{ success: boolean; policy: CommissionPolicy }> {
   try {
     const { data } = await api.get<{ success: boolean; policy: CommissionPolicy }>(
-      `/api/commission/policies/${id}`
+      `/api/admin/commission/policies/${id}`
     );
     return data;
   } catch (error) {
@@ -160,7 +160,7 @@ export async function updateCommissionPolicy(
 ): Promise<{ success: boolean; message: string; policy: CommissionPolicy }> {
   try {
     const { data } = await api.put<{ success: boolean; message: string; policy: CommissionPolicy }>(
-      `/api/commission/policies/${id}`,
+      `/api/admin/commission/policies/${id}`,
       policyData
     );
     return data;
@@ -175,7 +175,7 @@ export async function deleteCommissionPolicy(
 ): Promise<{ success: boolean; message: string }> {
   try {
     const { data } = await api.delete<{ success: boolean; message: string }>(
-      `/api/commission/policies/${id}`
+      `/api/admin/commission/policies/${id}`
     );
     return data;
   } catch (error) {
@@ -201,7 +201,7 @@ export async function createCommissionTransaction(
 ): Promise<{ success: boolean; message: string; transaction: CommissionTransaction }> {
   try {
     const { data } = await api.post<{ success: boolean; message: string; transaction: CommissionTransaction }>(
-      '/api/commission/transactions',
+      '/api/admin/commission/transactions',
       transactionData
     );
     return data;
@@ -222,7 +222,7 @@ export async function getCommissionTransactions(
 ): Promise<{ success: boolean; transactions: CommissionTransaction[] }> {
   try {
     const { data } = await api.get<{ success: boolean; transactions: CommissionTransaction[] }>(
-      '/api/commission/transactions',
+      '/api/admin/commission/transactions',
       { params }
     );
     return data;
@@ -238,7 +238,7 @@ export async function approveCommissionTransaction(
 ): Promise<{ success: boolean; message: string; transaction: CommissionTransaction }> {
   try {
     const { data } = await api.put<{ success: boolean; message: string; transaction: CommissionTransaction }>(
-      `/api/commission/transactions/${id}/approve`,
+      `/api/admin/commission/transactions/${id}/approve`,
       { notes }
     );
     return data;
@@ -254,7 +254,7 @@ export async function rejectCommissionTransaction(
 ): Promise<{ success: boolean; message: string; transaction: CommissionTransaction }> {
   try {
     const { data } = await api.put<{ success: boolean; message: string; transaction: CommissionTransaction }>(
-      `/api/commission/transactions/${id}/reject`,
+      `/api/admin/commission/transactions/${id}/reject`,
       { notes }
     );
     return data;
@@ -280,7 +280,7 @@ export async function createCommissionTarget(
 ): Promise<{ success: boolean; message: string; target: CommissionTarget }> {
   try {
     const { data } = await api.post<{ success: boolean; message: string; target: CommissionTarget }>(
-      '/api/commission/targets',
+      '/api/admin/commission/targets',
       targetData
     );
     return data;
@@ -299,7 +299,7 @@ export async function getCommissionTargets(
 ): Promise<{ success: boolean; targets: CommissionTarget[] }> {
   try {
     const { data } = await api.get<{ success: boolean; targets: CommissionTarget[] }>(
-      '/api/commission/targets',
+      '/api/admin/commission/targets',
       { params }
     );
     return data;
@@ -319,7 +319,7 @@ export async function updateCommissionTarget(
 ): Promise<{ success: boolean; message: string; target: CommissionTarget }> {
   try {
     const { data } = await api.put<{ success: boolean; message: string; target: CommissionTarget }>(
-      `/api/commission/targets/${id}`,
+      `/api/admin/commission/targets/${id}`,
       targetData
     );
     return data;
@@ -355,7 +355,7 @@ export async function calculateCommission(
       policy?: CommissionPolicy;
       employee?: any;
       message?: string;
-    }>('/api/commission/calculate', calculationData);
+    }>('/api/admin/commission/calculate', calculationData);
     return data;
   } catch (error) {
     console.error('Calculate commission error:', error);
@@ -375,7 +375,7 @@ export async function getCommissionDashboard(
 ): Promise<{ success: boolean; stats: CommissionDashboardStats }> {
   try {
     const { data } = await api.get<{ success: boolean; stats: CommissionDashboardStats }>(
-      '/api/commission/dashboard',
+      '/api/admin/commission/dashboard',
       { params }
     );
     return data;
@@ -396,7 +396,7 @@ export async function createCommissionSettlement(
 ): Promise<{ success: boolean; message: string; settlement: any }> {
   try {
     const { data } = await api.post<{ success: boolean; message: string; settlement: any }>(
-      '/api/commission/settlements',
+      '/api/admin/commission/settlements',
       settlementData
     );
     return data;

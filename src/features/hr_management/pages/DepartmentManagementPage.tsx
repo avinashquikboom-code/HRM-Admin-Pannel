@@ -265,36 +265,14 @@ const DepartmentManagementPage = () => {
             <motion.div
               key={dept.id}
               whileHover={{ y: -5, scale: 1.02 }}
-              className="p-6 border border-border bg-surface hover:bg-surface-variant/30 transition-all duration-300 relative overflow-hidden group rounded-sm"
+              className="p-6 border border-border bg-surface hover:bg-surface-variant/30 transition-all duration-300 relative overflow-hidden group rounded-sm flex flex-col h-full"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full filter blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all" />
               
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="flex items-start mb-4">
                   <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
                     <Building2 size={24} className="text-primary" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEditModal(dept)}
-                      className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
-                      title="Edit"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(dept)}
-                      disabled={dept._count.employees > 0}
-                      className={cn(
-                        "p-2 hover:bg-surface-variant rounded-sm transition-all",
-                        dept._count.employees > 0 
-                          ? "text-text-secondary/40 cursor-not-allowed" 
-                          : "text-text-secondary hover:text-rose-500"
-                      )}
-                      title={dept._count.employees > 0 ? "Cannot delete - has employees" : "Delete"}
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </div>
 
@@ -309,12 +287,35 @@ const DepartmentManagementPage = () => {
                 </div>
 
                 {dept._count.employees > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border">
+                  <div className="mt-3 pt-3">
                     <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
                       Active department
                     </span>
                   </div>
                 )}
+                
+                <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
+                  <button
+                    onClick={() => openEditModal(dept)}
+                    className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
+                    title="Edit"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(dept)}
+                    disabled={dept._count.employees > 0}
+                    className={cn(
+                      "p-2 rounded-sm transition-all text-text-secondary hover:text-red-500",
+                      dept._count.employees > 0 
+                        ? "text-text-secondary/40 cursor-not-allowed hover:text-text-secondary/40" 
+                        : "hover:bg-red-500/10"
+                    )}
+                    title={dept._count.employees > 0 ? "Cannot delete - has employees" : "Delete"}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}

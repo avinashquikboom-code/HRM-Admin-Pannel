@@ -75,6 +75,7 @@ export default function LocationPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] =
     useState<LocationStatusFilter>('All');
+  const [hierarchyFilter, setHierarchyFilter] = useState<string>('ALL');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [isCreateOfficeOpen, setIsCreateOfficeOpen] = useState(false);
@@ -135,15 +136,70 @@ export default function LocationPage() {
     selectedOfficeSummary?._count.employees ??
     0;
 
-  const officeCenter = useMemo(
-    () =>
-      selectedOffice
-        ? { lat: selectedOffice.latitude, lng: selectedOffice.longitude }
-        : offices.length > 0
-          ? { lat: offices[0].latitude, lng: offices[0].longitude }
-          : { lat: 0, lng: 0 },
-    [selectedOffice, offices]
-  );
+  const hierarchyOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = [{ value: 'ALL', label: 'All Locations' }];
+    const stores = new Map<number, string>();
+    const branches = new Map<number, string>();
+    const hq = new Map<number, string>();
+
+    locations.forEach(loc => {
+      if (loc.officeId && !loc.storeId) {
+        hq.set(loc.officeId, loc.officeName || 'Head Office');
+      }
+      if (loc.storeId) {
+        stores.set(loc.storeId, loc.storeName || `Store #${loc.storeId}`);
+      }
+      if (loc.branchId) {
+        branches.set(loc.branchId, loc.branchName || `Branch #${loc.branchId}`);
+      }
+    });
+
+    hq.forEach((name, id) => options.push({ value: `HO_${id}`, label: `🏢 ${name}` }));
+    branches.forEach((name, id) => options.push({ value: `BRANCH_${id}`, label: `📍 ${name}` }));
+    stores.forEach((name, id) => options.push({ value: `STORE_${id}`, label: `🏪 ${name}` }));
+
+    return options;
+  }, [locations]);
+
+  const filteredLocations = useMemo(() => {
+    return locations.filter((emp) => {
+      const matchesSearch =
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.role.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter =
+        statusFilter === 'All' ||
+        (statusFilter === 'In Office' && emp.status === 'In Office') ||
+        (statusFilter === 'Outside' && emp.status === 'Outside Geofence') ||
+        (statusFilter === 'On Leave' && emp.status === 'On Leave');
+      
+      let matchesHierarchy = true;
+      if (hierarchyFilter !== 'ALL') {
+        const [type, idStr] = hierarchyFilter.split('_');
+        const id = parseInt(idStr, 10);
+        if (type === 'HO') matchesHierarchy = emp.officeId === id && !emp.storeId;
+        else if (type === 'BRANCH') matchesHierarchy = emp.branchId === id;
+        else if (type === 'STORE') matchesHierarchy = emp.storeId === id;
+      }
+
+      return matchesSearch && matchesFilter && matchesHierarchy;
+    });
+  }, [locations, searchTerm, statusFilter, hierarchyFilter]);
+
+  const officeCenter = useMemo(() => {
+    if (activeTab === 'tracker' && filteredLocations.length > 0 && hierarchyFilter !== 'ALL') {
+      const validLocs = filteredLocations.filter(l => l.lat && l.lng);
+      if (validLocs.length > 0) {
+        const sumLat = validLocs.reduce((sum, l) => sum + l.lat, 0);
+        const sumLng = validLocs.reduce((sum, l) => sum + l.lng, 0);
+        return { lat: sumLat / validLocs.length, lng: sumLng / validLocs.length };
+      }
+    }
+    return selectedOffice
+      ? { lat: selectedOffice.latitude, lng: selectedOffice.longitude }
+      : offices.length > 0
+        ? { lat: offices[0].latitude, lng: offices[0].longitude }
+        : { lat: 0, lng: 0 };
+  }, [selectedOffice, offices, activeTab, filteredLocations, hierarchyFilter]);
 
   const mapBounds = useMemo(
     () =>
@@ -547,18 +603,6 @@ export default function LocationPage() {
   ).length;
   const inOfficeCount = locations.filter((e) => e.status === 'In Office').length;
 
-  const filteredLocations = locations.filter((emp) => {
-    const matchesSearch =
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      statusFilter === 'All' ||
-      (statusFilter === 'In Office' && emp.status === 'In Office') ||
-      (statusFilter === 'Outside' && emp.status === 'Outside Geofence') ||
-      (statusFilter === 'On Leave' && emp.status === 'On Leave');
-    return matchesSearch && matchesFilter;
-  });
-
   const selectedEmployee =
     locations.find((e) => e.employeeId === selectedEmpId) ?? null;
 
@@ -713,6 +757,15 @@ export default function LocationPage() {
 
         {activeTab === 'tracker' && (
           <>
+            <select
+              value={hierarchyFilter}
+              onChange={(e) => setHierarchyFilter(e.target.value)}
+              className="bg-surface-variant text-text-primary border border-border rounded-sm px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/20 max-w-[200px]"
+            >
+              {hierarchyOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
             <button
               type="button"
               onClick={() => setIsAutoRefreshing((prev) => !prev)}

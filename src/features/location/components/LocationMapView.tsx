@@ -115,6 +115,9 @@ function MapCanvas({
 
     const L = (window as any).L;
     layersGroup.clearLayers();
+    
+    // Always center the map when officeCenter changes
+    mapInstance.setView([officeCenter.lat, officeCenter.lng], mapInstance.getZoom() || 14);
 
     // 1. Draw Office Center Icon
     const officeIcon = L.divIcon({

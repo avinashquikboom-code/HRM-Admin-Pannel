@@ -9,6 +9,13 @@ export interface EmployeeLiveLocation {
   speed: string;
   battery: string;
   isLocationEnabled?: boolean;
+  officeId?: number;
+  officeName?: string;
+  officeType?: string;
+  storeId?: number;
+  storeName?: string;
+  branchId?: number;
+  branchName?: string;
 }
 
 export interface LiveLocationResponse {

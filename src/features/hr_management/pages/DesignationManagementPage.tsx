@@ -253,13 +253,13 @@ const DesignationManagementPage = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-3"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         <AnimatePresence>
           {filteredDesignations.length === 0 ? (
             <motion.div
               variants={itemVariants}
-              className="text-center py-12 text-text-secondary"
+              className="col-span-full text-center py-12 text-text-secondary"
             >
               <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm">No designations found</p>
@@ -269,39 +269,43 @@ const DesignationManagementPage = () => {
               <motion.div
                 key={designation.id}
                 variants={itemVariants}
-                className="flex items-center justify-between p-4 bg-surface-variant border border-border rounded-sm hover:border-primary/30 transition-all"
+                className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
               >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-sm">
-                    <Briefcase className="w-5 h-5 text-primary" />
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-sm bg-primary/10 text-primary shrink-0">
+                    <Briefcase className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{designation.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-text-primary truncate">{designation.name}</h4>
                     {designation.code && (
-                      <p className="text-xs text-text-secondary">Code: {designation.code}</p>
+                      <p className="text-xs text-text-secondary mt-1">Code: {designation.code}</p>
                     )}
+                    <div className="mt-2">
+                      <span className={cn(
+                        "px-2 py-0.5 text-[10px] font-semibold rounded-sm uppercase tracking-wider",
+                        designation.isActive 
+                          ? "bg-emerald-500/10 text-emerald-600" 
+                          : "bg-red-500/10 text-red-600"
+                      )}>
+                        {designation.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={cn(
-                    "px-2 py-1 text-xs font-semibold rounded-sm",
-                    designation.isActive 
-                      ? "bg-emerald-500/10 text-emerald-600" 
-                      : "bg-red-500/10 text-red-600"
-                  )}>
-                    {designation.isActive ? 'Active' : 'Inactive'}
-                  </span>
+                <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
                   <button
                     onClick={() => openEditModal(designation)}
-                    className="p-2 hover:bg-surface-variant/80 rounded-sm transition-all"
+                    className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
+                    title="Edit"
                   >
-                    <Edit className="w-4 h-4 text-text-primary" />
+                    <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(designation)}
-                    className="p-2 hover:bg-red-500/10 rounded-sm transition-all"
+                    className="p-2 hover:bg-red-500/10 rounded-sm text-text-secondary hover:text-red-500 transition-all"
+                    title="Delete"
                   >
-                    <Trash2 className="w-4 h-4 text-red-500" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </motion.div>

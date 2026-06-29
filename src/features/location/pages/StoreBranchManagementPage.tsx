@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Building2, GitBranch, Store, MapPin, Loader2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Building2, GitBranch, Store, MapPin, Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
-import { fetchOffices, type Office } from '@/services/officeService';
-import { fetchBranches, type Branch, createBranch, updateBranch, type CreateBranchRequest, type UpdateBranchRequest } from '@/services/branchService';
+import { fetchOffices, deleteOffice, type Office } from '@/services/officeService';
+import { fetchBranches, type Branch, createBranch, updateBranch, deleteBranch, type CreateBranchRequest, type UpdateBranchRequest } from '@/services/branchService';
 import CreateOfficeModal from '@/features/location/components/CreateOfficeModal';
 import EditOfficeModal from '@/features/location/components/EditOfficeModal';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -27,6 +27,11 @@ export default function StoreBranchManagementPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Pagination state
+  const [storePage, setStorePage] = useState(1);
+  const [branchPage, setBranchPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
+  
   // Branch form state
   const [branchForm, setBranchForm] = useState({
     name: '',
@@ -40,13 +45,21 @@ export default function StoreBranchManagementPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [officesData, branchesData] = await Promise.all([
-        fetchOffices(),
-        fetchBranches()
-      ]);
+      // Load offices first
+      const officesData = await fetchOffices();
       setOffices(officesData);
-      setBranches(branchesData);
+      
+      // Load branches separately
+      try {
+        const branchesData = await fetchBranches();
+        setBranches(branchesData);
+      } catch (branchError) {
+        console.error('Failed to load branches:', branchError);
+        // Continue even if branches fail
+        setBranches([]);
+      }
     } catch (error) {
+      console.error('Failed to load offices:', error);
       toast.error('Failed to load data');
     } finally {
       setIsLoading(false);
@@ -156,37 +169,80 @@ export default function StoreBranchManagementPage() {
   };
 
   const confirmDelete = async () => {
-    if (deletingOffice) {
-      // Implement office deletion
-      toast.success('Store deleted successfully');
-      setDeletingOffice(null);
-      setIsDeleteModalOpen(false);
-      loadData();
-    } else if (deletingBranch) {
-      // Implement branch deletion
-      toast.success('Branch deleted successfully');
-      setDeletingBranch(null);
-      setIsDeleteModalOpen(false);
-      loadData();
+    try {
+      if (deletingOffice) {
+        await deleteOffice(deletingOffice.id.toString());
+        toast.success('Store deleted successfully');
+        setDeletingOffice(null);
+        setIsDeleteModalOpen(false);
+        loadData();
+      } else if (deletingBranch) {
+        await deleteBranch(deletingBranch.id.toString());
+        toast.success('Branch deleted successfully');
+        setDeletingBranch(null);
+        setIsDeleteModalOpen(false);
+        loadData();
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to delete');
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <SuperAdminHeader
-        title="Store & Branch Management"
-        subtitle="Manage physical store locations and organizational branches for your business hierarchy"
-        badgeText="Location Management"
-        badgeIcon={Building2}
-        stats={[
-          { label: 'Total Stores', value: offices.length.toString(), icon: Store },
-          { label: 'Total Branches', value: branches.length.toString(), icon: GitBranch },
-          { label: 'Active Locations', value: offices.filter(o => o.isActive).toString(), icon: MapPin },
-        ]}
-      />
+  const paginatedOffices = useMemo(() => {
+    const startIndex = (storePage - 1) * ITEMS_PER_PAGE;
+    return offices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [offices, storePage]);
 
-      {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-border">
+  const totalStorePages = Math.ceil(offices.length / ITEMS_PER_PAGE);
+
+  const paginatedBranches = useMemo(() => {
+    const startIndex = (branchPage - 1) * ITEMS_PER_PAGE;
+    return branches.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [branches, branchPage]);
+
+  const totalBranchPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
+
+  const containerVariants: any = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.06, delayChildren: 0.04 },
+    },
+  };
+
+  const itemVariants: any = {
+    hidden: { opacity: 0, y: 8 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.25, ease: 'easeOut' },
+    },
+  };
+
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="space-y-6 pb-10"
+    >
+      <motion.div variants={itemVariants}>
+        <SuperAdminHeader
+          title="Store & Branch Management"
+          subtitle="Manage physical store locations and organizational branches for your business hierarchy"
+          badgeText="Location Management"
+          badgeIcon={Building2}
+          stats={[
+            { label: 'Total Stores', value: offices.length.toString(), icon: Store },
+            { label: 'Total Branches', value: branches.length.toString(), icon: GitBranch },
+            { label: 'Active Locations', value: offices.filter(o => o.isActive).length.toString(), icon: MapPin },
+          ]}
+        />
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b border-border">
         <button
           onClick={() => setActiveTab('stores')}
           className={cn(
@@ -213,16 +269,9 @@ export default function StoreBranchManagementPage() {
         </button>
       </div>
 
-      {/* Info Box */}
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>How it works:</strong> Create physical store locations first, then create organizational branches and assign them to specific stores. This hierarchy helps organize employees and attendance tracking.
-        </p>
-      </div>
-
       {/* Stores Tab */}
       {activeTab === 'stores' && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-text-primary">Stores & Offices</h3>
             <button
@@ -242,58 +291,108 @@ export default function StoreBranchManagementPage() {
               <p>No stores found. Click "Add Store" to create your first store.</p>
             </div>
           ) : (
-            <div className="grid gap-3">
-              {offices.map((office) => {
-                const branchCount = branches.filter(b => b.officeId === parseInt(office.id)).length;
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedOffices.map((office) => {
+                  const branchCount = branches.filter(b => b.officeId === parseInt(office.id)).length;
                 return (
                   <div
                     key={office.id}
-                    className="flex items-center justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all"
+                    className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-sm bg-primary/10 text-primary">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 rounded-sm bg-primary/10 text-primary shrink-0">
                         <Store className="w-5 h-5" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-text-primary">{office.name}</h4>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
-                          <MapPin className="w-3 h-3" />
-                          <span>{office.latitude.toFixed(4)}, {office.longitude.toFixed(4)}</span>
-                          <span className="px-2 py-0.5 bg-surface-variant rounded-full">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-text-primary truncate">{office.name}</h4>
+                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-text-secondary">
+                          <span className="px-2 py-0.5 bg-surface-variant rounded-full whitespace-nowrap">
                             {office.officeType === 'HEAD_OFFICE' ? 'Head Office' : 'Store Branch'}
                           </span>
+                          <span className="flex items-center gap-1 whitespace-nowrap">
+                            <MapPin className="w-3 h-3" />
+                            {office.latitude.toFixed(4)}, {office.longitude.toFixed(4)}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
+                        <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
                           <GitBranch className="w-3 h-3" />
                           <span>{branchCount} {branchCount === 1 ? 'branch' : 'branches'}</span>
                         </div>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
+                          <Users className="w-3 h-3" />
+                          <span>{office._count?.employees || 0} employees</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
                       <button
                         onClick={() => setEditingOffice(office)}
-                        className="p-2 hover:bg-surface-variant rounded-sm transition-all"
+                        className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
+                        title="Edit"
                       >
-                        Edit
+                        <Edit size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteOffice(office)}
-                        className="p-2 hover:bg-red-500/10 rounded-sm transition-all text-red-500"
+                        className="p-2 hover:bg-surface-variant rounded-sm transition-all text-text-secondary hover:text-red-500"
+                        title="Delete"
                       >
-                        Delete
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 );
               })}
-            </div>
+              </div>
+              
+              {totalStorePages > 1 && (
+                <div className="flex items-center justify-between mt-6 border-t border-border pt-4">
+                  <p className="text-sm text-text-secondary">
+                    Showing <span className="font-medium text-text-primary">{(storePage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-text-primary">{Math.min(storePage * ITEMS_PER_PAGE, offices.length)}</span> of <span className="font-medium text-text-primary">{offices.length}</span> stores
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setStorePage(p => Math.max(1, p - 1))}
+                      disabled={storePage === 1}
+                      className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalStorePages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setStorePage(page)}
+                          className={cn(
+                            "w-8 h-8 rounded-sm text-sm font-medium transition-all",
+                            storePage === page
+                              ? "bg-primary text-white"
+                              : "border border-border bg-surface text-text-secondary hover:bg-surface-variant"
+                          )}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setStorePage(p => Math.min(totalStorePages, p + 1))}
+                      disabled={storePage === totalStorePages}
+                      className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
 
       {/* Branches Tab */}
       {activeTab === 'branches' && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-text-primary">Branches</h3>
             <button
@@ -313,48 +412,102 @@ export default function StoreBranchManagementPage() {
               <p>No branches found. Click "Add Branch" to create your first branch.</p>
             </div>
           ) : (
-            <div className="grid gap-3">
-              {branches.map((branch) => (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedBranches.map((branch) => (
                 <div
                   key={branch.id}
-                  className="flex items-center justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all"
+                  className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-sm bg-primary/10 text-primary">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-sm bg-primary/10 text-primary shrink-0">
                       <GitBranch className="w-5 h-5" />
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-text-primary">{branch.name}</h4>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
-                        <Store className="w-3 h-3" />
-                        <span>{branch.officeName || 'Unassigned'}</span>
-                        {branch.address && <span>• {branch.address}</span>}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-text-primary truncate">{branch.name}</h4>
+                      <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-text-secondary">
+                        <span className="flex items-center gap-1 whitespace-nowrap">
+                          <Store className="w-3 h-3" />
+                          {branch.officeName || 'Unassigned'}
+                        </span>
+                      </div>
+                      {branch.address && (
+                        <p className="mt-2 text-xs text-text-secondary truncate">
+                          {branch.address}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
+                        <Users className="w-3 h-3" />
+                        <span>{branch.stores?.reduce((acc, s) => acc + (s._count?.employees || 0), 0) || 0} employees</span>
                       </div>
                       {branch.latitude && branch.longitude && (
-                        <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
+                        <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
                           <MapPin className="w-3 h-3" />
                           <span>{branch.latitude.toFixed(4)}, {branch.longitude.toFixed(4)}</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
                     <button
                       onClick={() => setEditingBranch(branch)}
-                      className="p-2 hover:bg-surface-variant rounded-sm transition-all"
+                      className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
+                      title="Edit"
                     >
-                      Edit
+                      <Edit size={16} />
                     </button>
                     <button
                       onClick={() => handleDeleteBranch(branch)}
-                      className="p-2 hover:bg-red-500/10 rounded-sm transition-all text-red-500"
+                      className="p-2 hover:bg-surface-variant rounded-sm transition-all text-text-secondary hover:text-red-500"
+                      title="Delete"
                     >
-                      Delete
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+              
+              {totalBranchPages > 1 && (
+                <div className="flex items-center justify-between mt-6 border-t border-border pt-4">
+                  <p className="text-sm text-text-secondary">
+                    Showing <span className="font-medium text-text-primary">{(branchPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-text-primary">{Math.min(branchPage * ITEMS_PER_PAGE, branches.length)}</span> of <span className="font-medium text-text-primary">{branches.length}</span> branches
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setBranchPage(p => Math.max(1, p - 1))}
+                      disabled={branchPage === 1}
+                      className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalBranchPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setBranchPage(page)}
+                          className={cn(
+                            "w-8 h-8 rounded-sm text-sm font-medium transition-all",
+                            branchPage === page
+                              ? "bg-primary text-white"
+                              : "border border-border bg-surface text-text-secondary hover:bg-surface-variant"
+                          )}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setBranchPage(p => Math.min(totalBranchPages, p + 1))}
+                      disabled={branchPage === totalBranchPages}
+                      className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -485,6 +638,7 @@ export default function StoreBranchManagementPage() {
           </div>
         </div>
       )}
+      </motion.div>
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal
@@ -498,6 +652,6 @@ export default function StoreBranchManagementPage() {
         title="Delete Item"
         message={`Are you sure you want to delete "${deletingOffice?.name || deletingBranch?.name}"? This action cannot be undone.`}
       />
-    </div>
+    </motion.div>
   );
 }
