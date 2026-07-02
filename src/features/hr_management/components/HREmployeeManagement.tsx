@@ -38,7 +38,7 @@ import {
   HREmployeesResponse
 } from '@/services/hrService';
 import { sendOfficeAssignedNotification } from '@/services/notificationService';
-import { fetchShifts } from '@/services/employeeService';
+import { fetchShifts, fetchDesignations } from '@/services/employeeService';
 import { fetchWorkModes, WorkMode } from '@/services/workModeService';
 
 interface HREmployeeManagementProps {
@@ -89,6 +89,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
   });
 
   const [shiftsList, setShiftsList] = useState<any[]>([]);
+  const [designationsList, setDesignationsList] = useState<any[]>([]);
 
   const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
@@ -148,23 +149,26 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
 
   const loadOfficesAndDepartments = useCallback(async () => {
     try {
-      const [officesRes, departmentsRes, shiftsRes, workModesRes] = await Promise.all([
+      const [officesRes, departmentsRes, shiftsRes, workModesRes, designationsRes] = await Promise.all([
         fetchHROffices(),
         fetchHRDepartments(),
         fetchShifts(),
-        fetchWorkModes().catch(() => []) // Fallback in case endpoint is not available
+        fetchWorkModes().catch(() => []), // Fallback in case endpoint is not available
+        fetchDesignations().catch(() => []) // Fallback in case endpoint is not available
       ]);
       setOffices(officesRes);
       setDepartments(departmentsRes);
       setShiftsList(shiftsRes || []);
       setWorkModesList(workModesRes || []);
+      setDesignationsList(designationsRes || []);
     } catch (err: any) {
-      console.error('Failed to load offices, departments, and shifts:', err);
+      console.error('Failed to load offices, departments, shifts, and designations:', err);
       // Set empty arrays to prevent UI from hanging
       setOffices([]);
       setDepartments([]);
       setShiftsList([]);
       setWorkModesList([]);
+      setDesignationsList([]);
     }
   }, []);
 
@@ -712,13 +716,19 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Designation
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
-                    placeholder="Software Engineer"
-                  />
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary"
+                    required
+                  >
+                    <option value="">Select Designation</option>
+                    {designationsList.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -1053,12 +1063,19 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                     Designation
                   </label>
-                  <input
-                    type="text"
-                    value={formData.designation}
+                  <select
+                    value={formData.designation || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
-                  />
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary"
+                    required
+                  >
+                    <option value="">Select Designation</option>
+                    {designationsList.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
