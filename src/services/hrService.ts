@@ -79,6 +79,14 @@ export interface HREmployee {
   isHandicapped?: boolean;
   currentAddress?: string;
   permanentAddress?: string;
+  role?: string;
+  commissionPercentage?: number;
+  // Bank Details
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  accountType?: string;
+  branchName?: string;
   isActive: boolean;
   leaveCount: number;
   taskCount: number;
@@ -211,6 +219,28 @@ export interface CreateHREmployeeRequest {
   shiftId?: number;
   effectiveFrom?: string;
   role?: string;
+  commissionPercentage?: number;
+  // Bank Details
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  accountType?: string;
+  branchName?: string;
+  // Salary Structure
+  basicSalary?: number;
+  grossSalary?: number;
+  hra?: number;
+  medicalAllowance?: number;
+  travelAllowance?: number;
+  specialAllowance?: number;
+  incentive?: number;
+  bonus?: number;
+  pfEnabled?: boolean;
+  employeePfRate?: number;
+  employerPfRate?: number;
+  esicEnabled?: boolean;
+  employeeEsicRate?: number;
+  employerEsicRate?: number;
 }
 
 export interface UpdateHREmployeeRequest {
@@ -234,6 +264,28 @@ export interface UpdateHREmployeeRequest {
   shiftId?: number;
   effectiveFrom?: string;
   role?: string;
+  commissionPercentage?: number;
+  // Bank Details
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  accountType?: string;
+  branchName?: string;
+  // Salary Structure
+  basicSalary?: number;
+  grossSalary?: number;
+  hra?: number;
+  medicalAllowance?: number;
+  travelAllowance?: number;
+  specialAllowance?: number;
+  incentive?: number;
+  bonus?: number;
+  pfEnabled?: boolean;
+  employeePfRate?: number;
+  employerPfRate?: number;
+  esicEnabled?: boolean;
+  employeeEsicRate?: number;
+  employerEsicRate?: number;
 }
 
 export async function fetchHROffices(): Promise<HROffice[]> {
@@ -321,6 +373,27 @@ export async function downloadHRAttendanceReport(params?: {
     window.open(url, '_blank');
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to download attendance report.'));
+  }
+}
+
+export async function downloadHREmployeeReport(params?: {
+  departmentId?: string;
+  officeId?: string;
+  status?: string;
+}): Promise<void> {
+  try {
+    const token = getAuthToken('super_admin');
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
+    const queryParams = new URLSearchParams();
+    
+    if (params?.departmentId) queryParams.append('departmentId', params.departmentId);
+    if (params?.officeId) queryParams.append('officeId', params.officeId);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const url = `${baseUrl}/api/hr/employees/download?token=${token}&${queryParams.toString()}`;
+    window.open(url, '_blank');
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to download employee report.'));
   }
 }
 

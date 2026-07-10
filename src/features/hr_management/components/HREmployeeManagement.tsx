@@ -85,7 +85,28 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
     shiftTypeId: 'MORNING',
     shiftId: undefined,
     effectiveFrom: '',
-    role: ''
+    role: '',
+    commissionPercentage: undefined,
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
+    accountType: 'Savings',
+    branchName: '',
+    // Salary structure fields
+    basicSalary: 0,
+    grossSalary: 0,
+    hra: 0,
+    medicalAllowance: 0,
+    travelAllowance: 0,
+    specialAllowance: 0,
+    incentive: 0,
+    bonus: 0,
+    pfEnabled: false,
+    employeePfRate: 12.0,
+    employerPfRate: 12.0,
+    esicEnabled: false,
+    employeeEsicRate: 0.75,
+    employerEsicRate: 3.25
   });
 
   const [shiftsList, setShiftsList] = useState<any[]>([]);
@@ -218,7 +239,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         shiftTypeId: 'MORNING',
         shiftId: undefined,
         effectiveFrom: '',
-        role: ''
+        role: '',
+        commissionPercentage: undefined,
+        bankName: '',
+        accountNumber: '',
+        ifscCode: '',
+        accountType: 'Savings',
+        branchName: ''
       });
       setSameAsPermanent(false);
       loadEmployees();
@@ -250,7 +277,22 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         officeId: formData.officeId,
         departmentId: formData.departmentId,
         phone: formData.phone,
-        role: formData.role
+        role: formData.role,
+        // Include salary structure fields
+        basicSalary: formData.basicSalary || 0,
+        grossSalary: formData.grossSalary || 0,
+        hra: formData.hra || 0,
+        medicalAllowance: formData.medicalAllowance || 0,
+        travelAllowance: formData.travelAllowance || 0,
+        specialAllowance: formData.specialAllowance || 0,
+        incentive: formData.incentive || 0,
+        bonus: formData.bonus || 0,
+        pfEnabled: formData.pfEnabled || false,
+        employeePfRate: formData.employeePfRate || 12.0,
+        employerPfRate: formData.employerPfRate || 12.0,
+        esicEnabled: formData.esicEnabled || false,
+        employeeEsicRate: formData.employeeEsicRate || 0.75,
+        employerEsicRate: formData.employerEsicRate || 3.25
       };
       
       const updatedEmployee = await updateHREmployee(selectedEmployee.id, updateData);
@@ -328,7 +370,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       shiftTypeId: employee.shiftTypeId || 'MORNING',
       shiftId: employee.shift ? Number(employee.shift.id) : undefined,
       effectiveFrom: '',
-      role: ''
+      role: employee.role || '',
+      commissionPercentage: employee.commissionPercentage,
+      bankName: employee.bankName || '',
+      accountNumber: employee.accountNumber || '',
+      ifscCode: employee.ifscCode || '',
+      accountType: employee.accountType || 'Savings',
+      branchName: employee.branchName || ''
     });
     setSameAsPermanent(false);
     setIsEditModalOpen(true);
@@ -851,6 +899,80 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   />
                 </div>
 
+                {/* Bank Details Section */}
+                <div className="pt-4 border-t border-border">
+                  <h3 className="text-sm font-bold text-text-primary mb-3">Bank Details</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Bank Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.bankName || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary"
+                      placeholder="Enter bank name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Account Number
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.accountNumber || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary"
+                      placeholder="Enter account number"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      IFSC Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.ifscCode || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, ifscCode: e.target.value.toUpperCase() }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary uppercase"
+                      placeholder="Enter IFSC code"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Account Type
+                    </label>
+                    <select
+                      value={formData.accountType || 'Savings'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, accountType: e.target.value }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary"
+                    >
+                      <option value="Savings">Savings</option>
+                      <option value="Current">Current</option>
+                      <option value="Salary">Salary</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                    Branch Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.branchName || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, branchName: e.target.value }))}
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary"
+                    placeholder="Enter branch name"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
@@ -909,6 +1031,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       <option value="SALESMAN">Salesman (Store)</option>
                       <option value="HELPER">Helper (Store)</option>
                     </select>
+                  {formData.role === 'SALESMAN' && (
+                    <div>
+                      <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                        Commission Percentage (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={formData.commissionPercentage || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, commissionPercentage: parseFloat(e.target.value) || undefined }))}
+                        className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                        placeholder="Enter commission percentage"
+                      />
+                    </div>
+                  )}
                   </div>
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
@@ -1216,6 +1355,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       <option value="HELPER">Helper (Store)</option>
                     </select>
                   </div>
+                  {formData.role === 'SALESMAN' && (
+                    <div>
+                      <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                        Commission Percentage (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={formData.commissionPercentage || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, commissionPercentage: parseFloat(e.target.value) || undefined }))}
+                        className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                        placeholder="Enter commission percentage"
+                      />
+                    </div>
+                  )}
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
                       Status
@@ -1333,6 +1489,166 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       onChange={(e) => setFormData(prev => ({ ...prev, effectiveFrom: e.target.value }))}
                       className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     />
+                  </div>
+                </div>
+
+                {/* Salary Structure Section */}
+                <div className="p-4 bg-gradient-to-r from-blue-500/5 to-purple-500/5 border border-blue-500/10 rounded-sm">
+                  <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-4">Salary Structure</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        Basic Salary
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.basicSalary || 0}
+                        onChange={(e) => {
+                          const basic = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            basicSalary: basic,
+                            grossSalary: basic + (prev.hra || 0) + (prev.medicalAllowance || 0) + (prev.travelAllowance || 0) + (prev.specialAllowance || 0) + (prev.incentive || 0) + (prev.bonus || 0)
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 15000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        HRA
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.hra || 0}
+                        onChange={(e) => {
+                          const hra = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            hra: hra,
+                            grossSalary: (prev.basicSalary || 0) + hra + (prev.medicalAllowance || 0) + (prev.travelAllowance || 0) + (prev.specialAllowance || 0) + (prev.incentive || 0) + (prev.bonus || 0)
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 6000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        Medical Allowance
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.medicalAllowance || 0}
+                        onChange={(e) => {
+                          const medical = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            medicalAllowance: medical,
+                            grossSalary: (prev.basicSalary || 0) + (prev.hra || 0) + medical + (prev.travelAllowance || 0) + (prev.specialAllowance || 0) + (prev.incentive || 0) + (prev.bonus || 0)
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 1250"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        Travel Allowance
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.travelAllowance || 0}
+                        onChange={(e) => {
+                          const travel = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            travelAllowance: travel,
+                            grossSalary: (prev.basicSalary || 0) + (prev.hra || 0) + (prev.medicalAllowance || 0) + travel + (prev.specialAllowance || 0) + (prev.incentive || 0) + (prev.bonus || 0)
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 1600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        Special Allowance
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.specialAllowance || 0}
+                        onChange={(e) => {
+                          const special = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            specialAllowance: special,
+                            grossSalary: (prev.basicSalary || 0) + (prev.hra || 0) + (prev.medicalAllowance || 0) + (prev.travelAllowance || 0) + special + (prev.incentive || 0) + (prev.bonus || 0)
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 2000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        Incentives
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.incentive || 0}
+                        onChange={(e) => {
+                          const incentive = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            incentive: incentive,
+                            grossSalary: (prev.basicSalary || 0) + (prev.hra || 0) + (prev.medicalAllowance || 0) + (prev.travelAllowance || 0) + (prev.specialAllowance || 0) + incentive + (prev.bonus || 0)
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 1000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                        Bonus
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.bonus || 0}
+                        onChange={(e) => {
+                          const bonus = parseFloat(e.target.value) || 0;
+                          setFormData(prev => ({
+                            ...prev,
+                            bonus: bonus,
+                            grossSalary: (prev.basicSalary || 0) + (prev.hra || 0) + (prev.medicalAllowance || 0) + (prev.travelAllowance || 0) + (prev.specialAllowance || 0) + (prev.incentive || 0) + bonus
+                          }));
+                        }}
+                        className="w-full p-2 bg-surface-variant border border-border rounded-sm text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="e.g. 3000"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3 p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-sm border border-blue-500/20">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                          Gross Salary (Auto-calculated)
+                        </label>
+                        <p className="text-[10px] text-text-secondary">Total before deductions</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-black text-primary">₹{formData.grossSalary?.toLocaleString('en-IN') || 0}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

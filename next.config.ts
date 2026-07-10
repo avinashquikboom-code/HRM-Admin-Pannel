@@ -12,7 +12,6 @@ const backendUrl =
 const nextConfig: NextConfig = {
   // Emit a self-contained build (.next/standalone) for a small Docker image.
   output: 'standalone',
-  outputFileTracingRoot: path.join(__dirname),
   async rewrites() {
     return [
       {

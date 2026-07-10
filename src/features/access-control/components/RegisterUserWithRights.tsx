@@ -75,6 +75,7 @@ export default function RegisterUserWithRights({
   const [specialAllowance, setSpecialAllowance] = useState<number>(0);
   const [incentive, setIncentive] = useState<number>(0);
   const [bonus, setBonus] = useState<number>(0);
+  const [grossSalary, setGrossSalary] = useState<number>(0);
 
   const [pfEnabled, setPfEnabled] = useState(false);
   const [pfNumber, setPfNumber] = useState('');
@@ -107,6 +108,12 @@ export default function RegisterUserWithRights({
   const [success, setSuccess] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = selectedRole === 'EMPLOYEE' ? 6 : 2;
+
+  // Calculate gross salary automatically
+  const calculateGrossSalary = () => {
+    const gross = basicSalary + hra + medicalAllowance + travelAllowance + specialAllowance + incentive + bonus;
+    setGrossSalary(gross);
+  };
 
   const loadDepartments = async () => {
     setIsLoadingDepartments(true);
@@ -226,6 +233,7 @@ export default function RegisterUserWithRights({
         payload.passportNumber = passportNumber.trim() || undefined;
         payload.salaryStructure = {
           basicSalary,
+          grossSalary,
           hra,
           medicalAllowance,
           travelAllowance,
@@ -268,6 +276,7 @@ export default function RegisterUserWithRights({
       setSpecialAllowance(0);
       setIncentive(0);
       setBonus(0);
+      setGrossSalary(0);
       setPfEnabled(false);
       setPfNumber('');
       setEsicEnabled(false);
@@ -841,7 +850,10 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={basicSalary || ''}
-                    onChange={(e) => setBasicSalary(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setBasicSalary(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 15000"
@@ -856,7 +868,10 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={hra || ''}
-                    onChange={(e) => setHra(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setHra(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 5000"
@@ -871,7 +886,10 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={medicalAllowance || ''}
-                    onChange={(e) => setMedicalAllowance(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setMedicalAllowance(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 1250"
@@ -888,7 +906,10 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={travelAllowance || ''}
-                    onChange={(e) => setTravelAllowance(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setTravelAllowance(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 1600"
@@ -903,7 +924,10 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={specialAllowance || ''}
-                    onChange={(e) => setSpecialAllowance(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setSpecialAllowance(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 2000"
@@ -918,7 +942,10 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={incentive || ''}
-                    onChange={(e) => setIncentive(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setIncentive(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 1000"
@@ -933,11 +960,28 @@ export default function RegisterUserWithRights({
                     type="number"
                     min={0}
                     value={bonus || ''}
-                    onChange={(e) => setBonus(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      setBonus(parseFloat(e.target.value) || 0);
+                      calculateGrossSalary();
+                    }}
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 3000"
                   />
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                      Gross Salary (Auto-calculated)
+                    </label>
+                    <p className="text-xs text-text-secondary">Total before deductions</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-primary">₹{grossSalary.toLocaleString('en-IN')}</p>
+                  </div>
                 </div>
               </div>
             </motion.div>
