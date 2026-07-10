@@ -186,6 +186,30 @@ export default function RegisterUserWithRights({
 
   const handleNext = () => {
     setError('');
+    if (currentStep === 1) {
+      if (!firstName.trim()) {
+        setError('First Name is required.');
+        return;
+      }
+      if (!email.trim()) {
+        setError('Email Address is required.');
+        return;
+      }
+      if (selectedRole === 'EMPLOYEE' && !password) {
+        setError('Password is required.');
+        return;
+      }
+    }
+    if (currentStep === 2) {
+      if (!departmentId) {
+        setError('Department is required.');
+        return;
+      }
+      if (selectedRole === 'EMPLOYEE' && !officeId) {
+        setError('Office/Store selection is required.');
+        return;
+      }
+    }
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -200,6 +224,10 @@ export default function RegisterUserWithRights({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (currentStep < totalSteps) {
+      handleNext();
+      return;
+    }
     setError('');
     setSuccess('');
     setIsLoading(true);

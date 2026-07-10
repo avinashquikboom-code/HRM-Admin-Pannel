@@ -40,6 +40,8 @@ import {
 import { sendOfficeAssignedNotification } from '@/services/notificationService';
 import { fetchShifts, fetchDesignations } from '@/services/employeeService';
 import { fetchWorkModes, WorkMode } from '@/services/workModeService';
+import { fetchBranches } from '@/services/branchService';
+import { fetchStores } from '@/services/storeService';
 
 interface HREmployeeManagementProps {
   className?: string;
@@ -55,6 +57,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
   const [offices, setOffices] = useState<HROffice[]>([]);
   const [departments, setDepartments] = useState<HRDepartment[]>([]);
   const [workModesList, setWorkModesList] = useState<WorkMode[]>([]);
+  const [branchesList, setBranchesList] = useState<any[]>([]);
+  const [storesList, setStoresList] = useState<any[]>([]);
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -74,6 +78,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
     status: 'active',
     officeId: undefined,
     departmentId: undefined,
+    storeId: undefined,
+    branchId: undefined,
+    customPunchRadius: undefined,
     phone: '',
     aadharNumber: '',
     pfNumber: '',
@@ -173,18 +180,22 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
 
   const loadOfficesAndDepartments = useCallback(async () => {
     try {
-      const [officesRes, departmentsRes, shiftsRes, workModesRes, designationsRes] = await Promise.all([
+      const [officesRes, departmentsRes, shiftsRes, workModesRes, designationsRes, branchesRes, storesRes] = await Promise.all([
         fetchHROffices(),
         fetchHRDepartments(),
         fetchShifts(),
         fetchWorkModes().catch(() => []), // Fallback in case endpoint is not available
-        fetchDesignations().catch(() => []) // Fallback in case endpoint is not available
+        fetchDesignations().catch(() => []), // Fallback in case endpoint is not available
+        fetchBranches().catch(() => []),
+        fetchStores().catch(() => [])
       ]);
       setOffices(officesRes);
       setDepartments(departmentsRes);
       setShiftsList(shiftsRes || []);
       setWorkModesList(workModesRes || []);
       setDesignationsList(designationsRes || []);
+      setBranchesList(branchesRes || []);
+      setStoresList(storesRes || []);
     } catch (err: any) {
       console.error('Failed to load offices, departments, shifts, and designations:', err);
       // Set empty arrays to prevent UI from hanging
@@ -193,6 +204,8 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       setShiftsList([]);
       setWorkModesList([]);
       setDesignationsList([]);
+      setBranchesList([]);
+      setStoresList([]);
     }
   }, []);
 
@@ -231,6 +244,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         status: 'active',
         officeId: undefined,
         departmentId: undefined,
+        storeId: undefined,
+        branchId: undefined,
+        customPunchRadius: undefined,
         phone: '',
         aadharNumber: '',
         pfNumber: '',
@@ -279,6 +295,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         status: formData.status,
         officeId: formData.officeId,
         departmentId: formData.departmentId,
+        storeId: formData.storeId,
+        branchId: formData.branchId,
+        customPunchRadius: formData.customPunchRadius,
         phone: formData.phone,
         aadharNumber: formData.aadharNumber,
         pfNumber: formData.pfNumber,
@@ -379,6 +398,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       departmentId: typeof employee.department === 'object' && employee.department !== null
         ? Number(employee.department.id)
         : departments.find(d => d.name === employee.department)?.id,
+      storeId: employee.storeId || undefined,
+      branchId: employee.branchId || undefined,
+      customPunchRadius: employee.customPunchRadius || undefined,
       phone: employee.phone || '',
       aadharNumber: employee.aadharNumber || '',
       pfNumber: employee.pfNumber || '',
@@ -1035,6 +1057,59 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   </div>
                 </div>
 
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Branch
+                    </label>
+                    <select
+                      value={formData.branchId || ''}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        branchId: e.target.value ? parseInt(e.target.value) : undefined,
+                        storeId: undefined
+                      }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Branch</option>
+                      {branchesList.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Store
+                    </label>
+                    <select
+                      value={formData.storeId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, storeId: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Store</option>
+                      {storesList
+                        .filter(s => !formData.branchId || s.branchId === formData.branchId)
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Punch Radius (m)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 50"
+                      value={formData.customPunchRadius || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, customPunchRadius: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
@@ -1453,6 +1528,59 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                         <option key={dept.id} value={dept.id}>{dept.name}</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Branch
+                    </label>
+                    <select
+                      value={formData.branchId || ''}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        branchId: e.target.value ? parseInt(e.target.value) : undefined,
+                        storeId: undefined
+                      }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Branch</option>
+                      {branchesList.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Store
+                    </label>
+                    <select
+                      value={formData.storeId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, storeId: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    >
+                      <option value="">Select Store</option>
+                      {storesList
+                        .filter(s => !formData.branchId || s.branchId === formData.branchId)
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                      Punch Radius (m)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 50"
+                      value={formData.customPunchRadius || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, customPunchRadius: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                    />
                   </div>
                 </div>
 

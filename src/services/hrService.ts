@@ -81,6 +81,11 @@ export interface HREmployee {
   permanentAddress?: string;
   role?: string;
   commissionPercentage?: number;
+  storeId?: number | null;
+  branchId?: number | null;
+  customPunchRadius?: number | null;
+  store?: { id: number; name: string } | null;
+  branch?: { id: number; name: string } | null;
   // Bank Details
   bankName?: string;
   accountNumber?: string;
@@ -220,6 +225,9 @@ export interface CreateHREmployeeRequest {
   effectiveFrom?: string;
   role?: string;
   commissionPercentage?: number;
+  storeId?: number;
+  branchId?: number;
+  customPunchRadius?: number;
   // Bank Details
   bankName?: string;
   accountNumber?: string;
@@ -266,6 +274,9 @@ export interface UpdateHREmployeeRequest {
   role?: string;
   password?: string;
   commissionPercentage?: number;
+  storeId?: number;
+  branchId?: number;
+  customPunchRadius?: number;
   // Bank Details
   bankName?: string;
   accountNumber?: string;

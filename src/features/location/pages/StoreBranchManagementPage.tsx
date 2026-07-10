@@ -39,6 +39,7 @@ export default function StoreBranchManagementPage() {
     latitude: 0,
     longitude: 0,
     officeId: 0,
+    maxPunchRadiusMeters: 50,
   });
   const [isGettingBranchLocation, setIsGettingBranchLocation] = useState(false);
 
@@ -100,11 +101,12 @@ export default function StoreBranchManagementPage() {
         latitude: branchForm.latitude,
         longitude: branchForm.longitude,
         country: 'India',
+        maxPunchRadiusMeters: branchForm.maxPunchRadiusMeters,
       };
       await createBranch(createData);
       toast.success('Branch created successfully');
       setIsCreateBranchOpen(false);
-      setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0 });
+      setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0, maxPunchRadiusMeters: 50 });
       loadData();
     } catch (error) {
       toast.error('Failed to create branch');
@@ -152,10 +154,34 @@ export default function StoreBranchManagementPage() {
     }
   };
 
-  const handleBranchUpdated = () => {
-    toast.success('Branch updated successfully');
-    setEditingBranch(null);
-    loadData();
+  const handleBranchUpdated = async () => {
+    if (!editingBranch) return;
+    if (!branchForm.name.trim()) {
+      toast.error('Branch name is required');
+      return;
+    }
+    if (!branchForm.officeId) {
+      toast.error('Please select a store');
+      return;
+    }
+
+    try {
+      const updateData: UpdateBranchRequest = {
+        name: branchForm.name,
+        address: branchForm.address,
+        officeId: branchForm.officeId,
+        latitude: branchForm.latitude,
+        longitude: branchForm.longitude,
+        maxPunchRadiusMeters: branchForm.maxPunchRadiusMeters,
+      };
+      await updateBranch(editingBranch.id.toString(), updateData);
+      toast.success('Branch updated successfully');
+      setEditingBranch(null);
+      setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0, maxPunchRadiusMeters: 50 });
+      loadData();
+    } catch (error) {
+      toast.error('Failed to update branch');
+    }
   };
 
   const handleDeleteOffice = (office: Office) => {
@@ -450,7 +476,17 @@ export default function StoreBranchManagementPage() {
                   </div>
                   <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
                     <button
-                      onClick={() => setEditingBranch(branch)}
+                      onClick={() => {
+                        setEditingBranch(branch);
+                        setBranchForm({
+                          name: branch.name,
+                          address: branch.address || '',
+                          latitude: branch.latitude || 0,
+                          longitude: branch.longitude || 0,
+                          officeId: branch.officeId || 0,
+                          maxPunchRadiusMeters: branch.maxPunchRadiusMeters || 50
+                        });
+                      }}
                       className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
                       title="Edit"
                     >
@@ -531,11 +567,11 @@ export default function StoreBranchManagementPage() {
         />
       )}
 
-      {/* Create Branch Modal */}
-      {isCreateBranchOpen && (
+      {/* Create/Edit Branch Modal */}
+      {(isCreateBranchOpen || editingBranch) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-sm w-full max-w-lg p-6">
-            <h2 className="text-lg font-bold text-text-primary mb-4">Create Branch</h2>
+            <h2 className="text-lg font-bold text-text-primary mb-4">{editingBranch ? 'Edit Branch' : 'Create Branch'}</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">Branch Name *</label>
@@ -599,6 +635,21 @@ export default function StoreBranchManagementPage() {
                   />
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1 flex justify-between">
+                  <span>Max Punch Radius (Meters)</span>
+                  <span className="text-primary font-bold">{branchForm.maxPunchRadiusMeters || 50}m</span>
+                </label>
+                <input
+                  type="range"
+                  min="10"
+                  max="500"
+                  step="5"
+                  value={branchForm.maxPunchRadiusMeters || 50}
+                  onChange={(e) => setBranchForm({ ...branchForm, maxPunchRadiusMeters: parseInt(e.target.value) })}
+                  className="w-full h-2 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+              </div>
               <button
                 type="button"
                 onClick={handleGetCurrentBranchLocation}
@@ -621,17 +672,18 @@ export default function StoreBranchManagementPage() {
                 <button
                   onClick={() => {
                     setIsCreateBranchOpen(false);
-                    setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0 });
+                    setEditingBranch(null);
+                    setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0, maxPunchRadiusMeters: 50 });
                   }}
                   className="flex-1 px-4 py-2 bg-surface-variant border border-border rounded-sm"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleBranchCreated}
+                  onClick={editingBranch ? handleBranchUpdated : handleBranchCreated}
                   className="flex-1 px-4 py-2 bg-primary text-white rounded-sm"
                 >
-                  Create
+                  {editingBranch ? 'Save' : 'Create'}
                 </button>
               </div>
             </div>

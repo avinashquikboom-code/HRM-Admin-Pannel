@@ -16,6 +16,7 @@ export interface Branch {
   officeName?: string;
   latitude?: number;
   longitude?: number;
+  maxPunchRadiusMeters?: number;
   createdAt: string;
   updatedAt: string;
   stores?: {
@@ -39,6 +40,7 @@ export interface CreateBranchRequest {
   officeId: number;
   latitude?: number;
   longitude?: number;
+  maxPunchRadiusMeters?: number;
 }
 
 export interface UpdateBranchRequest {
@@ -55,6 +57,7 @@ export interface UpdateBranchRequest {
   officeId?: number;
   latitude?: number;
   longitude?: number;
+  maxPunchRadiusMeters?: number;
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {

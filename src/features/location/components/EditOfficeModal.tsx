@@ -248,6 +248,21 @@ export default function EditOfficeModal({
           )}
         </button>
 
+        <div className="space-y-2">
+          <label className="text-xs font-black text-muted uppercase tracking-widest ml-1 flex justify-between">
+            <span>Max Punch Radius (Meters)</span>
+            <span className="text-primary font-black">{form.maxPunchRadiusMeters || 50}m</span>
+          </label>
+          <input
+            type="range"
+            min="10"
+            max="500"
+            step="5"
+            value={form.maxPunchRadiusMeters || 50}
+            onChange={(e) => updateField('maxPunchRadiusMeters', parseInt(e.target.value))}
+            className="w-full h-2 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary"
+          />
+        </div>
 
         <label className="flex items-center gap-3 cursor-pointer ml-1">
           <input
