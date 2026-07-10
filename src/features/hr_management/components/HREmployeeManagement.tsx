@@ -112,6 +112,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
   const [shiftsList, setShiftsList] = useState<any[]>([]);
   const [designationsList, setDesignationsList] = useState<any[]>([]);
 
+  // Separate password state for editing so it isn't carried into the create form.
+  const [editPassword, setEditPassword] = useState('');
+
   const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
   // Search and filter
@@ -277,7 +280,24 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
         officeId: formData.officeId,
         departmentId: formData.departmentId,
         phone: formData.phone,
+        aadharNumber: formData.aadharNumber,
+        pfNumber: formData.pfNumber,
+        esicNumber: formData.esicNumber,
+        isHandicapped: formData.isHandicapped,
+        currentAddress: formData.currentAddress,
+        permanentAddress: formData.permanentAddress,
+        workModeId: formData.workModeId,
+        shiftTypeId: formData.shiftTypeId,
+        shiftId: formData.shiftId,
+        effectiveFrom: formData.effectiveFrom,
         role: formData.role,
+        ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
+        commissionPercentage: formData.commissionPercentage,
+        bankName: formData.bankName,
+        accountNumber: formData.accountNumber,
+        ifscCode: formData.ifscCode,
+        accountType: formData.accountType,
+        branchName: formData.branchName,
         // Include salary structure fields
         basicSalary: formData.basicSalary || 0,
         grossSalary: formData.grossSalary || 0,
@@ -379,6 +399,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       branchName: employee.branchName || ''
     });
     setSameAsPermanent(false);
+    setEditPassword('');
     setIsEditModalOpen(true);
   };
 
@@ -1241,6 +1262,20 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                     className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
                     placeholder="12-digit Aadhar number"
                     maxLength={12}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                    New Password (Optional)
+                  </label>
+                  <input
+                    type="password"
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-semibold text-text-primary placeholder:text-text-secondary/50"
+                    placeholder="Leave blank to keep current password"
+                    minLength={6}
                   />
                 </div>
 

@@ -70,7 +70,6 @@ export default function AuthLoginView({
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [allowAutofill, setAllowAutofill] = useState(false);
 
   const switchPortal = (nextPortal: LoginPortalType) => {
     if (nextPortal === portal) return;
@@ -78,7 +77,6 @@ export default function AuthLoginView({
     setEmail('');
     setPassword('');
     setError('');
-    setAllowAutofill(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -174,12 +172,10 @@ export default function AuthLoginView({
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary w-5 h-5" />
                 <input
-                  type="email"
+                  type="text"
                   name="hrm-login-email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setAllowAutofill(true)}
-                  readOnly={!allowAutofill}
                   disabled={isLoading}
                   required={true}
                   className={cn(
@@ -187,7 +183,7 @@ export default function AuthLoginView({
                     styles.ring
                   )}
                   placeholder={copy.emailPlaceholder}
-                  autoComplete="off"
+                  autoComplete="username"
                 />
               </div>
             </div>
@@ -200,12 +196,10 @@ export default function AuthLoginView({
                 name="hrm-login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setAllowAutofill(true)}
-                readOnly={!allowAutofill}
                 disabled={isLoading}
                 required={true}
                 placeholder="Enter your password"
-                autoComplete="new-password"
+                autoComplete="current-password"
               />
             </div>
 

@@ -264,6 +264,7 @@ export interface UpdateHREmployeeRequest {
   shiftId?: number;
   effectiveFrom?: string;
   role?: string;
+  password?: string;
   commissionPercentage?: number;
   // Bank Details
   bankName?: string;

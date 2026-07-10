@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { sendNotificationToEmployee } from '@/services/notificationService';
+import { useApi } from '@/hooks/useApi';
+import PayrollAttendanceModal from '../components/PayrollAttendanceModal';
 import { 
   Wallet, 
   TrendingUp, 
@@ -195,18 +197,18 @@ const PayrollPage = () => {
     setIsPageLoading(true);
     setIsSlipsLoading(true);
     try {
-      const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/admin/payroll/stats');
+      const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/payroll/admin/stats');
       if (statsRes.data.success) {
         setStats(statsRes.data.stats);
         setTrendData(statsRes.data.trend);
       }
 
-      const runsRes = await api.get<{ success: boolean; runs: any[] }>('/api/admin/payroll/runs');
+      const runsRes = await api.get<{ success: boolean; runs: any[] }>('/api/payroll/admin/runs');
       if (runsRes.data.success) {
         setRunsList(runsRes.data.runs);
       }
 
-      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/admin/payroll/slips?month=${slipMonth}`);
+      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/payroll/admin/slips?month=${slipMonth}`);
       if (slipsRes.data.success) {
         setSlipsList(slipsRes.data.slips);
       }
@@ -268,7 +270,7 @@ const PayrollPage = () => {
   const handleBulkDisburse = async () => {
     setIsDisbursing(true);
     try {
-      await api.post('/api/admin/payroll/disburse');
+      await api.post('/api/payroll/admin/disburse');
 
       // Send salary credit notifications to all employees in the current slip list
       const notifyAll = slipsList.map((slip) =>
@@ -298,10 +300,10 @@ const PayrollPage = () => {
   const handleApproveSlip = async (employeeId: number) => {
     try {
       const [year, month] = slipMonth.split('-').map(Number);
-      await api.post('/api/admin/payroll/slips/approve', { employeeId, month, year });
+      await api.post('/api/payroll/admin/slips/approve', { employeeId, month, year });
 
       // Refresh slips list to get updated net salary
-      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/admin/payroll/slips?month=${slipMonth}`);
+      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/payroll/admin/slips?month=${slipMonth}`);
       if (slipsRes.data.success) {
         setSlipsList(slipsRes.data.slips);
 
@@ -923,61 +925,13 @@ const PayrollPage = () => {
       <Modal 
         isOpen={isProcessModalOpen} 
         onClose={() => setIsProcessModalOpen(false)}
-        title="Execute Bulk Disbursement"
+        title="Payroll & Attendance Management"
       >
-        <div className="space-y-8 p-2">
-          <div className="p-6 bg-surface-variant/50 rounded-sm border border-border/50">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">Batch Summary</h4>
-              <span className="px-3 py-1 bg-primary/10 text-primary text-micro font-black rounded-full uppercase tracking-widest border border-primary/10">Draft Batch #882</span>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <p className="text-label text-text-secondary">Total Entities</p>
-                <p className="text-xl font-black text-text-primary">12 Companies</p>
-              </div>
-              <div className="space-y-1 text-right">
-                <p className="text-label text-text-secondary">Total Employees</p>
-                <p className="text-xl font-black text-text-primary">4,842 Seats</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-label text-text-secondary">Total Volume</p>
-                <p className="text-xl font-black text-primary">₹1,248,500</p>
-              </div>
-              <div className="space-y-1 text-right">
-                <p className="text-label text-text-secondary">Est. Gas Fees</p>
-                <p className="text-xl font-black text-text-secondary">₹142.50</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-label text-text-secondary ml-1">Confirmation Protocol</h4>
-            <div className="space-y-3">
-              {[
-                'Verify all entity compliance certificates',
-                'Synchronize with global liquidity pool',
-                'Enable multi-signature audit trail',
-              ].map((step, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 bg-surface rounded-sm border border-border/50 group hover:border-primary/30 transition-all shadow-sm">
-                  <div className="w-6 h-6 rounded-lg bg-surface-variant border border-border flex items-center justify-center text-text-secondary group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                    <CheckCircle2 size={16} />
-                  </div>
-                  <span className="text-sm font-bold text-text-primary">{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <button 
-            disabled={isDisbursing}
-            onClick={handleBulkDisburse}
-            className="w-full py-4 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 mt-8 disabled:opacity-55 cursor-pointer"
-          >
-            <ShieldCheck size={20} className={cn(isDisbursing && "animate-spin")} />
-            {isDisbursing ? 'Processing Disbursement...' : 'Initiate Disbursement Protocol'}
-          </button>
-        </div>
+        <PayrollAttendanceModal 
+          onClose={() => setIsProcessModalOpen(false)}
+          onBulkDisburse={handleBulkDisburse}
+          isDisbursing={isDisbursing}
+        />
       </Modal>
     </motion.div>
   );
