@@ -1,5 +1,5 @@
 const PRODUCTION_API_DEFAULT = 'https://api.voxiqai.com';
-const LOCAL_API_DEFAULT = 'http://localhost:5004';
+//const LOCAL_API_DEFAULT = 'http://localhost:5004';
 
 /**
  * Backend base URL (no trailing slash).
