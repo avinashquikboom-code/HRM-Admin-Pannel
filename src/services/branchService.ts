@@ -20,6 +20,9 @@ export interface Branch {
   createdAt: string;
   updatedAt: string;
   stores?: {
+    id: number;
+    name: string;
+    code?: string;
     _count?: {
       employees: number;
     }
@@ -83,3 +86,19 @@ export const updateBranch = async (id: string, data: UpdateBranchRequest): Promi
 export const deleteBranch = async (id: string): Promise<void> => {
   await api.delete(`/api/admin/branches/${id}`);
 };
+
+/**
+ * Fetch all branches that a specific store belongs to.
+ * Since Store.branchId is a single FK, this returns an array with 0 or 1 element.
+ */
+export const fetchBranchesByStoreId = async (storeId: string): Promise<Branch[]> => {
+  // Get the store to find its branchId
+  const storeResponse = await api.get(`/api/admin/stores/${storeId}`);
+  const store = storeResponse.data.data;
+  if (!store?.branchId) return [];
+  // Fetch the specific branch
+  const branchResponse = await api.get(`/api/admin/branches/${store.branchId}`);
+  const branch = branchResponse.data.data;
+  return branch ? [branch] : [];
+};
+

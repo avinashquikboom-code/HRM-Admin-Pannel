@@ -35,6 +35,8 @@ export interface AdminEmployee {
   firstName: string;
   lastName: string;
   designation: string | null;
+  designationId: number | null;
+  designationRelation: { id: number; name: string } | null;
   status: string;
   workMode: string;
   shiftType: string;
@@ -42,6 +44,11 @@ export interface AdminEmployee {
   shiftTypeId: string;
   officeId: string | null;
   office: AdminEmployeeOffice | null;
+  storeId: string | null;
+  store: { id: string; name: string; branchId: string | null; branch: { id: string; name: string } | null } | null;
+  branchId: string | null;
+  branch: { id: string; name: string } | null;
+  departmentId: string | null;
   user: AdminEmployeeUser | null;
   department: AdminEmployeeDepartment | null;
   shift: AdminEmployeeShift | null;
@@ -70,10 +77,10 @@ interface AssignEmployeeResponse {
   employee: AssignedEmployeeResult;
 }
 
-export async function fetchEmployees(): Promise<EmployeesResponse> {
+export async function fetchEmployees(params?: { page?: number; limit?: number }): Promise<EmployeesResponse> {
   try {
-    console.log('[employeeService] Fetching employees from /api/admin/employees');
-    const { data } = await api.get<EmployeesResponse>('/api/admin/employees');
+    console.log('[employeeService] Fetching employees from /api/admin/employees', params);
+    const { data } = await api.get<EmployeesResponse>('/api/admin/employees', { params });
     console.log('[employeeService] Employees response received:', data);
     return data;
   } catch (error) {
@@ -232,8 +239,11 @@ export async function updateEmployee(
     firstName?: string;
     lastName?: string;
     designation?: string;
+    designationId?: string | number;
     status?: string;
     officeId?: string;
+    storeId?: string | number;
+    branchId?: string | number;
     departmentId?: string;
     shiftId?: string;
     workMode?: string;
@@ -349,6 +359,55 @@ export async function fetchDesignations(): Promise<any[]> {
     return data.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch designations.'));
+  }
+}
+
+export interface HopkidEmployee {
+  employeeID: string;
+  employeeCode: string;
+  employeeName: string;
+  gender: string | null;
+  dateofBirth: string | null;
+  dateofJoining: string | null;
+  pinCode: number | null;
+  address: string;
+  branchName: string;
+  country: string;
+  countryID: number;
+  stateID: number;
+  cityID: number;
+  state: string;
+  city: string;
+  mobileNo: string;
+  email: string | null;
+  salary: number;
+  commissionPercentage: number;
+  companyId: string;
+  branchId: string;
+  isActive: boolean;
+  createdBy: string;
+  createdOn: string;
+  updatedBy: string;
+  updatedOn: string;
+  updatedLog: string;
+  branchId2: string;
+  alternativeMobileNumber: string | null;
+}
+
+export interface HopkidEmployeeListResponse {
+  success: boolean;
+  message: string;
+  data: HopkidEmployee[];
+}
+
+export async function fetchHopkidEmployeeList(): Promise<HopkidEmployeeListResponse> {
+  try {
+    const { data } = await api.get<HopkidEmployeeListResponse>('/api/Employee/GetEmployeeList');
+    return data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to fetch Hopkid employee list. Please try again.')
+    );
   }
 }
 

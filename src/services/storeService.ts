@@ -5,13 +5,12 @@ export interface Store {
   name: string;
   code?: string;
   address?: string;
-  city?: string;
-  state?: string;
   country: string;
   pincode?: string;
-  phone?: string;
-  email?: string;
   branchId?: number;
+  latitude?: number;
+  longitude?: number;
+  maxPunchRadiusMeters?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

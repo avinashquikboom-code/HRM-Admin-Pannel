@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, UserPlus, Loader2, RotateCcw, Building, User, Phone, Calendar as CalendarIcon, Briefcase, Clock, ShieldCheck, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react';
+import { Mail, UserPlus, Loader2, RotateCcw, Building, User, Phone, Calendar as CalendarIcon, Briefcase, Clock, ShieldCheck, ChevronRight, ChevronLeft, CheckCircle, Store, GitBranch } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
 import { type RegisterRole } from '@/services/authService';
 import {
@@ -16,6 +16,8 @@ import { getAuthSession } from '@/lib/authStorage';
 import type { PortalType } from '@/lib/portals';
 import { cn } from '@/utils/cn';
 import { fetchHRDepartments, fetchHROffices } from '@/services/hrService';
+import { fetchStores } from '@/services/storeService';
+import { fetchBranches } from '@/services/branchService';
 
 interface RegisterUserWithRightsProps {
   managerPortal: 'super_admin' | 'platform_admin';
@@ -57,6 +59,8 @@ export default function RegisterUserWithRights({
   const [selectedRole, setSelectedRole] = useState<RegisterRole>(registerRole);
   const [departmentId, setDepartmentId] = useState<number | undefined>();
   const [officeId, setOfficeId] = useState<number | undefined>();
+  const [storeId, setStoreId] = useState<number | undefined>();
+  const [branchId, setBranchId] = useState<number | undefined>();
   
   // New Fields
   const [mobileNumber, setMobileNumber] = useState('');
@@ -67,6 +71,11 @@ export default function RegisterUserWithRights({
   const [workModeId, setWorkModeId] = useState('OFFICE');
   const [shiftTypeId, setShiftTypeId] = useState('MORNING');
 
+  const [stores, setStores] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(false);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+
   // Salary Structure
   const [basicSalary, setBasicSalary] = useState<number>(0);
   const [hra, setHra] = useState<number>(0);
@@ -75,6 +84,7 @@ export default function RegisterUserWithRights({
   const [specialAllowance, setSpecialAllowance] = useState<number>(0);
   const [incentive, setIncentive] = useState<number>(0);
   const [bonus, setBonus] = useState<number>(0);
+  const [commissionPercentage, setCommissionPercentage] = useState<number>(0);
   const [grossSalary, setGrossSalary] = useState<number>(0);
 
   const [pfEnabled, setPfEnabled] = useState(false);
@@ -139,6 +149,30 @@ export default function RegisterUserWithRights({
     }
   };
 
+  const loadStores = async () => {
+    setIsLoadingStores(true);
+    try {
+      const storesList = await fetchStores();
+      setStores(storesList);
+    } catch (err) {
+      console.error('Failed to load stores:', err);
+    } finally {
+      setIsLoadingStores(false);
+    }
+  };
+
+  const loadBranches = async () => {
+    setIsLoadingBranches(true);
+    try {
+      const branchesList = await fetchBranches();
+      setBranches(branchesList);
+    } catch (err) {
+      console.error('Failed to load branches:', err);
+    } finally {
+      setIsLoadingBranches(false);
+    }
+  };
+
   const loadAdditionalData = async () => {
     setIsLoadingManagers(true);
     setIsLoadingShifts(true);
@@ -182,6 +216,8 @@ export default function RegisterUserWithRights({
     loadDepartments();
     loadOffices();
     loadAdditionalData();
+    loadStores();
+    loadBranches();
   }, []);
 
   const handleNext = () => {
@@ -243,6 +279,8 @@ export default function RegisterUserWithRights({
         role: selectedRole,
         departmentId,
         officeId,
+        storeId,
+        branchId,
       };
 
       if (selectedRole === 'EMPLOYEE') {
@@ -275,6 +313,7 @@ export default function RegisterUserWithRights({
           employeeEsicRate: 0.75,
           employerEsicRate: 3.25,
         };
+        payload.commissionPercentage = commissionPercentage || 0;
       }
 
       const result = await createEmployee(payload);
@@ -289,6 +328,8 @@ export default function RegisterUserWithRights({
       setLastName('');
       setDepartmentId(undefined);
       setOfficeId(undefined);
+      setStoreId(undefined);
+      setBranchId(undefined);
       setMobileNumber('');
       setJoiningDate('');
       setReportingManagerId(undefined);
@@ -304,6 +345,7 @@ export default function RegisterUserWithRights({
       setSpecialAllowance(0);
       setIncentive(0);
       setBonus(0);
+      setCommissionPercentage(0);
       setGrossSalary(0);
       setPfEnabled(false);
       setPfNumber('');
@@ -540,34 +582,94 @@ export default function RegisterUserWithRights({
                 </div>
               </div>
 
-              {/* Office Assignment */}
-              <div>
-                <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                  Office / Branch Allotment {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
-                </label>
-                <div className="relative group">
-                  <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                  <select
-                    value={officeId || ''}
-                    onChange={(e) => setOfficeId(e.target.value ? parseInt(e.target.value) : undefined)}
-                    disabled={isLoading || isLoadingOffices}
-                    required={selectedRole === 'EMPLOYEE'}
-                    className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="">Select Office Location</option>
-                    {offices.map((off) => (
-                      <option key={off.id} value={off.id}>{off.name}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={loadOffices}
-                    disabled={isLoadingOffices}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
-                    title="Refresh offices"
-                  >
-                    <RotateCcw size={14} className={isLoadingOffices ? 'animate-spin' : ''} />
-                  </button>
+              {/* Office, Store, and Branch Assignment */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Office Location {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
+                  </label>
+                  <div className="relative group">
+                    <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={officeId || ''}
+                      onChange={(e) => setOfficeId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingOffices}
+                      required={selectedRole === 'EMPLOYEE'}
+                      className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Office Location</option>
+                      {offices.map((off) => (
+                        <option key={off.id} value={off.id}>{off.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={loadOffices}
+                      disabled={isLoadingOffices}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Refresh offices"
+                    >
+                      <RotateCcw size={14} className={isLoadingOffices ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Store (Optional)
+                  </label>
+                  <div className="relative group">
+                    <Store className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={storeId || ''}
+                      onChange={(e) => setStoreId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingStores}
+                      className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Store</option>
+                      {stores.map((st) => (
+                        <option key={st.id} value={st.id}>{st.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={loadStores}
+                      disabled={isLoadingStores}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Refresh stores"
+                    >
+                      <RotateCcw size={14} className={isLoadingStores ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
+                    Branch (Optional)
+                  </label>
+                  <div className="relative group">
+                    <GitBranch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
+                    <select
+                      value={branchId || ''}
+                      onChange={(e) => setBranchId(e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={isLoading || isLoadingBranches}
+                      className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Select Branch</option>
+                      {branches.map((br) => (
+                        <option key={br.id} value={br.id}>{br.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={loadBranches}
+                      disabled={isLoadingBranches}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Refresh branches"
+                    >
+                      <RotateCcw size={14} className={isLoadingBranches ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -885,6 +987,25 @@ export default function RegisterUserWithRights({
                     disabled={isLoading}
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 15000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-2 ml-1">
+                    Commission Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={commissionPercentage || ''}
+                    onChange={(e) => {
+                      setCommissionPercentage(parseFloat(e.target.value) || 0);
+                    }}
+                    disabled={isLoading}
+                    className="input-dark px-4 py-4 text-xs font-semibold"
+                    placeholder="e.g. 5"
                   />
                 </div>
 

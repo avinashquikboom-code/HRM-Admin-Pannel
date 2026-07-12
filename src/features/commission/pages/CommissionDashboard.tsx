@@ -107,10 +107,14 @@ export default function CommissionDashboard() {
 
   const loadDropdownData = async () => {
     try {
-      const [storesRes, employeesRes] = await Promise.all([
-        fetchOffices(),
-        fetchEmployees(),
-      ]);
+      const storesRes = await fetchOffices().catch((err) => {
+        console.error('Failed to load stores:', err);
+        return [];
+      });
+      const employeesRes = await fetchEmployees({ limit: 1000 }).catch((err) => {
+        console.error('Failed to load employees:', err);
+        return null;
+      });
       setStores(Array.isArray(storesRes) ? storesRes : []);
       setEmployees(Array.isArray(employeesRes) ? employeesRes : employeesRes?.employees || []);
     } catch (error) {

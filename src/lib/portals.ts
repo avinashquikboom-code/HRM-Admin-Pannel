@@ -82,12 +82,14 @@ export function normalizeUserRole(role: string | undefined | null) {
 
 export function isSuperAdminRole(role: string | undefined | null) {
   const normalized = normalizeUserRole(role);
-  return normalized === 'SUPER_ADMIN' || normalized === 'ADMIN';
+  // Only SUPER_ADMIN can access the Super Admin portal
+  return normalized === 'SUPER_ADMIN';
 }
 
 export function isPlatformAdminRole(role: string | undefined | null) {
   const normalized = normalizeUserRole(role);
-  return normalized === 'HR' || normalized === 'PLATFORM_ADMIN';
+  // Only HR can access the Admin Panel portal
+  return normalized === 'HR';
 }
 
 export function isEmployeeRole(role: string | undefined | null) {

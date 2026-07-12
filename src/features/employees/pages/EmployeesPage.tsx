@@ -378,7 +378,7 @@ const EmployeesPage = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="grid grid-cols-3 gap-3 text-xs">
                     <div className="bg-surface-variant rounded-sm p-3 border border-border">
                       <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Office</p>
                       <p className="font-bold text-text-primary mt-1.5 truncate">{employee.office?.name ?? 'Unassigned'}</p>
@@ -386,6 +386,14 @@ const EmployeesPage = () => {
                     <div className="bg-surface-variant rounded-sm p-3 border border-border">
                       <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Role</p>
                       <p className="font-bold text-text-primary mt-1.5 truncate">{employee.designation ?? '—'}</p>
+                    </div>
+                    <div className="bg-surface-variant rounded-sm p-3 border border-border">
+                      <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Comm. (%)</p>
+                      <p className="font-bold text-text-primary mt-1.5 truncate">
+                        {employee.commissionPercentage !== undefined && employee.commissionPercentage !== null
+                          ? `${employee.commissionPercentage}%`
+                          : '0%'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-3 pt-2">
@@ -490,6 +498,7 @@ const EmployeesPage = () => {
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Shift</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Work Mode</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Shift Type</th>
+                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Commission (%)</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -543,6 +552,13 @@ const EmployeesPage = () => {
                         </td>
                         <td className="px-8 py-4.5">
                           <span className="text-xs font-bold text-text-primary capitalize">{employee.shiftTypeId?.toLowerCase().replace('_', ' ') || 'morning'}</span>
+                        </td>
+                        <td className="px-8 py-4.5">
+                          <span className="text-sm font-semibold text-text-primary">
+                            {employee.commissionPercentage !== undefined && employee.commissionPercentage !== null
+                              ? `${employee.commissionPercentage}%`
+                              : '0%'}
+                          </span>
                         </td>
                         <td className="px-8 py-4.5">
                           <span className={cn(

@@ -56,12 +56,8 @@ export default function StoreManagementPage() {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    city: '',
-    state: '',
     country: 'India',
     pincode: '',
-    phone: '',
-    email: '',
     branchId: '',
   });
 
@@ -95,12 +91,8 @@ export default function StoreManagementPage() {
     setFormData({
       name: '',
       address: '',
-      city: '',
-      state: '',
       country: 'India',
       pincode: '',
-      phone: '',
-      email: '',
       branchId: '',
     });
   };
@@ -179,20 +171,15 @@ export default function StoreManagementPage() {
     setFormData({
       name: store.name,
       address: store.address || '',
-      city: store.city || '',
-      state: store.state || '',
       country: store.country,
       pincode: store.pincode || '',
-      phone: store.phone || '',
-      email: store.email || '',
       branchId: store.branchId?.toString() || '',
     });
   };
 
   const filteredStores = stores.filter((store) =>
     store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (store.code && store.code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (store.city && store.city.toLowerCase().includes(searchTerm.toLowerCase()))
+    (store.code && store.code.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -282,33 +269,11 @@ export default function StoreManagementPage() {
                         </span>
                       </div>
                       <div className="mt-2 space-y-1">
-                        {store.branch && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Building2 className="w-3 h-3" />
-                            <span>{store.branch.name}</span>
-                          </div>
-                        )}
+
                         {store.address && (
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <MapPin className="w-3 h-3" />
                             <span>{store.address}</span>
-                          </div>
-                        )}
-                        {(store.city || store.state) && (
-                          <div className="text-sm text-gray-600">
-                            {store.city}{store.city && store.state && ', '}{store.state}
-                          </div>
-                        )}
-                        {store.phone && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Phone className="w-3 h-3" />
-                            <span>{store.phone}</span>
-                          </div>
-                        )}
-                        {store.email && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Mail className="w-3 h-3" />
-                            <span>{store.email}</span>
                           </div>
                         )}
                         {store._count && (
@@ -362,21 +327,7 @@ export default function StoreManagementPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                <select
-                  value={formData.branchId}
-                  onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="">No Branch</option>
-                  {branches.map((branch) => (
-                    <option key={branch.id} value={branch.id.toString()}>
-                      {branch.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <input
@@ -387,28 +338,7 @@ export default function StoreManagementPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                  <input
-                    type="text"
-                    placeholder="State"
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
@@ -431,28 +361,7 @@ export default function StoreManagementPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="text"
-                    placeholder="Phone number"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
-              </div>
+
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
