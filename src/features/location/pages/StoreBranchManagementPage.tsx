@@ -335,258 +335,85 @@ export default function StoreBranchManagementPage() {
     >
       <motion.div variants={itemVariants}>
         <SuperAdminHeader
-          title="Store & Branch Management"
-          subtitle="Manage physical store locations and organizational branches for your business hierarchy"
+          title="Store Management"
+          subtitle="Manage physical store locations for your business hierarchy"
           badgeText="Location Management"
           badgeIcon={Building2}
           stats={[
             { label: 'Total Stores', value: stores.length.toString(), icon: Store },
-            { label: 'Total Branches', value: branches.length.toString(), icon: GitBranch },
             { label: 'Active Locations', value: stores.filter(o => o.isActive).length.toString(), icon: MapPin },
           ]}
         />
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        {/* Tab Navigation */}
-        <div className="flex gap-2 border-b border-border">
-          <button
-            onClick={() => setActiveTab('stores')}
-            className={cn(
-              'px-6 py-3 font-semibold text-sm transition-all border-b-2',
-              activeTab === 'stores'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            )}
-          >
-            <Store className="w-4 h-4 inline mr-2" />
-            Stores
-          </button>
-          <button
-            onClick={() => setActiveTab('branches')}
-            className={cn(
-              'px-6 py-3 font-semibold text-sm transition-all border-b-2',
-              activeTab === 'branches'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            )}
-          >
-            <GitBranch className="w-4 h-4 inline mr-2" />
-            Branches
-          </button>
-        </div>
-
-        {/* Stores Tab */}
-        {activeTab === 'stores' && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-text-primary">Stores</h3>
-              <button
-                onClick={() => setIsCreateStoreOpen(true)}
-                className="px-4 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary/90 transition-all"
-              >
-                <Store className="w-4 h-4 inline mr-2" />
-                Add Store
-              </button>
-            </div>
-
-            {isLoading ? (
-              <div className="text-center py-8 text-text-secondary">Loading stores...</div>
-            ) : stores.length === 0 ? (
-              <div className="text-center py-8 text-text-secondary">
-                <Store className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No stores found. Click "Add Store" to create your first store.</p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {paginatedStores.map((store) => {
-                    return (
-                      <div
-                        key={store.id}
-                        className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 rounded-sm bg-primary/10 text-primary shrink-0">
-                            <Store className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-text-primary truncate">{store.name}</h4>
-                            {store.address && (
-                              <p className="mt-2 text-xs text-text-secondary truncate">
-                                {store.address}
-                              </p>
-                            )}
-                            {store.latitude && store.longitude && (
-                              <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
-                                <MapPin className="w-3 h-3 text-primary" />
-                                <span className="truncate">
-                                  {Number(store.latitude).toFixed(4)}, {Number(store.longitude).toFixed(4)} ({store.maxPunchRadiusMeters || 50}m)
-                                </span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
-                              <Users className="w-3 h-3" />
-                              <span>{store._count?.employees || 0} employees</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
-                          <button
-                            onClick={() => {
-                              setEditingStore(store);
-                              setStoreForm({
-                                name: store.name,
-                                code: store.code || '',
-                                address: store.address || '',
-                                country: store.country || 'India',
-                                pincode: store.pincode || '',
-                                branchId: store.branchId?.toString() || '',
-                                latitude: Number(store.latitude) || 0,
-                                longitude: Number(store.longitude) || 0,
-                                maxPunchRadiusMeters: Number(store.maxPunchRadiusMeters) || 50,
-                              });
-                            }}
-                            className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStoreClick(store)}
-                            className="p-2 hover:bg-surface-variant rounded-sm transition-all text-text-secondary hover:text-red-500"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {totalStorePages > 1 && (
-                  <div className="flex items-center justify-between mt-6 border-t border-border pt-4">
-                    <p className="text-sm text-text-secondary">
-                      Showing <span className="font-medium text-text-primary">{(storePage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-text-primary">{Math.min(storePage * ITEMS_PER_PAGE, stores.length)}</span> of <span className="font-medium text-text-primary">{stores.length}</span> stores
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setStorePage(p => Math.max(1, p - 1))}
-                        disabled={storePage === 1}
-                        className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: totalStorePages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => setStorePage(page)}
-                            className={cn(
-                              "w-8 h-8 rounded-sm text-sm font-medium transition-all",
-                              storePage === page
-                                ? "bg-primary text-white"
-                                : "border border-border bg-surface text-text-secondary hover:bg-surface-variant"
-                            )}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => setStorePage(p => Math.min(totalStorePages, p + 1))}
-                        disabled={storePage === totalStorePages}
-                        className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-bold text-text-primary">Stores</h3>
+            <button
+              onClick={() => setIsCreateStoreOpen(true)}
+              className="px-4 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary/90 transition-all"
+            >
+              <Store className="w-4 h-4 inline mr-2" />
+              Add Store
+            </button>
           </div>
-        )}
 
-        {/* Branches Tab */}
-        {activeTab === 'branches' && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-text-primary">Branches</h3>
-              <button
-                onClick={() => setIsCreateBranchOpen(true)}
-                className="px-4 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary/90 transition-all"
-              >
-                <GitBranch className="w-4 h-4 inline mr-2" />
-                Add Branch
-              </button>
+          {isLoading ? (
+            <div className="text-center py-8 text-text-secondary">Loading stores...</div>
+          ) : stores.length === 0 ? (
+            <div className="text-center py-8 text-text-secondary">
+              <Store className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No stores found. Click "Add Store" to create your first store.</p>
             </div>
-
-            {isLoading ? (
-              <div className="text-center py-8 text-text-secondary">Loading branches...</div>
-            ) : branches.length === 0 ? (
-              <div className="text-center py-8 text-text-secondary">
-                <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No branches found. Click "Add Branch" to create your first branch.</p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {paginatedBranches.map((branch) => (
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedStores.map((store) => {
+                  return (
                     <div
-                      key={branch.id}
+                      key={store.id}
                       className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
                     >
                       <div className="flex items-start gap-4">
                         <div className="p-3 rounded-sm bg-primary/10 text-primary shrink-0">
-                          <GitBranch className="w-5 h-5" />
+                          <Store className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-text-primary truncate">{branch.name}</h4>
-                          {branch.stores && branch.stores.length > 0 ? (
-                            <div className="flex flex-wrap items-center gap-1.5 mt-2 text-xs text-text-secondary">
-                              {branch.stores.map((store) => (
-                                <span key={store.id} className="px-2 py-0.5 bg-surface-variant border border-border rounded-sm whitespace-nowrap flex items-center gap-1" title={store.code}>
-                                  <Store className="w-3 h-3 text-primary" />
-                                  {store.name}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 mt-2 text-xs text-text-secondary">
-                              <Store className="w-3 h-3 text-text-secondary opacity-50" />
-                              <span className="text-text-secondary italic">No stores assigned</span>
-                            </div>
-                          )}
-                          {branch.address && (
+                          <h4 className="font-semibold text-text-primary truncate">{store.name}</h4>
+                          {store.address && (
                             <p className="mt-2 text-xs text-text-secondary truncate">
-                              {branch.address}
+                              {store.address}
                             </p>
                           )}
-                          <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
-                            <Users className="w-3 h-3" />
-                            <span>{branch.stores?.reduce((acc, s) => acc + (s._count?.employees || 0), 0) || 0} employees</span>
-                          </div>
-                          {branch.latitude && branch.longitude && (
+                          {store.latitude && store.longitude && (
                             <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
-                              <MapPin className="w-3 h-3" />
-                              <span>{branch.latitude.toFixed(4)}, {branch.longitude.toFixed(4)}</span>
+                              <MapPin className="w-3 h-3 text-primary" />
+                              <span className="truncate">
+                                {Number(store.latitude).toFixed(4)}, {Number(store.longitude).toFixed(4)} ({store.maxPunchRadiusMeters || 50}m)
+                              </span>
                             </div>
                           )}
+                          <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
+                            <Users className="w-3 h-3" />
+                            <span>{store._count?.employees || 0} employees</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
                         <button
                           onClick={() => {
-                            setEditingBranch(branch);
-                            setBranchForm({
-                              name: branch.name,
-                              address: branch.address || '',
-                              latitude: branch.latitude || 0,
-                              longitude: branch.longitude || 0,
-                              officeId: branch.officeId || 0,
-                              maxPunchRadiusMeters: branch.maxPunchRadiusMeters || 50
+                            setEditingStore(store);
+                            setStoreForm({
+                              name: store.name,
+                              code: store.code || '',
+                              address: store.address || '',
+                              country: store.country || 'India',
+                              pincode: store.pincode || '',
+                              branchId: store.branchId?.toString() || '',
+                              latitude: Number(store.latitude) || 0,
+                              longitude: Number(store.longitude) || 0,
+                              maxPunchRadiusMeters: Number(store.maxPunchRadiusMeters) || 50,
                             });
                           }}
                           className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
@@ -595,7 +422,7 @@ export default function StoreBranchManagementPage() {
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeleteBranchClick(branch)}
+                          onClick={() => handleDeleteStoreClick(store)}
                           className="p-2 hover:bg-surface-variant rounded-sm transition-all text-text-secondary hover:text-red-500"
                           title="Delete"
                         >
@@ -603,52 +430,52 @@ export default function StoreBranchManagementPage() {
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-                
-                {totalBranchPages > 1 && (
-                  <div className="flex items-center justify-between mt-6 border-t border-border pt-4">
-                    <p className="text-sm text-text-secondary">
-                      Showing <span className="font-medium text-text-primary">{(branchPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-text-primary">{Math.min(branchPage * ITEMS_PER_PAGE, branches.length)}</span> of <span className="font-medium text-text-primary">{branches.length}</span> branches
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setBranchPage(p => Math.max(1, p - 1))}
-                        disabled={branchPage === 1}
-                        className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: totalBranchPages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => setBranchPage(page)}
-                            className={cn(
-                              "w-8 h-8 rounded-sm text-sm font-medium transition-all",
-                              branchPage === page
-                                ? "bg-primary text-white"
-                                : "border border-border bg-surface text-text-secondary hover:bg-surface-variant"
-                            )}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => setBranchPage(p => Math.min(totalBranchPages, p + 1))}
-                        disabled={branchPage === totalBranchPages}
-                        className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
+                  );
+                })}
+              </div>
+              
+              {totalStorePages > 1 && (
+                <div className="flex items-center justify-between mt-6 border-t border-border pt-4">
+                  <p className="text-sm text-text-secondary">
+                    Showing <span className="font-medium text-text-primary">{(storePage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-text-primary">{Math.min(storePage * ITEMS_PER_PAGE, stores.length)}</span> of <span className="font-medium text-text-primary">{stores.length}</span> stores
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setStorePage(p => Math.max(1, p - 1))}
+                      disabled={storePage === 1}
+                      className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalStorePages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setStorePage(page)}
+                          className={cn(
+                            "w-8 h-8 rounded-sm text-sm font-medium transition-all",
+                            storePage === page
+                              ? "bg-primary text-white"
+                              : "border border-border bg-surface text-text-secondary hover:bg-surface-variant"
+                          )}
+                        >
+                          {page}
+                        </button>
+                      ))}
                     </div>
+                    <button
+                      onClick={() => setStorePage(p => Math.min(totalStorePages, p + 1))}
+                      disabled={storePage === totalStorePages}
+                      className="p-2 rounded-sm border border-border bg-surface text-text-secondary hover:bg-surface-variant disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
                   </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Create/Edit Store Modal */}
         {(isCreateStoreOpen || editingStore) && (
