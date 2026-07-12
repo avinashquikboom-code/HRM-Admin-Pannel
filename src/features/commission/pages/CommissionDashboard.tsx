@@ -36,7 +36,7 @@ import {
   type CommissionTransaction 
 } from '@/services/commissionService';
 import { fetchOffices } from '@/services/officeService';
-import { fetchEmployees } from '@/services/employeeService';
+import { fetchHopkidEmployeeList } from '@/services/employeeService';
 import { toast } from 'sonner';
 import StatCard from '@/features/dashboard/components/StatCard';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
@@ -51,9 +51,10 @@ export default function CommissionDashboard() {
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [dateRange, setDateRange] = useState('month');
 
-  // Filter employees based on selected store
-  const filteredEmployees = selectedStore 
-    ? employees.filter(emp => emp.officeId?.toString() === selectedStore)
+  // Filter employees based on selected store's name
+  const selectedStoreName = stores.find(s => s.id === selectedStore)?.name;
+  const filteredEmployees = selectedStore && selectedStoreName
+    ? employees.filter(emp => emp.branchName === selectedStoreName)
     : employees;
 
   // Reset employee selection when store changes
@@ -111,12 +112,12 @@ export default function CommissionDashboard() {
         console.error('Failed to load stores:', err);
         return [];
       });
-      const employeesRes = await fetchEmployees({ limit: 1000 }).catch((err) => {
-        console.error('Failed to load employees:', err);
+      const employeesRes = await fetchHopkidEmployeeList().catch((err) => {
+        console.error('Failed to load Hopkid employees:', err);
         return null;
       });
       setStores(Array.isArray(storesRes) ? storesRes : []);
-      setEmployees(Array.isArray(employeesRes) ? employeesRes : employeesRes?.employees || []);
+      setEmployees(employeesRes?.data || []);
     } catch (error) {
       console.error('Failed to load dropdown data:', error);
     }
@@ -211,17 +212,17 @@ export default function CommissionDashboard() {
               <SelectContent className="max-h-64">
                 <SelectItem value="">All Employees</SelectItem>
                 {filteredEmployees.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id.toString()} className="py-2">
+                  <SelectItem key={emp.employeeID} value={emp.employeeCode} className="py-2">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                        {emp.firstName?.[0]}{emp.lastName?.[0]}
+                        {emp.employeeName?.[0]}
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs font-semibold text-text-primary">
-                          {emp.firstName} {emp.lastName}
+                          {emp.employeeName}
                         </span>
                         <span className="text-[10px] text-text-secondary">
-                          {emp.employeeCode || emp.id}
+                          {emp.employeeCode}
                         </span>
                       </div>
                     </div>
@@ -298,7 +299,7 @@ export default function CommissionDashboard() {
               {selectedEmployee && (
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary">
                   <UserIcon className="h-3 w-3" />
-                  {employees.find(e => e.id.toString() === selectedEmployee)?.firstName} {employees.find(e => e.id.toString() === selectedEmployee)?.lastName}
+                  {employees.find(e => e.employeeCode === selectedEmployee)?.employeeName || selectedEmployee}
                   <button
                     onClick={() => setSelectedEmployee('')}
                     className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"

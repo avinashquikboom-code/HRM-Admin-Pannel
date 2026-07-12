@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Filter, Download, BarChart3 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { fetchEmployees } from '@/services/employeeService';
+import { fetchHopkidEmployeeList } from '@/services/employeeService';
 import { toast } from 'sonner';
 
 export default function CommissionReports() {
@@ -36,8 +36,8 @@ export default function CommissionReports() {
 
   const loadEmployees = async () => {
     try {
-      const res = await fetchEmployees({ limit: 1000 });
-      setEmployees(Array.isArray(res) ? res : res?.employees || []);
+      const res = await fetchHopkidEmployeeList();
+      setEmployees(res?.data || []);
     } catch (error) {
       console.error('Failed to load employees:', error);
     }
@@ -127,8 +127,8 @@ export default function CommissionReports() {
                 <SelectContent className="max-h-64">
                   <SelectItem value="all">All Employees</SelectItem>
                   {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id.toString()}>
-                      {emp.firstName} {emp.lastName} ({emp.employeeCode || emp.id})
+                    <SelectItem key={emp.employeeID} value={emp.employeeCode}>
+                      {emp.employeeName} ({emp.employeeCode})
                     </SelectItem>
                   ))}
                 </SelectContent>
