@@ -71,6 +71,13 @@ export default function RegisterUserWithRights({
   const [workModeId, setWorkModeId] = useState('OFFICE');
   const [shiftTypeId, setShiftTypeId] = useState('MORNING');
 
+  // Bank Details
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [ifscCode, setIfscCode] = useState('');
+  const [accountType, setAccountType] = useState('Savings');
+  const [branchName, setBranchName] = useState('');
+
   const [stores, setStores] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
@@ -281,6 +288,11 @@ export default function RegisterUserWithRights({
         officeId,
         storeId,
         branchId,
+        bankName: bankName.trim() || undefined,
+        accountNumber: accountNumber.trim() || undefined,
+        ifscCode: ifscCode.trim() || undefined,
+        accountType: accountType || undefined,
+        branchName: branchName.trim() || undefined,
       };
 
       if (selectedRole === 'EMPLOYEE') {
@@ -355,6 +367,11 @@ export default function RegisterUserWithRights({
       setPanNumber('');
       setVoterId('');
       setPassportNumber('');
+      setBankName('');
+      setAccountNumber('');
+      setIfscCode('');
+      setAccountType('Savings');
+      setBranchName('');
 
       // Refresh additional data list to include the newly created employee in manager options
       loadAdditionalData();
@@ -1117,6 +1134,88 @@ export default function RegisterUserWithRights({
                     className="input-dark px-4 py-4 text-xs font-semibold"
                     placeholder="e.g. 3000"
                   />
+                </div>
+              </div>
+
+              <div className="border-t border-border/50 pt-5 space-y-4">
+                <h4 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                  <ShieldCheck size={14} />
+                  Bank Details (Optional)
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-2 ml-1">
+                      Bank Name
+                    </label>
+                    <input
+                      type="text"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark px-4 py-4 text-xs font-semibold w-full"
+                      placeholder="e.g. HDFC Bank"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-2 ml-1">
+                      Account Number
+                    </label>
+                    <input
+                      type="text"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark px-4 py-4 text-xs font-semibold w-full"
+                      placeholder="e.g. 50100234234"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-2 ml-1">
+                      IFSC Code
+                    </label>
+                    <input
+                      type="text"
+                      value={ifscCode}
+                      onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
+                      disabled={isLoading}
+                      className="input-dark px-4 py-4 text-xs font-semibold w-full"
+                      placeholder="e.g. HDFC0000123"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-2 ml-1">
+                      Account Type
+                    </label>
+                    <select
+                      value={accountType}
+                      onChange={(e) => setAccountType(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark px-4 py-4 text-xs font-semibold w-full"
+                    >
+                      <option value="Savings">Savings</option>
+                      <option value="Current">Current</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-2 ml-1">
+                      Branch Name
+                    </label>
+                    <input
+                      type="text"
+                      value={branchName}
+                      onChange={(e) => setBranchName(e.target.value)}
+                      disabled={isLoading}
+                      className="input-dark px-4 py-4 text-xs font-semibold w-full"
+                      placeholder="e.g. Andheri West"
+                    />
+                  </div>
                 </div>
               </div>
 
