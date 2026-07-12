@@ -154,6 +154,20 @@ function MapCanvas({
       const isSelected = selectedEmpId === emp.employeeId;
       const style = statusStyle(emp.status);
 
+      // Calculate distance between employee and store center
+      const empLatLng = L.latLng(emp.lat, emp.lng);
+      const officeLatLng = L.latLng(officeCenter.lat, officeCenter.lng);
+      const distance = officeLatLng.distanceTo(empLatLng);
+      const isInsideRadius = distance <= radiusMeters;
+
+      // Draw polyline connecting store center and employee location (Swiggy/Zomato style)
+      L.polyline([[officeCenter.lat, officeCenter.lng], [emp.lat, emp.lng]], {
+        color: isInsideRadius ? '#10b981' : '#ef4444',
+        weight: isSelected ? 4.5 : 2.5,
+        opacity: isSelected ? 0.95 : 0.5,
+        className: isInsideRadius ? 'premium-polyline-green' : 'premium-polyline-red'
+      }).addTo(layersGroup);
+
       const empIcon = L.divIcon({
         className: 'custom-div-icon',
         html: `
@@ -240,6 +254,24 @@ function MapCanvas({
         @keyframes spin {
           100% {
             transform: rotate(360deg);
+          }
+        }
+        .premium-polyline-green {
+          stroke-dasharray: 8, 8;
+          animation: dash-green 30s linear infinite;
+        }
+        .premium-polyline-red {
+          stroke-dasharray: 8, 8;
+          animation: dash-red 15s linear infinite;
+        }
+        @keyframes dash-green {
+          to {
+            stroke-dashoffset: -1000;
+          }
+        }
+        @keyframes dash-red {
+          to {
+            stroke-dashoffset: -1000;
           }
         }
       `}} />
