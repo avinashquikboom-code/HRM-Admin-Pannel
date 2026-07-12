@@ -215,6 +215,7 @@ export async function getCommissionTransactions(
   params?: {
     employeeId?: string;
     storeId?: string;
+    branchId?: string;
     status?: string;
     startDate?: string;
     endDate?: string;
@@ -369,6 +370,7 @@ export async function getCommissionDashboard(
   params?: {
     employeeId?: string;
     storeId?: string;
+    branchId?: string;
     startDate?: string;
     endDate?: string;
   }

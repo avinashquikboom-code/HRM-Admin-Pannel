@@ -23,7 +23,7 @@ import {
   deleteCommissionPolicy,
   type CommissionPolicy 
 } from '@/services/commissionService';
-import { fetchOffices } from '@/services/officeService';
+import { fetchStores } from '@/services/storeService';
 import { fetchEmployees } from '@/services/employeeService';
 import { fetchDepartments } from '@/services/departmentService';
 import { toast } from 'sonner';
@@ -83,7 +83,7 @@ export default function CommissionPolicies() {
   const loadDropdownData = async () => {
     try {
       const [storesRes, employeesRes, departmentsRes] = await Promise.all([
-        fetchOffices(),
+        fetchStores(),
         fetchEmployees(),
         fetchDepartments(),
       ]);

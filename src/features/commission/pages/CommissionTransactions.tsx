@@ -23,7 +23,7 @@ import {
   rejectCommissionTransaction,
   type CommissionTransaction 
 } from '@/services/commissionService';
-import { fetchOffices } from '@/services/officeService';
+import { fetchStores } from '@/services/storeService';
 import { fetchEmployees } from '@/services/employeeService';
 import { toast } from 'sonner';
 
@@ -67,7 +67,7 @@ export default function CommissionTransactions() {
   const loadDropdownData = async () => {
     try {
       const [storesRes, employeesRes] = await Promise.all([
-        fetchOffices(),
+        fetchStores(),
         fetchEmployees(),
       ]);
       setStores(Array.isArray(storesRes) ? storesRes : []);

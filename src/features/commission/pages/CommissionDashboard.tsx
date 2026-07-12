@@ -35,7 +35,8 @@ import {
   type CommissionDashboardStats,
   type CommissionTransaction 
 } from '@/services/commissionService';
-import { fetchOffices } from '@/services/officeService';
+import { fetchBranches } from '@/services/branchService';
+import { fetchStores } from '@/services/storeService';
 import { fetchHopkidEmployeeList } from '@/services/employeeService';
 import { toast } from 'sonner';
 import StatCard from '@/features/dashboard/components/StatCard';
@@ -44,34 +45,56 @@ import SuperAdminHeader from '@/components/SuperAdminHeader';
 export default function CommissionDashboard() {
   const [stats, setStats] = useState<CommissionDashboardStats | null>(null);
   const [transactions, setTransactions] = useState<CommissionTransaction[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   const [stores, setStores] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [dateRange, setDateRange] = useState('month');
 
-  // Filter employees based on selected store's name
-  const selectedStoreName = stores.find(s => s.id === selectedStore)?.name;
+  // Filter stores based on selected branch
+  const filteredStores = selectedBranch
+    ? stores.filter(s => s.branchId?.toString() === selectedBranch)
+    : stores;
+
+  // Filter employees based on selected store or branch's name
+  const selectedStoreName = stores.find(s => s.id.toString() === selectedStore)?.name;
+  const selectedBranchName = branches.find(b => b.id.toString() === selectedBranch)?.name;
+
   const filteredEmployees = selectedStore && selectedStoreName
     ? employees.filter(emp => emp.branchName === selectedStoreName)
-    : employees;
+    : selectedBranch && selectedBranchName
+      ? employees.filter(emp => emp.branchName === selectedBranchName)
+      : employees;
+
+  // Reset store and employee selection when branch changes
+  const handleBranchChange = (branchId: string) => {
+    setSelectedBranch(branchId);
+    setSelectedStore('');
+    setSelectedEmployee('');
+  };
 
   // Reset employee selection when store changes
   const handleStoreChange = (storeId: string) => {
     setSelectedStore(storeId);
-    setSelectedEmployee(''); // Clear employee selection when store changes
+    setSelectedEmployee('');
   };
 
   useEffect(() => {
     loadDashboardData();
+  }, [selectedBranch, selectedStore, selectedEmployee, dateRange]);
+
+  useEffect(() => {
     loadDropdownData();
-  }, [selectedStore, selectedEmployee, dateRange]);
+  }, []);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
       const params: any = {};
+      if (selectedBranch) params.branchId = selectedBranch;
       if (selectedStore) params.storeId = selectedStore;
       if (selectedEmployee) params.employeeId = selectedEmployee;
       
@@ -108,14 +131,21 @@ export default function CommissionDashboard() {
 
   const loadDropdownData = async () => {
     try {
-      const storesRes = await fetchOffices().catch((err) => {
-        console.error('Failed to load stores:', err);
-        return [];
-      });
-      const employeesRes = await fetchHopkidEmployeeList().catch((err) => {
-        console.error('Failed to load Hopkid employees:', err);
-        return null;
-      });
+      const [branchesRes, storesRes, employeesRes] = await Promise.all([
+        fetchBranches().catch((err) => {
+          console.error('Failed to load branches:', err);
+          return [];
+        }),
+        fetchStores().catch((err) => {
+          console.error('Failed to load stores:', err);
+          return [];
+        }),
+        fetchHopkidEmployeeList().catch((err) => {
+          console.error('Failed to load Hopkid employees:', err);
+          return null;
+        })
+      ]);
+      setBranches(Array.isArray(branchesRes) ? branchesRes : []);
       setStores(Array.isArray(storesRes) ? storesRes : []);
       setEmployees(employeesRes?.data || []);
     } catch (error) {
@@ -191,13 +221,27 @@ export default function CommissionDashboard() {
           <div className="h-6 w-px bg-border/50" />
           
           <div className="flex flex-wrap items-center gap-3 flex-1">
-            <Select value={selectedStore} onValueChange={handleStoreChange}>
+            <Select value={selectedBranch} onValueChange={handleBranchChange}>
               <SelectTrigger className="w-40 bg-surface-variant border border-border/60 hover:border-primary/30 transition-all text-xs font-semibold">
-                <SelectValue placeholder="All Stores" />
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Branches</SelectItem>
+                {branches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id.toString()}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedStore} onValueChange={handleStoreChange} disabled={!!selectedBranch && filteredStores.length === 0}>
+              <SelectTrigger className="w-40 bg-surface-variant border border-border/60 hover:border-primary/30 transition-all text-xs font-semibold disabled:opacity-50">
+                <SelectValue placeholder={!!selectedBranch && filteredStores.length === 0 ? "No stores" : "All Stores"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All Stores</SelectItem>
-                {stores.map((store) => (
+                {filteredStores.map((store) => (
                   <SelectItem key={store.id} value={store.id.toString()}>
                     {store.name}
                   </SelectItem>
@@ -205,9 +249,9 @@ export default function CommissionDashboard() {
               </SelectContent>
             </Select>
             
-            <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={!!selectedStore && filteredEmployees.length === 0}>
+            <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={(!!selectedStore || !!selectedBranch) && filteredEmployees.length === 0}>
               <SelectTrigger className="w-48 bg-surface-variant border border-border/60 hover:border-primary/30 transition-all text-xs font-semibold disabled:opacity-50">
-                <SelectValue placeholder={!!selectedStore && filteredEmployees.length === 0 ? "No employees" : "All Employees"} />
+                <SelectValue placeholder={(!!selectedStore || !!selectedBranch) && filteredEmployees.length === 0 ? "No employees" : "All Employees"} />
               </SelectTrigger>
               <SelectContent className="max-h-64">
                 <SelectItem value="">All Employees</SelectItem>
@@ -256,6 +300,7 @@ export default function CommissionDashboard() {
               variant="ghost"
               size="sm"
               onClick={() => {
+                setSelectedBranch('');
                 setSelectedStore('');
                 setSelectedEmployee('');
                 setDateRange('month');
@@ -277,13 +322,25 @@ export default function CommissionDashboard() {
         </div>
 
         {/* Active Filters Display */}
-        {(selectedStore || selectedEmployee || dateRange !== 'month') && (
+        {(selectedBranch || selectedStore || selectedEmployee || dateRange !== 'month') && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             className="mt-3 pt-3 border-t border-border/40"
           >
             <div className="flex flex-wrap gap-2">
+              {selectedBranch && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary">
+                  <Building2 className="h-3 w-3" />
+                  {branches.find(b => b.id.toString() === selectedBranch)?.name}
+                  <button
+                    onClick={() => setSelectedBranch('')}
+                    className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
               {selectedStore && (
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary">
                   <Building2 className="h-3 w-3" />

@@ -52,6 +52,7 @@ export interface AdminEmployee {
   user: AdminEmployeeUser | null;
   department: AdminEmployeeDepartment | null;
   shift: AdminEmployeeShift | null;
+  commissionPercentage?: number;
 }
 
 export interface EmployeesResponse {
@@ -248,6 +249,7 @@ export async function updateEmployee(
     shiftId?: string;
     workMode?: string;
     shiftType?: string;
+    commissionPercentage?: number;
   }
 ): Promise<{ message: string; employee: any }> {
   try {
@@ -402,7 +404,11 @@ export interface HopkidEmployeeListResponse {
 
 export async function fetchHopkidEmployeeList(): Promise<HopkidEmployeeListResponse> {
   try {
-    const { data } = await api.get<HopkidEmployeeListResponse>('/api/Employee/GetEmployeeList');
+    const { data } = await api.get<HopkidEmployeeListResponse>('/api/Employee/GetEmployeeList', {
+      headers: {
+        'x-api-key': 'HOPKID-MOBILE-ACCESS-API-KEY',
+      },
+    });
     return data;
   } catch (error) {
     throw new Error(
