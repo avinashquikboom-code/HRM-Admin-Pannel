@@ -1,46 +1,26 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Building2, GitBranch, Store, MapPin, Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Building2, Store, MapPin, Loader2, Edit, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { fetchStores, createStore, updateStore, deleteStore, type Store as StoreType } from '@/services/storeService';
-import { fetchBranches, type Branch, createBranch, updateBranch, deleteBranch, type CreateBranchRequest, type UpdateBranchRequest } from '@/services/branchService';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
-type TabType = 'stores' | 'branches';
-
 export default function StoreBranchManagementPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('stores');
   const [isCreateStoreOpen, setIsCreateStoreOpen] = useState(false);
   const [editingStore, setEditingStore] = useState<StoreType | null>(null);
-  const [isCreateBranchOpen, setIsCreateBranchOpen] = useState(false);
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [deletingStore, setDeletingStore] = useState<StoreType | null>(null);
-  const [deletingBranch, setDeletingBranch] = useState<Branch | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [stores, setStores] = useState<StoreType[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Pagination state
+
+  // Pagination
   const [storePage, setStorePage] = useState(1);
-  const [branchPage, setBranchPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
-  
-  // Branch form state
-  const [branchForm, setBranchForm] = useState({
-    name: '',
-    address: '',
-    latitude: 0,
-    longitude: 0,
-    officeId: 0, // Maps to Store ID
-    maxPunchRadiusMeters: 50,
-  });
-  const [isGettingBranchLocation, setIsGettingBranchLocation] = useState(false);
 
   // Store form state
   const [storeForm, setStoreForm] = useState({
@@ -59,15 +39,11 @@ export default function StoreBranchManagementPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [storesData, branchesData] = await Promise.all([
-        fetchStores(),
-        fetchBranches(),
-      ]);
+      const storesData = await fetchStores();
       setStores(storesData);
-      setBranches(branchesData);
     } catch (error) {
-      console.error('Failed to load data:', error);
-      toast.error('Failed to load data');
+      console.error('Failed to load stores:', error);
+      toast.error('Failed to load stores');
     } finally {
       setIsLoading(false);
     }
@@ -108,12 +84,7 @@ export default function StoreBranchManagementPage() {
       return;
     }
     try {
-      const payload: any = { ...storeForm };
-      if (payload.branchId) {
-        payload.branchId = parseInt(payload.branchId);
-      } else {
-        delete payload.branchId;
-      }
+      const { branchId: _unused, ...payload } = storeForm as any;
       await createStore(payload);
       toast.success('Store created successfully');
       setIsCreateStoreOpen(false);
@@ -131,12 +102,7 @@ export default function StoreBranchManagementPage() {
       return;
     }
     try {
-      const payload: any = { ...storeForm };
-      if (payload.branchId) {
-        payload.branchId = parseInt(payload.branchId);
-      } else {
-        payload.branchId = null;
-      }
+      const { branchId: _unused, ...payload } = storeForm as any;
       await updateStore(editingStore.id.toString(), payload);
       toast.success('Store updated successfully');
       setEditingStore(null);
@@ -147,115 +113,8 @@ export default function StoreBranchManagementPage() {
     }
   };
 
-  // Branch actions
-  const handleBranchCreated = async () => {
-    if (!branchForm.name.trim()) {
-      toast.error('Branch name is required');
-      return;
-    }
-    if (!branchForm.officeId) {
-      toast.error('Please select a store');
-      return;
-    }
-
-    try {
-      const createData: CreateBranchRequest = {
-        name: branchForm.name,
-        address: branchForm.address,
-        officeId: branchForm.officeId,
-        latitude: branchForm.latitude,
-        longitude: branchForm.longitude,
-        country: 'India',
-        maxPunchRadiusMeters: branchForm.maxPunchRadiusMeters,
-      };
-      await createBranch(createData);
-      toast.success('Branch created successfully');
-      setIsCreateBranchOpen(false);
-      setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0, maxPunchRadiusMeters: 50 });
-      loadData();
-    } catch (error) {
-      toast.error('Failed to create branch');
-    }
-  };
-
-  const handleGetCurrentBranchLocation = () => {
-    setIsGettingBranchLocation(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
-          setBranchForm((prev) => ({
-            ...prev,
-            latitude: lat,
-            longitude: lng,
-          }));
-
-          // Reverse geocoding to get address
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-            const data = await res.json();
-            if (data && data.display_name) {
-              setBranchForm((prev) => ({
-                ...prev,
-                address: data.display_name,
-              }));
-            }
-          } catch (err) {
-            console.error('Reverse geocoding failed:', err);
-          }
-
-          setIsGettingBranchLocation(false);
-        },
-        (error) => {
-          toast.error('Failed to get current location. Please enter manually.');
-          setIsGettingBranchLocation(false);
-        }
-      );
-    } else {
-      toast.error('Geolocation is not supported by your browser.');
-      setIsGettingBranchLocation(false);
-    }
-  };
-
-  const handleBranchUpdated = async () => {
-    if (!editingBranch) return;
-    if (!branchForm.name.trim()) {
-      toast.error('Branch name is required');
-      return;
-    }
-    if (!branchForm.officeId) {
-      toast.error('Please select a store');
-      return;
-    }
-
-    try {
-      const updateData: UpdateBranchRequest = {
-        name: branchForm.name,
-        address: branchForm.address,
-        officeId: branchForm.officeId,
-        latitude: branchForm.latitude,
-        longitude: branchForm.longitude,
-        maxPunchRadiusMeters: branchForm.maxPunchRadiusMeters,
-      };
-      await updateBranch(editingBranch.id.toString(), updateData);
-      toast.success('Branch updated successfully');
-      setEditingBranch(null);
-      setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0, maxPunchRadiusMeters: 50 });
-      loadData();
-    } catch (error) {
-      toast.error('Failed to update branch');
-    }
-  };
-
   const handleDeleteStoreClick = (store: StoreType) => {
     setDeletingStore(store);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleDeleteBranchClick = (branch: Branch) => {
-    setDeletingBranch(branch);
     setIsDeleteModalOpen(true);
   };
 
@@ -265,12 +124,6 @@ export default function StoreBranchManagementPage() {
         await deleteStore(deletingStore.id.toString());
         toast.success('Store deleted successfully');
         setDeletingStore(null);
-        setIsDeleteModalOpen(false);
-        loadData();
-      } else if (deletingBranch) {
-        await deleteBranch(deletingBranch.id.toString());
-        toast.success('Branch deleted successfully');
-        setDeletingBranch(null);
         setIsDeleteModalOpen(false);
         loadData();
       }
@@ -285,13 +138,6 @@ export default function StoreBranchManagementPage() {
   }, [stores, storePage]);
 
   const totalStorePages = Math.ceil(stores.length / ITEMS_PER_PAGE);
-
-  const paginatedBranches = useMemo(() => {
-    const startIndex = (branchPage - 1) * ITEMS_PER_PAGE;
-    return branches.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [branches, branchPage]);
-
-  const totalBranchPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
 
   const containerVariants: any = {
     hidden: { opacity: 0 },
@@ -581,141 +427,18 @@ export default function StoreBranchManagementPage() {
         )}
 
         {/* Create/Edit Branch Modal */}
-        {(isCreateBranchOpen || editingBranch) && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface border border-border rounded-sm w-full max-w-lg p-6">
-              <h2 className="text-lg font-bold text-text-primary mb-4">{editingBranch ? 'Edit Branch' : 'Create Branch'}</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1">Branch Name *</label>
-                  <input
-                    type="text"
-                    placeholder="Enter branch name"
-                    value={branchForm.name}
-                    onChange={(e) => setBranchForm({ ...branchForm, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1">Store *</label>
-                  <select 
-                    value={branchForm.officeId}
-                    onChange={(e) => setBranchForm({ ...branchForm, officeId: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-primary"
-                  >
-                    <option value="">Select a store</option>
-                    {stores.map((store) => (
-                      <option key={store.id} value={store.id}>
-                        {store.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-text-secondary mt-1">
-                    Select the store where this branch is located. If no stores appear, first create them in the Stores tab.
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1">Address</label>
-                  <input
-                    type="text"
-                    placeholder="Enter address"
-                    value={branchForm.address}
-                    onChange={(e) => setBranchForm({ ...branchForm, address: e.target.value })}
-                    className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">Latitude</label>
-                    <input
-                      type="number"
-                      step="any"
-                      placeholder="Latitude"
-                      value={branchForm.latitude}
-                      onChange={(e) => setBranchForm({ ...branchForm, latitude: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">Longitude</label>
-                    <input
-                      type="number"
-                      step="any"
-                      placeholder="Longitude"
-                      value={branchForm.longitude}
-                      onChange={(e) => setBranchForm({ ...branchForm, longitude: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1 flex justify-between">
-                    <span>Max Punch Radius (Meters)</span>
-                    <span className="text-primary font-bold">{branchForm.maxPunchRadiusMeters || 50}m</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="500"
-                    step="5"
-                    value={branchForm.maxPunchRadiusMeters || 50}
-                    onChange={(e) => setBranchForm({ ...branchForm, maxPunchRadiusMeters: parseInt(e.target.value) })}
-                    className="w-full h-2 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleGetCurrentBranchLocation}
-                  disabled={isGettingBranchLocation}
-                  className="w-full py-2 rounded-sm border border-primary/30 bg-primary/5 text-primary font-bold uppercase tracking-widest text-xs hover:bg-primary/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isGettingBranchLocation ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      Getting Location...
-                    </>
-                  ) : (
-                    <>
-                      <MapPin size={14} />
-                      Get Current Location
-                    </>
-                  )}
-                </button>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => {
-                      setIsCreateBranchOpen(false);
-                      setEditingBranch(null);
-                      setBranchForm({ name: '', address: '', latitude: 0, longitude: 0, officeId: 0, maxPunchRadiusMeters: 50 });
-                    }}
-                    className="flex-1 px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={editingBranch ? handleBranchUpdated : handleBranchCreated}
-                    className="flex-1 px-4 py-2 bg-primary text-white rounded-sm font-semibold"
-                  >
-                    {editingBranch ? 'Save' : 'Create'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
       </motion.div>
 
-      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
           setDeletingStore(null);
-          setDeletingBranch(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Item"
-        message={`Are you sure you want to delete this location? This action cannot be undone.`}
+        title="Delete Store"
+        message={`Are you sure you want to delete this store? This action cannot be undone.`}
       />
     </motion.div>
   );
