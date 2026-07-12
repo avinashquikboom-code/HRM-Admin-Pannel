@@ -13,7 +13,7 @@ export function useGeolocation() {
   const [status, setStatus] = useState<GeolocationStatus>('idle');
   const [errorCode, setErrorCode] = useState<number | null>(null);
 
-  const getPosition = useCallback(async (successCallback?: (coords: GeolocationCoords) => void) => {
+  const getPosition = useCallback(async (successCallback?: (coords: GeolocationCoords) => void | Promise<void>) => {
     setStatus('loading');
     setErrorCode(null);
 
@@ -74,12 +74,64 @@ export function useGeolocation() {
       }
     };
 
-    const showError = (error: GeolocationPositionError) => {
+    // Last resort: approximate location from the network IP address.
+    // Works on desktops without GPS where the browser reports POSITION_UNAVAILABLE.
+    const tryIpFallback = async (): Promise<boolean> => {
+      const providers = [
+        async () => {
+          const res = await fetch('https://ipapi.co/json/');
+          const data = await res.json();
+          if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+            return { latitude: data.latitude, longitude: data.longitude };
+          }
+          return null;
+        },
+        async () => {
+          const res = await fetch('https://ipwho.is/');
+          const data = await res.json();
+          if (data.success && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+            return { latitude: data.latitude, longitude: data.longitude };
+          }
+          return null;
+        },
+      ];
+
+      for (const provider of providers) {
+        try {
+          const gotCoords = await provider();
+          if (gotCoords) {
+            setCoords(gotCoords);
+            setStatus('success');
+            toast.warning('Using approximate location based on your network. Verify and adjust if needed.');
+            if (successCallback) {
+              try {
+                await successCallback(gotCoords);
+              } catch (cbErr) {
+                console.error('Error inside successCallback:', cbErr);
+              }
+            }
+            return true;
+          }
+        } catch (e) {
+          console.warn('IP geolocation provider failed, trying next...', e);
+        }
+      }
+      return false;
+    };
+
+    const showError = async (error: GeolocationPositionError) => {
       console.error(`Geolocation error Code=${error.code}: ${error.message}`);
       setErrorCode(error.code);
+
+      // Permission denied is a user choice — don't silently fall back to IP.
+      if (error.code !== error.PERMISSION_DENIED) {
+        const recovered = await tryIpFallback();
+        if (recovered) return;
+      }
+
       // Reset to 'idle' so button becomes clickable again for retry
       setStatus('idle');
-      
+
       if (error.code === error.PERMISSION_DENIED) {
         toast.error('Location access denied. Allow location access in browser settings and try again.');
       } else if (error.code === error.POSITION_UNAVAILABLE) {
