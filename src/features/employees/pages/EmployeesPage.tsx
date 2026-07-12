@@ -102,8 +102,9 @@ const EmployeesPage = () => {
       const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
       const email = employee.user?.email?.toLowerCase() ?? '';
       const role = employee.designation?.toLowerCase() ?? '';
-      const office = employee.office?.name?.toLowerCase() ?? '';
+      const office = (employee.store?.name || employee.office?.name || '').toLowerCase();
       const code = employee.employeeCode.toLowerCase();
+
 
       return (
         fullName.includes(query) ||
@@ -267,7 +268,7 @@ const EmployeesPage = () => {
           },
           { 
             label: 'Assigned Stores', 
-            value: employees.filter((e) => e.office).length, 
+            value: employees.filter((e) => e.store || e.office).length, 
             description: 'With physical locations',
             iconClass: 'from-amber-500/20 to-amber-500/5 text-amber-500 border-amber-500/20', 
             icon: Building2 
@@ -381,7 +382,7 @@ const EmployeesPage = () => {
                   <div className="grid grid-cols-3 gap-3 text-xs">
                     <div className="bg-surface-variant rounded-sm p-3 border border-border">
                       <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Store</p>
-                      <p className="font-bold text-text-primary mt-1.5 truncate">{employee.office?.name ?? 'Unassigned'}</p>
+                      <p className="font-bold text-text-primary mt-1.5 truncate">{employee.store?.name ?? employee.office?.name ?? 'Unassigned'}</p>
                     </div>
                     <div className="bg-surface-variant rounded-sm p-3 border border-border">
                       <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Role</p>
@@ -534,7 +535,7 @@ const EmployeesPage = () => {
                           <div className="flex items-center gap-2">
                             <Building2 size={16} className="text-text-secondary/70" />
                             <span className="text-sm font-semibold text-text-secondary group-hover:text-text-primary transition-colors">
-                              {employee.office?.name ?? 'Unassigned'}
+                              {employee.store?.name ?? employee.office?.name ?? 'Unassigned'}
                             </span>
                           </div>
                         </td>
@@ -714,7 +715,7 @@ const EmployeesPage = () => {
       onClose={() => setUnassignConfirmOpen(false)}
       onConfirm={confirmUnassignOffice}
       title="Unassign Store"
-      message={employeeToUnassign ? `Are you sure you want to unassign "${employeeToUnassign.firstName} ${employeeToUnassign.lastName}" from "${employeeToUnassign.office?.name}"?` : 'Are you sure you want to unassign this employee from their store?'}
+      message={employeeToUnassign ? `Are you sure you want to unassign "${employeeToUnassign.firstName} ${employeeToUnassign.lastName}" from "${employeeToUnassign.store?.name ?? employeeToUnassign.office?.name}"?` : 'Are you sure you want to unassign this employee from their store?'}
       confirmText="Unassign"
       cancelText="Cancel"
     />
