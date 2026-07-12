@@ -86,47 +86,60 @@ export default function StoreBranchManagementPage() {
       return;
     }
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
+    const optionsHigh = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
+    const optionsLow = { enableHighAccuracy: false, timeout: 10000, maximumAge: Infinity };
+
+    const successCallback = async (position: GeolocationPosition) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      setStoreForm((prev) => ({
+        ...prev,
+        latitude: lat,
+        longitude: lng,
+      }));
+
+      // Reverse geocoding to get address
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        if (data && data.display_name) {
           setStoreForm((prev) => ({
             ...prev,
-            latitude: lat,
-            longitude: lng,
+            address: data.display_name,
           }));
+        }
+      } catch (err) {
+        console.error('Reverse geocoding failed:', err);
+      }
 
-          // Reverse geocoding to get address
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-            const data = await res.json();
-            if (data && data.display_name) {
-              setStoreForm((prev) => ({
-                ...prev,
-                address: data.display_name,
-              }));
-            }
-          } catch (err) {
-            console.error('Reverse geocoding failed:', err);
-          }
+      setIsGettingStoreLocation(false);
+    };
 
-          setIsGettingStoreLocation(false);
-        },
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        successCallback,
         (error) => {
-          let message = 'Failed to get location. Please enter manually.';
-          if (error.code === error.PERMISSION_DENIED) {
-            message = 'Location access denied. Please enable location permissions in browser settings or enter manually.';
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            message = 'Location information is unavailable. Please enter manually.';
-          } else if (error.code === error.TIMEOUT) {
-            message = 'Location request timed out. Please try again or enter manually.';
-          }
-          toast.error(message);
-          setIsGettingStoreLocation(false);
+          // If high accuracy fails (e.g. POSITION_UNAVAILABLE), retry with low accuracy
+          console.warn('High accuracy location failed, retrying with standard accuracy...', error);
+          navigator.geolocation.getCurrentPosition(
+            successCallback,
+            (lowError) => {
+              let message = 'Failed to get location. Please enter manually.';
+              if (lowError.code === lowError.PERMISSION_DENIED) {
+                message = 'Location access denied. Please enable location permissions in browser settings or enter manually.';
+              } else if (lowError.code === lowError.POSITION_UNAVAILABLE) {
+                message = 'Location information is unavailable. Please enter manually.';
+              } else if (lowError.code === lowError.TIMEOUT) {
+                message = 'Location request timed out. Please try again or enter manually.';
+              }
+              toast.error(message);
+              setIsGettingStoreLocation(false);
+            },
+            optionsLow
+          );
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        optionsHigh
       );
     } else {
       toast.error('Geolocation is not supported by your browser.');
