@@ -9,6 +9,7 @@ import { fetchStores, createStore, updateStore, deleteStore, type Store as Store
 import { fetchBranches, type Branch, createBranch, updateBranch, deleteBranch, type CreateBranchRequest, type UpdateBranchRequest } from '@/services/branchService';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 type TabType = 'stores' | 'branches';
 
@@ -53,7 +54,7 @@ export default function StoreBranchManagementPage() {
     longitude: 0,
     maxPunchRadiusMeters: 50,
   });
-  const [isGettingStoreLocation, setIsGettingStoreLocation] = useState(false);
+  const { getPosition: getStorePosition, status: storeGeoStatus } = useGeolocation();
 
   const loadData = async () => {
     setIsLoading(true);
@@ -77,31 +78,16 @@ export default function StoreBranchManagementPage() {
   }, []);
 
   const handleGetCurrentStoreLocation = () => {
-    setIsGettingStoreLocation(true);
-    
-    // Geolocation requires a secure context (HTTPS or localhost) in modern browsers
-    if (typeof window !== 'undefined' && !window.isSecureContext) {
-      toast.error('Location access requires a secure connection (HTTPS or localhost). Please enter coordinates manually.');
-      setIsGettingStoreLocation(false);
-      return;
-    }
-
-    const optionsHigh = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
-    const optionsLow = { enableHighAccuracy: false, timeout: 10000, maximumAge: Infinity };
-
-    const successCallback = async (position: GeolocationPosition) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      
+    getStorePosition(async (coords) => {
       setStoreForm((prev) => ({
         ...prev,
-        latitude: lat,
-        longitude: lng,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       }));
 
       // Reverse geocoding to get address
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`);
         const data = await res.json();
         if (data && data.display_name) {
           setStoreForm((prev) => ({
@@ -112,39 +98,7 @@ export default function StoreBranchManagementPage() {
       } catch (err) {
         console.error('Reverse geocoding failed:', err);
       }
-
-      setIsGettingStoreLocation(false);
-    };
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        successCallback,
-        (error) => {
-          // If high accuracy fails (e.g. POSITION_UNAVAILABLE), retry with low accuracy
-          console.warn('High accuracy location failed, retrying with standard accuracy...', error);
-          navigator.geolocation.getCurrentPosition(
-            successCallback,
-            (lowError) => {
-              let message = 'Failed to get location. Please enter manually.';
-              if (lowError.code === lowError.PERMISSION_DENIED) {
-                message = 'Location access denied. Please enable location permissions in browser settings or enter manually.';
-              } else if (lowError.code === lowError.POSITION_UNAVAILABLE) {
-                message = 'Location information is unavailable. Please enter manually.';
-              } else if (lowError.code === lowError.TIMEOUT) {
-                message = 'Location request timed out. Please try again or enter manually.';
-              }
-              toast.error(message);
-              setIsGettingStoreLocation(false);
-            },
-            optionsLow
-          );
-        },
-        optionsHigh
-      );
-    } else {
-      toast.error('Geolocation is not supported by your browser.');
-      setIsGettingStoreLocation(false);
-    }
+    });
   };
 
   // Store actions
@@ -587,10 +541,10 @@ export default function StoreBranchManagementPage() {
                 <button
                   type="button"
                   onClick={handleGetCurrentStoreLocation}
-                  disabled={isGettingStoreLocation}
+                  disabled={storeGeoStatus === 'loading'}
                   className="w-full py-2 rounded-sm border border-primary/30 bg-primary/5 text-primary font-bold uppercase tracking-widest text-xs hover:bg-primary/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isGettingStoreLocation ? (
+                  {storeGeoStatus === 'loading' ? (
                     <>
                       <Loader2 size={14} className="animate-spin" />
                       Getting Location...

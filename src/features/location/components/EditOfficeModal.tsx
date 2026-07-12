@@ -10,6 +10,7 @@ import {
 } from '@/services/officeService';
 import { getAuthToken } from '@/lib/authStorage';
 import { cn } from '@/utils/cn';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface EditOfficeModalProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export default function EditOfficeModal({
   const [form, setForm] = useState<UpdateOfficeRequest | null>(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const { getPosition, status: geoStatus } = useGeolocation();
 
   useEffect(() => {
     if (isOpen && office) {
@@ -88,44 +89,27 @@ export default function EditOfficeModal({
   };
 
   const handleGetCurrentLocation = () => {
-    setIsGettingLocation(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
+    getPosition(async (coords) => {
+      setForm((prev) => prev ? {
+        ...prev,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      } : prev);
+
+      // Reverse geocoding to get address
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`);
+        const data = await res.json();
+        if (data && data.display_name) {
           setForm((prev) => prev ? {
             ...prev,
-            latitude: lat,
-            longitude: lng,
+            address: data.display_name,
           } : prev);
-
-          // Reverse geocoding to get address
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-            const data = await res.json();
-            if (data && data.display_name) {
-              setForm((prev) => prev ? {
-                ...prev,
-                address: data.display_name,
-              } : prev);
-            }
-          } catch (err) {
-            console.error('Reverse geocoding failed:', err);
-          }
-
-          setIsGettingLocation(false);
-        },
-        (error) => {
-          setError('Failed to get current location. Please enter manually.');
-          setIsGettingLocation(false);
         }
-      );
-    } else {
-      setError('Geolocation is not supported by your browser.');
-      setIsGettingLocation(false);
-    }
+      } catch (err) {
+        console.error('Reverse geocoding failed:', err);
+      }
+    });
   };
 
   if (!form) return null;
@@ -232,10 +216,10 @@ export default function EditOfficeModal({
         <button
           type="button"
           onClick={handleGetCurrentLocation}
-          disabled={isGettingLocation}
-          className="w-full py-2 rounded-sm border border-primary/30 bg-primary/5 text-primary font-bold uppercase tracking-widest text-xs hover:bg-primary/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          disabled={geoStatus === 'loading'}
+          className="w-full py-2.5 rounded-sm border border-primary/35 bg-primary/5 text-primary font-bold uppercase tracking-wider text-xs hover:bg-primary/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isGettingLocation ? (
+          {geoStatus === 'loading' ? (
             <>
               <Loader2 size={14} className="animate-spin" />
               Getting Location...
