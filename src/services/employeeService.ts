@@ -218,12 +218,12 @@ export interface ResetPasswordResponse {
 }
 
 export async function resetEmployeePassword(
-  userId: number,
+  employeeId: string,
   payload: ResetPasswordRequest
 ): Promise<ResetPasswordResponse> {
   try {
     const { data } = await api.put<ResetPasswordResponse>(
-      `/api/admin/users/${userId}/reset-password`,
+      `/api/admin/employees/${employeeId.toLowerCase()}/reset-password`,
       payload
     );
     return data;

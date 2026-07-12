@@ -364,8 +364,12 @@ const EmployeesPage = () => {
                       </button>
                       <button
                         onClick={() => handleResetPassword(employee)}
-                        className="p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary border border-border shrink-0 cursor-pointer transition-all active:scale-95"
-                        title="Reset Password"
+                        disabled={!employee.user}
+                        className={cn(
+                          "p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary border border-border shrink-0 cursor-pointer transition-all active:scale-95",
+                          !employee.user && "opacity-40 cursor-not-allowed hover:text-text-secondary active:scale-100"
+                        )}
+                        title={employee.user ? "Reset Password" : "Employee has not registered yet"}
                       >
                         <Lock size={18} />
                       </button>
@@ -399,18 +403,30 @@ const EmployeesPage = () => {
                   </div>
                   <div className="flex items-center justify-between gap-3 pt-2">
                     <span className="text-xs text-text-secondary font-semibold truncate">{employee.department?.name ?? 'No department'}</span>
-                    <span className={cn(
-                      "px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider shrink-0 border inline-flex items-center gap-1.5",
-                      statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                      statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                    )}>
+                    <div className="flex items-center gap-2">
                       <span className={cn(
-                        "w-1.5 h-1.5 rounded-full ",
-                        statusLabel === 'Active' ? "bg-emerald-500" : 
-                        statusLabel === 'On Leave' ? "bg-amber-500" : "bg-rose-500"
-                      )} />
-                      {statusLabel}
-                    </span>
+                        "px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider shrink-0 border inline-flex items-center gap-1.5",
+                        employee.user ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                      )}>
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full",
+                          employee.user ? "bg-blue-500" : "bg-zinc-400"
+                        )} />
+                        {employee.user ? 'Registered' : 'Not Registered'}
+                      </span>
+                      <span className={cn(
+                        "px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider shrink-0 border inline-flex items-center gap-1.5",
+                        statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                      )}>
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full ",
+                          statusLabel === 'Active' ? "bg-emerald-500" : 
+                          statusLabel === 'On Leave' ? "bg-amber-500" : "bg-rose-500"
+                        )} />
+                        {statusLabel}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -500,6 +516,7 @@ const EmployeesPage = () => {
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Work Mode</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Shift Type</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Commission (%)</th>
+                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">User Access</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -564,6 +581,18 @@ const EmployeesPage = () => {
                         <td className="px-8 py-4.5">
                           <span className={cn(
                             "px-3.5 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border",
+                            employee.user ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                          )}>
+                            <span className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              employee.user ? "bg-blue-500" : "bg-zinc-400"
+                            )} />
+                            {employee.user ? 'Registered' : 'Not Registered'}
+                          </span>
+                        </td>
+                        <td className="px-8 py-4.5">
+                          <span className={cn(
+                            "px-3.5 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border",
                             statusLabel === 'Active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
                             statusLabel === 'On Leave' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                           )}>
@@ -586,8 +615,12 @@ const EmployeesPage = () => {
                             </button>
                             <button
                               onClick={() => handleResetPassword(employee)}
-                              className="p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all duration-300 border border-border active:scale-95 cursor-pointer"
-                              title="Reset Password"
+                              disabled={!employee.user}
+                              className={cn(
+                                "p-2.5 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all duration-300 border border-border active:scale-95 cursor-pointer",
+                                !employee.user && "opacity-40 cursor-not-allowed hover:text-text-secondary active:scale-100"
+                              )}
+                              title={employee.user ? "Reset Password" : "Employee has not registered yet"}
                             >
                               <Lock size={18} />
                             </button>

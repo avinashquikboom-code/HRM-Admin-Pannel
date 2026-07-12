@@ -41,15 +41,15 @@ const ResetPasswordModal = ({ isOpen, onClose, employee, onSuccess }: ResetPassw
       return;
     }
 
-    if (!employee?.user?.id) {
-      setError('Employee user ID not found');
+    if (!employee?.id) {
+      setError('Employee ID not found');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const result = await resetEmployeePassword(employee.user.id, {
+      const result = await resetEmployeePassword(employee.id, {
         newPassword,
         isTemporary,
       });
