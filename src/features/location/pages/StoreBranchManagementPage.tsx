@@ -78,6 +78,14 @@ export default function StoreBranchManagementPage() {
 
   const handleGetCurrentStoreLocation = () => {
     setIsGettingStoreLocation(true);
+    
+    // Geolocation requires a secure context (HTTPS or localhost) in modern browsers
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      toast.error('Location access requires a secure connection (HTTPS or localhost). Please enter coordinates manually.');
+      setIsGettingStoreLocation(false);
+      return;
+    }
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -107,9 +115,18 @@ export default function StoreBranchManagementPage() {
           setIsGettingStoreLocation(false);
         },
         (error) => {
-          toast.error('Failed to get current location. Please enter manually.');
+          let message = 'Failed to get location. Please enter manually.';
+          if (error.code === error.PERMISSION_DENIED) {
+            message = 'Location access denied. Please enable location permissions in browser settings or enter manually.';
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            message = 'Location information is unavailable. Please enter manually.';
+          } else if (error.code === error.TIMEOUT) {
+            message = 'Location request timed out. Please try again or enter manually.';
+          }
+          toast.error(message);
           setIsGettingStoreLocation(false);
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       toast.error('Geolocation is not supported by your browser.');
