@@ -17,11 +17,15 @@ export function useGeolocation() {
     setStatus('loading');
     setErrorCode(null);
 
-    // 1. Check window.isSecureContext
-    if (typeof window !== 'undefined' && !window.isSecureContext) {
-      const msg = `Location access requires a secure connection (HTTPS or localhost). Current URL scheme: ${window.location.protocol}`;
+    // Only block if not secure AND not localhost/dev
+    const isLocalhost =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    if (typeof window !== 'undefined' && !window.isSecureContext && !isLocalhost) {
+      const msg = `Location access requires HTTPS. Current scheme: ${window.location.protocol}`;
       console.error(msg);
-      setStatus('error');
+      setStatus('idle');
       toast.error(msg);
       return;
     }
@@ -29,19 +33,19 @@ export function useGeolocation() {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       const msg = 'Geolocation is not supported by your browser.';
       console.error(msg);
-      setStatus('error');
+      setStatus('idle');
       toast.error(msg);
       return;
     }
 
-    // 2. Check Permission Status
+    // Check permission state
     try {
       if (navigator.permissions && navigator.permissions.query) {
         const permissionStatus = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         if (permissionStatus.state === 'denied') {
-          const msg = 'Location access is blocked by browser settings. Please click the site settings/lock icon in your URL bar and allow location access.';
+          const msg = 'Location access is blocked. Click the lock icon in your URL bar → Site Settings → Allow Location.';
           console.error('Permission state: denied');
-          setStatus('error');
+          setStatus('idle');
           toast.error(msg);
           return;
         }
@@ -50,10 +54,11 @@ export function useGeolocation() {
       console.warn('Permission query not supported or failed', e);
     }
 
-    const optionsHigh = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 };
-    const optionsLow = { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 };
+    const optionsHigh: PositionOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+    const optionsLow: PositionOptions = { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 };
 
-    const handleSuccess = (position: GeolocationPosition) => {
+    // Await the async successCallback properly
+    const handleSuccess = async (position: GeolocationPosition) => {
       const gotCoords = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -61,53 +66,43 @@ export function useGeolocation() {
       setCoords(gotCoords);
       setStatus('success');
       if (successCallback) {
-        successCallback(gotCoords);
-      }
-    };
-
-    const handleFailure = (error: GeolocationPositionError, isHighAccuracy: boolean) => {
-      console.error(`Geolocation error (HighAccuracy=${isHighAccuracy}): Code ${error.code} - ${error.message}`);
-      
-      if (isHighAccuracy && (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE)) {
-        console.warn('Retrying with standard accuracy (enableHighAccuracy=false)...');
-        navigator.geolocation.getCurrentPosition(
-          handleSuccess,
-          (lowError) => {
-            console.error(`Geolocation fallback error: Code ${lowError.code} - ${lowError.message}`);
-            setErrorCode(lowError.code);
-            setStatus('error');
-            
-            let message = 'Failed to get location. Please enter manually.';
-            if (lowError.code === lowError.PERMISSION_DENIED) {
-              message = 'Location access denied. Please enable location permissions in browser settings or enter manually.';
-            } else if (lowError.code === lowError.POSITION_UNAVAILABLE) {
-              message = 'Location information is unavailable. Please enter manually.';
-            } else if (lowError.code === lowError.TIMEOUT) {
-              message = 'Location request timed out. Please enter manually.';
-            }
-            toast.error(message);
-          },
-          optionsLow
-        );
-      } else {
-        setErrorCode(error.code);
-        setStatus('error');
-        
-        let message = 'Failed to get location. Please enter manually.';
-        if (error.code === error.PERMISSION_DENIED) {
-          message = 'Location access blocked. Please allow location access in your browser settings.';
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message = 'Location information is unavailable. Please enter manually.';
-        } else if (error.code === error.TIMEOUT) {
-          message = 'Location request timed out. Please enter manually.';
+        try {
+          await successCallback(gotCoords);
+        } catch (cbErr) {
+          console.error('Error inside successCallback:', cbErr);
         }
-        toast.error(message);
       }
     };
 
+    const showError = (error: GeolocationPositionError) => {
+      console.error(`Geolocation error Code=${error.code}: ${error.message}`);
+      setErrorCode(error.code);
+      // Reset to 'idle' so button becomes clickable again for retry
+      setStatus('idle');
+      
+      if (error.code === error.PERMISSION_DENIED) {
+        toast.error('Location access denied. Allow location access in browser settings and try again.');
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        toast.error('Could not detect location. Please enter latitude and longitude manually.');
+      } else if (error.code === error.TIMEOUT) {
+        toast.error('Location request timed out. Please try again or enter manually.');
+      } else {
+        toast.error('Failed to get location. Please enter manually.');
+      }
+    };
+
+    // First attempt: high accuracy (GPS on mobile, may fail on desktop)
     navigator.geolocation.getCurrentPosition(
       (pos) => handleSuccess(pos),
-      (err) => handleFailure(err, true),
+      (highErr) => {
+        console.warn(`High-accuracy failed (code ${highErr.code}), retrying with low accuracy...`);
+        // Second attempt: low accuracy (network/IP-based — works on desktop)
+        navigator.geolocation.getCurrentPosition(
+          (pos) => handleSuccess(pos),
+          (lowErr) => showError(lowErr),
+          optionsLow
+        );
+      },
       optionsHigh
     );
   }, []);
