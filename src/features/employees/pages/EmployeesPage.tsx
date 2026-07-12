@@ -170,10 +170,10 @@ const EmployeesPage = () => {
     setIsUnassigning(employeeToUnassign.id);
     try {
       await unassignEmployeeFromOffice(employeeToUnassign.id);
-      toast.success('Employee unassigned from office successfully!');
+      toast.success('Employee unassigned from store successfully!');
       refetch();
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to unassign employee from office.');
+      toast.error(err?.message || 'Failed to unassign employee from store.');
     } finally {
       setIsUnassigning(null);
       setUnassignConfirmOpen(false);
@@ -266,7 +266,7 @@ const EmployeesPage = () => {
             icon: UserCheck 
           },
           { 
-            label: 'Assigned Offices', 
+            label: 'Assigned Stores', 
             value: employees.filter((e) => e.office).length, 
             description: 'With physical locations',
             iconClass: 'from-amber-500/20 to-amber-500/5 text-amber-500 border-amber-500/20', 
@@ -380,7 +380,7 @@ const EmployeesPage = () => {
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-xs">
                     <div className="bg-surface-variant rounded-sm p-3 border border-border">
-                      <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Office</p>
+                      <p className="text-text-secondary uppercase tracking-widest text-[9px] font-black">Store</p>
                       <p className="font-bold text-text-primary mt-1.5 truncate">{employee.office?.name ?? 'Unassigned'}</p>
                     </div>
                     <div className="bg-surface-variant rounded-sm p-3 border border-border">
@@ -492,7 +492,7 @@ const EmployeesPage = () => {
               <thead>
                 <tr className="bg-surface-variant/50 border-b border-border">
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Employee</th>
-                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Office</th>
+                  <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Store</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Department</th>
                   <th className="px-8 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Shift</th>
@@ -713,8 +713,8 @@ const EmployeesPage = () => {
       isOpen={unassignConfirmOpen}
       onClose={() => setUnassignConfirmOpen(false)}
       onConfirm={confirmUnassignOffice}
-      title="Unassign Office"
-      message={employeeToUnassign ? `Are you sure you want to unassign "${employeeToUnassign.firstName} ${employeeToUnassign.lastName}" from "${employeeToUnassign.office?.name}"?` : 'Are you sure you want to unassign this employee from their office?'}
+      title="Unassign Store"
+      message={employeeToUnassign ? `Are you sure you want to unassign "${employeeToUnassign.firstName} ${employeeToUnassign.lastName}" from "${employeeToUnassign.office?.name}"?` : 'Are you sure you want to unassign this employee from their store?'}
       confirmText="Unassign"
       cancelText="Cancel"
     />

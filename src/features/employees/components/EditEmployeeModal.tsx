@@ -6,7 +6,6 @@ import Modal from '@/components/Modal';
 import { toast } from 'sonner';
 import { fetchDepartments } from '@/services/departmentService';
 import { fetchStores } from '@/services/storeService';
-import { fetchBranches } from '@/services/branchService';
 import { fetchShifts, updateEmployee, fetchDesignations } from '@/services/employeeService';
 import { fetchWorkModes, WorkMode } from '@/services/workModeService';
 
@@ -29,7 +28,6 @@ export default function EditEmployeeModal({
     designationId: '' as string,
     status: 'active',
     storeId: '' as string,
-    branchId: '' as string,
     departmentId: '' as string,
     shiftId: '' as string,
     workMode: 'OFFICE',
@@ -42,7 +40,6 @@ export default function EditEmployeeModal({
 
   // Dropdown data
   const [stores, setStores] = useState<any[]>([]);
-  const [branches, setBranches] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
   const [designations, setDesignations] = useState<any[]>([]);
@@ -53,10 +50,6 @@ export default function EditEmployeeModal({
   useEffect(() => {
     if (isOpen && employee) {
       const initialStoreId = employee.storeId?.toString() || '';
-      const initialBranchId =
-        employee.branchId?.toString() ||
-        employee.store?.branchId?.toString() ||
-        '';
       const initialDesignationId =
         employee.designationId?.toString() ||
         employee.designationRelation?.id?.toString() ||
@@ -75,7 +68,6 @@ export default function EditEmployeeModal({
         designationId: initialDesignationId,
         status: employee.status || 'active',
         storeId: initialStoreId,
-        branchId: initialBranchId,
         departmentId: initialDepartmentId,
         shiftId: initialShiftId,
         workMode: initialWorkMode,
@@ -91,10 +83,9 @@ export default function EditEmployeeModal({
   const loadDropdownData = async () => {
     setIsLoadingData(true);
     try {
-      const [storesRes, branchesRes, departmentsRes, shiftsRes, designationsRes, workModesRes] =
+      const [storesRes, departmentsRes, shiftsRes, designationsRes, workModesRes] =
         await Promise.allSettled([
           fetchStores(),
-          fetchBranches(),
           fetchDepartments(),
           fetchShifts(),
           fetchDesignations(),
@@ -103,11 +94,6 @@ export default function EditEmployeeModal({
 
       if (storesRes.status === 'fulfilled') {
         setStores(Array.isArray(storesRes.value) ? storesRes.value : []);
-      }
-
-      if (branchesRes.status === 'fulfilled') {
-        const raw = branchesRes.value as any;
-        setBranches(Array.isArray(raw) ? raw : []);
       }
 
       if (departmentsRes.status === 'fulfilled') {
@@ -145,20 +131,6 @@ export default function EditEmployeeModal({
     }
   };
 
-  // ─── When Store changes: auto-populate Branch ───────────────────────────────
-  const handleStoreChange = (storeId: string) => {
-    if (!storeId) {
-      setForm((prev) => ({ ...prev, storeId: '', branchId: '' }));
-      return;
-    }
-
-    // Find the selected store from the already-loaded stores list
-    const selectedStore = stores.find((s) => s.id?.toString() === storeId);
-    const autoBranchId = selectedStore?.branchId?.toString() || '';
-
-    setForm((prev) => ({ ...prev, storeId, branchId: autoBranchId }));
-  };
-
   // ─── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +144,6 @@ export default function EditEmployeeModal({
         designationId: form.designationId || undefined,
         status: form.status,
         storeId: form.storeId || undefined,
-        branchId: form.branchId || undefined,
         departmentId: form.departmentId || undefined,
         shiftId: form.shiftId || undefined,
         workMode: form.workMode || undefined,
@@ -228,7 +199,7 @@ export default function EditEmployeeModal({
           </div>
         </div>
 
-        {/* Designation — dropdown from DB */}
+        {/* Designation */}
         <div>
           <label className={labelCls}>Designation</label>
           <select
@@ -246,41 +217,22 @@ export default function EditEmployeeModal({
           </select>
         </div>
 
-        {/* Store + Branch */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Store</label>
-            <select
-              value={form.storeId}
-              onChange={(e) => handleStoreChange(e.target.value)}
-              disabled={isLoadingData}
-              className={inputCls}
-            >
-              <option value="">Select Store</option>
-              {stores.map((store) => (
-                <option key={store.id} value={store.id.toString()}>
-                  {store.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={labelCls}>Branch</label>
-            <select
-              value={form.branchId}
-              onChange={(e) => setForm({ ...form, branchId: e.target.value })}
-              disabled={isLoadingData}
-              className={inputCls}
-            >
-              <option value="">Select Branch</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id.toString()}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Store */}
+        <div>
+          <label className={labelCls}>Store</label>
+          <select
+            value={form.storeId}
+            onChange={(e) => setForm({ ...form, storeId: e.target.value })}
+            disabled={isLoadingData}
+            className={inputCls}
+          >
+            <option value="">Select Store</option>
+            {stores.map((store) => (
+              <option key={store.id} value={store.id.toString()}>
+                {store.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Department */}
