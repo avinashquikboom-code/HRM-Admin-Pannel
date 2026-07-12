@@ -22,7 +22,7 @@ export default function StoreBranchManagementPage() {
   const [storePage, setStorePage] = useState(1);
   const ITEMS_PER_PAGE = 9;
 
-  // Store form state
+  // Store form state — lat/lng stored as string to preserve full decimal precision
   const [storeForm, setStoreForm] = useState({
     name: '',
     code: '',
@@ -30,8 +30,8 @@ export default function StoreBranchManagementPage() {
     country: 'India',
     pincode: '',
     branchId: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: '',
+    longitude: '',
     maxPunchRadiusMeters: 50,
   });
   const { getPosition: getStorePosition, status: storeGeoStatus } = useGeolocation();
@@ -57,8 +57,8 @@ export default function StoreBranchManagementPage() {
     getStorePosition(async (coords) => {
       setStoreForm((prev) => ({
         ...prev,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
+        latitude: coords.latitude.toFixed(7),
+        longitude: coords.longitude.toFixed(7),
       }));
 
       // Reverse geocoding to get address
@@ -84,11 +84,12 @@ export default function StoreBranchManagementPage() {
       return;
     }
     try {
-      const { branchId: _unused, ...payload } = storeForm as any;
+      const { branchId: _unused, latitude: latStr, longitude: lngStr, ...rest } = storeForm as any;
+      const payload = { ...rest, latitude: parseFloat(latStr) || 0, longitude: parseFloat(lngStr) || 0 };
       await createStore(payload);
       toast.success('Store created successfully');
       setIsCreateStoreOpen(false);
-      setStoreForm({ name: '', code: '', address: '', country: 'India', pincode: '', branchId: '', latitude: 0, longitude: 0, maxPunchRadiusMeters: 50 });
+      setStoreForm({ name: '', code: '', address: '', country: 'India', pincode: '', branchId: '', latitude: '', longitude: '', maxPunchRadiusMeters: 50 });
       loadData();
     } catch (error) {
       toast.error('Failed to create store');
@@ -102,11 +103,12 @@ export default function StoreBranchManagementPage() {
       return;
     }
     try {
-      const { branchId: _unused, ...payload } = storeForm as any;
+      const { branchId: _unused, latitude: latStr, longitude: lngStr, ...rest } = storeForm as any;
+      const payload = { ...rest, latitude: parseFloat(latStr) || 0, longitude: parseFloat(lngStr) || 0 };
       await updateStore(editingStore.id.toString(), payload);
       toast.success('Store updated successfully');
       setEditingStore(null);
-      setStoreForm({ name: '', code: '', address: '', country: 'India', pincode: '', branchId: '', latitude: 0, longitude: 0, maxPunchRadiusMeters: 50 });
+      setStoreForm({ name: '', code: '', address: '', country: 'India', pincode: '', branchId: '', latitude: '', longitude: '', maxPunchRadiusMeters: 50 });
       loadData();
     } catch (error) {
       toast.error('Failed to update store');
@@ -220,7 +222,7 @@ export default function StoreBranchManagementPage() {
                             <div className="flex items-center gap-2 mt-2 text-xs text-text-secondary">
                               <MapPin className="w-3 h-3 text-primary" />
                               <span className="truncate">
-                                {Number(store.latitude).toFixed(4)}, {Number(store.longitude).toFixed(4)} ({store.maxPunchRadiusMeters || 50}m)
+                                {Number(store.latitude).toFixed(7)}, {Number(store.longitude).toFixed(7)} ({store.maxPunchRadiusMeters || 50}m)
                               </span>
                             </div>
                           )}
@@ -241,8 +243,8 @@ export default function StoreBranchManagementPage() {
                               country: store.country || 'India',
                               pincode: store.pincode || '',
                               branchId: store.branchId?.toString() || '',
-                              latitude: Number(store.latitude) || 0,
-                              longitude: Number(store.longitude) || 0,
+                              latitude: Number(store.latitude).toFixed(7),
+                              longitude: Number(store.longitude).toFixed(7),
                               maxPunchRadiusMeters: Number(store.maxPunchRadiusMeters) || 50,
                             });
                           }}
@@ -347,25 +349,31 @@ export default function StoreBranchManagementPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">Latitude</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
+                      Latitude
+                      <span className="ml-1 text-xs text-text-secondary/60 font-normal">(e.g. 19.1086776)</span>
+                    </label>
                     <input
-                      type="number"
-                      step="any"
-                      placeholder="Latitude"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="e.g. 19.1086776"
                       value={storeForm.latitude}
-                      onChange={(e) => setStoreForm({ ...storeForm, latitude: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-primary"
+                      onChange={(e) => setStoreForm({ ...storeForm, latitude: e.target.value })}
+                      className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-primary font-mono text-sm tracking-wide"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">Longitude</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
+                      Longitude
+                      <span className="ml-1 text-xs text-text-secondary/60 font-normal">(e.g. 73.0050940)</span>
+                    </label>
                     <input
-                      type="number"
-                      step="any"
-                      placeholder="Longitude"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="e.g. 73.0050940"
                       value={storeForm.longitude}
-                      onChange={(e) => setStoreForm({ ...storeForm, longitude: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-primary"
+                      onChange={(e) => setStoreForm({ ...storeForm, longitude: e.target.value })}
+                      className="w-full px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-primary font-mono text-sm tracking-wide"
                     />
                   </div>
                 </div>
@@ -408,7 +416,7 @@ export default function StoreBranchManagementPage() {
                     onClick={() => {
                       setIsCreateStoreOpen(false);
                       setEditingStore(null);
-                      setStoreForm({ name: '', code: '', address: '', country: 'India', pincode: '', branchId: '', latitude: 0, longitude: 0, maxPunchRadiusMeters: 50 });
+                      setStoreForm({ name: '', code: '', address: '', country: 'India', pincode: '', branchId: '', latitude: '', longitude: '', maxPunchRadiusMeters: 50 });
                     }}
                     className="flex-1 px-4 py-2 bg-surface-variant border border-border rounded-sm text-text-secondary"
                   >
