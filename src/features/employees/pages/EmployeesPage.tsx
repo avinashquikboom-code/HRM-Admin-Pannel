@@ -77,13 +77,13 @@ const EmployeesPage = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<any>(null);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | number | null>(null);
   const [unassignConfirmOpen, setUnassignConfirmOpen] = useState(false);
   const [employeeToUnassign, setEmployeeToUnassign] = useState<any>(null);
-  const [isUnassigning, setIsUnassigning] = useState<string | null>(null);
+  const [isUnassigning, setIsUnassigning] = useState<string | number | null>(null);
   const [unassignDeptConfirmOpen, setUnassignDeptConfirmOpen] = useState(false);
   const [employeeToUnassignDept, setEmployeeToUnassignDept] = useState<any>(null);
-  const [isUnassigningDept, setIsUnassigningDept] = useState<string | null>(null);
+  const [isUnassigningDept, setIsUnassigningDept] = useState<string | number | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null);
 
@@ -348,7 +348,18 @@ const EmployeesPage = () => {
                         {initials}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-text-primary truncate">{fullName}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-text-primary truncate">{fullName}</p>
+                          {employee.source === 'HOPKID' ? (
+                            <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                              HopKid
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-teal-500/10 text-teal-500 border border-teal-500/20">
+                              Manual
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-text-secondary truncate mt-0.5">
                           {employee.user?.email ?? employee.employeeCode}
                         </p>
@@ -540,7 +551,18 @@ const EmployeesPage = () => {
                               {initials}
                             </div>
                             <div>
-                              <p className="font-bold text-text-primary group-hover:text-primary transition-colors">{fullName}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-text-primary group-hover:text-primary transition-colors">{fullName}</p>
+                                {employee.source === 'HOPKID' ? (
+                                  <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                                    HopKid
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-teal-500/10 text-teal-500 border border-teal-500/20">
+                                    Manual
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-1">
                                 <Mail size={12} className="text-text-secondary/70" />
                                 {employee.user?.email ?? employee.employeeCode}

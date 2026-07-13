@@ -11,7 +11,7 @@ import { fetchWorkModes, WorkMode } from '@/services/workModeService';
 
 interface EditEmployeeModalProps {
   isOpen: boolean;
-  employee: any;
+  employee: any; // AdminEmployee — id is now number
   onClose: () => void;
   onUpdated: () => void;
 }
@@ -78,6 +78,9 @@ export default function EditEmployeeModal({
       loadDropdownData();
     }
   }, [isOpen, employee]);
+
+  // HopKid employees: name/status are owned by HopKid portal
+  const isHopkid = employee?.source === 'HOPKID';
 
   // ─── Load all dropdown reference data ───────────────────────────────────────
   const loadDropdownData = async () => {
@@ -169,6 +172,16 @@ export default function EditEmployeeModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Employee">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* HopKid read-only banner */}
+        {isHopkid && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-sm">
+            <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
+              🔒 HopKid Employee — Name, status, and store are managed in the HopKid portal.
+              Only shift, department, commission, and work mode can be changed here.
+            </p>
+          </div>
+        )}
+
         {error && (
           <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-sm">
             <p className="text-xs text-rose-500 font-semibold">{error}</p>
@@ -185,6 +198,7 @@ export default function EditEmployeeModal({
               onChange={(e) => setForm({ ...form, firstName: e.target.value })}
               className={inputCls}
               required
+              disabled={isHopkid}
             />
           </div>
           <div>
@@ -195,6 +209,7 @@ export default function EditEmployeeModal({
               onChange={(e) => setForm({ ...form, lastName: e.target.value })}
               className={inputCls}
               required
+              disabled={isHopkid}
             />
           </div>
         </div>
@@ -338,6 +353,7 @@ export default function EditEmployeeModal({
             value={form.status}
             onChange={(e) => setForm({ ...form, status: e.target.value })}
             className={inputCls}
+            disabled={isHopkid}
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>

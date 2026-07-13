@@ -30,7 +30,8 @@ export interface AdminEmployeeShift {
 }
 
 export interface AdminEmployee {
-  id: string;
+  id: number;          // Integer DB primary key — use this for edit/delete API calls
+  employeeID?: string; // HopKid GUID or legacy local-* string (may be null)
   employeeCode: string;
   firstName: string;
   lastName: string;
@@ -38,6 +39,7 @@ export interface AdminEmployee {
   designationId: number | null;
   designationRelation: { id: number; name: string } | null;
   status: string;
+  source: 'HOPKID' | 'MANUAL';
   workMode: string;
   shiftType: string;
   workModeId: string;
@@ -235,7 +237,7 @@ export async function resetEmployeePassword(
 }
 
 export async function updateEmployee(
-  employeeId: string,
+  employeeId: number | string,
   employeeData: {
     firstName?: string;
     lastName?: string;
