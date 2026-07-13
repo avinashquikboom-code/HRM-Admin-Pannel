@@ -616,7 +616,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   <tr key={employee.id} className="hover:bg-surface-variant/30 transition-colors">
                     <td className="p-4">
                       <div>
-                        <p className="text-sm font-bold text-text-primary">{employee.fullName}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold text-text-primary">{employee.fullName}</p>
+                          {employee.source === 'MANUAL' && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                              Manual
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-text-secondary">{employee.employeeCode}</p>
                         <p className="text-xs text-text-secondary/70">{employee.designation}</p>
                       </div>

@@ -97,6 +97,7 @@ export interface HREmployee {
   taskCount: number;
   attendanceCount: number;
   joinedAt: string;
+  source?: 'MANUAL' | 'HOPKID';
 }
 
 export interface HREmployeesResponse {
