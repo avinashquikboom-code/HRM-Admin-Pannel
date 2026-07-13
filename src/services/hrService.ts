@@ -164,7 +164,7 @@ export async function fetchHREmployees(params: {
   limit?: number;
 }): Promise<HREmployeesResponse> {
   try {
-    const { data } = await api.get<HREmployeesResponse>('/api/admin/employees', { params });
+    const { data } = await api.get<HREmployeesResponse>('/api/hr/employees', { params });
     return data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch HR employees.'));
