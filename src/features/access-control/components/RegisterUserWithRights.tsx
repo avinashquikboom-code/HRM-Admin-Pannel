@@ -58,9 +58,7 @@ export default function RegisterUserWithRights({
   const [lastName, setLastName] = useState('');
   const [selectedRole, setSelectedRole] = useState<RegisterRole>(registerRole);
   const [departmentId, setDepartmentId] = useState<number | undefined>();
-  const [officeId, setOfficeId] = useState<number | undefined>();
   const [storeId, setStoreId] = useState<number | undefined>();
-  const [branchId, setBranchId] = useState<number | undefined>();
   
   // New Fields
   const [mobileNumber, setMobileNumber] = useState('');
@@ -79,9 +77,7 @@ export default function RegisterUserWithRights({
   const [branchName, setBranchName] = useState('');
 
   const [stores, setStores] = useState<any[]>([]);
-  const [branches, setBranches] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
-  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
 
   // Salary Structure
   const [basicSalary, setBasicSalary] = useState<number>(0);
@@ -108,14 +104,12 @@ export default function RegisterUserWithRights({
   const [showVoterId, setShowVoterId] = useState(false);
 
   const [departments, setDepartments] = useState<any[]>([]);
-  const [offices, setOffices] = useState<any[]>([]);
   const [employeesList, setEmployeesList] = useState<any[]>([]);
   const [shiftsList, setShiftsList] = useState<any[]>([]);
   const [designationsList, setDesignationsList] = useState<any[]>([]);
   const [workModesList, setWorkModesList] = useState<WorkMode[]>([]);
 
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
-  const [isLoadingOffices, setIsLoadingOffices] = useState(false);
   const [isLoadingManagers, setIsLoadingManagers] = useState(false);
   const [isLoadingShifts, setIsLoadingShifts] = useState(false);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
@@ -144,18 +138,6 @@ export default function RegisterUserWithRights({
     }
   };
 
-  const loadOffices = async () => {
-    setIsLoadingOffices(true);
-    try {
-      const HROffices = await fetchHROffices();
-      setOffices(HROffices);
-    } catch (err) {
-      console.error('Failed to load offices:', err);
-    } finally {
-      setIsLoadingOffices(false);
-    }
-  };
-
   const loadStores = async () => {
     setIsLoadingStores(true);
     try {
@@ -165,18 +147,6 @@ export default function RegisterUserWithRights({
       console.error('Failed to load stores:', err);
     } finally {
       setIsLoadingStores(false);
-    }
-  };
-
-  const loadBranches = async () => {
-    setIsLoadingBranches(true);
-    try {
-      const branchesList = await fetchBranches();
-      setBranches(branchesList);
-    } catch (err) {
-      console.error('Failed to load branches:', err);
-    } finally {
-      setIsLoadingBranches(false);
     }
   };
 
@@ -221,10 +191,8 @@ export default function RegisterUserWithRights({
 
   useEffect(() => {
     loadDepartments();
-    loadOffices();
     loadAdditionalData();
     loadStores();
-    loadBranches();
   }, []);
 
   const handleNext = () => {
@@ -248,8 +216,8 @@ export default function RegisterUserWithRights({
         setError('Department is required.');
         return;
       }
-      if (selectedRole === 'EMPLOYEE' && !officeId) {
-        setError('Office/Store selection is required.');
+      if (selectedRole === 'EMPLOYEE' && !storeId) {
+        setError('Store selection is required.');
         return;
       }
     }
@@ -285,9 +253,7 @@ export default function RegisterUserWithRights({
         password,
         role: selectedRole,
         departmentId,
-        officeId,
         storeId,
-        branchId,
         bankName: bankName.trim() || undefined,
         accountNumber: accountNumber.trim() || undefined,
         ifscCode: ifscCode.trim() || undefined,
@@ -339,9 +305,7 @@ export default function RegisterUserWithRights({
       setFirstName('');
       setLastName('');
       setDepartmentId(undefined);
-      setOfficeId(undefined);
       setStoreId(undefined);
-      setBranchId(undefined);
       setMobileNumber('');
       setJoiningDate('');
       setReportingManagerId(undefined);
@@ -599,41 +563,11 @@ export default function RegisterUserWithRights({
                 </div>
               </div>
 
-              {/* Office, Store, and Branch Assignment */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Store Assignment */}
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                    Office Location {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
-                  </label>
-                  <div className="relative group">
-                    <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                    <select
-                      value={officeId || ''}
-                      onChange={(e) => setOfficeId(e.target.value ? parseInt(e.target.value) : undefined)}
-                      disabled={isLoading || isLoadingOffices}
-                      required={selectedRole === 'EMPLOYEE'}
-                      className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                    >
-                      <option value="">Select Office Location</option>
-                      {offices.map((off) => (
-                        <option key={off.id} value={off.id}>{off.name}</option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={loadOffices}
-                      disabled={isLoadingOffices}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
-                      title="Refresh offices"
-                    >
-                      <RotateCcw size={14} className={isLoadingOffices ? 'animate-spin' : ''} />
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                    Store (Optional)
+                    Store {selectedRole === 'EMPLOYEE' ? '*' : '(Optional)'}
                   </label>
                   <div className="relative group">
                     <Store className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
@@ -641,6 +575,7 @@ export default function RegisterUserWithRights({
                       value={storeId || ''}
                       onChange={(e) => setStoreId(e.target.value ? parseInt(e.target.value) : undefined)}
                       disabled={isLoading || isLoadingStores}
+                      required={selectedRole === 'EMPLOYEE'}
                       className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
                     >
                       <option value="">Select Store</option>
@@ -656,35 +591,6 @@ export default function RegisterUserWithRights({
                       title="Refresh stores"
                     >
                       <RotateCcw size={14} className={isLoadingStores ? 'animate-spin' : ''} />
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-black text-text-secondary uppercase tracking-widest mb-2.5 ml-1">
-                    Branch (Optional)
-                  </label>
-                  <div className="relative group">
-                    <GitBranch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-4 h-4" />
-                    <select
-                      value={branchId || ''}
-                      onChange={(e) => setBranchId(e.target.value ? parseInt(e.target.value) : undefined)}
-                      disabled={isLoading || isLoadingBranches}
-                      className="input-dark pl-11 pr-12 py-4 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-                    >
-                      <option value="">Select Branch</option>
-                      {branches.map((br) => (
-                        <option key={br.id} value={br.id}>{br.name}</option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={loadBranches}
-                      disabled={isLoadingBranches}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer"
-                      title="Refresh branches"
-                    >
-                      <RotateCcw size={14} className={isLoadingBranches ? 'animate-spin' : ''} />
                     </button>
                   </div>
                 </div>

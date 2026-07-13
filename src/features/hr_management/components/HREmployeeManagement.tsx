@@ -1016,83 +1016,45 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                    Department *
+                  </label>
+                  <select
+                    required
+                    value={formData.departmentId || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="mt-2 w-full p-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                  >
+                    <UserPlus size={12} />
+                    Create Role
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Company
-                    </label>
-                    <select
-                      value={formData.officeId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, officeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                    >
-                      <option value="">Select Company</option>
-                      {offices.map((office) => (
-                        <option key={office.id} value={office.id}>{office.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Department *
+                      Store *
                     </label>
                     <select
                       required
-                      value={formData.departmentId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map((dept) => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="mt-2 w-full p-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                    >
-                      <UserPlus size={12} />
-                      Create Role
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Branch
-                    </label>
-                    <select
-                      value={formData.branchId || ''}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        branchId: e.target.value ? parseInt(e.target.value) : undefined,
-                        storeId: undefined
-                      }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                    >
-                      <option value="">Select Branch</option>
-                      {branchesList.map((b) => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Store
-                    </label>
-                    <select
                       value={formData.storeId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, storeId: e.target.value ? parseInt(e.target.value) : undefined }))}
                       className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
                       <option value="">Select Store</option>
-                      {storesList
-                        .filter(s => !formData.branchId || s.branchId === formData.branchId)
-                        .map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))
-                      }
+                      {storesList.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -1497,76 +1459,38 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
+                    Department *
+                  </label>
+                  <select
+                    required
+                    value={formData.departmentId || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
+                    className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Company
-                    </label>
-                    <select
-                      value={formData.officeId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, officeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                    >
-                      <option value="">Select Company</option>
-                      {offices.map((office) => (
-                        <option key={office.id} value={office.id}>{office.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Department *
+                      Store *
                     </label>
                     <select
                       required
-                      value={formData.departmentId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, departmentId: e.target.value ? parseInt(e.target.value) : undefined }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map((dept) => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Branch
-                    </label>
-                    <select
-                      value={formData.branchId || ''}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        branchId: e.target.value ? parseInt(e.target.value) : undefined,
-                        storeId: undefined
-                      }))}
-                      className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
-                    >
-                      <option value="">Select Branch</option>
-                      {branchesList.map((b) => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-text-secondary uppercase tracking-wider mb-2">
-                      Store
-                    </label>
-                    <select
                       value={formData.storeId || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, storeId: e.target.value ? parseInt(e.target.value) : undefined }))}
                       className="w-full p-3 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-bold text-text-primary"
                     >
                       <option value="">Select Store</option>
-                      {storesList
-                        .filter(s => !formData.branchId || s.branchId === formData.branchId)
-                        .map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))
-                      }
+                      {storesList.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
