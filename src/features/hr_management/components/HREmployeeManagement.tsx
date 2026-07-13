@@ -618,9 +618,9 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-bold text-text-primary">{employee.fullName}</p>
-                          {employee.source === 'MANUAL' && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
-                              Manual
+                          {employee.source === 'HOPKID' && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                              HopKid
                             </span>
                           )}
                         </div>

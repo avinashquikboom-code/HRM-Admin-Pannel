@@ -350,13 +350,9 @@ const EmployeesPage = () => {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-text-primary truncate">{fullName}</p>
-                          {employee.source === 'HOPKID' ? (
+                          {employee.source === 'HOPKID' && (
                             <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                               HopKid
-                            </span>
-                          ) : (
-                            <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-teal-500/10 text-teal-500 border border-teal-500/20">
-                              Manual
                             </span>
                           )}
                         </div>
@@ -553,13 +549,9 @@ const EmployeesPage = () => {
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="font-bold text-text-primary group-hover:text-primary transition-colors">{fullName}</p>
-                                {employee.source === 'HOPKID' ? (
+                                {employee.source === 'HOPKID' && (
                                   <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                                     HopKid
-                                  </span>
-                                ) : (
-                                  <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-teal-500/10 text-teal-500 border border-teal-500/20">
-                                    Manual
                                   </span>
                                 )}
                               </div>
