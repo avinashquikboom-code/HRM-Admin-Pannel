@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { api } from '@/lib/api';
 import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Clock, 
@@ -99,6 +100,63 @@ const ShiftManagementPage = () => {
     { id: 4, name: 'SALESMAN', label: 'Salesman (Store)' },
     { id: 5, name: 'HELPER', label: 'Helper (Store)' }
   ];
+
+  const [activeTab, setActiveTab] = useState<'definitions' | 'requests'>('definitions');
+  const [shiftRequests, setShiftRequests] = useState<any[]>([]);
+  const [isRequestsLoading, setIsRequestsLoading] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+  const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false);
+  const [decisionNote, setDecisionNote] = useState('');
+  const [decisionStatus, setDecisionStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
+  const [deciding, setDeciding] = useState(false);
+
+  const loadShiftRequests = useCallback(async () => {
+    setIsRequestsLoading(true);
+    try {
+      const response = await api.get('/api/admin/shift-requests');
+      if (response.data.success) {
+        setShiftRequests(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load shift requests:', err);
+    } finally {
+      setIsRequestsLoading(false);
+    }
+  }, []);
+
+  const handleOpenDecisionModal = (request: any, status: 'APPROVED' | 'REJECTED') => {
+    setSelectedRequest(request);
+    setDecisionStatus(status);
+    setDecisionNote('');
+    setIsDecisionModalOpen(true);
+  };
+
+  const submitDecision = async () => {
+    if (!selectedRequest) return;
+    setDeciding(true);
+    try {
+      const res = await api.patch(`/api/admin/shift-requests/${selectedRequest.id}`, {
+        status: decisionStatus,
+        note: decisionNote
+      });
+      if (res.data.success) {
+        toast.success(`Request ${decisionStatus.toLowerCase()} successfully.`);
+        setIsDecisionModalOpen(false);
+        loadShiftRequests();
+      }
+    } catch (err: any) {
+      console.error('Failed to decide request:', err);
+      toast.error(err?.response?.data?.message || 'Failed to process request.');
+    } finally {
+      setDeciding(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'requests') {
+      loadShiftRequests();
+    }
+  }, [activeTab, loadShiftRequests]);
 
   const filteredShifts = shifts.filter(shift =>
     shift.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -311,91 +369,252 @@ const ShiftManagementPage = () => {
         </button>
       </SuperAdminHeader>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
-        <input
-          type="text"
-          placeholder="Search shifts..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-surface-variant border border-border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-        />
+      {/* Tabs */}
+      <div className="flex border-b border-border">
+        <button
+          onClick={() => setActiveTab('definitions')}
+          className={cn(
+            "px-5 py-3 border-b-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+            activeTab === 'definitions'
+              ? "border-primary text-primary"
+              : "border-transparent text-text-secondary hover:text-text-primary"
+          )}
+        >
+          Shift Definitions
+        </button>
+        <button
+          onClick={() => setActiveTab('requests')}
+          className={cn(
+            "px-5 py-3 border-b-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2",
+            activeTab === 'requests'
+              ? "border-primary text-primary"
+              : "border-transparent text-text-secondary hover:text-text-primary"
+          )}
+        >
+          Shift Requests
+          {shiftRequests.filter(r => r.status === 'PENDING').length > 0 && (
+            <span className="w-5 h-5 rounded-full bg-error/10 text-error text-[10px] font-black flex items-center justify-center">
+              {shiftRequests.filter(r => r.status === 'PENDING').length}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Error State */}
-      {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-sm">
-          <AlertCircle className="w-5 h-5 text-red-500" />
-          <p className="text-sm text-red-600">{error}</p>
+      {activeTab === 'definitions' ? (
+        <>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+            <input
+              type="text"
+              placeholder="Search shifts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-surface-variant border border-border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            />
+          </div>
+
+          {/* Error State */}
+          {error && (
+            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-sm">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          {/* Shifts List */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <AnimatePresence>
+              {filteredShifts.length === 0 ? (
+                <motion.div
+                  variants={itemVariants}
+                  className="col-span-full text-center py-12 text-text-secondary"
+                >
+                  <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No shifts found</p>
+                </motion.div>
+              ) : (
+                filteredShifts.map((shift) => (
+                  <motion.div
+                    key={shift.id}
+                    variants={itemVariants}
+                    className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div 
+                        className="p-3 rounded-sm shrink-0"
+                        style={{ backgroundColor: `${shift.color}20`, color: shift.color }}
+                      >
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-text-primary truncate">{shift.name}</h4>
+                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-text-secondary">
+                          <span className="flex items-center gap-1 whitespace-nowrap">
+                            <Timer size={12} />
+                            {shift.startTime} - {shift.endTime}
+                          </span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-border" />
+                          <span className="flex items-center gap-1 whitespace-nowrap">
+                            <Clock size={12} />
+                            {shift.graceMinutes}m grace
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end border-t border-border/40 pt-3 gap-1">
+                      <button
+                        onClick={() => openEditModal(shift)}
+                        className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
+                        title="Edit"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(shift)}
+                        className="p-2 hover:bg-red-500/10 rounded-sm text-text-secondary hover:text-red-500 transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </>
+      ) : (
+        <div className="space-y-6">
+          {/* Shift Requests Tables */}
+          {isRequestsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Pending Requests */}
+              <div className="border border-border bg-surface rounded-sm">
+                <div className="p-4 bg-surface-variant/30 border-b border-border">
+                  <h3 className="text-xs font-black text-text-primary uppercase tracking-wider">Pending Shift Change Requests</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border bg-surface-variant/10">
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Employee</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Current Shift</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Requested Shift</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Reason</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Date Requested</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shiftRequests.filter(r => r.status === 'PENDING').length > 0 ? (
+                        shiftRequests.filter(r => r.status === 'PENDING').map((req) => (
+                          <tr key={req.id} className="border-b border-border/50 hover:bg-surface-variant/10 transition-colors">
+                            <td className="px-4 py-3.5 text-xs font-black text-text-primary">
+                              {req.employee ? `${req.employee.firstName} ${req.employee.lastName}` : 'Unknown'}
+                              <span className="block text-[10px] font-semibold text-text-secondary mt-0.5">{req.employee?.office?.name || 'No Branch'}</span>
+                            </td>
+                            <td className="px-4 py-3.5 text-xs font-semibold text-text-secondary">{req.currentShift}</td>
+                            <td className="px-4 py-3.5 text-xs font-bold text-primary">{req.requestedShift}</td>
+                            <td className="px-4 py-3.5 text-xs text-text-secondary max-w-[200px] truncate" title={req.reason}>{req.reason}</td>
+                            <td className="px-4 py-3.5 text-xs text-text-secondary">
+                              {new Date(req.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </td>
+                            <td className="px-4 py-3.5 text-xs text-right space-x-2 whitespace-nowrap">
+                              <button
+                                onClick={() => handleOpenDecisionModal(req, 'APPROVED')}
+                                className="px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-sm text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleOpenDecisionModal(req, 'REJECTED')}
+                                className="px-2.5 py-1.5 bg-error/10 hover:bg-error/20 text-error rounded-sm text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all"
+                              >
+                                Reject
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
+                            No pending shift change requests.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Request History */}
+              <div className="border border-border bg-surface rounded-sm">
+                <div className="p-4 bg-surface-variant/30 border-b border-border">
+                  <h3 className="text-xs font-black text-text-primary uppercase tracking-wider">Shift Change History</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border bg-surface-variant/10">
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Employee</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Requested Shift</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Status</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Decided Date</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Review Note</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shiftRequests.filter(r => r.status !== 'PENDING').length > 0 ? (
+                        shiftRequests.filter(r => r.status !== 'PENDING').map((req) => (
+                          <tr key={req.id} className="border-b border-border/50 hover:bg-surface-variant/10 transition-colors">
+                            <td className="px-4 py-3.5 text-xs font-black text-text-primary">
+                              {req.employee ? `${req.employee.firstName} ${req.employee.lastName}` : 'Unknown'}
+                            </td>
+                            <td className="px-4 py-3.5 text-xs font-semibold text-text-secondary">
+                              {req.currentShift} → <span className="font-bold text-primary">{req.requestedShift}</span>
+                            </td>
+                            <td className="px-4 py-3.5 text-xs whitespace-nowrap">
+                              <span className={cn(
+                                "px-2 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider",
+                                req.status === 'APPROVED' ? "bg-emerald-500/10 text-emerald-500" : "bg-error/10 text-error"
+                              )}>
+                                {req.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 text-xs text-text-secondary">
+                              {req.decidedAt ? new Date(req.decidedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
+                            </td>
+                            <td className="px-4 py-3.5 text-xs text-text-secondary max-w-[200px] truncate" title={req.reviewNote || '-'}>
+                              {req.reviewNote || '-'}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
+                            No shift change history found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
-
-      {/* Shifts List */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        <AnimatePresence>
-          {filteredShifts.length === 0 ? (
-            <motion.div
-              variants={itemVariants}
-              className="col-span-full text-center py-12 text-text-secondary"
-            >
-              <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No shifts found</p>
-            </motion.div>
-          ) : (
-            filteredShifts.map((shift) => (
-              <motion.div
-                key={shift.id}
-                variants={itemVariants}
-                className="flex flex-col justify-between p-4 bg-surface border border-border rounded-sm hover:border-primary/30 transition-all gap-4"
-              >
-                <div className="flex items-start gap-4">
-                  <div 
-                    className="p-3 rounded-sm shrink-0"
-                    style={{ backgroundColor: `${shift.color}20`, color: shift.color }}
-                  >
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-text-primary truncate">{shift.name}</h4>
-                    <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-text-secondary">
-                      <span className="flex items-center gap-1 whitespace-nowrap">
-                        <Timer className="w-3 h-3" />
-                        {shift.startTime} - {shift.endTime}
-                      </span>
-                      <span className="flex items-center gap-1 whitespace-nowrap">
-                        <Calendar className="w-3 h-3" />
-                        {shift.workingDays.length} days
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-auto">
-                  <button
-                    onClick={() => openEditModal(shift)}
-                    className="p-2 hover:bg-surface-variant rounded-sm text-text-secondary hover:text-primary transition-all"
-                    title="Edit"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(shift)}
-                    className="p-2 hover:bg-red-500/10 rounded-sm text-text-secondary hover:text-red-500 transition-all"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            ))
-          )}
-        </AnimatePresence>
-      </motion.div>
 
       {/* Create Modal */}
       <AnimatePresence>
@@ -792,6 +1011,37 @@ const ShiftManagementPage = () => {
         onConfirm={confirmDelete}
         title="Delete Shift"
         message={`Are you sure you want to delete "${shiftToDelete?.name}"? This action cannot be undone.`}
+      />
+
+      {/* Shift Request Decision Modal */}
+      <ConfirmModal
+        isOpen={isDecisionModalOpen}
+        onClose={() => setIsDecisionModalOpen(false)}
+        onConfirm={submitDecision}
+        title={decisionStatus === 'APPROVED' ? 'Approve Shift Change' : 'Reject Shift Change'}
+        confirmText={decisionStatus === 'APPROVED' ? 'Approve' : 'Reject'}
+        message={
+          <div className="space-y-4 text-left">
+            <p className="text-xs font-semibold text-text-secondary">
+              Are you sure you want to {decisionStatus.toLowerCase()} this shift request for{' '}
+              <strong className="text-text-primary">
+                {selectedRequest?.employee ? `${selectedRequest.employee.firstName} ${selectedRequest.employee.lastName}` : 'this employee'}
+              </strong>?
+            </p>
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-text-secondary">
+                Review Notes / Reason
+              </label>
+              <textarea
+                value={decisionNote}
+                onChange={(e) => setDecisionNote(e.target.value)}
+                placeholder="Write reason for approval/rejection..."
+                rows={3}
+                className="w-full px-3 py-2 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-text-primary"
+              />
+            </div>
+          </div>
+        }
       />
     </div>
   );

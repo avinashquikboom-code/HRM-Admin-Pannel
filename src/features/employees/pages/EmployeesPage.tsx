@@ -71,8 +71,25 @@ function formatStatus(status: string) {
 }
 
 const EmployeesPage = () => {
-  const { employees, isLoading, error, refetch } = useEmployees();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { employees, total, activeCount, assignedCount, isLoading, error, refetch } = useEmployees({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: debouncedSearch,
+  });
+
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -87,42 +104,9 @@ const EmployeesPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
-  const filteredEmployees = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) return employees;
-
-    return employees.filter((employee) => {
-      const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
-      const email = employee.user?.email?.toLowerCase() ?? '';
-      const role = employee.designation?.toLowerCase() ?? '';
-      const office = (employee.store?.name || employee.office?.name || '').toLowerCase();
-      const code = employee.employeeCode.toLowerCase();
-
-
-      return (
-        fullName.includes(query) ||
-        email.includes(query) ||
-        role.includes(query) ||
-        office.includes(query) ||
-        code.includes(query)
-      );
-    });
-  }, [employees, searchTerm]);
-
-  const paginatedEmployees = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredEmployees, currentPage, itemsPerPage]);
-
-  const activeCount = employees.filter((employee) => employee.status?.toUpperCase() === 'ACTIVE').length;
-  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const filteredEmployees = employees;
+  const paginatedEmployees = employees;
+  const totalPages = Math.ceil(total / itemsPerPage);
 
   const handleResetPassword = (employee: any) => {
     setSelectedEmployee(employee);
@@ -254,7 +238,7 @@ const EmployeesPage = () => {
         {[
           { 
             label: 'Total Employees', 
-            value: employees.length, 
+            value: total, 
             description: 'Across all departments',
             iconClass: 'from-blue-500/20 to-blue-500/5 text-blue-500 border-blue-500/20', 
             icon: Users 
@@ -268,7 +252,7 @@ const EmployeesPage = () => {
           },
           { 
             label: 'Assigned Stores', 
-            value: employees.filter((e) => e.store || e.office).length, 
+            value: assignedCount, 
             description: 'With physical locations',
             iconClass: 'from-amber-500/20 to-amber-500/5 text-amber-500 border-amber-500/20', 
             icon: Building2 
@@ -664,18 +648,18 @@ const EmployeesPage = () => {
           <div className="p-6.5 bg-surface-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <p className="text-xs font-semibold text-text-secondary">
-                {filteredEmployees.length > 0 ? (
+                {total > 0 ? (
                   <>
-                    Showing <span className="text-text-primary font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredEmployees.length)}</span> to{' '}
-                    <span className="text-text-primary font-bold">{Math.min(currentPage * itemsPerPage, filteredEmployees.length)}</span> of{' '}
-                    <span className="text-text-primary font-bold">{filteredEmployees.length}</span> employees
+                    Showing <span className="text-text-primary font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, total)}</span> to{' '}
+                    <span className="text-text-primary font-bold">{Math.min(currentPage * itemsPerPage, total)}</span> of{' '}
+                    <span className="text-text-primary font-bold">{total}</span> employees
                   </>
                 ) : (
                   "No employees found"
                 )}
               </p>
               
-              {filteredEmployees.length > 0 && (
+              {total > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-text-secondary font-semibold">Show:</span>
                   <select
@@ -708,20 +692,27 @@ const EmployeesPage = () => {
                 </button>
                 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={cn(
-                        "w-8 h-8 rounded-sm text-xs font-black transition-all cursor-pointer border flex items-center justify-center",
-                        currentPage === page
-                          ? "bg-primary text-white border-primary"
-                          : "bg-surface hover:bg-surface-variant text-text-secondary border-border"
-                      )}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                    .map((page, index, array) => {
+                      const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+                      return (
+                        <div key={page} className="flex items-center gap-1">
+                          {showEllipsisBefore && <span className="text-text-secondary px-1 text-xs font-bold">...</span>}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={cn(
+                              "w-8 h-8 rounded-sm text-xs font-black transition-all cursor-pointer border flex items-center justify-center",
+                              currentPage === page
+                                ? "bg-primary text-white border-primary"
+                                : "bg-surface hover:bg-surface-variant text-text-secondary border-border"
+                            )}
+                          >
+                            {page}
+                          </button>
+                        </div>
+                      );
+                    })}
                 </div>
 
                 <button

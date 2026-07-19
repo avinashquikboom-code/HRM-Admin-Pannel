@@ -34,7 +34,7 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import { api } from '@/lib/api';
-import { fetchAdminHolidays } from '@/services/settingsService';
+import { fetchAdminHolidays, createAdminHoliday, deleteAdminHoliday } from '@/services/settingsService';
 import { 
   fetchAllLeaves, 
   fetchLeaveBalances, 
@@ -87,7 +87,7 @@ const LEAVE_TYPES_CONFIG = [
 ];
 
 export default function LeavePage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'requests' | 'balances' | 'calendar'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'requests' | 'balances' | 'calendar' | 'holidays'>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -113,6 +113,88 @@ export default function LeavePage() {
   const [remarks, setRemarks] = useState('');
   const [isRemarksModalOpen, setIsRemarksModalOpen] = useState(false);
   const [remarksAction, setRemarksAction] = useState<'approve' | 'reject'>('approve');
+
+  // Deduction Toggle State
+  const [isDeductionModalOpen, setIsDeductionModalOpen] = useState(false);
+  const [selectedDeductionRequest, setSelectedDeductionRequest] = useState<any | null>(null);
+  const [deductionReason, setDeductionReason] = useState('');
+  const [deductionSubmitting, setDeductionSubmitting] = useState(false);
+
+  const handleOpenDeductionModal = (request: any) => {
+    setSelectedDeductionRequest(request);
+    setDeductionReason('');
+    setIsDeductionModalOpen(true);
+  };
+
+  const handleToggleDeduction = async () => {
+    if (!selectedDeductionRequest) return;
+    setDeductionSubmitting(true);
+    try {
+      const res = await api.put(`/api/admin/leaves/${selectedDeductionRequest.id}/deduction`, {
+        deductionApplied: !selectedDeductionRequest.deductionApplied,
+        reason: deductionReason
+      });
+      if (res.data.success) {
+        toast.success('Deduction status updated successfully');
+        setIsDeductionModalOpen(false);
+        loadData(requestsCurrentPage, balancesCurrentPage);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Failed to update deduction status');
+    } finally {
+      setDeductionSubmitting(false);
+    }
+  };
+
+  // Holiday CRUD State
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [holidayName, setHolidayName] = useState('');
+  const [holidayDate, setHolidayDate] = useState('');
+  const [holidayType, setHolidayType] = useState<'mandatory' | 'optional' | 'restricted'>('mandatory');
+  const [holidayRecurring, setHolidayRecurring] = useState(false);
+  const [holidaySubmitting, setHolidaySubmitting] = useState(false);
+
+  const handleCreateHoliday = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!holidayName.trim() || !holidayDate) {
+      toast.error('Holiday name and date are required');
+      return;
+    }
+    setHolidaySubmitting(true);
+    try {
+      await createAdminHoliday({
+        name: holidayName,
+        date: holidayDate,
+        type: holidayType,
+        recurring: holidayRecurring
+      });
+      toast.success('Holiday created successfully');
+      setIsHolidayModalOpen(false);
+      setHolidayName('');
+      setHolidayDate('');
+      setHolidayType('mandatory');
+      setHolidayRecurring(false);
+      loadData(requestsCurrentPage, balancesCurrentPage);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || 'Failed to create holiday');
+    } finally {
+      setHolidaySubmitting(false);
+    }
+  };
+
+  const handleDeleteHoliday = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this holiday?')) return;
+    try {
+      await deleteAdminHoliday(id);
+      toast.success('Holiday deleted successfully');
+      loadData(requestsCurrentPage, balancesCurrentPage);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || 'Failed to delete holiday');
+    }
+  };
 
   // Form State for applying leave
   const [employeeName, setEmployeeName] = useState('');
@@ -501,6 +583,7 @@ export default function LeavePage() {
           { id: 'requests', label: 'Request Logs', icon: FileText },
           { id: 'balances', label: 'Balance Ledger', icon: Layers },
           { id: 'calendar', label: 'Ecosystem Calendar', icon: CalendarIcon },
+          { id: 'holidays', label: 'Holidays & Festivals', icon: CalendarIcon },
         ].map((tab) => {
           const isSelected = activeTab === tab.id;
           return (
@@ -749,6 +832,25 @@ export default function LeavePage() {
                               </td>
                               <td className="px-6 py-5">
                                 <span className="text-xs font-bold text-text-secondary">{req.type}</span>
+                                {req.leaveCategory === 'UNPLANNED' && (
+                                  <div className="mt-1 flex items-center gap-1.5">
+                                    <span className={cn(
+                                      "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-sm border",
+                                      req.deductionApplied
+                                        ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                        : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                    )}>
+                                      {req.deductionApplied ? 'Deduction Applied' : 'Waived'}
+                                    </span>
+                                    <button
+                                      onClick={() => handleOpenDeductionModal(req)}
+                                      className="p-0.5 text-text-secondary hover:text-primary transition-all cursor-pointer"
+                                      title="Toggle Deduction Flag"
+                                    >
+                                      <Settings size={10} />
+                                    </button>
+                                  </div>
+                                )}
                               </td>
                               <td className="px-6 py-5 text-center">
                                 <span className="font-mono text-[10px] font-black text-text-secondary bg-surface-variant border border-border px-3 py-1.5 rounded-sm">
@@ -1046,6 +1148,87 @@ export default function LeavePage() {
 
           </motion.div>
         )}
+        {activeTab === 'holidays' && (
+          <motion.div
+            key="holidays"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="space-y-6"
+          >
+            {/* Header / Add Button */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border border-border bg-surface rounded-sm">
+              <div>
+                <h3 className="text-md font-black text-text-primary tracking-tight">Holidays & Festivals</h3>
+                <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider mt-0.5">Define corporate holidays blocklist for mobile request picker</p>
+              </div>
+              <button
+                onClick={() => setIsHolidayModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-sm text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              >
+                <Plus size={14} />
+                Add Holiday
+              </button>
+            </div>
+
+            {/* Holidays List Table */}
+            <div className="border border-border bg-surface rounded-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-variant/50 border-b border-border">
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Holiday Name</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Date</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest">Type</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Recurring</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {holidays.length > 0 ? (
+                      holidays.map((h) => (
+                        <tr key={h.id} className="hover:bg-surface-variant/30 transition-colors">
+                          <td className="px-6 py-4.5 font-bold text-text-primary">{h.name}</td>
+                          <td className="px-6 py-4.5 text-xs text-text-secondary">
+                            {new Date(h.date).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                          </td>
+                          <td className="px-6 py-4.5 text-xs font-semibold capitalize text-text-secondary">
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider border",
+                              h.type === 'mandatory' ? "bg-rose-500/10 text-rose-555 dark:text-rose-400 border-rose-500/20" :
+                              h.type === 'optional' ? "bg-amber-500/10 text-amber-555 dark:text-amber-400 border-amber-500/20" :
+                              "bg-blue-500/10 text-blue-555 dark:text-blue-400 border-blue-500/20"
+                            )}>
+                              {h.type}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4.5 text-xs text-center font-bold text-text-secondary">
+                            {h.recurring ? 'Yes' : 'No'}
+                          </td>
+                          <td className="px-6 py-4.5 text-right">
+                            <button
+                              onClick={() => handleDeleteHoliday(h.id)}
+                              className="p-2 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 rounded-sm text-rose-555 dark:text-rose-455 transition-all cursor-pointer"
+                              title="Delete Holiday"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
+                          No holidays defined yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Remarks/Justification input overlay Modal */}
@@ -1242,6 +1425,113 @@ export default function LeavePage() {
       message="Are you sure you want to reset all employee leave balances to annual standard allocations? This action cannot be undone."
       confirmText="Reset Balances"
       cancelText="Cancel"
+    />
+
+    {/* Add Holiday Modal */}
+    <Modal isOpen={isHolidayModalOpen} onClose={() => setIsHolidayModalOpen(false)} title="Create New Holiday">
+      <form onSubmit={handleCreateHoliday} className="space-y-6">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Holiday Name</label>
+          <input 
+            type="text" 
+            value={holidayName}
+            onChange={(e) => setHolidayName(e.target.value)}
+            placeholder="e.g. New Year's Day"
+            required
+            className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Date</label>
+            <input 
+              type="date" 
+              value={holidayDate}
+              onChange={(e) => setHolidayDate(e.target.value)}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker();
+                } catch (err) {}
+              }}
+              required
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary transition-all cursor-pointer"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Holiday Type</label>
+            <select 
+              value={holidayType}
+              onChange={(e) => setHolidayType(e.target.value as any)}
+              className="w-full px-5 py-4 bg-surface-variant border border-border focus:border-primary/30 rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer transition-all"
+            >
+              <option value="mandatory" className="bg-surface text-text-primary">Mandatory</option>
+              <option value="optional" className="bg-surface text-text-primary">Optional / Floating</option>
+              <option value="restricted" className="bg-surface text-text-primary">Restricted</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 pl-1">
+          <input
+            type="checkbox"
+            id="recurring"
+            checked={holidayRecurring}
+            onChange={(e) => setHolidayRecurring(e.target.checked)}
+            className="w-4 h-4 accent-primary border-border bg-surface-variant rounded-sm cursor-pointer"
+          />
+          <label htmlFor="recurring" className="text-xs font-semibold text-text-secondary cursor-pointer select-none">
+            Recurring (occurs on same day every year)
+          </label>
+        </div>
+
+        <div className="flex gap-4 pt-4 border-t border-border/40">
+          <button 
+            type="button" 
+            onClick={() => setIsHolidayModalOpen(false)}
+            className="flex-1 px-5 py-4 bg-surface-variant/50 border border-border rounded-sm text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-surface-variant/80 transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={holidaySubmitting}
+            className="flex-1 btn-primary py-4 rounded-sm font-black uppercase tracking-wider text-xs cursor-pointer disabled:opacity-50"
+          >
+            {holidaySubmitting ? 'Creating...' : 'Create Holiday'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+
+    {/* Leave Deduction Toggle Modal */}
+    <ConfirmModal
+      isOpen={isDeductionModalOpen}
+      onClose={() => setIsDeductionModalOpen(false)}
+      onConfirm={handleToggleDeduction}
+      title={selectedDeductionRequest?.deductionApplied ? 'Waive Leave Deduction' : 'Apply Leave Deduction'}
+      confirmText={selectedDeductionRequest?.deductionApplied ? 'Waive' : 'Apply'}
+      message={
+        <div className="space-y-4 text-left">
+          <p className="text-xs font-semibold text-text-secondary">
+            Are you sure you want to {selectedDeductionRequest?.deductionApplied ? 'waive' : 'apply'} salary/balance deduction for this unplanned leave request for{' '}
+            <strong className="text-text-primary">{selectedDeductionRequest?.employeeName}</strong>?
+          </p>
+          <div className="space-y-2">
+            <label className="block text-[10px] font-black uppercase tracking-wider text-text-secondary">
+              Audited Rationale / Reason
+            </label>
+            <textarea
+              value={deductionReason}
+              onChange={(e) => setDeductionReason(e.target.value)}
+              placeholder="State the reason/notes for changing deduction status..."
+              rows={3}
+              required
+              className="w-full px-3 py-2 bg-surface-variant border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-text-primary"
+            />
+          </div>
+        </div>
+      }
     />
     </>
   );

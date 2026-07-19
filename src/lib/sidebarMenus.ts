@@ -31,7 +31,7 @@ export interface SidebarMenuItem {
 }
 
 /** Legacy module — never show on HRM Admin sidebar. */
-export const ADMIN_REMOVED_MODULE_IDS = new Set(['pa-location']);
+export const ADMIN_REMOVED_MODULE_IDS = new Set<string>([]);
 
 export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX, moduleId: 'sa-dashboard' },
@@ -44,6 +44,7 @@ export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
 ];
 
 export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
+  { name: 'Live Dashboard', icon: LayoutDashboard, path: '/live-dashboard', moduleId: 'pa-live-dashboard' },
   { name: 'HR Management', icon: Users, path: '/hr-management', moduleId: 'pa-hr' },
   { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
   { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
@@ -53,6 +54,7 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
+  { name: 'Live Location', icon: Navigation, path: '/location', moduleId: 'pa-location' },
   { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },
   { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
 ];

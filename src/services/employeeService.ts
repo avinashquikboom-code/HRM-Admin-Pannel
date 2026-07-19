@@ -80,7 +80,7 @@ interface AssignEmployeeResponse {
   employee: AssignedEmployeeResult;
 }
 
-export async function fetchEmployees(params?: { page?: number; limit?: number }): Promise<EmployeesResponse> {
+export async function fetchEmployees(params?: { page?: number; limit?: number; search?: string }): Promise<EmployeesResponse> {
   try {
     console.log('[employeeService] Fetching employees from /api/admin/employees', params);
     const { data } = await api.get<EmployeesResponse>('/api/admin/employees', { params });

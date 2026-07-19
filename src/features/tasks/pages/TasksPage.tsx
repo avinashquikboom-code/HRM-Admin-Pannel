@@ -73,7 +73,7 @@ const TasksPage = () => {
   const [priority, setPriority] = useState('High');
   const [deadline, setDeadline] = useState('');
   const [description, setDescription] = useState('');
-  const { employees } = useEmployees(!isEmployee);
+  const { employees } = useEmployees({ enabled: !isEmployee });
 
   const loadTasks = useCallback(async () => {
     setIsLoading(true);

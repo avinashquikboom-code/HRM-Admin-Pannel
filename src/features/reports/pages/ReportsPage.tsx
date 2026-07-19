@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { getBackendApiTarget } from '@/lib/apiConfig';
 import Modal from '@/components/Modal';
 import { 
   FileText, 
@@ -206,19 +207,17 @@ const ReportsPage = () => {
         monthQuery = new Date().toISOString().slice(0, 7);
       }
 
-      if (report.type === 'Payroll') {
+      const formatParam = report.format?.toLowerCase() === 'excel' ? 'xlsx' : 'pdf';
+      const typeParam = report.type?.toLowerCase();
+
+      if (typeParam === 'payroll' || typeParam === 'attendance') {
         const token = localStorage.getItem('super_hrm_token') || localStorage.getItem('hrm_token') || '';
-        const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
-        const url = `${baseUrl}/api/admin/reports/attendance/download?month=${monthQuery}&token=${token}`;
-        window.open(url, '_blank');
-      } else if (report.type === 'Attendance') {
-        const token = localStorage.getItem('super_hrm_token') || localStorage.getItem('hrm_token') || '';
-        const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
-        const url = `${baseUrl}/api/admin/reports/attendance/download?month=${monthQuery}&token=${token}`;
+        const baseUrl = getBackendApiTarget();
+        const url = `${baseUrl}/api/admin/reports/${typeParam}/export?format=${formatParam}&month=${monthQuery}&token=${token}`;
         window.open(url, '_blank');
       } else if (report.type === 'Leave') {
         const token = localStorage.getItem('super_hrm_token') || localStorage.getItem('hrm_token') || '';
-        const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://69.62.80.20:5004');
+        const baseUrl = getBackendApiTarget();
         const url = `${baseUrl}/api/admin/leaves/report/download?token=${token}`;
         window.open(url, '_blank');
       } else {

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Pause, Play, RefreshCw, Building2, MapPin, Globe, ShieldAlert, ShieldCheck, Search, Sliders, Navigation, Activity, Users } from 'lucide-react';
 import { motion, type Variants } from 'framer-motion';
 import { cn } from '@/utils/cn';
+import { api } from '@/lib/api';
 import { useOffices } from '@/hooks/useOffices';
 import { useOfficeDetail } from '@/hooks/useOfficeDetail';
 import { useLiveLocations } from '@/hooks/useLiveLocations';
@@ -97,15 +98,62 @@ export default function LocationPage() {
   const tabQuery = searchParams.get('tab');
 
   // Redesign state variables
-  const [activeTab, setActiveTab] = useState<'editor' | 'tracker'>('editor');
+  const [activeTab, setActiveTab] = useState<'editor' | 'tracker' | 'history'>('editor');
 
   useEffect(() => {
     if (tabQuery === 'tracker') {
       setActiveTab('tracker');
     } else if (tabQuery === 'editor') {
       setActiveTab('editor');
+    } else if (tabQuery === 'history') {
+      setActiveTab('history');
     }
   }, [tabQuery]);
+
+  // History tab state
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [isAlertsLoading, setIsAlertsLoading] = useState(false);
+  const [historyEmployeeId, setHistoryEmployeeId] = useState<number | null>(null);
+  const [historyDate, setHistoryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [historyTrail, setHistoryTrail] = useState<any[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [historyMapInstance, setHistoryMapInstance] = useState<any>(null);
+  const [historyMapElements, setHistoryMapElements] = useState<any[]>([]);
+
+  const loadAlerts = useCallback(async () => {
+    setIsAlertsLoading(true);
+    try {
+      const res = await api.get('/api/admin/location/alerts');
+      if (res.data.success) {
+        setAlerts(res.data.alerts);
+      }
+    } catch (err) {
+      console.error('Failed to load alerts:', err);
+    } finally {
+      setIsAlertsLoading(false);
+    }
+  }, []);
+
+  const loadHistoryTrail = useCallback(async (empId: number, dateStr: string) => {
+    setIsHistoryLoading(true);
+    try {
+      const res = await api.get(`/api/admin/location/history?employeeId=${empId}&date=${dateStr}`);
+      if (res.data.success) {
+        setHistoryTrail(res.data.history);
+      }
+    } catch (err) {
+      console.error('Failed to load history:', err);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      loadAlerts();
+    }
+  }, [activeTab, loadAlerts]);
+
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [markerInstance, setMarkerInstance] = useState<any>(null);
@@ -302,6 +350,133 @@ export default function LocationPage() {
     };
     document.head.appendChild(script);
   }, []);
+
+  // Initialize Leaflet Map for History
+  useEffect(() => {
+    if (!leafletLoaded || !document.getElementById('history-map') || historyMapInstance || activeTab !== 'history') return;
+
+    const L = (window as any).L;
+    const map = L.map('history-map', {
+      zoomControl: false
+    }).setView([20.0, 77.0], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.control.zoom({
+      position: 'bottomright'
+    }).addTo(map);
+
+    setHistoryMapInstance(map);
+
+    return () => {
+      map.remove();
+      setHistoryMapInstance(null);
+    };
+  }, [leafletLoaded, activeTab]);
+
+  // Draw History Trail
+  useEffect(() => {
+    if (!historyMapInstance || activeTab !== 'history') return;
+
+    const L = (window as any).L;
+    
+    // Clear old layers
+    historyMapElements.forEach(layer => layer.remove());
+    const newElements: any[] = [];
+
+    // Find selected employee
+    const selectedEmp = locations.find(e => e.employeeId === historyEmployeeId);
+    
+    // Find office details
+    const officeId = selectedEmp?.officeId;
+    const office = offices.find(o => o.id.toString() === officeId?.toString());
+
+    if (office) {
+      const lat = Number(office.latitude);
+      const lng = Number(office.longitude);
+      const radius = Number(office.maxPunchRadiusMeters) || 50.0;
+
+      const fenceCircle = L.circle([lat, lng], {
+        color: '#0d9488',
+        fillColor: '#0d9488',
+        fillOpacity: 0.15,
+        weight: 2,
+        dashArray: '5, 5',
+        radius: radius
+      }).addTo(historyMapInstance);
+      newElements.push(fenceCircle);
+
+      const officeMarker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: 'office-div-icon',
+          html: `<div style="background-color: #0d9488; width: 14px; height: 14px; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 1px 5px rgba(0,0,0,0.3);"></div>`
+        })
+      })
+      .bindPopup(`Office: ${office.name}`)
+      .addTo(historyMapInstance);
+      newElements.push(officeMarker);
+    }
+
+    if (historyTrail.length === 0) {
+      if (office) {
+        historyMapInstance.setView([Number(office.latitude), Number(office.longitude)], 15);
+      }
+      setHistoryMapElements(newElements);
+      return;
+    }
+
+    // Convert historyTrail to LatLngs
+    const points = historyTrail.map(p => [p.latitude, p.longitude]);
+
+    // Plot polyline trail
+    const polyline = L.polyline(points, {
+      color: '#3b82f6',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '2, 6'
+    }).addTo(historyMapInstance);
+    newElements.push(polyline);
+
+    // Plot marker at each point
+    historyTrail.forEach((p, idx) => {
+      const isOut = p.isOutside;
+      const dotColor = isOut ? '#ef4444' : '#10b981';
+      const tooltipText = `Time: ${new Date(p.at).toLocaleTimeString()}<br/>Status: ${isOut ? 'Outside Fence' : 'Inside Office'}`;
+
+      const dotMarker = L.marker([p.latitude, p.longitude], {
+        icon: L.divIcon({
+          className: 'trail-div-icon',
+          html: `<div style="background-color: ${dotColor}; width: 10px; height: 10px; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.2);"></div>`
+        })
+      })
+      .bindPopup(tooltipText)
+      .addTo(historyMapInstance);
+
+      if (idx === historyTrail.length - 1) {
+        const pulse = L.circle([p.latitude, p.longitude], {
+          color: '#3b82f6',
+          fillColor: '#3b82f6',
+          fillOpacity: 0.4,
+          radius: 12,
+          weight: 1
+        }).addTo(historyMapInstance);
+        newElements.push(pulse);
+      }
+
+      newElements.push(dotMarker);
+    });
+
+    // Fit map to bounds
+    const bounds = L.latLngBounds(points);
+    if (office) {
+      bounds.extend([Number(office.latitude), Number(office.longitude)]);
+    }
+    historyMapInstance.fitBounds(bounds, { padding: [40, 40] });
+
+    setHistoryMapElements(newElements);
+  }, [historyTrail, historyMapInstance, activeTab, offices, locations, historyEmployeeId]);
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -754,6 +929,41 @@ export default function LocationPage() {
           { label: 'Outside Geofence', value: locations.filter(l => l.status === 'Outside Geofence').length.toString(), icon: Activity }
         ]}
       >
+        <div className="flex border border-border rounded-sm overflow-hidden p-0.5 bg-surface-variant/30 shrink-0 mr-2">
+          <button
+            onClick={() => setActiveTab('editor')}
+            className={cn(
+              "px-3 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer",
+              activeTab === 'editor'
+                ? "bg-primary text-white"
+                : "text-text-secondary hover:text-text-primary"
+            )}
+          >
+            Geofence Editor
+          </button>
+          <button
+            onClick={() => setActiveTab('tracker')}
+            className={cn(
+              "px-3 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer",
+              activeTab === 'tracker'
+                ? "bg-primary text-white"
+                : "text-text-secondary hover:text-text-primary"
+            )}
+          >
+            Live Roster
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={cn(
+              "px-3 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer",
+              activeTab === 'history'
+                ? "bg-primary text-white"
+                : "text-text-secondary hover:text-text-primary"
+            )}
+          >
+            History & Alerts
+          </button>
+        </div>
 
         {activeTab === 'tracker' && (
           <>
@@ -820,8 +1030,7 @@ export default function LocationPage() {
         );
       })()}
 
-      {/* RENDER ACTIVE TAB */}
-      {activeTab === 'editor' ? (
+      {activeTab === 'editor' && (
         /* GEOFENCE PERIMETER EDITOR VIEW (MATCHES SCREENSHOT) */
         <motion.div
           variants={itemVariants}
@@ -1064,31 +1273,6 @@ export default function LocationPage() {
                 </span>
               </div>
 
-              {/* Autocomplete Address geocoder absolute positioned - Commented out for now */}
-              {/* <form
-                onSubmit={handleAddressSearch}
-                className="absolute top-[76px] left-4 z-[10] w-[280px] sm:w-[360px] bg-surface/95 backdrop-blur border border-border shadow-xl rounded-sm flex items-center p-1"
-              >
-                <input
-                  type="text"
-                  placeholder="Search address (e.g. Thane, Kalyan)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent px-3 py-2 text-xs font-semibold outline-none text-text-primary placeholder:text-muted"
-                />
-                <button
-                  type="submit"
-                  disabled={isSearching}
-                  className="p-2.5 bg-primary text-white rounded-sm hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center shrink-0"
-                >
-                  {isSearching ? (
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Search size={14} />
-                  )}
-                </button>
-              </form> */}
-
               {/* Leaflet map container */}
               <div className="flex-1 min-h-0 relative">
                 {!leafletLoaded && (
@@ -1102,7 +1286,9 @@ export default function LocationPage() {
             </div>
           </div>
         </motion.div>
-      ) : (
+      )}
+
+      {activeTab === 'tracker' && (
         /* LIVE TELEMETRY TRACKER VIEW (SIMPLIFIED - NO OFFICES SECTION) */
         <>
           <motion.div variants={itemVariants}>
@@ -1205,6 +1391,145 @@ export default function LocationPage() {
             confirmText="Unassign"
           />
         </>
+      )}
+
+      {activeTab === 'history' && (
+        /* GEOMONITORING HISTORY & ALERTS TAB VIEW */
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start"
+        >
+          {/* Left Panel: Query Options & Alerts Feed */}
+          <div className="xl:col-span-4 space-y-6">
+            {/* Query Selector Card */}
+            <div className="bg-surface border border-border rounded-sm p-6 space-y-5">
+              <div>
+                <h3 className="heading-2 font-bold text-text-primary">Query Coordinates History</h3>
+                <p className="text-xs text-text-secondary mt-1">Select employee and date to plot path trail on map</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-micro font-black uppercase tracking-wider text-text-secondary ml-1">Select Employee</label>
+                  <select
+                    value={historyEmployeeId || ''}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setHistoryEmployeeId(val || null);
+                      if (val) loadHistoryTrail(val, historyDate);
+                    }}
+                    className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer"
+                  >
+                    <option value="">-- Choose Employee --</option>
+                    {locations.map(emp => (
+                      <option key={emp.employeeId} value={emp.employeeId}>{emp.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-micro font-black uppercase tracking-wider text-text-secondary ml-1">Select Date</label>
+                  <input
+                    type="date"
+                    value={historyDate}
+                    onChange={(e) => {
+                      setHistoryDate(e.target.value);
+                      if (historyEmployeeId) loadHistoryTrail(historyEmployeeId, e.target.value);
+                    }}
+                    onClick={(e) => {
+                      try {
+                        e.currentTarget.showPicker();
+                      } catch (err) {}
+                    }}
+                    className="w-full px-4 py-3 bg-surface-variant border border-transparent rounded-sm outline-none text-xs font-bold text-text-primary cursor-pointer"
+                  />
+                </div>
+
+                {historyEmployeeId && (
+                  <button
+                    onClick={() => loadHistoryTrail(historyEmployeeId, historyDate)}
+                    disabled={isHistoryLoading}
+                    className="w-full py-3 bg-primary hover:bg-primary/90 text-white rounded-sm font-black text-xs uppercase tracking-widest transition-all"
+                  >
+                    {isHistoryLoading ? 'Loading History...' : 'Fetch History Trail'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Geofence Breach Alerts Card */}
+            <div className="bg-surface border border-border rounded-sm p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                <h4 className="heading-2 font-bold text-text-primary">Geofence Breach Alerts</h4>
+                <button
+                  onClick={loadAlerts}
+                  disabled={isAlertsLoading}
+                  className="text-micro font-black text-primary hover:text-primary-dark uppercase tracking-widest flex items-center gap-1.5"
+                >
+                  <RefreshCw size={10} className={cn(isAlertsLoading && "animate-spin")} />
+                  Reload
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                {alerts.length > 0 ? (
+                  alerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      onClick={() => {
+                        setHistoryEmployeeId(alert.employeeId);
+                        const alertDate = alert.at.split('T')[0];
+                        setHistoryDate(alertDate);
+                        loadHistoryTrail(alert.employeeId, alertDate);
+                      }}
+                      className="p-3 border border-error/20 bg-error/5 hover:bg-error/10 rounded-sm cursor-pointer transition-all space-y-1.5"
+                    >
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-bold text-text-primary">{alert.employeeName}</span>
+                        <span className="text-[9px] font-black uppercase bg-error/10 text-error px-1.5 py-0.5 rounded-sm">
+                          OUTSIDE
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-text-secondary font-semibold">
+                        <span>{alert.branch}</span>
+                        <span>{new Date(alert.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs font-semibold text-text-secondary text-center py-6">
+                    No geofence breach alerts recorded
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel: Leaflet Interactive History Map */}
+          <div className="xl:col-span-8">
+            <div className="bg-surface border border-border rounded-sm overflow-hidden flex flex-col relative h-[500px] xl:h-[620px]">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-surface/50 backdrop-blur z-[5] shrink-0">
+                <p className="text-xs font-semibold text-text-secondary flex items-center gap-1.5">
+                  <Globe size={14} className="text-primary" />
+                  Chronological Path Trail & Geofence Overlay
+                </p>
+                <span className="bg-primary/10 border border-primary/20 text-primary text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  Location History
+                </span>
+              </div>
+
+              <div className="flex-1 min-h-0 relative">
+                {!leafletLoaded && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-variant animate-pulse">
+                    <span className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-3" />
+                    <span className="text-xs font-black uppercase tracking-widest text-text-secondary">Loading street maps...</span>
+                  </div>
+                )}
+                <div id="history-map" className="w-full h-full" style={{ zIndex: 1 }} />
+              </div>
+            </div>
+          </div>
+        </motion.div>
       )}
     </motion.div>
   );

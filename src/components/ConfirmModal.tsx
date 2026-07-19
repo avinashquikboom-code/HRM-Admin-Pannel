@@ -8,7 +8,7 @@ interface ConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
@@ -124,9 +124,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               </div>
 
               <h2 className="text-lg font-semibold text-text-primary mb-2">{title}</h2>
-              <p className="text-text-secondary leading-relaxed mb-8">
+              <div className="text-text-secondary leading-relaxed mb-8">
                 {message}
-              </p>
+              </div>
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
                 <button
