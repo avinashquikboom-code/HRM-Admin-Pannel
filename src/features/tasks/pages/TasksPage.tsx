@@ -23,6 +23,7 @@ import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
+import SearchableSelect from '@/components/SearchableSelect';
 import { useAppSelector } from '@/store/hooks';
 import { useEmployees } from '@/hooks/useEmployees';
 import {
@@ -121,6 +122,10 @@ const TasksPage = () => {
           label: `${e.firstName} ${e.lastName} (${e.employeeCode})`,
         })),
     [employees]
+  );
+  const empFilterOptions = useMemo(
+    () => [{ value: '', label: 'All Employees' }, ...empOptions],
+    [empOptions]
   );
 
   // ── Load data
@@ -228,16 +233,13 @@ const TasksPage = () => {
           </div>
 
           {/* Employee filter */}
-          <select
+          <SearchableSelect
+            options={empFilterOptions}
             value={filterEmployee}
-            onChange={(e) => setFilterEmployee(e.target.value)}
-            className="w-full px-3 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium cursor-pointer transition-all"
-          >
-            <option value="">All Employees</option>
-            {empOptions.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+            onChange={(val) => setFilterEmployee(val)}
+            placeholder="All Employees"
+            className="w-full"
+          />
 
           {/* Status filter */}
           <select
@@ -464,20 +466,12 @@ const TasksPage = () => {
           {/* Assignee */}
           <div className="space-y-1.5">
             <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Assign To *</label>
-            <div className="relative">
-              <User size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-              <select
-                value={form.assignedTo}
-                onChange={(e) => setForm((f) => ({ ...f, assignedTo: e.target.value }))}
-                required
-                className="w-full pl-10 pr-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary cursor-pointer transition-all appearance-none"
-              >
-                <option value="">Select employee...</option>
-                {empOptions.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
+            <SearchableSelect
+              options={empOptions}
+              value={form.assignedTo}
+              onChange={(val) => setForm((f) => ({ ...f, assignedTo: val }))}
+              placeholder="Select employee..."
+            />
           </div>
 
           {/* Priority + Due date */}

@@ -20,6 +20,7 @@ import {
 import { cn } from '@/utils/cn';
 import { useEmployees } from '@/hooks/useEmployees';
 import TableSkeleton from '@/components/TableSkeleton';
+import SearchableSelect from '@/components/SearchableSelect';
 import {
   fetchTask,
   fetchTaskHistory,
@@ -281,15 +282,12 @@ const TaskDetailPage = ({ taskId }: Props) => {
 
                 <div className="space-y-1.5">
                   <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Assign To *</label>
-                  <select
+                  <SearchableSelect
+                    options={empOptions}
                     value={editForm.assignedTo}
-                    onChange={(e) => setEditForm((f) => ({ ...f, assignedTo: e.target.value }))}
-                    className="w-full px-4 py-3 bg-surface-variant/70 border-2 border-transparent focus:border-primary/20 rounded-xl outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
-                  >
-                    {empOptions.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setEditForm((f) => ({ ...f, assignedTo: val }))}
+                    placeholder="Select employee..."
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
