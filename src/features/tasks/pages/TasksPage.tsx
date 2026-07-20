@@ -2,578 +2,541 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { 
-  CheckSquare, 
-  Plus, 
-  Clock, 
-  AlertCircle, 
-  ArrowRight, 
-  CheckCircle,
-  Play,
-  RotateCcw,
-  User,
+import {
+  CheckSquare,
+  Plus,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
   SlidersHorizontal,
   Search,
-  CheckCircle2,
-  Trash2
+  Play,
+  XCircle,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  User,
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
-import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
-import TaskCommentsPanel from '@/features/tasks/components/TaskCommentsPanel';
-
-import { api } from '@/lib/api';
-import { useEmployees } from '@/hooks/useEmployees';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useAppSelector } from '@/store/hooks';
+import { useEmployees } from '@/hooks/useEmployees';
+import {
+  fetchTasks,
+  fetchTaskStats,
+  createTask,
+  type HrTask,
+  type HrTaskStatus,
+  type HrPriority,
+  type TaskStats,
+} from '@/services/taskService';
+
+// ─── Variants ────────────────────────────────────────────────────────────────
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
 };
-
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
-  }
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 18 } },
 };
 
-const columnNames = ['To Do', 'In Progress', 'Under Review', 'Completed'] as const;
-type TaskStatus = typeof columnNames[number];
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const STATUS_LABELS: Record<HrTaskStatus, string> = {
+  PENDING: 'Pending',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+};
+
+const STATUS_STYLES: Record<HrTaskStatus, string> = {
+  PENDING:     'bg-warning/10 text-warning border-warning/20',
+  IN_PROGRESS: 'bg-primary/10 text-primary border-primary/20',
+  COMPLETED:   'bg-success/10 text-success border-success/20',
+  CANCELLED:   'bg-muted/10 text-muted border-muted/20',
+};
+
+const PRIORITY_STYLES: Record<HrPriority, string> = {
+  HIGH:   'bg-error/10 text-error border-error/20',
+  MEDIUM: 'bg-warning/10 text-warning border-warning/20',
+  LOW:    'bg-success/10 text-success border-success/20',
+};
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+  } catch { return '—'; }
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 const TasksPage = () => {
-  const portal = useAppSelector((state) => state.auth.portal);
-  const isEmployee = portal === 'employee';
+  const router = useRouter();
+  const portal = useAppSelector((s) => s.auth.portal);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  // ── Data state
+  const [tasks, setTasks]       = useState<HrTask[]>([]);
+  const [stats, setStats]       = useState<TaskStats | null>(null);
+  const [isLoading, setIsLoading]   = useState(true);
+  const [total, setTotal]       = useState(0);
+  const [page, setPage]         = useState(1);
+  const PAGE_SIZE = 20;
 
-  // Form State
-  const [title, setTitle] = useState('');
-  const [assigneeId, setAssigneeId] = useState('');
-  const [priority, setPriority] = useState('High');
-  const [deadline, setDeadline] = useState('');
-  const [description, setDescription] = useState('');
-  const { employees } = useEmployees({ enabled: !isEmployee });
+  // ── Filter state
+  const [search, setSearch]         = useState('');
+  const [filterStatus, setFilterStatus]   = useState<HrTaskStatus | ''>('');
+  const [filterPriority, setFilterPriority] = useState<HrPriority | ''>('');
+  const [filterEmployee, setFilterEmployee] = useState('');
+  const [filterFrom, setFilterFrom]     = useState('');
+  const [filterTo, setFilterTo]       = useState('');
 
-  const loadTasks = useCallback(async () => {
+  // ── Create modal state
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [creating, setCreating]         = useState(false);
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    assignedTo: '',
+    priority: 'MEDIUM' as HrPriority,
+    dueDate: '',
+  });
+
+  // ── Employee directory (for selects)
+  const { employees } = useEmployees({ limit: 500 });
+  const empOptions = useMemo(
+    () =>
+      employees
+        .filter((e) => e.employeeID)
+        .map((e) => ({
+          value: e.employeeID!,
+          label: `${e.firstName} ${e.lastName} (${e.employeeCode})`,
+        })),
+    [employees]
+  );
+
+  // ── Load data
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const endpoint = isEmployee ? '/api/employee/tasks' : '/api/super-admin/tasks';
-      const res = await api.get<{ success: boolean; tasks: any[] }>(endpoint);
-      if (res.data.success) {
-        if (isEmployee) {
-          const mapped = res.data.tasks.map((t: any) => {
-            const rawStatus = (t.status || '').toUpperCase();
-            const statusStr = rawStatus === 'COMPLETED' ? 'Completed' :
-                              rawStatus === 'UNDERREVIEW' || rawStatus === 'UNDER_REVIEW' ? 'Under Review' :
-                              rawStatus === 'INPROGRESS' || rawStatus === 'IN_PROGRESS' ? 'In Progress' :
-                              rawStatus === 'OVERDUE' ? 'Overdue' : 'To Do';
-
-            const progressVal = statusStr === 'Completed' ? 100 :
-                                statusStr === 'Under Review' ? 90 :
-                                statusStr === 'In Progress' ? 40 : 0;
-
-            const rawPriority = (t.priority || '').toLowerCase();
-            const priorityStr = rawPriority === 'high' ? 'High' : rawPriority === 'medium' ? 'Medium' : 'Low';
-
-            let deadlineStr = '';
-            try {
-              if (t.dueDate) {
-                const d = new Date(t.dueDate);
-                if (!isNaN(d.getTime())) {
-                  deadlineStr = d.toISOString().split('T')[0];
-                }
-              }
-            } catch (e) {
-              deadlineStr = '';
-            }
-
-            return {
-              id: t.id,
-              title: t.title || '',
-              description: t.description || '',
-              assignee: t.assignedToName || 'Unassigned',
-              assigneeId: t.assignedToId || '',
-              priority: priorityStr,
-              status: statusStr,
-              deadline: deadlineStr,
-              projectName: t.projectName || 'General',
-              progress: progressVal,
-            };
-          });
-          setTasks(mapped);
-        } else {
-          setTasks(res.data.tasks);
-        }
-      }
+      const [res, statsRes] = await Promise.all([
+        fetchTasks({
+          page,
+          limit: PAGE_SIZE,
+          search: search || undefined,
+          status: filterStatus || undefined,
+          priority: filterPriority || undefined,
+          assignedTo: filterEmployee || undefined,
+          from: filterFrom || undefined,
+          to: filterTo || undefined,
+        }),
+        fetchTaskStats(),
+      ]);
+      setTasks(res.data);
+      setTotal(res.meta.total);
+      setStats(statsRes);
     } catch (err) {
-      console.error('Failed to load tasks:', err);
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : 'Failed to load tasks');
     } finally {
       setIsLoading(false);
     }
-  }, [isEmployee]);
+  }, [page, search, filterStatus, filterPriority, filterEmployee, filterFrom, filterTo]);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  const displayEmployees = useMemo(() => {
-    return employees.map(emp => ({
-      id: String(emp.id),
-      name: `${emp.firstName} ${emp.lastName}`,
-      code: emp.employeeCode
-    }));
-  }, [employees]);
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [search, filterStatus, filterPriority, filterEmployee, filterFrom, filterTo]);
 
-  useEffect(() => {
-    if (displayEmployees.length > 0 && !assigneeId) {
-      setAssigneeId(displayEmployees[0].id);
-    }
-  }, [displayEmployees, assigneeId]);
-
-  const handleStatusChange = async (taskId: string, nextStatus: TaskStatus) => {
-    try {
-      if (isEmployee) {
-        let employeeStatus = 'todo';
-        if (nextStatus === 'In Progress') {
-          employeeStatus = 'inProgress';
-        } else if (nextStatus === 'Under Review') {
-          employeeStatus = 'underReview';
-        } else if (nextStatus === 'Completed') {
-          employeeStatus = 'completed';
-        }
-        await api.put(`/api/employee/tasks/${taskId}`, {
-          status: employeeStatus
-        });
-      } else {
-        const nextProgress = nextStatus === 'Completed' ? 100 : nextStatus === 'Under Review' ? 90 : nextStatus === 'In Progress' ? 40 : 0;
-        await api.put(`/api/super-admin/tasks/${taskId}`, {
-          status: nextStatus,
-          progress: nextProgress
-        });
-      }
-      await loadTasks();
-    } catch (err) {
-      console.error('Failed to update task status:', err);
-      toast.error(err instanceof Error ? err.message : 'Operation failed');
-    }
-  };
-
-  const handleAssignTask = async (e: React.FormEvent) => {
+  // ── Create handler
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !deadline || !description || !assigneeId) return;
-
+    if (!form.title || !form.assignedTo) return;
+    setCreating(true);
     try {
-      const selectedEmp = displayEmployees.find(emp => emp.id === assigneeId);
-      if (!selectedEmp) {
-        toast.error('Please select an assignee.');
-        return;
-      }
-
-      await api.post('/api/super-admin/tasks', {
-        title,
-        description,
-        assigneeId: selectedEmp.id,
-        priority: priority.toLowerCase(),
-        deadline,
-        projectName: 'General'
+      await createTask({
+        title: form.title,
+        description: form.description || undefined,
+        assignedTo: form.assignedTo,
+        priority: form.priority,
+        dueDate: form.dueDate || undefined,
       });
-
-      await loadTasks();
-      setIsAssignModalOpen(false);
-
-      // Reset Form
-      setTitle('');
-      setDescription('');
-      setDeadline('');
-      setPriority('High');
+      toast.success('Task created successfully');
+      setIsCreateOpen(false);
+      setForm({ title: '', description: '', assignedTo: '', priority: 'MEDIUM', dueDate: '' });
+      loadData();
     } catch (err) {
-      console.error('Failed to assign task:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to assign task');
+      toast.error(err instanceof Error ? err.message : 'Failed to create task');
+    } finally {
+      setCreating(false);
     }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setDeletingTaskId(taskId);
-  };
-
-  const executeDeleteTask = async () => {
-    if (!deletingTaskId) return;
-
-    try {
-      await api.delete(`/api/super-admin/tasks/${deletingTaskId}`);
-      await loadTasks();
-    } catch (err) {
-      console.error('Failed to delete task:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to delete task');
-    }
-    setDeletingTaskId(null);
-  };
-
-  // KPIs Calculations
-  const totalTasks = tasks.length;
-  const inProgressCount = tasks.filter(t => t.status === 'In Progress').length;
-  const underReviewCount = tasks.filter(t => t.status === 'Under Review').length;
-  const completedCount = tasks.filter(t => t.status === 'Completed').length;
-  const activeSprintCount = inProgressCount + underReviewCount;
-  const completionRate = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
-
-  const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
-
-  const filteredTasks = tasks.filter(t =>
-    t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.assignee.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-10 text-slate-100 animate-fadeIn"
+      className="space-y-8 pb-10"
     >
+      {/* ── Header ── */}
       <SuperAdminHeader
-        title={isEmployee ? "My Tasks" : "Task Orchestration"}
-        subtitle={isEmployee ? "Track your assigned deliverables, update status, and manage deadlines." : "Assign deliverable tasks, track real-time project velocities, manage employee capacities, and monitor deadlines."}
-        badgeText={isEmployee ? "My Velocity & Deliverables" : "Corporate Velocity & Execution"}
+        title="Task Management"
+        subtitle="Assign, monitor, and track deliverables across your workforce."
+        badgeText="HR Task Control"
         badgeIcon={CheckSquare}
         stats={[
-          { label: isEmployee ? 'Total Assigned' : 'Total Sprint Deliverables', value: totalTasks.toString(), icon: CheckSquare },
-          { label: isEmployee ? 'In Progress' : 'Active Sprint Tasks', value: activeSprintCount.toString(), icon: Play },
-          { label: 'Completed', value: completedCount.toString(), icon: CheckCircle2 },
-          { label: isEmployee ? 'Completion Rate' : 'Sprint Completion Velocity', value: `${completionRate}%`, icon: SlidersHorizontal }
+          { label: 'Total Tasks',  value: String(stats?.assigned   ?? 0), icon: CheckSquare   },
+          { label: 'In Progress',  value: String(stats?.inProgress ?? 0), icon: Play          },
+          { label: 'Completed',    value: String(stats?.completed  ?? 0), icon: CheckCircle2  },
+          { label: 'Overdue',      value: String(stats?.overdue    ?? 0), icon: AlertTriangle  },
         ]}
       >
-        {!isEmployee && (
-          <button 
-            onClick={() => setIsAssignModalOpen(true)}
-            className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
-          >
-            <Plus size={18} className="group-hover:rotate-12 transition-transform" />
-            Assign Task
-          </button>
-        )}
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="btn-primary group shadow-xl shadow-primary/20 flex items-center gap-2"
+          id="create-task-btn"
+        >
+          <Plus size={18} className="group-hover:rotate-12 transition-transform" />
+          Assign Task
+        </button>
       </SuperAdminHeader>
 
-      
-      {/* Search Bar */}
-      <motion.div variants={itemVariants} className="flex flex-col xl:flex-row gap-4 items-center justify-between glass-card p-4">
-        <div className="relative w-full xl:w-96">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5" />
-          <input 
-            type="text" 
-            placeholder="Search deliverables, descriptions, assignees..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-surface-variant border border-transparent focus:border-primary/20 rounded-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
-          />
-        </div>
-      </motion.div>
-
-      {/* Task Kanban Columns Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="glass-card p-6 space-y-4">
-              <div className="h-6 w-24 bg-surface-variant rounded-md animate-pulse" />
-              <TableSkeleton rows={2} columns={1} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-          {columnNames.map((colName) => {
-            const columnTasks = filteredTasks.filter(t => t.status === colName);
-            
-            return (
-              <motion.div 
-                key={colName}
-                variants={itemVariants}
-                className="flex flex-col bg-slate-900/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-[28px] p-4 space-y-4 min-h-[500px]"
-              >
-                {/* Column Title */}
-                <div className="flex items-center justify-between px-3 py-1">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "w-2 h-2 rounded-full",
-                      colName === 'To Do' ? 'bg-muted animate-pulse' :
-                      colName === 'In Progress' ? 'bg-primary animate-pulse' :
-                      colName === 'Under Review' ? 'bg-accent animate-pulse' : 'bg-success animate-pulse'
-                    )} />
-                    <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">{colName}</h3>
-                  </div>
-                  <span className="font-mono text-xs font-black text-muted bg-surface-variant px-2.5 py-0.5 rounded-lg border border-border shadow-sm">
-                    {columnTasks.length}
-                  </span>
-                </div>
-
-                {/* Column Items */}
-                <div className="space-y-4 overflow-y-auto no-scrollbar flex-grow">
-                  <AnimatePresence mode="popLayout">
-                    {columnTasks.map((task) => (
-                      <motion.div 
-                        layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        key={task.id}
-                        onClick={() => !isEmployee && setSelectedTaskId(task.id)}
-                        className={cn(
-                          "glass-card p-5 border border-border/60 relative overflow-hidden bg-surface transition-all duration-300 group",
-                          !isEmployee ? "hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,163,139,0.12)] hover:-translate-y-1 cursor-pointer" : "cursor-default"
-                        )}
-                      >
-                        {/* Background Overlay */}
-                        <div className={cn(
-                          "absolute -right-12 -top-12 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-opacity duration-500",
-                          task.priority === 'High' ? 'bg-error' : task.priority === 'Medium' ? 'bg-warning' : 'bg-success'
-                        )} />
-
-                        {/* Card Header: Task ID & Priority */}
-                        <div className="flex items-center justify-between mb-3 relative z-10">
-                          <span className="font-mono text-micro font-black text-muted uppercase tracking-widest">{task.id}</span>
-                          <span className={cn(
-                            "px-2.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider border",
-                            task.priority === 'High' ? 'bg-error/10 text-error border-error/10' :
-                            task.priority === 'Medium' ? 'bg-warning/10 text-warning border-warning/10' : 'bg-success/10 text-success border-success/10'
-                          )}>
-                            {task.priority} Priority
-                          </span>
-                        </div>
-
-                        {/* Title & Description */}
-                        <div className="space-y-1 relative z-10 mb-4">
-                          <h4 className="text-sm font-black text-text-primary group-hover:text-primary transition-colors leading-tight tracking-tight">
-                            {task.title}
-                          </h4>
-                          <p className="text-xs text-text-secondary line-clamp-2 leading-normal">
-                            {task.description}
-                          </p>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="space-y-1 mb-4">
-                          <div className="flex justify-between items-center text-micro font-black uppercase tracking-widest text-muted">
-                            <span>Progress</span>
-                            <span>{task.progress}%</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden border border-border/20">
-                            <div 
-                              className={cn(
-                                "h-full rounded-full transition-all duration-500",
-                                task.status === 'Completed' ? 'bg-success' : 'bg-primary'
-                              )} 
-                              style={{ width: `${task.progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Assignee & Footer */}
-                        <div className="flex items-center justify-between pt-3 border-t border-border/40 relative z-10">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-micro font-bold border border-primary/10 shadow-sm">
-                              {task.assignee.substring(0, 2)}
-                            </div>
-                            <span className="text-micro font-bold text-text-secondary">{task.assignee}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <Clock size={12} className="text-muted" />
-                            <span className="text-micro font-black text-muted tracking-tight">{task.deadline}</span>
-                          </div>
-                        </div>
-
-                        {/* Status Progression Controls */}
-                        <div className="mt-4 pt-3 border-t border-border/40 flex justify-between items-center">
-                          {!isEmployee ? (
-                            <button 
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteTask(task.id);
-                              }}
-                              className="p-1.5 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-all border border-error/10 active:scale-95 animate-transition"
-                              title="Delete Task"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          ) : (
-                            <div />
-                          )}
-                          <div className="flex gap-1.5">
-                            {colName !== 'To Do' && (
-                              <button 
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const prevIdx = columnNames.indexOf(colName) - 1;
-                                  handleStatusChange(task.id, columnNames[prevIdx]);
-                                }}
-                                className="p-1.5 bg-surface-variant text-muted hover:text-text-primary rounded-lg transition-colors border border-border/20 active:scale-95"
-                                title="Regress Status"
-                              >
-                                <RotateCcw size={12} />
-                              </button>
-                            )}
-                            {colName !== 'Completed' && (
-                              <button 
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const nextIdx = columnNames.indexOf(colName) + 1;
-                                  handleStatusChange(task.id, columnNames[nextIdx]);
-                                }}
-                                className="p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all border border-primary/10 active:scale-95 flex items-center gap-1 text-label tracking-wider px-2"
-                              >
-                                <span>Next</span>
-                                <ArrowRight size={10} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Assign Task Modal */}
-      <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title="Assign Sprint Deliverable">
-        <form onSubmit={handleAssignTask} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Task Title</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Optimize Ledger API Endpoints"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary transition-all placeholder:text-muted/60"
+      {/* ── Filter Bar ── */}
+      <motion.div variants={itemVariants} className="glass-card p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+          {/* Search */}
+          <div className="relative xl:col-span-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-3 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium transition-all"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Assignee</label>
-            <select 
-              value={assigneeId}
-              onChange={(e) => setAssigneeId(e.target.value)}
-              className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
+          {/* Employee filter */}
+          <select
+            value={filterEmployee}
+            onChange={(e) => setFilterEmployee(e.target.value)}
+            className="w-full px-3 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium cursor-pointer transition-all"
+          >
+            <option value="">All Employees</option>
+            {empOptions.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+
+          {/* Status filter */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as HrTaskStatus | '')}
+            className="w-full px-3 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium cursor-pointer transition-all"
+          >
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+
+          {/* Priority filter */}
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value as HrPriority | '')}
+            className="w-full px-3 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium cursor-pointer transition-all"
+          >
+            <option value="">All Priorities</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        {/* Date range */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted">
+            <CalendarDays size={14} />
+            <span>Due date range:</span>
+          </div>
+          <input
+            type="date"
+            value={filterFrom}
+            onChange={(e) => setFilterFrom(e.target.value)}
+            className="px-3 py-2 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium cursor-pointer transition-all"
+          />
+          <span className="text-muted text-xs self-center">to</span>
+          <input
+            type="date"
+            value={filterTo}
+            onChange={(e) => setFilterTo(e.target.value)}
+            className="px-3 py-2 bg-surface-variant border border-transparent focus:border-primary/20 rounded-lg outline-none text-sm font-medium cursor-pointer transition-all"
+          />
+          {(filterFrom || filterTo) && (
+            <button
+              onClick={() => { setFilterFrom(''); setFilterTo(''); }}
+              className="text-xs text-muted hover:text-error transition-colors flex items-center gap-1"
             >
-              {displayEmployees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} ({emp.code})
-                </option>
-              ))}
-            </select>
+              <XCircle size={12} /> Clear dates
+            </button>
+          )}
+        </div>
+      </motion.div>
+
+      {/* ── Table ── */}
+      <motion.div variants={itemVariants} className="glass-card overflow-hidden">
+        {isLoading ? (
+          <div className="p-6">
+            <TableSkeleton rows={8} columns={6} />
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+            <CheckSquare size={48} className="text-muted/30" />
+            <p className="text-text-secondary font-semibold">No tasks found</p>
+            <p className="text-xs text-muted">Try adjusting your filters or assign a new task.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/50 text-xs text-muted uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left font-black">Title</th>
+                  <th className="px-4 py-4 text-left font-black">Assignee</th>
+                  <th className="px-4 py-4 text-left font-black">Priority</th>
+                  <th className="px-4 py-4 text-left font-black">Due Date</th>
+                  <th className="px-4 py-4 text-left font-black">Status</th>
+                  <th className="px-4 py-4 text-left font-black">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence mode="popLayout">
+                  {tasks.map((task) => (
+                    <motion.tr
+                      key={task.id}
+                      layout
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      onClick={() => router.push(`/tasks/${task.id}`)}
+                      className={cn(
+                        'border-b border-border/30 hover:bg-surface-variant/50 cursor-pointer transition-colors group',
+                        task.overdue && 'bg-error/3 hover:bg-error/8'
+                      )}
+                    >
+                      {/* Title */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-start gap-2 max-w-xs">
+                          {task.overdue && (
+                            <AlertTriangle size={13} className="text-error mt-0.5 flex-shrink-0" />
+                          )}
+                          <div>
+                            <p className="font-bold text-text-primary group-hover:text-primary transition-colors leading-tight line-clamp-1">
+                              {task.title}
+                            </p>
+                            {task.description && (
+                              <p className="text-xs text-muted mt-0.5 line-clamp-1">{task.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Assignee */}
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black border border-primary/10 flex-shrink-0">
+                            {task.assigneeName?.substring(0, 2).toUpperCase() ?? 'UN'}
+                          </div>
+                          <span className="font-semibold text-text-secondary text-xs whitespace-nowrap">
+                            {task.assigneeName}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Priority */}
+                      <td className="px-4 py-4">
+                        <span className={cn(
+                          'px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border',
+                          PRIORITY_STYLES[task.priority]
+                        )}>
+                          {task.priority}
+                        </span>
+                      </td>
+
+                      {/* Due date */}
+                      <td className="px-4 py-4">
+                        <div className={cn(
+                          'flex items-center gap-1.5 text-xs font-semibold',
+                          task.overdue ? 'text-error' : 'text-text-secondary'
+                        )}>
+                          <Clock size={11} />
+                          {formatDate(task.dueDate)}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-4 py-4">
+                        <span className={cn(
+                          'px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border whitespace-nowrap',
+                          STATUS_STYLES[task.status]
+                        )}>
+                          {STATUS_LABELS[task.status]}
+                        </span>
+                      </td>
+
+                      {/* Action */}
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); router.push(`/tasks/${task.id}`); }}
+                          className="text-xs text-primary hover:underline font-semibold"
+                        >
+                          View →
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── Pagination ── */}
+        {!isLoading && total > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border/30">
+            <span className="text-xs text-muted">
+              Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total} tasks
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="p-1.5 rounded-lg bg-surface-variant border border-border/30 text-muted hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <span className="text-xs font-bold text-text-secondary px-1">
+                {page} / {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="p-1.5 rounded-lg bg-surface-variant border border-border/30 text-muted hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* ── Create Task Modal ── */}
+      <Modal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Assign New Task"
+      >
+        <form onSubmit={handleCreate} className="space-y-5">
+          {/* Title */}
+          <div className="space-y-1.5">
+            <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Task Title *</label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              required
+              placeholder="e.g. Complete monthly attendance report"
+              className="w-full px-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary transition-all placeholder:text-muted/50"
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Priority Tier</label>
-              <select 
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
+          {/* Assignee */}
+          <div className="space-y-1.5">
+            <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Assign To *</label>
+            <div className="relative">
+              <User size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+              <select
+                value={form.assignedTo}
+                onChange={(e) => setForm((f) => ({ ...f, assignedTo: e.target.value }))}
+                required
+                className="w-full pl-10 pr-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary cursor-pointer transition-all appearance-none"
               >
-                <option value="High">High Priority</option>
-                <option value="Medium">Medium Priority</option>
-                <option value="Low">Low Priority</option>
+                <option value="">Select employee...</option>
+                {empOptions.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Target Deadline</label>
-              <input 
-                type="date" 
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                onClick={(e) => {
-                  try {
-                    e.currentTarget.showPicker();
-                  } catch (err) {}
-                }}
-                required
-                className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary transition-all cursor-pointer"
+          </div>
+
+          {/* Priority + Due date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Priority</label>
+              <select
+                value={form.priority}
+                onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as HrPriority }))}
+                className="w-full px-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
+              >
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Due Date</label>
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
+                onClick={(e) => { try { (e.currentTarget as any).showPicker(); } catch {} }}
+                className="w-full px-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary cursor-pointer transition-all"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-label text-text-secondary tracking-[0.2em] ml-1">Deliverable Description</label>
-            <textarea 
+          {/* Description */}
+          <div className="space-y-1.5">
+            <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Description</label>
+            <textarea
               rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="State the core parameters and goals for this deliverable..."
-              required
-              className="w-full px-6 py-4 bg-surface-variant/50 border-2 border-transparent focus:border-primary/20 rounded-[20px] outline-none text-sm font-bold text-text-primary transition-all placeholder:text-muted/60"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="Describe the task scope and expectations..."
+              className="w-full px-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary transition-all placeholder:text-muted/50 resize-none"
             />
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <button 
-              type="button" 
-              onClick={() => setIsAssignModalOpen(false)}
-              className="flex-1 px-6 py-4 bg-surface-variant rounded-[20px] text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-border transition-all"
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsCreateOpen(false)}
+              className="flex-1 px-5 py-3.5 bg-surface-variant rounded-2xl text-xs font-black uppercase tracking-widest text-text-secondary hover:bg-border transition-all"
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="flex-1 btn-primary py-4 rounded-[20px] shadow-lg shadow-primary/25"
+            <button
+              type="submit"
+              disabled={creating}
+              className="flex-1 btn-primary py-3.5 rounded-2xl shadow-lg shadow-primary/20 disabled:opacity-60"
             >
-              Confirm Assignment
+              {creating ? 'Creating…' : 'Assign Task'}
             </button>
           </div>
         </form>
       </Modal>
-
-      <Modal
-        isOpen={Boolean(selectedTask)}
-        onClose={() => setSelectedTaskId(null)}
-        title={selectedTask ? `${selectedTask.id} · Comments` : 'Task Comments'}
-      >
-        {selectedTask && (
-          <TaskCommentsPanel
-            taskId={selectedTask.id}
-            taskTitle={selectedTask.title}
-          />
-        )}
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isOpen={!!deletingTaskId}
-        onClose={() => setDeletingTaskId(null)}
-        onConfirm={executeDeleteTask}
-        title="Delete Task?"
-        message="Are you sure you want to delete this task? This action cannot be undone."
-        confirmText="Delete Task"
-      />
     </motion.div>
   );
 };

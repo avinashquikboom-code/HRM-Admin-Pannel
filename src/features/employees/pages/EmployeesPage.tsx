@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Search,
   MoreVertical,
@@ -16,7 +17,8 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Edit
+  Edit,
+  CheckSquare
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
@@ -71,6 +73,7 @@ function formatStatus(status: string) {
 }
 
 const EmployeesPage = () => {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
@@ -346,6 +349,13 @@ const EmployeesPage = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => router.push(`/employees/${employee.id}`)}
+                        className="p-2.5 hover:bg-primary/10 rounded-sm text-text-secondary hover:text-primary border border-border shrink-0 cursor-pointer transition-all active:scale-95"
+                        title="View Details & Tasks"
+                      >
+                        <CheckSquare size={18} />
+                      </button>
                       <button
                         onClick={() => handleEditEmployee(employee)}
                         className="p-2.5 hover:bg-blue-500/10 rounded-sm text-text-secondary hover:text-blue-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95"
