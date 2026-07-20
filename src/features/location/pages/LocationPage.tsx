@@ -223,10 +223,9 @@ export default function LocationPage() {
       let matchesHierarchy = true;
       if (hierarchyFilter !== 'ALL') {
         const [type, idStr] = hierarchyFilter.split('_');
-        const id = parseInt(idStr, 10);
-        if (type === 'HO') matchesHierarchy = emp.officeId === id && !emp.storeId;
-        else if (type === 'BRANCH') matchesHierarchy = emp.branchId === id;
-        else if (type === 'STORE') matchesHierarchy = emp.storeId === id;
+        if (type === 'HO') matchesHierarchy = emp.officeId === idStr && !emp.storeId;
+        else if (type === 'BRANCH') matchesHierarchy = emp.branchId === idStr;
+        else if (type === 'STORE') matchesHierarchy = emp.storeId === idStr;
       }
 
       return matchesSearch && matchesFilter && matchesHierarchy;
