@@ -19,6 +19,8 @@ import {
   Clock,
   Store,
   GitBranch,
+  ShoppingBag,
+  FileText,
 } from 'lucide-react';
 import type { PortalType } from '@/lib/portals';
 import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
@@ -45,6 +47,8 @@ export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
 
 export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Live Dashboard', icon: LayoutDashboard, path: '/live-dashboard', moduleId: 'pa-live-dashboard' },
+  { name: 'Products', icon: ShoppingBag, path: '/products', moduleId: 'pa-products' },
+  { name: 'Flipkart Invoices', icon: FileText, path: '/invoices', moduleId: 'pa-invoices' },
   { name: 'HR Management', icon: Users, path: '/hr-management', moduleId: 'pa-hr' },
   { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
   { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
