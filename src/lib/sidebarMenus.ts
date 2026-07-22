@@ -55,7 +55,6 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
-  { name: 'Live Location', icon: Navigation, path: '/location', moduleId: 'pa-location' },
   { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },
   { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
 ];
