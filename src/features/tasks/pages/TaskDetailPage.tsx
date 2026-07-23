@@ -83,6 +83,21 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function resolvePhotoSrc(src: string): string {
+  if (!src) return '';
+  const trimmed = src.trim();
+  if (trimmed.startsWith('data:image') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/')) {
+    return `https://api.voxiqai.com${trimmed}`;
+  }
+  if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0') || (trimmed.length > 100 && !trimmed.includes(' '))) {
+    return `data:image/jpeg;base64,${trimmed}`;
+  }
+  return trimmed;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 interface Props { taskId: string; }
@@ -95,6 +110,24 @@ const TaskDetailPage = ({ taskId }: Props) => {
   const [history, setHistory] = useState<HrTaskUpdate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
+
+  // ── Parsed photo proof URLs
+  const parsedPhotoUrls = useCallback(() => {
+    if (!task) return [];
+    if (task.photoUrls && Array.isArray(task.photoUrls) && task.photoUrls.length > 0) {
+      return task.photoUrls;
+    }
+    if (!task.photoUrl) return [];
+    try {
+      const parsed = JSON.parse(task.photoUrl);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((x): x is string => typeof x === 'string' && x.trim().length > 0);
+      }
+    } catch {
+      // not JSON string
+    }
+    return [task.photoUrl];
+  }, [task])();
 
   // ── Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -367,31 +400,37 @@ const TaskDetailPage = ({ taskId }: Props) => {
                 </div>
 
                 {/* Photo Proof Section */}
-                {task.requiresPhoto && (
-                  <div className="border-t border-border/30 pt-4 space-y-2">
+                {(task.requiresPhoto || parsedPhotoUrls.length > 0) && (
+                  <div className="border-t border-border/30 pt-4 space-y-3">
                     <p className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                      <Camera size={14} /> Employee Photo Proof
+                      <Camera size={14} /> Employee Photo Proof ({parsedPhotoUrls.length})
                     </p>
-                    {task.photoUrl ? (
-                      <div className="space-y-2">
-                        <div className="relative group max-w-md rounded-2xl overflow-hidden border border-primary/20 bg-surface-variant">
-                          {/* Photo preview */}
-                          <img
-                            src={task.photoUrl}
-                            alt="Task Completion Proof"
-                            className="w-full h-56 object-cover rounded-2xl transition-transform group-hover:scale-105"
-                          />
-                          <a
-                            href={task.photoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-md text-text-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1 hover:bg-background transition-colors"
-                          >
-                            <ImageIcon size={13} /> View Full Photo
-                          </a>
+                    {parsedPhotoUrls.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {parsedPhotoUrls.map((url, idx) => {
+                            const resolvedSrc = resolvePhotoSrc(url);
+                            return (
+                              <div key={idx} className="relative group rounded-2xl overflow-hidden border border-primary/20 bg-surface-variant shadow-sm">
+                                <img
+                                  src={resolvedSrc}
+                                  alt={`Task Proof ${idx + 1}`}
+                                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                                <a
+                                  href={resolvedSrc}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-md text-text-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1 hover:bg-background transition-colors"
+                                >
+                                  <ImageIcon size={13} /> View Full Photo
+                                </a>
+                              </div>
+                            );
+                          })}
                         </div>
                         <p className="text-[11px] text-success font-semibold flex items-center gap-1">
-                          ✓ Photo proof uploaded by employee upon completion.
+                          ✓ Photo proof uploaded by employee.
                         </p>
                       </div>
                     ) : (

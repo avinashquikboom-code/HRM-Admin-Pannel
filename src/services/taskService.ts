@@ -18,6 +18,7 @@ export interface HrTask {
   status: HrTaskStatus;
   requiresPhoto?: boolean;
   photoUrl?: string | null;
+  photoUrls?: string[];
   overdue: boolean;
   createdAt: string;
   updatedAt: string;
