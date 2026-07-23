@@ -116,15 +116,18 @@ const TasksPage = () => {
   });
 
   // ── Employee directory (for selects)
-  const { employees } = useEmployees({ limit: 500 });
+  const { employees } = useEmployees({ limit: 2000 });
   const empOptions = useMemo(
     () =>
-      employees
-        .filter((e) => e.employeeID)
-        .map((e) => ({
-          value: e.employeeID!,
-          label: `${e.firstName} ${e.lastName} (${e.employeeCode})`,
-        })),
+      employees.map((e) => {
+        const idVal = e.employeeID || e.employeeCode || String(e.id);
+        const codeStr = e.employeeCode ? ` (${e.employeeCode})` : '';
+        const nameStr = `${e.firstName ?? ''} ${e.lastName ?? ''}`.trim() || `Employee #${e.id}`;
+        return {
+          value: idVal,
+          label: `${nameStr}${codeStr}`,
+        };
+      }),
     [employees]
   );
   const empFilterOptions = useMemo(

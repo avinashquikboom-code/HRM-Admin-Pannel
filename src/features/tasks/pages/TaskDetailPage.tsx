@@ -113,10 +113,16 @@ const TaskDetailPage = ({ taskId }: Props) => {
   const [showCommentFor, setShowCommentFor] = useState<HrTaskStatus | null>(null);
 
   // ── Employee directory
-  const { employees } = useEmployees({ limit: 500 });
-  const empOptions = employees
-    .filter((e) => e.employeeID)
-    .map((e) => ({ value: e.employeeID!, label: `${e.firstName} ${e.lastName} (${e.employeeCode})` }));
+  const { employees } = useEmployees({ limit: 2000 });
+  const empOptions = employees.map((e) => {
+    const idVal = e.employeeID || e.employeeCode || String(e.id);
+    const codeStr = e.employeeCode ? ` (${e.employeeCode})` : '';
+    const nameStr = `${e.firstName ?? ''} ${e.lastName ?? ''}`.trim() || `Employee #${e.id}`;
+    return {
+      value: idVal,
+      label: `${nameStr}${codeStr}`,
+    };
+  });
 
   // ── Load
   const loadTask = useCallback(async () => {
