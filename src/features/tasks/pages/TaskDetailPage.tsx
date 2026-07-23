@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Edit3,
   CalendarDays,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -242,6 +244,11 @@ const TaskDetailPage = ({ taskId }: Props) => {
                 <AlertTriangle size={10} /> Overdue
               </span>
             )}
+            {task.requiresPhoto && (
+              <span className="flex items-center gap-1 text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-lg uppercase tracking-wider">
+                <Camera size={10} /> Photo Proof Required
+              </span>
+            )}
           </div>
           <h1 className="text-xl font-black text-text-primary mt-0.5 leading-tight truncate">{task.title}</h1>
         </div>
@@ -352,6 +359,43 @@ const TaskDetailPage = ({ taskId }: Props) => {
                     {task.description || <span className="italic text-muted">No description provided.</span>}
                   </p>
                 </div>
+
+                {/* Photo Proof Section */}
+                {task.requiresPhoto && (
+                  <div className="border-t border-border/30 pt-4 space-y-2">
+                    <p className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Camera size={14} /> Employee Photo Proof
+                    </p>
+                    {task.photoUrl ? (
+                      <div className="space-y-2">
+                        <div className="relative group max-w-md rounded-2xl overflow-hidden border border-primary/20 bg-surface-variant">
+                          {/* Photo preview */}
+                          <img
+                            src={task.photoUrl}
+                            alt="Task Completion Proof"
+                            className="w-full h-56 object-cover rounded-2xl transition-transform group-hover:scale-105"
+                          />
+                          <a
+                            href={task.photoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-md text-text-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1 hover:bg-background transition-colors"
+                          >
+                            <ImageIcon size={13} /> View Full Photo
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-success font-semibold flex items-center gap-1">
+                          ✓ Photo proof uploaded by employee upon completion.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-warning/10 border border-warning/20 text-warning text-xs font-medium flex items-center gap-2">
+                        <Camera size={16} />
+                        <span>Photo proof is required for completing this task. Awaiting photo upload from assigned employee.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

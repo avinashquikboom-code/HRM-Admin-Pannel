@@ -1,9 +1,10 @@
 import EmployeeDetailPage from '@/features/employees/pages/EmployeeDetailPage';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function EmployeeDetailPageWrapper({ params }: Props) {
-  return <EmployeeDetailPage employeeIntId={params.id} />;
+export default async function EmployeeDetailPageWrapper({ params }: Props) {
+  const resolvedParams = await params;
+  return <EmployeeDetailPage employeeIntId={resolvedParams.id} />;
 }

@@ -1,9 +1,10 @@
 import TaskDetailPage from '@/features/tasks/pages/TaskDetailPage';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function TaskDetailPageWrapper({ params }: Props) {
-  return <TaskDetailPage taskId={params.id} />;
+export default async function TaskDetailPageWrapper({ params }: Props) {
+  const resolvedParams = await params;
+  return <TaskDetailPage taskId={resolvedParams.id} />;
 }

@@ -16,6 +16,8 @@ export interface HrTask {
   priority: HrPriority;
   dueDate: string | null;
   status: HrTaskStatus;
+  requiresPhoto?: boolean;
+  photoUrl?: string | null;
   overdue: boolean;
   createdAt: string;
   updatedAt: string;
@@ -56,6 +58,52 @@ export interface ListTasksResponse {
   data: HrTask[];
   meta: { total: number; page: number; limit: number; pages: number };
 }
+
+export interface FixedTaskTemplate {
+  id: string;
+  title: string;
+  description: string;
+  priority: HrPriority;
+  requiresPhoto: boolean;
+}
+
+export const FIXED_TASK_TEMPLATES: FixedTaskTemplate[] = [
+  {
+    id: 'store_opening',
+    title: 'Daily Store Opening & Sanitization Checklist',
+    description: 'Verify store cleanliness, inspect counter setup, check POS system display, and capture photo proof of opening state.',
+    priority: 'HIGH',
+    requiresPhoto: true,
+  },
+  {
+    id: 'store_closing',
+    title: 'Store Closing Cash & Security Lockup Verification',
+    description: 'Count closing cash register, verify daily ledger slip, capture photo of closed cash drawer, and lock main store entrance.',
+    priority: 'HIGH',
+    requiresPhoto: true,
+  },
+  {
+    id: 'inventory_audit',
+    title: 'Inventory & Shelf Stock Count Audit',
+    description: 'Perform physical count of high-demand items, arrange front shelves neatly, and upload photo of display shelves.',
+    priority: 'MEDIUM',
+    requiresPhoto: true,
+  },
+  {
+    id: 'hygiene_check',
+    title: 'Customer Area & Staff Hygiene Inspection',
+    description: 'Inspect staff uniforms, sanitize high-touch surfaces, and ensure customer service standards.',
+    priority: 'MEDIUM',
+    requiresPhoto: false,
+  },
+  {
+    id: 'promo_banner',
+    title: 'Promotional Display Stand & Poster Setup',
+    description: 'Set up marketing banners at main entrance and capture photo proof of completed promotional arrangement.',
+    priority: 'LOW',
+    requiresPhoto: true,
+  },
+];
 
 // ─── API Functions ──────────────────────────────────────────────────────────────
 
@@ -107,6 +155,8 @@ export interface CreateTaskPayload {
   assignedTo: string;
   priority?: HrPriority;
   dueDate?: string;
+  requiresPhoto?: boolean;
+  photoUrl?: string;
 }
 
 export async function createTask(payload: CreateTaskPayload): Promise<HrTask> {
@@ -126,6 +176,8 @@ export interface UpdateTaskPayload {
   dueDate?: string | null;
   status?: HrTaskStatus;
   comment?: string;
+  requiresPhoto?: boolean;
+  photoUrl?: string | null;
 }
 
 export async function updateTask(id: string, payload: UpdateTaskPayload): Promise<HrTask> {

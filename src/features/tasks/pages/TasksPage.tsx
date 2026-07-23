@@ -16,6 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  Camera,
+  Sparkles,
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -30,6 +32,7 @@ import {
   fetchTasks,
   fetchTaskStats,
   createTask,
+  FIXED_TASK_TEMPLATES,
   type HrTask,
   type HrTaskStatus,
   type HrPriority,
@@ -109,6 +112,7 @@ const TasksPage = () => {
     assignedTo: '',
     priority: 'MEDIUM' as HrPriority,
     dueDate: '',
+    requiresPhoto: false,
   });
 
   // ── Employee directory (for selects)
@@ -173,10 +177,11 @@ const TasksPage = () => {
         assignedTo: form.assignedTo,
         priority: form.priority,
         dueDate: form.dueDate || undefined,
+        requiresPhoto: form.requiresPhoto,
       });
       toast.success('Task created successfully');
       setIsCreateOpen(false);
-      setForm({ title: '', description: '', assignedTo: '', priority: 'MEDIUM', dueDate: '' });
+      setForm({ title: '', description: '', assignedTo: '', priority: 'MEDIUM', dueDate: '', requiresPhoto: false });
       loadData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create task');
@@ -344,8 +349,13 @@ const TasksPage = () => {
                             <AlertTriangle size={13} className="text-error mt-0.5 flex-shrink-0" />
                           )}
                           <div>
-                            <p className="font-bold text-text-primary group-hover:text-primary transition-colors leading-tight line-clamp-1">
+                            <p className="font-bold text-text-primary group-hover:text-primary transition-colors leading-tight line-clamp-1 flex items-center gap-1.5">
                               {task.title}
+                              {task.requiresPhoto && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-black" title="Photo proof required">
+                                  <Camera size={10} /> Photo
+                                </span>
+                              )}
                             </p>
                             {task.description && (
                               <p className="text-xs text-muted mt-0.5 line-clamp-1">{task.description}</p>
@@ -450,6 +460,36 @@ const TasksPage = () => {
         title="Assign New Task"
       >
         <form onSubmit={handleCreate} className="space-y-5">
+          {/* Preset Task Templates Selector */}
+          <div className="space-y-1.5 bg-surface-variant/40 p-3 rounded-2xl border border-primary/10">
+            <label className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1">
+              <Sparkles size={13} /> Select Fixed / Preset Task Template
+            </label>
+            <select
+              onChange={(e) => {
+                const selected = FIXED_TASK_TEMPLATES.find((t) => t.id === e.target.value);
+                if (selected) {
+                  setForm((f) => ({
+                    ...f,
+                    title: selected.title,
+                    description: selected.description,
+                    priority: selected.priority,
+                    requiresPhoto: selected.requiresPhoto,
+                  }));
+                }
+              }}
+              defaultValue=""
+              className="w-full px-4 py-2.5 bg-surface-variant border border-transparent focus:border-primary/20 rounded-xl outline-none text-xs font-bold text-text-primary cursor-pointer"
+            >
+              <option value="" disabled>-- Choose a Pre-defined Task --</option>
+              {FIXED_TASK_TEMPLATES.map((tmpl) => (
+                <option key={tmpl.id} value={tmpl.id}>
+                  {tmpl.title} {tmpl.requiresPhoto ? '(📸 Photo Proof)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Title */}
           <div className="space-y-1.5">
             <label className="text-label text-text-secondary tracking-[0.15em] ml-1">Task Title *</label>
@@ -511,6 +551,23 @@ const TasksPage = () => {
               className="w-full px-5 py-3.5 bg-surface-variant/60 border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none text-sm font-bold text-text-primary transition-all placeholder:text-muted/50 resize-none"
             />
           </div>
+
+          {/* Requires Photo Proof Checkbox */}
+          <label className="flex items-center gap-3 p-3 bg-surface-variant/40 rounded-xl cursor-pointer border border-border/30 hover:border-primary/20 transition-all">
+            <input
+              type="checkbox"
+              checked={form.requiresPhoto}
+              onChange={(e) => setForm((f) => ({ ...f, requiresPhoto: e.target.checked }))}
+              className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+            />
+            <div className="flex items-center gap-2">
+              <Camera size={16} className="text-primary" />
+              <div>
+                <p className="text-xs font-bold text-text-primary">Requires Photo Proof from Employee</p>
+                <p className="text-[11px] text-muted">Employee must click & upload a photo to mark this task complete</p>
+              </div>
+            </div>
+          </label>
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
