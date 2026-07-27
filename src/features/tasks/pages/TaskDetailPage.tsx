@@ -18,6 +18,8 @@ import {
   CalendarDays,
   Camera,
   Image as ImageIcon,
+  RotateCcw,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -224,7 +226,10 @@ const TaskDetailPage = ({ taskId }: Props) => {
         status:  newStatus,
         comment: statusComment || undefined,
       });
-      toast.success(`Status → ${STATUS_LABELS[newStatus]}`);
+      const msg = statusComment
+        ? `Task status updated to ${STATUS_LABELS[newStatus]}. Mobile notification sent with HR remarks!`
+        : `Task status updated to ${STATUS_LABELS[newStatus]}. Mobile notification sent!`;
+      toast.success(msg);
       setShowCommentFor(null);
       setStatusComment('');
       loadTask();
@@ -464,8 +469,15 @@ const TaskDetailPage = ({ taskId }: Props) => {
               ))}
             </div>
 
-            <div className="flex gap-2 flex-wrap">
-              {prevStatus && (
+            <div className="flex gap-2 flex-wrap items-center">
+              <button
+                onClick={() => { setShowCommentFor('PENDING'); setStatusComment(''); }}
+                className="px-4 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/30 rounded-xl text-xs font-black hover:bg-amber-500/20 transition-colors flex items-center gap-1.5"
+                title="Reassign or return task to employee with HR remarks/feedback"
+              >
+                <RotateCcw size={13} /> Reassign / Return with Remark
+              </button>
+              {prevStatus && prevStatus !== 'PENDING' && (
                 <button
                   onClick={() => { setShowCommentFor(prevStatus); setStatusComment(''); }}
                   className="px-4 py-2 bg-surface-variant rounded-xl text-xs font-black text-text-secondary hover:bg-border transition-colors border border-border/30"
