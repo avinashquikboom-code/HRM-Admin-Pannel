@@ -6,6 +6,7 @@ export interface PlatformUserEmployeeProfile {
   lastName: string;
   designation: string | null;
   status: string;
+  source?: 'HOPKID' | 'MANUAL';
   office: {
     id: number;
     name: string;
@@ -14,6 +15,7 @@ export interface PlatformUserEmployeeProfile {
 
 export interface PlatformUser {
   id: number;
+  employeeId?: number;
   name: string;
   email: string;
   role: string;
@@ -21,6 +23,8 @@ export interface PlatformUser {
   registeredAt: string;
   employee: PlatformUserEmployeeProfile | null;
   hasEmployeeProfile: boolean;
+  isUnlinkedEmployee?: boolean;
+  source?: 'HOPKID' | 'MANUAL';
 }
 
 export interface UsersApiResponse {

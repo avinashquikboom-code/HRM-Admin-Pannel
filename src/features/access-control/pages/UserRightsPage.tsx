@@ -96,6 +96,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
   const [userSearch, setUserSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [profileFilter, setProfileFilter] = useState('All');
+  const [sourceFilter, setSourceFilter] = useState('All');
   const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [userActionSuccess, setUserActionSuccess] = useState('');
@@ -152,17 +153,31 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
-      const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || 
-                            u.email.toLowerCase().includes(userSearch.toLowerCase());
+      const query = userSearch.toLowerCase().trim();
+      const matchesSearch = 
+        !query ||
+        u.name.toLowerCase().includes(query) || 
+        u.email.toLowerCase().includes(query) ||
+        (u.employee?.employeeCode && u.employee.employeeCode.toLowerCase().includes(query)) ||
+        (u.employee?.firstName && u.employee.firstName.toLowerCase().includes(query)) ||
+        (u.employee?.lastName && u.employee.lastName.toLowerCase().includes(query)) ||
+        (u.employee?.office?.name && u.employee.office.name.toLowerCase().includes(query));
+
       const matchesRole = roleFilter === 'All' || u.role === roleFilter;
       const matchesProfile = 
         profileFilter === 'All' ||
-        (profileFilter === 'Linked' && u.hasEmployeeProfile) ||
-        (profileFilter === 'Unlinked' && !u.hasEmployeeProfile);
+        (profileFilter === 'Linked' && u.hasEmployeeProfile && !u.isUnlinkedEmployee) ||
+        (profileFilter === 'Unlinked' && (!u.hasEmployeeProfile || u.isUnlinkedEmployee));
       
-      return matchesSearch && matchesRole && matchesProfile;
+      const itemSource = u.source || u.employee?.source || 'MANUAL';
+      const matchesSource = 
+        sourceFilter === 'All' ||
+        (sourceFilter === 'HOPKID' && itemSource === 'HOPKID') ||
+        (sourceFilter === 'MANUAL' && itemSource === 'MANUAL');
+
+      return matchesSearch && matchesRole && matchesProfile && matchesSource;
     });
-  }, [users, userSearch, roleFilter, profileFilter]);
+  }, [users, userSearch, roleFilter, profileFilter, sourceFilter]);
 
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
@@ -305,16 +320,16 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
       <motion.div variants={itemVariants} className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Platform Users & Custom Overrides</h2>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Platform Users & Hopkid Employees</h2>
             <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
-              View all registered users on the system, check active configurations, and assign individual custom overrides.
+              View all registered users and Hopkid employees, check active permissions, and manage individual overrides.
             </p>
           </div>
           <button
             type="button"
             onClick={() => refetchUsers()}
             className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all active:scale-95 self-end sm:self-auto cursor-pointer"
-            title="Refresh users directory"
+            title="Refresh users & employees directory"
           >
             <RefreshCw size={16} className={cn(isUsersLoading && 'animate-spin')} />
           </button>
@@ -347,15 +362,24 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
               type="text"
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
-              placeholder="Search users by name or email..." 
+              placeholder="Search by name, email, Hopkid code, or office..." 
               className="w-full pl-13 pr-4 py-3.5 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-white placeholder-slate-500"
             />
           </div>
           <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="w-full sm:w-44 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+            >
+              <option value="All" className="bg-slate-900 text-white">All Sources</option>
+              <option value="HOPKID" className="bg-slate-900 text-white">HopKid Employees</option>
+              <option value="MANUAL" className="bg-slate-900 text-white">Manual Employees</option>
+            </select>
+            <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="w-full sm:w-44 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
             >
               <option value="All" className="bg-slate-900 text-white">All System Roles</option>
               <option value="ADMIN" className="bg-slate-900 text-white">System Admins</option>
@@ -365,7 +389,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
             <select
               value={profileFilter}
               onChange={(e) => setProfileFilter(e.target.value)}
-              className="w-full sm:w-48 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="w-full sm:w-44 bg-slate-950/40 border border-white/5 hover:border-white/10 focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
             >
               <option value="All" className="bg-slate-900 text-white">All Connection States</option>
               <option value="Linked" className="bg-slate-900 text-white">Linked Profiles</option>
@@ -385,7 +409,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-950/30 border-b border-white/5">
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">User Details</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">User / Employee Details</th>
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">System Role</th>
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Profile Link</th>
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Created Date</th>
@@ -396,6 +420,9 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                   {filteredUsers.length > 0 ? (
                     filteredUsers.map((userItem) => {
                       const initials = userItem.name.split(' ').map((n) => n[0]).join('').toUpperCase();
+                      const itemSource = userItem.source || userItem.employee?.source || 'MANUAL';
+                      const isHopkid = itemSource === 'HOPKID';
+
                       return (
                         <tr 
                           key={userItem.id}
@@ -407,12 +434,27 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                                 {initials || 'U'}
                               </div>
                               <div className="min-w-0">
-                                <span className="font-bold text-white block truncate group-hover:text-primary transition-colors">
-                                  {userItem.name}
-                                </span>
-                                <span className="text-xs text-slate-400 block truncate mt-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-white truncate group-hover:text-primary transition-colors">
+                                    {userItem.name}
+                                  </span>
+                                  {isHopkid && (
+                                    <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                      HopKid
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-xs text-slate-400 block truncate mt-0.5">
                                   {userItem.email}
                                 </span>
+                                {userItem.employee?.employeeCode && (
+                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono">
+                                    <span>Code: {userItem.employee.employeeCode}</span>
+                                    {userItem.employee.office?.name && (
+                                      <span>• {userItem.employee.office.name}</span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -425,16 +467,23 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                             </span>
                           </td>
                           <td className="px-6 py-4.5 text-center">
-                            {userItem.hasEmployeeProfile ? (
+                            {userItem.hasEmployeeProfile && !userItem.isUnlinkedEmployee ? (
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-sm">
                                 <UserCheck size={12} />
                                 Linked
                               </span>
+                            ) : userItem.isUnlinkedEmployee ? (
+                              <div className="flex flex-col items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-sm">
+                                  <UserX size={12} />
+                                  Unlinked {isHopkid ? 'HopKid' : ''} Employee
+                                </span>
+                              </div>
                             ) : (
                               <div className="flex flex-col items-center gap-1.5">
                                 <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-sm">
                                   <UserX size={12} />
-                                  Unlinked
+                                  Unlinked User
                                 </span>
                                 <button
                                   type="button"
@@ -488,7 +537,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                   ) : (
                     <tr>
                       <td colSpan={5} className="px-6 py-12 text-center text-xs font-bold text-slate-500 uppercase tracking-widest bg-slate-900/20">
-                        No registered platform users found.
+                        No platform users or Hopkid employees found.
                       </td>
                     </tr>
                   )}
