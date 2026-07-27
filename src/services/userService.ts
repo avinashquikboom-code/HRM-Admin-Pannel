@@ -14,8 +14,8 @@ export interface PlatformUserEmployeeProfile {
 }
 
 export interface PlatformUser {
-  id: number;
-  employeeId?: number;
+  id: number | string;
+  employeeId?: number | string;
   name: string;
   email: string;
   role: string;

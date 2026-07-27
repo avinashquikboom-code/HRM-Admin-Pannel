@@ -52,10 +52,17 @@ api.interceptors.request.use((config) => {
   attachRequestMetadata(config);
 
   const activePortal = resolvePortalFromWindow();
-  // For the super_admin portal, SUPER_ADMIN and ADMIN have separate token
-  // buckets; use the currently logged-in role to target the right one.
   const activeRole = store.getState().auth.user?.role;
-  const token = getAuthToken(activePortal, activeRole);
+  let token = getAuthToken(activePortal, activeRole);
+
+  if (!token && typeof window !== 'undefined') {
+    token =
+      store.getState().auth.token ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('auth_token') ||
+      localStorage.getItem('hrm_auth_token') ||
+      null;
+  }
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
