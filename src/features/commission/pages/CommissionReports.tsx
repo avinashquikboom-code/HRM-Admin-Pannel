@@ -46,18 +46,22 @@ export default function CommissionReports() {
   const [pageSize, setPageSize] = useState<number>(10);
 
   const filteredReportData = reportData.filter((item) => {
-    // 1. Strictly exclude non-HopKid employees, HR, and admin accounts
+    // Must be HopKid employee (source is HOPKID, not MANUAL)
+    const itemSource = String(item.source || 'HOPKID').toUpperCase();
+    if (itemSource === 'MANUAL') return false;
+
+    // Exclude HR and admin accounts
     const code = String(item.employeeCode || '').trim().toUpperCase();
     const name = String(item.employeeName || '').toLowerCase();
     const des = String(item.designation || '').toLowerCase();
+    const role = String(item.role || '').toLowerCase();
     if (
       code.startsWith('ADMIN') || 
       code.startsWith('HR') || 
-      code.startsWith('QB') || 
-      code.startsWith('EMP') || 
       name.includes('admin') || 
-      des.includes('hr') || 
-      (item.source && item.source !== 'HOPKID')
+      des.includes('hr') ||
+      role.includes('admin') ||
+      role.includes('hr')
     ) {
       return false;
     }
