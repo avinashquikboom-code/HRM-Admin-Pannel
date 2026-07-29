@@ -68,7 +68,7 @@ export default function CommissionDashboard() {
   const [stores, setStores] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState<string>('');
-  const [dateRange, setDateRange] = useState('month');
+  const [dateRange, setDateRange] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Derived filtered lists
@@ -387,6 +387,7 @@ export default function CommissionDashboard() {
 
             <div className="flex items-center gap-1 p-1 bg-surface-variant/60 dark:bg-white/[0.05] rounded-xl border border-border/50 dark:border-white/10">
               {[
+                { key: 'all', label: 'All' },
                 { key: 'today', label: 'Today' },
                 { key: 'week', label: 'Week' },
                 { key: 'month', label: 'Month' }
@@ -411,7 +412,7 @@ export default function CommissionDashboard() {
               size="sm"
               onClick={() => {
                 setSelectedStore('');
-                setDateRange('month');
+                setDateRange('all');
                 setSearchQuery('');
               }}
               className="px-3.5 py-1.5 h-9 rounded-xl border border-border/50 dark:border-white/10 text-xs font-bold text-text-secondary hover:text-text-primary"
@@ -557,7 +558,7 @@ export default function CommissionDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                {filteredTransactions.slice(0, 10).map((transaction) => (
+                {filteredTransactions.map((transaction) => (
                   <tr 
                     key={transaction.id} 
                     onClick={() => handleEmployeeClick(transaction.employee)}

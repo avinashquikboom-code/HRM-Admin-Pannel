@@ -46,9 +46,9 @@ export default function CommissionReports() {
     return empName.includes(q) || empCode.includes(q) || branch.includes(q);
   });
   
-  // Default to past 30 days
+  // Default to start of current year for full history visibility
   const [startDate, setStartDate] = useState<string>(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    `${new Date().getFullYear()}-01-01`
   );
   const [endDate, setEndDate] = useState<string>(
     new Date().toISOString().split('T')[0]
