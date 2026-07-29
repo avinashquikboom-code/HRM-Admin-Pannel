@@ -98,22 +98,21 @@ export default function LiveDashboardPage() {
   const fetchLiveStats = useCallback(async (showRefreshingIndicator = false) => {
     if (showRefreshingIndicator) setIsRefreshing(true);
     try {
-      const [statsRes, upcomingRes] = await Promise.all([
+      const [statsRes, upcomingRes] = await Promise.allSettled([
         api.get<{ success: boolean; stats: LiveStats }>('/api/admin/dashboard/live'),
         api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves/upcoming')
       ]);
 
-      if (statsRes.data.success) {
-        setStats(statsRes.data.stats);
+      if (statsRes.status === 'fulfilled' && statsRes.value.data.success) {
+        setStats(statsRes.value.data.stats);
         setError('');
       }
 
-      if (upcomingRes.data.success) {
-        setUpcomingLeaves(upcomingRes.data.leaves);
+      if (upcomingRes.status === 'fulfilled' && upcomingRes.value.data.success) {
+        setUpcomingLeaves(upcomingRes.value.data.leaves);
       }
     } catch (err) {
       console.error('Error fetching live stats:', err);
-      setError('Failed to fetch live stats. Please try again.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
