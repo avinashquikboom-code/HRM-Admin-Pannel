@@ -596,36 +596,70 @@ const PayrollPage = () => {
         </div>
       </div>
 
+      {/* Pending Salary Advance Requests Alert Banner */}
+      {advancesList.filter(a => a.status === 'PENDING').length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg backdrop-blur-md"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 bg-amber-500/20 text-amber-400 rounded-md border border-amber-500/30">
+              <Wallet size={24} className="animate-bounce" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black uppercase tracking-wider text-amber-300">
+                {advancesList.filter(a => a.status === 'PENDING').length} Pending Salary Advance Request(s)
+              </h4>
+              <p className="text-xs font-medium text-amber-200/80 mt-0.5">
+                Employees have submitted new salary advance & EMI applications awaiting your review and approval.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setMainTab('advances'); loadAdvancesData(); }}
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-md transition-all shadow-md active:scale-95 shrink-0"
+          >
+            Review Advances Now →
+          </button>
+        </motion.div>
+      )}
+
       {/* Navigation Subtabs Bar */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-4 bg-slate-900/60 p-2 rounded-xl border border-white/10 backdrop-blur-md">
         <button
           type="button"
           onClick={() => setMainTab('slips')}
           className={cn(
-            "px-6 py-3.5 rounded-sm text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm",
+            "px-6 py-4 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-3 border shadow-md flex-1 sm:flex-none justify-center",
             mainTab === 'slips'
-              ? "bg-primary text-white border-primary shadow-primary/20"
-              : "bg-surface-variant text-text-secondary border-border hover:text-text-primary"
+              ? "bg-primary text-white border-primary shadow-primary/30"
+              : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
           )}
         >
-          <IndianRupee size={16} />
+          <IndianRupee size={18} />
           Employee Payslips Manager
         </button>
         <button
           type="button"
           onClick={() => { setMainTab('advances'); loadAdvancesData(); }}
           className={cn(
-            "px-6 py-3.5 rounded-sm text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm relative",
+            "px-6 py-4 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-3 border shadow-md relative flex-1 sm:flex-none justify-center",
             mainTab === 'advances'
-              ? "bg-primary text-white border-primary shadow-primary/20"
-              : "bg-surface-variant text-text-secondary border-border hover:text-text-primary"
+              ? "bg-primary text-white border-primary shadow-primary/30"
+              : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
           )}
         >
-          <Wallet size={16} />
+          <Wallet size={18} />
           Salary Advances & EMI Governance
-          {advancesList.filter(a => a.status === 'PENDING').length > 0 && (
-            <span className="ml-1.5 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full shadow-sm animate-pulse">
-              {advancesList.filter(a => a.status === 'PENDING').length} Pending
+          {advancesList.filter(a => a.status === 'PENDING').length > 0 ? (
+            <span className="ml-2 px-2.5 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full shadow-sm animate-pulse">
+              {advancesList.filter(a => a.status === 'PENDING').length} PENDING
+            </span>
+          ) : (
+            <span className="ml-2 px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-black rounded-full border border-white/10">
+              {advancesList.length} Total
             </span>
           )}
         </button>
