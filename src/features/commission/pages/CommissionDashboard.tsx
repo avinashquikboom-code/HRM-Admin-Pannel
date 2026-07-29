@@ -75,13 +75,16 @@ export default function CommissionDashboard() {
   const queryLower = searchQuery.trim().toLowerCase();
 
   const filteredTransactions = transactions.filter((t) => {
-    const code = String(t.employee?.employeeCode || '').trim();
+    const code = String(t.employee?.employeeCode || '').trim().toUpperCase();
     const name = `${t.employee?.firstName || ''} ${t.employee?.lastName || ''}`.toLowerCase();
+    const des = String(t.employee?.designation || '').toLowerCase();
     if (
       code.startsWith('ADMIN') || 
+      code.startsWith('HR') || 
       code.startsWith('QB') || 
       code.startsWith('EMP') || 
       name.includes('admin') || 
+      des.includes('hr') || 
       (t.employee?.source && t.employee.source !== 'HOPKID')
     ) {
       return false;
@@ -99,13 +102,16 @@ export default function CommissionDashboard() {
   });
 
   const filteredTopPerformers = (stats?.topPerformers || []).filter((p) => {
-    const code = String(p.employee?.employeeCode || '').trim();
+    const code = String(p.employee?.employeeCode || '').trim().toUpperCase();
     const name = `${p.employee?.firstName || ''} ${p.employee?.lastName || ''}`.toLowerCase();
+    const des = String(p.employee?.designation || '').toLowerCase();
     if (
       code.startsWith('ADMIN') || 
+      code.startsWith('HR') || 
       code.startsWith('QB') || 
       code.startsWith('EMP') || 
       name.includes('admin') || 
+      des.includes('hr') || 
       (p.employee?.source && p.employee.source !== 'HOPKID')
     ) {
       return false;
