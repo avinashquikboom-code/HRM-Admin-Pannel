@@ -21,7 +21,8 @@ import {
   Users,
   X,
   ShieldCheck,
-  Plus
+  Plus,
+  Zap
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -108,20 +109,21 @@ const itemVariants: Variants = {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const val = payload[0].value;
     return (
-      <div className="glass-card p-4 border-none shadow-2xl backdrop-blur-xl bg-surface/80 dark:bg-surface-variant/80">
-        <p className="text-label text-text-secondary mb-2">{label}</p>
+      <div className="p-4 rounded-xl border border-border/80 dark:border-white/15 shadow-2xl backdrop-blur-2xl bg-surface/95 dark:bg-slate-900/95 min-w-[210px] text-text-primary animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between gap-3 mb-2 border-b border-border/40 pb-2">
+          <p className="text-[11px] font-black text-text-secondary uppercase tracking-widest">{label} 2024</p>
+          <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+            <TrendingUp size={11} /> +14.2%
+          </span>
+        </div>
         <div className="space-y-1">
-          <p className="text-lg font-black text-primary">
-            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(payload[0].value)}
+          <p className="text-xs text-text-secondary font-medium">Disbursed Volume</p>
+          <p className="text-xl font-black text-primary font-mono tracking-tight">
+            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val)}
           </p>
-          <div className="flex items-center gap-2">
-             <div className="flex items-center gap-1 text-micro font-black text-success uppercase tracking-tighter">
-                <TrendingUp size={12} />
-                +14.2%
-             </div>
-             <span className="text-micro font-bold text-text-secondary uppercase">vs last cycle</span>
-          </div>
+          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">vs prior cycle avg</p>
         </div>
       </div>
     );
@@ -171,6 +173,18 @@ const PayrollPage = () => {
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
   const [isDisbursing, setIsDisbursing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [chartTimeframe, setChartTimeframe] = useState<'1M' | '3M' | '5M' | '1Y'>('5M');
+
+  const displayedChartData = (() => {
+    if (chartTimeframe === '1M') return trendData.slice(-2);
+    if (chartTimeframe === '3M') return trendData.slice(-3);
+    if (chartTimeframe === '1Y') return [
+      { name: 'Nov', amount: 1900000, trend: 1400000 },
+      { name: 'Dec', amount: 2200000, trend: 1600000 },
+      ...trendData,
+    ];
+    return trendData;
+  })();
 
   // New Payslips states
   const [activeSubTab, setActiveSubTab] = useState<'slips'>('slips');
@@ -447,18 +461,42 @@ const PayrollPage = () => {
         badgeText="Corporate Treasury & Remuneration"
         badgeIcon={Wallet}
         stats={[
-          { label: 'Total Volume (MTD)', value: `₹${stats.mtdVolume.toLocaleString('en-IN')}`, icon: Wallet },
-          { label: 'Total Disbursed', value: `₹${stats.disbursed.toLocaleString('en-IN')}`, icon: CheckCircle2 },
-          { label: 'Pending Approval', value: `₹${stats.pending.toLocaleString('en-IN')}`, icon: Clock },
-          { label: 'Critical Errors', value: stats.errors > 0 ? `${stats.errors} Batches` : '0 Batches', icon: IndianRupee },
+          { 
+            label: 'Total Volume (MTD)', 
+            value: `₹${stats.mtdVolume.toLocaleString('en-IN')}`, 
+            icon: Wallet,
+            trend: '+12.4%',
+            trendUp: true
+          },
+          { 
+            label: 'Total Disbursed', 
+            value: `₹${stats.disbursed.toLocaleString('en-IN')}`, 
+            icon: CheckCircle2,
+            badge: 'Verified'
+          },
+          { 
+            label: 'Pending Approval', 
+            value: `₹${stats.pending.toLocaleString('en-IN')}`, 
+            icon: Clock,
+            trend: '2 Runs',
+            trendUp: false
+          },
+          { 
+            label: 'Critical Errors', 
+            value: stats.errors > 0 ? `${stats.errors} Batches` : '0 Batches', 
+            icon: ShieldCheck,
+            badge: 'System Healthy'
+          },
         ]}
       >
         <button 
           onClick={() => setIsProcessModalOpen(true)}
-          className="btn-primary shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center"
+          className="btn-primary group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-primary/40 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95"
         >
-          <Wallet size={18} />
-          Bulk Process
+          <span className="p-1 rounded-lg bg-white/20 group-hover:rotate-12 transition-transform">
+            <Wallet size={16} />
+          </span>
+          <span>Bulk Process</span>
         </button>
       </SuperAdminHeader>
 
@@ -466,52 +504,76 @@ const PayrollPage = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <motion.div 
           variants={itemVariants}
-          className="xl:col-span-2 glass-card p-8 relative overflow-hidden group shadow-premium"
+          className="xl:col-span-2 glass-card p-6 md:p-8 relative overflow-hidden group shadow-premium rounded-2xl border border-border/60 dark:border-white/10"
         >
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
             <div>
-              <h3 className="heading-2">Platform Disbursement Volume</h3>
-              <p className="text-sm text-page-desc mt-1 italic">Global payroll distribution trends over the last 5 months</p>
+              <div className="flex items-center gap-2.5">
+                <h3 className="heading-2 text-xl md:text-2xl font-black text-text-primary">Platform Disbursement Volume</h3>
+                <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  <TrendingUp size={12} />
+                  +14.2% Growth
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary mt-1 font-medium">Global payroll distribution trends over recent billing cycles</p>
             </div>
-            <div className="flex items-center gap-3 text-success text-label tracking-[0.15em] bg-success/10 px-5 py-2.5 rounded-sm self-start sm:self-center border border-success/10 shadow-sm">
-              <TrendingUp size={16} />
-              +14.2% SYSTEM GROWTH
+            
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 p-1 bg-surface-variant/60 dark:bg-white/[0.05] rounded-xl border border-border/50 dark:border-white/10 backdrop-blur-md">
+                {(['1M', '3M', '5M', '1Y'] as const).map((tf) => (
+                  <button
+                    key={tf}
+                    onClick={() => setChartTimeframe(tf)}
+                    className={cn(
+                      "px-3 py-1 text-[11px] font-black rounded-lg transition-all",
+                      chartTimeframe === tf
+                        ? "bg-primary text-white shadow-md shadow-primary/20"
+                        : "text-text-secondary hover:text-text-primary hover:bg-surface/50"
+                    )}
+                  >
+                    {tf}
+                  </button>
+                ))}
+              </div>
+              <button className="p-2.5 rounded-xl border border-border/50 dark:border-white/10 bg-surface-variant/40 hover:bg-surface-variant text-text-secondary hover:text-text-primary transition-all">
+                <Download size={15} />
+              </button>
             </div>
           </div>
 
-          <ChartContainer heightClassName="h-[350px]" className="relative z-10">
-              <AreaChart data={trendData}>
+          <ChartContainer heightClassName="h-[340px]" className="relative z-10">
+              <AreaChart data={displayedChartData}>
                 <defs>
                   <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3BA38B" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#3BA38B" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#0D9488" stopOpacity={0.45}/>
+                    <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}} 
-                  dy={15}
+                  tick={{fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 800}} 
+                  dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900}}
+                  tick={{fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 800}}
                   tickFormatter={(value) => `₹${value/1000000}M`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Area 
                   type="monotone" 
                   dataKey="amount" 
-                  stroke="#3BA38B" 
-                  strokeWidth={4}
+                  stroke="#0D9488" 
+                  strokeWidth={3.5}
                   fillOpacity={1} 
                   fill="url(#payrollGradient)" 
-                  animationDuration={2500}
+                  animationDuration={1800}
                   animationEasing="ease-in-out"
                 />
               </AreaChart>
@@ -522,52 +584,65 @@ const PayrollPage = () => {
           <motion.div 
             variants={itemVariants}
             whileHover={{ scale: 1.01 }}
-            className="glass-card p-8 bg-gradient-to-br from-[#0D9488] via-[#0F766E] to-[#134E4A] text-white border-none shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between"
+            className="rounded-2xl p-7 bg-gradient-to-br from-[#0F766E] via-[#0D9488] to-[#115E59] text-white border border-teal-500/20 shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between"
           >
             {/* Animated Radial Glow */}
             <motion.div 
               animate={{ 
-                scale: [1, 1.3, 1],
+                scale: [1, 1.25, 1],
                 opacity: [0.2, 0.4, 0.2]
               }}
               transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="absolute -right-20 -top-20 w-96 h-96 bg-teal-300/20 rounded-full blur-[100px] pointer-events-none"
+              className="absolute -right-24 -top-24 w-96 h-96 bg-teal-300/25 rounded-full blur-[100px] pointer-events-none"
             />
             
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-8">
-                <div className="p-4 bg-black/20 backdrop-blur-2xl rounded-sm group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/20 shadow-sm">
-                  <IndianRupee size={32} className="text-white" />
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3.5 bg-black/25 backdrop-blur-2xl rounded-xl group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/20 shadow-inner">
+                    <IndianRupee size={28} className="text-teal-200" />
+                  </div>
+                  <div className="px-3.5 py-1.5 bg-black/30 backdrop-blur-2xl rounded-full text-[10px] font-black tracking-widest flex items-center gap-2 border border-white/20 shadow-sm text-white uppercase">
+                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_12px_#34d399]" />
+                    Active Liquidity
+                  </div>
                 </div>
-                <div className="px-4 py-1.5 bg-black/20 backdrop-blur-2xl rounded-full text-micro font-black tracking-[0.2em] flex items-center gap-2 border border-white/20 shadow-sm text-white">
-                  <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse shadow-[0_0_12px_#86efac]" />
-                  ACTIVE LIQUIDITY
+
+                <div className="pt-4">
+                  <p className="text-teal-100/70 text-[10.5px] font-black tracking-widest uppercase mb-1">Global Disbursement Pool</p>
+                  <h3 className="text-4xl md:text-5xl font-black tracking-tight font-mono text-white group-hover:text-teal-100 transition-colors duration-500">
+                    ₹24,842,100
+                  </h3>
                 </div>
               </div>
               
-              <div className="mt-auto pt-10">
-                <p className="text-white/60 text-micro font-black tracking-[0.2em] uppercase mb-2">Global Disbursement Pool</p>
-                <h3 className="text-5xl font-black mb-8 tracking-tighter tabular-nums text-white group-hover:text-teal-200 transition-colors duration-500">₹24,842,100</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-micro font-black uppercase tracking-[0.2em]">
-                    <span className="text-white/70">Pool utilization</span>
-                    <span className="text-teal-200">75.4%</span>
+              <div className="pt-8">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider">
+                    <span className="text-teal-100/80">Pool Utilization</span>
+                    <span className="text-teal-200 font-mono">75.4%</span>
                   </div>
-                  <div className="h-2.5 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/20 shadow-sm">
+                  <div className="h-3 bg-black/30 rounded-full overflow-hidden p-0.5 border border-white/20 shadow-inner">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: '75.4%' }}
-                      transition={{ duration: 2, delay: 0.5, ease: "circOut" }}
-                      className="h-full bg-gradient-to-r from-teal-300/70 to-teal-200 rounded-full shadow-[0_0_20px_rgba(45,212,191,0.5)]"
+                      transition={{ duration: 1.8, delay: 0.3, ease: "circOut" }}
+                      className="h-full bg-gradient-to-r from-teal-300 via-emerald-300 to-green-200 rounded-full shadow-[0_0_18px_rgba(45,212,191,0.6)]"
                     />
                   </div>
+                  <div className="flex items-center justify-between text-[10px] text-teal-100/70 font-semibold pt-1">
+                    <span>Buffer Reserved: ₹6.1M</span>
+                    <span>Target: 80% Max</span>
+                  </div>
                 </div>
-                <div className="mt-10 flex items-center gap-3">
-                  <button className="flex-1 py-4 bg-white/15 border border-white/30 text-white text-micro font-black uppercase tracking-[0.2em] rounded-sm hover:bg-white/25 transition-all active:scale-95 shadow-xl backdrop-blur-sm">
-                    Rebalance Pool
+
+                <div className="mt-8 flex items-center gap-3">
+                  <button className="flex-1 py-3.5 bg-white/20 hover:bg-white/30 border border-white/30 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-xl backdrop-blur-md flex items-center justify-center gap-2">
+                    <Zap size={14} />
+                    <span>Rebalance Pool</span>
                   </button>
-                  <button className="p-4 bg-black/20 backdrop-blur-2xl border border-white/20 rounded-sm hover:bg-white/20 transition-all active:scale-95 shadow-sm">
-                    <ArrowUpRight size={20} className="text-white" />
+                  <button className="p-3.5 bg-black/30 hover:bg-white/20 backdrop-blur-2xl border border-white/20 rounded-xl transition-all active:scale-95 shadow-sm text-white">
+                    <ArrowUpRight size={18} />
                   </button>
                 </div>
               </div>
@@ -576,21 +651,24 @@ const PayrollPage = () => {
 
           <motion.div 
             variants={itemVariants} 
-            whileHover={{ x: 8 }}
-            className="glass-card p-6 flex items-center justify-between group hover:border-warning/50 transition-all cursor-pointer overflow-hidden relative shadow-premium"
+            whileHover={{ x: 6 }}
+            className="rounded-2xl p-5 border border-amber-500/25 hover:border-amber-500/50 bg-amber-500/[0.04] dark:bg-amber-500/[0.06] flex items-center justify-between group cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden"
           >
-            <div className="absolute right-0 top-0 w-24 h-24 bg-warning/5 blur-3xl rounded-full" />
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="p-4 rounded-sm bg-warning/10 text-warning group-hover:rotate-12 group-hover:scale-110 transition-all shadow-sm">
-                <Clock size={24} />
+            <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 blur-2xl rounded-full" />
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="p-3.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 group-hover:rotate-12 group-hover:scale-110 transition-all shadow-sm border border-amber-500/20">
+                <Clock size={22} />
               </div>
               <div>
-                <p className="text-sm font-black text-text-primary uppercase tracking-tight">Manual Audit Queue</p>
-                <p className="text-micro font-bold text-text-secondary mt-1 uppercase tracking-widest">12 runs awaiting approval</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-black text-text-primary uppercase tracking-tight">Manual Audit Queue</p>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                </div>
+                <p className="text-[11px] font-bold text-text-secondary mt-0.5 uppercase tracking-wider">12 runs awaiting approval</p>
               </div>
             </div>
-            <div className="w-12 h-12 bg-surface-variant rounded-sm flex items-center justify-center text-text-secondary group-hover:bg-primary group-hover:text-white transition-all shadow-sm border border-border relative z-10">
-              <ArrowRight size={20} />
+            <div className="w-10 h-10 bg-surface dark:bg-white/10 rounded-xl flex items-center justify-center text-text-secondary group-hover:bg-primary group-hover:text-white transition-all shadow-sm border border-border/60 dark:border-white/10 relative z-10">
+              <ArrowRight size={18} />
             </div>
           </motion.div>
         </div>
