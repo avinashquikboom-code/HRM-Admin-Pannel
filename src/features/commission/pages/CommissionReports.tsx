@@ -119,7 +119,8 @@ export default function CommissionReports() {
         const res = await api.get(url);
         const list = res.data?.data || res.data?.reports || res.data?.records || (Array.isArray(res.data) ? res.data : null);
         if (Array.isArray(list) && list.length > 0) {
-          setReportData(list);
+          const sorted = [...list].sort((a, b) => (Number(b.commissionAmount || 0) - Number(a.commissionAmount || 0)));
+          setReportData(sorted);
           return;
         }
       } catch (err) {
@@ -160,7 +161,8 @@ export default function CommissionReports() {
           reportMap.set(key, existing);
         });
 
-        setReportData(Array.from(reportMap.values()));
+        const sortedFallback = Array.from(reportMap.values()).sort((a, b) => (Number(b.commissionAmount || 0) - Number(a.commissionAmount || 0)));
+        setReportData(sortedFallback);
       } else {
         setReportData([]);
       }
