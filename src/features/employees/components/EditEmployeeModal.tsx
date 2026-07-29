@@ -53,6 +53,7 @@ export default function EditEmployeeModal({
     specialAllowance: 0,
     incentive: 0,
     bonus: 0,
+    advanceLimit: 25000,
   });
 
   const [error, setError] = useState('');
@@ -113,6 +114,7 @@ export default function EditEmployeeModal({
         specialAllowance: employee.specialAllowance || 0,
         incentive: employee.incentive || 0,
         bonus: employee.bonus || 0,
+        advanceLimit: employee.wallet?.advanceLimit ?? 25000,
       });
       setError('');
       loadDropdownData();
@@ -212,6 +214,7 @@ export default function EditEmployeeModal({
         specialAllowance: form.specialAllowance || 0,
         incentive: form.incentive || 0,
         bonus: form.bonus || 0,
+        advanceLimit: form.advanceLimit || 0,
       } as any);
       toast.success('Employee updated successfully!');
       onUpdated();
@@ -639,6 +642,17 @@ export default function EditEmployeeModal({
             <div>
               <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Gross Total</label>
               <p className="p-2 text-sm font-black text-primary">₹{form.grossSalary.toLocaleString('en-IN')}</p>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Salary Advance Limit (₹)</label>
+              <input
+                type="number"
+                min={0}
+                value={form.advanceLimit}
+                onChange={(e) => setForm({ ...form, advanceLimit: parseFloat(e.target.value) || 0 })}
+                className="w-full p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-sm text-xs font-bold text-emerald-600 dark:text-emerald-400"
+                placeholder="25000"
+              />
             </div>
           </div>
         </div>

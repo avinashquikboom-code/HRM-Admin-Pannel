@@ -184,6 +184,57 @@ const PayrollPage = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
+  // Salary Advances state
+  const [mainTab, setMainTab] = useState<'slips' | 'advances'>('slips');
+  const [advancesList, setAdvancesList] = useState<any[]>([]);
+  const [isAdvancesLoading, setIsAdvancesLoading] = useState(false);
+  const [advanceFilter, setAdvanceFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'PAID_OFF' | 'REJECTED'>('ALL');
+  const [selectedAdvance, setSelectedAdvance] = useState<any | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewMonths, setReviewMonths] = useState<number>(4);
+  const [reviewNote, setReviewNote] = useState<string>('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const loadAdvancesData = useCallback(async () => {
+    setIsAdvancesLoading(true);
+    try {
+      const res = await api.get<{ success: boolean; advances: any[] }>('/api/payroll/admin/advances');
+      if (res.data.success) {
+        setAdvancesList(res.data.advances);
+      }
+    } catch (err) {
+      console.error('Failed to load salary advances:', err);
+    } finally {
+      setIsAdvancesLoading(false);
+    }
+  }, []);
+
+  const handleReviewAdvance = async (action: 'APPROVE' | 'REJECT') => {
+    if (!selectedAdvance) return;
+    setIsSubmittingReview(true);
+    try {
+      const res = await api.put<{ success: boolean; message: string }>(
+        `/api/payroll/admin/advances/${selectedAdvance.id}/review`,
+        {
+          action,
+          months: reviewMonths,
+          reviewNote,
+        }
+      );
+      if (res.data.success) {
+        toast.success(res.data.message || 'Salary advance reviewed successfully!');
+        setIsReviewModalOpen(false);
+        setSelectedAdvance(null);
+        await loadAdvancesData();
+      }
+    } catch (err: any) {
+      console.error('Review advance error:', err);
+      toast.error(err?.response?.data?.message || 'Failed to process advance review.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   const [slipAttendance, setSlipAttendance] = useState<{
     workingDays: number;
     present: number;
@@ -212,6 +263,8 @@ const PayrollPage = () => {
       if (slipsRes.data.success) {
         setSlipsList(slipsRes.data.slips);
       }
+
+      await loadAdvancesData();
     } catch (err) {
       console.error('Failed to load payroll data:', err);
     } finally {
@@ -341,6 +394,13 @@ const PayrollPage = () => {
     slip.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
     slip.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredAdvances = advancesList.filter(adv => {
+    const matchesSearch = (adv.employeeName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (adv.employeeCode || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = advanceFilter === 'ALL' || adv.status === advanceFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   const isLoading = isPageLoading;
 
@@ -536,12 +596,51 @@ const PayrollPage = () => {
         </div>
       </div>
 
-      {/* Employee Payslips */}
+      {/* Navigation Subtabs Bar */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setMainTab('slips')}
+          className={cn(
+            "px-6 py-3.5 rounded-sm text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm",
+            mainTab === 'slips'
+              ? "bg-primary text-white border-primary shadow-primary/20"
+              : "bg-surface-variant text-text-secondary border-border hover:text-text-primary"
+          )}
+        >
+          <IndianRupee size={16} />
+          Employee Payslips Manager
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMainTab('advances'); loadAdvancesData(); }}
+          className={cn(
+            "px-6 py-3.5 rounded-sm text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm relative",
+            mainTab === 'advances'
+              ? "bg-primary text-white border-primary shadow-primary/20"
+              : "bg-surface-variant text-text-secondary border-border hover:text-text-primary"
+          )}
+        >
+          <Wallet size={16} />
+          Salary Advances & EMI Governance
+          {advancesList.filter(a => a.status === 'PENDING').length > 0 && (
+            <span className="ml-1.5 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full shadow-sm animate-pulse">
+              {advancesList.filter(a => a.status === 'PENDING').length} Pending
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Employee Payslips or Advances Table */}
       <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
           <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div>
-              <h3 className="heading-2">Employee Payslips Manager</h3>
-              <p className="text-sm text-page-desc mt-1">Generate, approve, and track salary slips for individual workforce members</p>
+              <h3 className="heading-2">{mainTab === 'slips' ? 'Employee Payslips Manager' : 'Salary Advance & EMI Requests'}</h3>
+              <p className="text-sm text-page-desc mt-1">
+                {mainTab === 'slips' 
+                  ? 'Generate, approve, and track salary slips for individual workforce members'
+                  : 'Manage employee salary advance applications, define EMI payback periods (2, 4, 6 months), and track repayment'}
+              </p>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-grow sm:flex-grow-0 group">
@@ -557,12 +656,13 @@ const PayrollPage = () => {
             </div>
           </div>
           
-          {isSlipsLoading ? (
-            <div className="p-8">
-              <TableSkeleton rows={5} columns={6} />
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+          {mainTab === 'slips' ? (
+            isSlipsLoading ? (
+              <div className="p-8">
+                <TableSkeleton rows={5} columns={6} />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-surface-variant/50">
@@ -641,6 +741,143 @@ const PayrollPage = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="p-4 bg-surface-variant/30 border-b border-border flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Filter:</span>
+                  {(['ALL', 'PENDING', 'APPROVED', 'PAID_OFF', 'REJECTED'] as const).map(filter => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setAdvanceFilter(filter)}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-sm text-micro font-black uppercase tracking-wider transition-all",
+                        advanceFilter === filter
+                          ? "bg-primary text-white shadow-sm"
+                          : "bg-surface text-text-secondary border border-border hover:text-text-primary"
+                      )}
+                    >
+                      {filter === 'PAID_OFF' ? 'Paid Off' : filter}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-xs font-bold text-text-secondary">
+                  Showing <span className="font-black text-text-primary">{filteredAdvances.length}</span> request(s)
+                </div>
+              </div>
+
+              {isAdvancesLoading ? (
+                <div className="p-8">
+                  <TableSkeleton rows={5} columns={7} />
+                </div>
+              ) : filteredAdvances.length === 0 ? (
+                <div className="p-16 text-center">
+                  <Wallet size={44} className="mx-auto text-text-secondary/40 mb-3" />
+                  <p className="text-sm font-bold text-text-secondary">No salary advance records match the selected filter.</p>
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-variant/50">
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Employee</th>
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Advance Amount</th>
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">EMI Plan</th>
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Paid / Remaining</th>
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">EMI Progress</th>
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Status</th>
+                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredAdvances.map((adv) => (
+                      <tr key={adv.id} className="hover:bg-surface-variant/30 transition-colors">
+                        <td className="px-6 py-5">
+                          <div>
+                            <span className="font-black text-text-primary block">{adv.employeeName}</span>
+                            <span className="font-mono text-micro text-text-secondary bg-slate-900 px-2 py-0.5 rounded border border-white/5">{adv.employeeCode}</span>
+                            <span className="text-xs font-medium text-text-secondary ml-2">{adv.designation}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 font-mono font-black text-emerald-500 text-sm">
+                          ₹{adv.amount.toLocaleString('en-IN')}
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-text-primary">₹{adv.monthlyEmi.toLocaleString('en-IN')} / month</span>
+                            <span className="text-micro font-bold text-text-secondary uppercase">{adv.months} EMI Installments</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-emerald-500">Paid: ₹{adv.paidAmount.toLocaleString('en-IN')}</span>
+                            <span className="text-xs font-bold text-amber-500">Remaining: ₹{adv.remainingAmount.toLocaleString('en-IN')}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="w-32">
+                            <div className="flex justify-between text-[10px] font-bold text-text-secondary mb-1">
+                              <span>{adv.paidEmis} / {adv.months} EMIs</span>
+                              <span>{Math.round((adv.paidEmis / (adv.months || 1)) * 100)}%</span>
+                            </div>
+                            <div className="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-emerald-500 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (adv.paidEmis / (adv.months || 1)) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className={cn(
+                            "px-3 py-1 rounded-sm text-micro font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
+                            adv.status === 'APPROVED' && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                            adv.status === 'PENDING' && "bg-warning/10 text-warning border-warning/20 animate-pulse",
+                            adv.status === 'PAID_OFF' && "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                            adv.status === 'REJECTED' && "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                          )}>
+                            {adv.status === 'APPROVED' && <CheckCircle2 size={12} />}
+                            {adv.status === 'PENDING' && <Clock size={12} />}
+                            {adv.status === 'PAID_OFF' && <ShieldCheck size={12} />}
+                            {adv.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                          {adv.status === 'PENDING' ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedAdvance(adv);
+                                setReviewMonths(adv.months || 4);
+                                setReviewNote('');
+                                setIsReviewModalOpen(true);
+                              }}
+                              className="px-3.5 py-2 bg-primary text-white hover:bg-primary/90 rounded-sm text-xs font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                            >
+                              Review & Set EMI
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedAdvance(adv);
+                                setReviewMonths(adv.months || 4);
+                                setReviewNote(adv.reviewNote || '');
+                                setIsReviewModalOpen(true);
+                              }}
+                              className="px-3 py-1.5 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary rounded-sm text-xs font-bold uppercase tracking-wider border border-border"
+                            >
+                              View Details
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </motion.div>
@@ -932,6 +1169,144 @@ const PayrollPage = () => {
           onBulkDisburse={handleBulkDisburse}
           isDisbursing={isDisbursing}
         />
+      </Modal>
+
+      {/* Salary Advance Review Modal */}
+      <Modal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        title="Salary Advance Approval & EMI Setup"
+      >
+        {selectedAdvance && (
+          <div className="space-y-5 p-2">
+            <div className="p-4 bg-surface-variant/40 border border-border rounded-sm space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Employee Name:</span>
+                <span className="text-sm font-black text-text-primary">{selectedAdvance.employeeName} ({selectedAdvance.employeeCode})</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Requested Advance Amount:</span>
+                <span className="text-base font-black text-emerald-500 font-mono">₹{selectedAdvance.amount.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Reason for Advance:</span>
+                <span className="text-xs font-semibold text-text-primary italic">"{selectedAdvance.reason}"</span>
+              </div>
+            </div>
+
+            {selectedAdvance.status === 'PENDING' ? (
+              <>
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider">
+                    Select EMI Tenure (Payback Months)
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[2, 3, 4, 6].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setReviewMonths(m)}
+                        className={cn(
+                          "py-2.5 rounded-sm text-xs font-black uppercase tracking-wider border transition-all",
+                          reviewMonths === m
+                            ? "bg-primary text-white border-primary shadow-md"
+                            : "bg-surface text-text-secondary border border-border hover:border-primary/50"
+                        )}
+                      >
+                        {m} Months
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-xs font-bold text-text-secondary">Or Custom Months:</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={24}
+                      value={reviewMonths}
+                      onChange={(e) => setReviewMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-24 p-2 bg-surface border border-border rounded-sm text-xs font-bold text-text-primary"
+                    />
+                  </div>
+                </div>
+
+                {/* Calculation Summary Card */}
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-sm space-y-1.5">
+                  <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Calculated Payroll EMI</p>
+                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                    ₹{Math.round(selectedAdvance.amount / (reviewMonths || 1)).toLocaleString('en-IN')} <span className="text-xs font-bold">/ month</span>
+                  </p>
+                  <p className="text-xs font-medium text-text-secondary">
+                    ₹{Math.round(selectedAdvance.amount / (reviewMonths || 1)).toLocaleString('en-IN')} will be automatically deducted from monthly salary for {reviewMonths} consecutive months.
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-black text-text-secondary uppercase tracking-wider">
+                    Review Note / Remarks
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                    placeholder="Enter approval note or rejection reason..."
+                    className="w-full p-2.5 bg-surface border border-border rounded-sm text-xs font-medium outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3">
+                  <button
+                    type="button"
+                    disabled={isSubmittingReview}
+                    onClick={() => handleReviewAdvance('REJECT')}
+                    className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/30 rounded-sm text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    Reject Request
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSubmittingReview}
+                    onClick={() => handleReviewAdvance('APPROVE')}
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-bold uppercase tracking-wider transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <CheckCircle2 size={16} />
+                    Approve Advance & Start EMI
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4 pt-2">
+                <div className="p-4 bg-surface-variant/30 border border-border rounded-sm space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-text-secondary">Status:</span>
+                    <span className="text-xs font-black uppercase px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-500">{selectedAdvance.status}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-text-secondary">Approved Monthly EMI:</span>
+                    <span className="text-sm font-black text-text-primary font-mono">₹{selectedAdvance.monthlyEmi} / month</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-text-secondary">EMI Installments:</span>
+                    <span className="text-xs font-bold text-text-primary">{selectedAdvance.paidEmis} of {selectedAdvance.months} Paid</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-text-secondary">Remaining Balance:</span>
+                    <span className="text-sm font-black text-amber-500 font-mono">₹{selectedAdvance.remainingAmount}</span>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsReviewModalOpen(false)}
+                    className="px-4 py-2 bg-surface-variant text-text-secondary text-xs font-bold uppercase tracking-wider rounded-sm border border-border"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </motion.div>
   );
