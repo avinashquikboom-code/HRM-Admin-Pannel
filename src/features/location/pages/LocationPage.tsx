@@ -917,59 +917,75 @@ export default function LocationPage() {
       `}} />
 
       <SuperAdminHeader
-        title="Live Location"
-        subtitle="Monitor employee locations, office geofences, and geofence activity across your organization in real time."
-        badgeText="Geofence Management"
-        badgeIcon={MapPin}
+        title="Live Location & Geofence Intelligence"
+        subtitle="Real-time telemetry tracking, office geofence radius governance, and movement history trail logs across your organization."
+        badgeText="Real-time GPS Control"
+        badgeIcon={Navigation}
         stats={[
           { label: 'Total Offices', value: offices.length.toString(), icon: Building2 },
           { label: 'Active Employees', value: locations.length.toString(), icon: Users },
           { label: 'In Office', value: locations.filter(l => l.status === 'In Office').length.toString(), icon: ShieldCheck },
           { label: 'Outside Geofence', value: locations.filter(l => l.status === 'Outside Geofence').length.toString(), icon: Activity }
         ]}
-      >
-        <div className="flex border border-border rounded-sm overflow-hidden p-0.5 bg-surface-variant/30 shrink-0 mr-2">
+      />
+
+      {/* Redesigned Tab Navigation Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-2.5 bg-slate-900/60 rounded-xl border border-white/10 backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => setActiveTab('editor')}
             className={cn(
-              "px-3 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer",
+              "px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm cursor-pointer",
               activeTab === 'editor'
-                ? "bg-primary text-white"
-                : "text-text-secondary hover:text-text-primary"
+                ? "bg-primary text-white border-primary shadow-primary/30"
+                : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
             )}
           >
-            Geofence Editor
+            <Building2 size={16} />
+            Geofence Perimeter Editor
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('tracker')}
             className={cn(
-              "px-3 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer",
+              "px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm cursor-pointer relative",
               activeTab === 'tracker'
-                ? "bg-primary text-white"
-                : "text-text-secondary hover:text-text-primary"
+                ? "bg-primary text-white border-primary shadow-primary/30"
+                : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
             )}
           >
-            Live Roster
+            <Navigation size={16} />
+            Live Telemetry Tracker
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping absolute -top-1 -right-1" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-1 -right-1" />
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('history')}
             className={cn(
-              "px-3 py-1.5 rounded-sm text-xs font-bold transition-all cursor-pointer",
+              "px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 border shadow-sm cursor-pointer relative",
               activeTab === 'history'
-                ? "bg-primary text-white"
-                : "text-text-secondary hover:text-text-primary"
+                ? "bg-primary text-white border-primary shadow-primary/30"
+                : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
             )}
           >
-            History & Alerts
+            <Activity size={16} />
+            Trajectory & Alert Logs
+            {alerts.length > 0 && (
+              <span className="ml-1.5 px-2 py-0.5 bg-rose-500 text-white text-[10px] font-black rounded-full shadow-sm">
+                {alerts.length}
+              </span>
+            )}
           </button>
         </div>
 
         {activeTab === 'tracker' && (
-          <>
+          <div className="flex items-center gap-3">
             <select
               value={hierarchyFilter}
               onChange={(e) => setHierarchyFilter(e.target.value)}
-              className="bg-surface-variant text-text-primary border border-border rounded-sm px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/20 max-w-[200px]"
+              className="bg-surface-variant text-text-primary border border-border rounded-lg px-3.5 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20"
             >
               {hierarchyOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -979,32 +995,32 @@ export default function LocationPage() {
               type="button"
               onClick={() => setIsAutoRefreshing((prev) => !prev)}
               className={cn(
-                'btn-secondary flex items-center gap-2 text-sm',
-                isAutoRefreshing && 'border-primary/25 bg-primary/5 text-primary'
+                'px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all border shadow-sm',
+                isAutoRefreshing 
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                  : 'bg-surface-variant text-text-secondary border-border'
               )}
             >
-              {isAutoRefreshing ? <Pause size={16} /> : <Play size={16} />}
-              {isAutoRefreshing ? 'Pause live' : 'Resume live'}
+              {isAutoRefreshing ? <Pause size={14} /> : <Play size={14} />}
+              {isAutoRefreshing ? 'Live Sync (5s)' : 'Paused'}
             </button>
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isLoadingAny}
-              className="p-3 rounded-sm bg-surface-variant hover:bg-border text-text-primary transition-all disabled:opacity-60"
-              title="Refresh data"
+              className="p-2.5 rounded-lg bg-surface-variant hover:bg-border text-text-primary transition-all disabled:opacity-60 border border-border"
+              title="Refresh Data"
             >
               <RefreshCw
-                size={18}
+                size={16}
                 className={cn(isLoadingAny && 'animate-spin')}
               />
             </button>
-          </>
+          </div>
         )}
-      </SuperAdminHeader>
+      </div>
 
-      {/* Tab-scoped alert feedback.
-          Office errors belong to the editor tab; live-location (telemetry)
-          errors belong to the tracker tab, so messages never bleed across screens. */}
+      {/* Tab-scoped alert feedback. */}
       {(() => {
         const scopedError =
           activeTab === 'editor'
@@ -1016,7 +1032,7 @@ export default function LocationPage() {
             {officeActionMessage && (
               <div className="rounded-sm bg-success/10 border border-success/20 px-4 py-3 text-sm font-semibold text-success flex items-center gap-2">
                 <ShieldCheck size={16} />
-                {officeActionMessage}hhhhhhs
+                {officeActionMessage}
               </div>
             )}
             {scopedError && (
