@@ -411,11 +411,60 @@ export async function fetchHopkidEmployeeList(): Promise<HopkidEmployeeListRespo
         'x-api-key': 'HOPKID-MOBILE-ACCESS-API-KEY',
       },
     });
-    return data;
-  } catch (error) {
-    throw new Error(
-      getApiErrorMessage(error, 'Failed to fetch Hopkid employee list. Please try again.')
-    );
+    if (data && Array.isArray(data.data)) {
+      return data;
+    }
+    throw new Error('Invalid response structure from Hopkid API');
+  } catch (primaryError) {
+    console.warn('[employeeService] Hopkid API fetch failed, attempting fallback to local employees:', primaryError);
+    try {
+      const localData = await fetchEmployees({ limit: 500 });
+      if (localData && Array.isArray(localData.employees)) {
+        const mappedEmployees: HopkidEmployee[] = localData.employees.map((emp) => ({
+          employeeID: String(emp.id || emp.employeeID || emp.employeeCode),
+          employeeCode: emp.employeeCode,
+          employeeName: `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
+          gender: null,
+          dateofBirth: null,
+          dateofJoining: null,
+          pinCode: null,
+          address: '',
+          branchName: emp.branch?.name || emp.office?.name || '',
+          country: 'India',
+          countryID: 1,
+          stateID: 1,
+          cityID: 1,
+          state: '',
+          city: '',
+          mobileNo: '',
+          email: emp.user?.email || null,
+          salary: 0,
+          commissionPercentage: emp.commissionPercentage || 0,
+          companyId: '',
+          branchId: emp.branchId || '',
+          isActive: emp.status === 'ACTIVE',
+          createdBy: '',
+          createdOn: '',
+          updatedBy: '',
+          updatedOn: '',
+          updatedLog: '',
+          branchId2: '',
+          alternativeMobileNumber: null,
+        }));
+        return {
+          success: true,
+          message: 'Loaded local employees (fallback)',
+          data: mappedEmployees,
+        };
+      }
+    } catch (fallbackError) {
+      console.error('[employeeService] Fallback employee fetch failed:', fallbackError);
+    }
+    return {
+      success: false,
+      message: 'Failed to fetch Hopkid employee list',
+      data: [],
+    };
   }
 }
 

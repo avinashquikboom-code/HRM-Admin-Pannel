@@ -36,10 +36,7 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
-import { useLoadingData } from '@/hooks/useLoadingData';
 import Modal from '@/components/Modal';
-import SuperAdminHeader from '@/components/SuperAdminHeader';
-
 const payrollStats = [
   { name: 'Jan', amount: 2400000, trend: 1500000 },
   { name: 'Feb', amount: 2100000, trend: 1800000 },
@@ -262,30 +259,30 @@ const PayrollPage = () => {
     setIsPageLoading(true);
     setIsSlipsLoading(true);
     try {
-      const statsRes = await api.get<{ success: boolean; stats: any; trend: any[] }>('/api/payroll/admin/stats');
-      if (statsRes.data.success) {
-        setStats(statsRes.data.stats);
-        setTrendData(statsRes.data.trend);
-      }
+      const [statsRes, runsRes, slipsRes] = await Promise.allSettled([
+        api.get<{ success: boolean; stats: any; trend: any[] }>('/api/payroll/admin/stats'),
+        api.get<{ success: boolean; runs: any[] }>('/api/payroll/admin/runs'),
+        api.get<{ success: boolean; slips: any[] }>(`/api/payroll/admin/slips?month=${slipMonth}`),
+        loadAdvancesData()
+      ]);
 
-      const runsRes = await api.get<{ success: boolean; runs: any[] }>('/api/payroll/admin/runs');
-      if (runsRes.data.success) {
-        setRunsList(runsRes.data.runs);
+      if (statsRes.status === 'fulfilled' && statsRes.value.data.success) {
+        setStats(statsRes.value.data.stats);
+        setTrendData(statsRes.value.data.trend);
       }
-
-      const slipsRes = await api.get<{ success: boolean; slips: any[] }>(`/api/payroll/admin/slips?month=${slipMonth}`);
-      if (slipsRes.data.success) {
-        setSlipsList(slipsRes.data.slips);
+      if (runsRes.status === 'fulfilled' && runsRes.value.data.success) {
+        setRunsList(runsRes.value.data.runs);
       }
-
-      await loadAdvancesData();
+      if (slipsRes.status === 'fulfilled' && slipsRes.value.data.success) {
+        setSlipsList(slipsRes.value.data.slips);
+      }
     } catch (err) {
       console.error('Failed to load payroll data:', err);
     } finally {
       setIsPageLoading(false);
       setIsSlipsLoading(false);
     }
-  }, [slipMonth]);
+  }, [slipMonth, loadAdvancesData]);
 
   useEffect(() => {
     loadPayrollData();
@@ -448,6 +445,24 @@ const PayrollPage = () => {
     setTimeout(() => { document.title = prev; }, 1500);
   };
 
+  // Dynamic stats calculation from loaded API data (slipsList & advancesList & stats)
+  const totalVolumeAmount = slipsList.length > 0
+    ? slipsList.reduce((acc, s) => acc + (s.netSalary || s.baseSalary || 0), 0)
+    : (stats?.mtdVolume || 0);
+
+  const totalDisbursedAmount = slipsList.length > 0
+    ? slipsList.filter(s => s.status === 'Approved').reduce((acc, s) => acc + (s.netSalary || s.baseSalary || 0), 0)
+    : (stats?.disbursed || 0);
+
+  const pendingAdvancesCount = advancesList.filter(a => a.status === 'PENDING').length;
+
+  const formatAmountDisplay = (amount: number) => {
+    if (amount >= 100000) {
+      return `₹${(amount / 100000).toFixed(2)}L`;
+    }
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -455,240 +470,119 @@ const PayrollPage = () => {
       animate="visible"
       className="space-y-8 pb-10 text-text-primary animate-fadeIn"
     >
-      <SuperAdminHeader
-        title="Payroll Governance"
-        subtitle="Strategic oversight of fund flows, compliance standards, salary slips generation, and platform-wide disbursement operations."
-        badgeText="Corporate Treasury & Remuneration"
-        badgeIcon={Wallet}
-        stats={[
-          { 
-            label: 'Total Volume (MTD)', 
-            value: `₹${stats.mtdVolume.toLocaleString('en-IN')}`, 
-            icon: Wallet,
-            trend: '+12.4%',
-            trendUp: true
-          },
-          { 
-            label: 'Total Disbursed', 
-            value: `₹${stats.disbursed.toLocaleString('en-IN')}`, 
-            icon: CheckCircle2,
-            badge: 'Verified'
-          },
-          { 
-            label: 'Pending Approval', 
-            value: `₹${stats.pending.toLocaleString('en-IN')}`, 
-            icon: Clock,
-            trend: '2 Runs',
-            trendUp: false
-          },
-          { 
-            label: 'Critical Errors', 
-            value: stats.errors > 0 ? `${stats.errors} Batches` : '0 Batches', 
-            icon: ShieldCheck,
-            badge: 'System Healthy'
-          },
-        ]}
+      {/* Redesigned Header Banner */}
+      <motion.div
+        variants={itemVariants}
+        className="relative overflow-hidden rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl p-6 md:p-8 shadow-lg dark:shadow-2xl transition-all duration-300"
       >
-        <button 
-          onClick={() => setIsProcessModalOpen(true)}
-          className="btn-primary group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-primary/40 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95"
-        >
-          <span className="p-1 rounded-lg bg-white/20 group-hover:rotate-12 transition-transform">
-            <Wallet size={16} />
-          </span>
-          <span>Bulk Process</span>
-        </button>
-      </SuperAdminHeader>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-teal-500/10 rounded-full filter blur-3xl pointer-events-none" />
 
-      {/* Analytics Summary */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <motion.div 
-          variants={itemVariants}
-          className="xl:col-span-2 glass-card p-6 md:p-8 relative overflow-hidden group shadow-premium rounded-2xl border border-border/60 dark:border-white/10"
-        >
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h3 className="heading-2 text-xl md:text-2xl font-black text-text-primary">Platform Disbursement Volume</h3>
-                <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                  <TrendingUp size={12} />
-                  +14.2% Growth
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary mt-1 font-medium">Global payroll distribution trends over recent billing cycles</p>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Left Title & Subtitle */}
+          <div className="space-y-3 max-w-xl">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/15 via-emerald-500/10 to-teal-500/15 border border-primary/30 text-primary text-[10.5px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-sm backdrop-blur-md">
+              <Wallet size={13} className="animate-pulse text-primary" />
+              <span>Payroll Governance & Financial Operations</span>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 p-1 bg-surface-variant/60 dark:bg-white/[0.05] rounded-xl border border-border/50 dark:border-white/10 backdrop-blur-md">
-                {(['1M', '3M', '5M', '1Y'] as const).map((tf) => (
-                  <button
-                    key={tf}
-                    onClick={() => setChartTimeframe(tf)}
-                    className={cn(
-                      "px-3 py-1 text-[11px] font-black rounded-lg transition-all",
-                      chartTimeframe === tf
-                        ? "bg-primary text-white shadow-md shadow-primary/20"
-                        : "text-text-secondary hover:text-text-primary hover:bg-surface/50"
-                    )}
-                  >
-                    {tf}
-                  </button>
-                ))}
-              </div>
-              <button className="p-2.5 rounded-xl border border-border/50 dark:border-white/10 bg-surface-variant/40 hover:bg-surface-variant text-text-secondary hover:text-text-primary transition-all">
-                <Download size={15} />
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-text-primary tracking-tight leading-tight">
+              Payroll Governance
+            </h1>
+            <p className="text-xs md:text-sm text-text-secondary font-medium leading-relaxed">
+              Strategic oversight of fund flows, salary slips generation, bulk disbursement, and salary advance EMI management.
+            </p>
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button 
+                onClick={() => setIsProcessModalOpen(true)}
+                className="btn-primary group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-primary/40 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95"
+              >
+                <span className="p-1 rounded-lg bg-white/20 group-hover:rotate-12 transition-transform">
+                  <Zap size={15} />
+                </span>
+                <span>Bulk Process Payroll</span>
               </button>
+
+              <div className="flex items-center gap-2 bg-surface-variant/50 dark:bg-slate-950/40 px-3.5 py-2.5 rounded-xl border border-border/50 dark:border-white/10 backdrop-blur-md">
+                <Clock size={14} className="text-text-secondary" />
+                <span className="text-xs font-bold text-text-secondary">Cycle:</span>
+                <input
+                  type="month"
+                  value={slipMonth}
+                  onChange={(e) => setSlipMonth(e.target.value)}
+                  className="bg-transparent text-xs font-black text-text-primary outline-none cursor-pointer"
+                />
+              </div>
             </div>
           </div>
 
-          <ChartContainer heightClassName="h-[340px]" className="relative z-10">
-              <AreaChart data={displayedChartData}>
-                <defs>
-                  <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0D9488" stopOpacity={0.45}/>
-                    <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 800}} 
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 800}}
-                  tickFormatter={(value) => `₹${value/1000000}M`}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="amount" 
-                  stroke="#0D9488" 
-                  strokeWidth={3.5}
-                  fillOpacity={1} 
-                  fill="url(#payrollGradient)" 
-                  animationDuration={1800}
-                  animationEasing="ease-in-out"
-                />
-              </AreaChart>
-          </ChartContainer>
-        </motion.div>
-
-        <div className="flex flex-col gap-6">
-          <motion.div 
-            variants={itemVariants}
-            whileHover={{ scale: 1.01 }}
-            className="rounded-2xl p-7 bg-gradient-to-br from-[#0F766E] via-[#0D9488] to-[#115E59] text-white border border-teal-500/20 shadow-2xl relative overflow-hidden group h-full flex flex-col justify-between"
-          >
-            {/* Animated Radial Glow */}
-            <motion.div 
-              animate={{ 
-                scale: [1, 1.25, 1],
-                opacity: [0.2, 0.4, 0.2]
-              }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="absolute -right-24 -top-24 w-96 h-96 bg-teal-300/25 rounded-full blur-[100px] pointer-events-none"
-            />
-            
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="p-3.5 bg-black/25 backdrop-blur-2xl rounded-xl group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 border border-white/20 shadow-inner">
-                    <IndianRupee size={28} className="text-teal-200" />
-                  </div>
-                  <div className="px-3.5 py-1.5 bg-black/30 backdrop-blur-2xl rounded-full text-[10px] font-black tracking-widest flex items-center gap-2 border border-white/20 shadow-sm text-white uppercase">
-                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_12px_#34d399]" />
-                    Active Liquidity
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <p className="text-teal-100/70 text-[10.5px] font-black tracking-widest uppercase mb-1">Global Disbursement Pool</p>
-                  <h3 className="text-4xl md:text-5xl font-black tracking-tight font-mono text-white group-hover:text-teal-100 transition-colors duration-500">
-                    ₹24,842,100
-                  </h3>
-                </div>
+          {/* Right Dynamic Summary Badges */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-3.5 shrink-0">
+            <div className="bg-surface-variant/40 dark:bg-slate-950/40 border border-border/50 dark:border-white/10 p-4 rounded-xl backdrop-blur-xl shadow-inner">
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                <Wallet size={12} className="text-primary" />
+                <span>Monthly Volume</span>
               </div>
-              
-              <div className="pt-8">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider">
-                    <span className="text-teal-100/80">Pool Utilization</span>
-                    <span className="text-teal-200 font-mono">75.4%</span>
-                  </div>
-                  <div className="h-3 bg-black/30 rounded-full overflow-hidden p-0.5 border border-white/20 shadow-inner">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: '75.4%' }}
-                      transition={{ duration: 1.8, delay: 0.3, ease: "circOut" }}
-                      className="h-full bg-gradient-to-r from-teal-300 via-emerald-300 to-green-200 rounded-full shadow-[0_0_18px_rgba(45,212,191,0.6)]"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-teal-100/70 font-semibold pt-1">
-                    <span>Buffer Reserved: ₹6.1M</span>
-                    <span>Target: 80% Max</span>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex items-center gap-3">
-                  <button className="flex-1 py-3.5 bg-white/20 hover:bg-white/30 border border-white/30 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-xl backdrop-blur-md flex items-center justify-center gap-2">
-                    <Zap size={14} />
-                    <span>Rebalance Pool</span>
-                  </button>
-                  <button className="p-3.5 bg-black/30 hover:bg-white/20 backdrop-blur-2xl border border-white/20 rounded-xl transition-all active:scale-95 shadow-sm text-white">
-                    <ArrowUpRight size={18} />
-                  </button>
-                </div>
-              </div>
+              <p className="text-lg md:text-xl font-black text-text-primary font-mono tracking-tight">
+                {formatAmountDisplay(totalVolumeAmount)}
+              </p>
+              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 inline-block mt-1">
+                {slipsList.length > 0 ? `${slipsList.length} Total Slips` : 'Live API Data'}
+              </span>
             </div>
-          </motion.div>
 
-          <motion.div 
-            variants={itemVariants} 
-            whileHover={{ x: 6 }}
-            className="rounded-2xl p-5 border border-amber-500/25 hover:border-amber-500/50 bg-amber-500/[0.04] dark:bg-amber-500/[0.06] flex items-center justify-between group cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden"
-          >
-            <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 blur-2xl rounded-full" />
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 group-hover:rotate-12 group-hover:scale-110 transition-all shadow-sm border border-amber-500/20">
-                <Clock size={22} />
+            <div className="bg-surface-variant/40 dark:bg-slate-950/40 border border-border/50 dark:border-white/10 p-4 rounded-xl backdrop-blur-xl shadow-inner">
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                <CheckCircle2 size={12} className="text-emerald-500" />
+                <span>Disbursed</span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-black text-text-primary uppercase tracking-tight">Manual Audit Queue</p>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                </div>
-                <p className="text-[11px] font-bold text-text-secondary mt-0.5 uppercase tracking-wider">12 runs awaiting approval</p>
+              <p className="text-lg md:text-xl font-black text-text-primary font-mono tracking-tight">
+                {formatAmountDisplay(totalDisbursedAmount)}
+              </p>
+              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 inline-block mt-1">
+                {slipsList.length > 0 ? `${slipsList.filter(s => s.status === 'Approved').length} Disbursed` : 'Verified'}
+              </span>
+            </div>
+
+            <div className="bg-surface-variant/40 dark:bg-slate-950/40 border border-border/50 dark:border-white/10 p-4 rounded-xl backdrop-blur-xl shadow-inner col-span-2 sm:col-span-1 lg:col-span-1 xl:col-span-1">
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">
+                <ShieldCheck size={12} className="text-amber-500" />
+                <span>Advances Req</span>
               </div>
+              <p className="text-lg md:text-xl font-black text-amber-500 font-mono tracking-tight">
+                {pendingAdvancesCount} Pending
+              </p>
+              <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 inline-block mt-1">
+                {advancesList.length > 0 ? `${advancesList.length} Total Requests` : 'Needs Review'}
+              </span>
             </div>
-            <div className="w-10 h-10 bg-surface dark:bg-white/10 rounded-xl flex items-center justify-center text-text-secondary group-hover:bg-primary group-hover:text-white transition-all shadow-sm border border-border/60 dark:border-white/10 relative z-10">
-              <ArrowRight size={18} />
-            </div>
-          </motion.div>
+          </div>
         </div>
-      </div>
+      </motion.div>
+
+
+
 
       {/* Pending Salary Advance Requests Alert Banner */}
       {advancesList.filter(a => a.status === 'PENDING').length > 0 && (
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg backdrop-blur-md"
+          className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl relative overflow-hidden"
         >
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-amber-500/20 text-amber-400 rounded-md border border-amber-500/30">
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="p-3 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 shadow-inner flex items-center justify-center shrink-0">
               <Wallet size={24} className="animate-bounce" />
             </div>
             <div>
-              <h4 className="text-sm font-black uppercase tracking-wider text-amber-300">
-                {advancesList.filter(a => a.status === 'PENDING').length} Pending Salary Advance Request(s)
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
+                  {advancesList.filter(a => a.status === 'PENDING').length} Pending Salary Advance Request(s)
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black border border-amber-400/30 animate-pulse">
+                  Action Required
+                </span>
+              </div>
               <p className="text-xs font-medium text-amber-200/80 mt-0.5">
                 Employees have submitted new salary advance & EMI applications awaiting your review and approval.
               </p>
@@ -697,46 +591,47 @@ const PayrollPage = () => {
           <button
             type="button"
             onClick={() => { setMainTab('advances'); loadAdvancesData(); }}
-            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-md transition-all shadow-md active:scale-95 shrink-0"
+            className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 shrink-0 border border-amber-400/30 flex items-center gap-2 relative z-10"
           >
-            Review Advances Now →
+            <span>Review Advances Now</span>
+            <ArrowRight size={14} />
           </button>
         </motion.div>
       )}
 
       {/* Navigation Subtabs Bar */}
-      <div className="flex flex-wrap items-center gap-4 bg-slate-900/60 p-2 rounded-xl border border-white/10 backdrop-blur-md">
+      <div className="flex flex-wrap items-center gap-2 bg-surface-variant/40 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-border/60 dark:border-white/10 backdrop-blur-xl shadow-lg">
         <button
           type="button"
           onClick={() => setMainTab('slips')}
           className={cn(
-            "px-6 py-4 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-3 border shadow-md flex-1 sm:flex-none justify-center",
+            "px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 flex-1 sm:flex-none justify-center border",
             mainTab === 'slips'
-              ? "bg-primary text-white border-primary shadow-primary/30"
-              : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
+              ? "bg-primary text-white border-primary shadow-lg shadow-primary/25"
+              : "bg-transparent text-text-secondary border-transparent hover:text-text-primary hover:bg-surface/50"
           )}
         >
-          <IndianRupee size={18} />
-          Employee Payslips Manager
+          <IndianRupee size={16} />
+          <span>Employee Payslips Manager</span>
         </button>
         <button
           type="button"
           onClick={() => { setMainTab('advances'); loadAdvancesData(); }}
           className={cn(
-            "px-6 py-4 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-3 border shadow-md relative flex-1 sm:flex-none justify-center",
+            "px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 relative flex-1 sm:flex-none justify-center border",
             mainTab === 'advances'
-              ? "bg-primary text-white border-primary shadow-primary/30"
-              : "bg-surface-variant/40 text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-variant/80"
+              ? "bg-primary text-white border-primary shadow-lg shadow-primary/25"
+              : "bg-transparent text-text-secondary border-transparent hover:text-text-primary hover:bg-surface/50"
           )}
         >
-          <Wallet size={18} />
-          Salary Advances & EMI Governance
+          <Wallet size={16} />
+          <span>Salary Advances & EMI Governance</span>
           {advancesList.filter(a => a.status === 'PENDING').length > 0 ? (
-            <span className="ml-2 px-2.5 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full shadow-sm animate-pulse">
+            <span className="ml-1.5 px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full shadow-sm animate-pulse">
               {advancesList.filter(a => a.status === 'PENDING').length} PENDING
             </span>
           ) : (
-            <span className="ml-2 px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-black rounded-full border border-white/10">
+            <span className="ml-1.5 px-2 py-0.5 bg-surface-variant dark:bg-white/10 text-text-secondary text-[10px] font-black rounded-full border border-border/50 dark:border-white/10">
               {advancesList.length} Total
             </span>
           )}
@@ -744,11 +639,13 @@ const PayrollPage = () => {
       </div>
 
       {/* Employee Payslips or Advances Table */}
-      <motion.div variants={itemVariants} className="glass-card overflow-hidden shadow-premium">
-          <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
+          <div className="p-6 md:p-8 border-b border-border/50 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-surface-variant/20 dark:bg-slate-950/20">
             <div>
-              <h3 className="heading-2">{mainTab === 'slips' ? 'Employee Payslips Manager' : 'Salary Advance & EMI Requests'}</h3>
-              <p className="text-sm text-page-desc mt-1">
+              <h3 className="heading-2 text-xl font-black text-text-primary">
+                {mainTab === 'slips' ? 'Employee Payslips Manager' : 'Salary Advance & EMI Requests'}
+              </h3>
+              <p className="text-xs text-text-secondary mt-1 font-medium">
                 {mainTab === 'slips' 
                   ? 'Generate, approve, and track salary slips for individual workforce members'
                   : 'Manage employee salary advance applications, define EMI payback periods (2, 4, 6 months), and track repayment'}
@@ -756,13 +653,13 @@ const PayrollPage = () => {
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-grow sm:flex-grow-0 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors w-4 h-4" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors w-4 h-4" />
                 <input 
                   type="text" 
                   placeholder="Search employees..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-11 pr-4 py-3.5 bg-surface-variant border-none rounded-sm text-xs outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-72 font-black uppercase tracking-widest text-text-primary"
+                  className="pl-10 pr-4 py-2.5 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/30 transition-all w-full sm:w-72 font-semibold text-text-primary placeholder:text-text-secondary"
                 />
               </div>
             </div>
@@ -777,64 +674,71 @@ const PayrollPage = () => {
               <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-surface-variant/50">
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Employee Code</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Employee Name</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Designation & Dept</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Net Salary</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Status</th>
-                    <th className="px-4 sm:px-6 md:px-8 py-5 sm:py-6 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border text-right">Actions</th>
+                  <tr className="bg-surface-variant/40 dark:bg-slate-950/40 border-b border-border/50 dark:border-white/10">
+                    <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Employee Code</th>
+                    <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Employee Name</th>
+                    <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Designation & Dept</th>
+                    <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Net Salary</th>
+                    <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Status</th>
+                    <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border/40 dark:divide-white/10">
                   {filteredSlips.map((slip) => (
                     <motion.tr 
                       key={slip.id}
                       variants={itemVariants}
-                      className="hover:bg-surface-variant/30 transition-colors group cursor-pointer"
+                      className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
                     >
-                      <td className="px-8 py-7">
-                        <span className="font-mono text-micro font-black text-text-secondary bg-slate-900 px-3 py-1.5 rounded-sm border border-white/5 shadow-sm group-hover:border-primary/30 transition-colors">
+                      <td className="px-6 py-5">
+                        <span className="font-mono text-xs font-black text-text-secondary bg-surface-variant/80 dark:bg-white/[0.06] px-3 py-1 rounded-lg border border-border/50 dark:border-white/10 shadow-sm group-hover:border-primary/40 transition-colors">
                           {slip.employeeCode}
                         </span>
                       </td>
-                      <td className="px-8 py-7">
-                        <div>
-                          <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block">{slip.name}</span>
-                          <span className="text-label font-bold text-text-secondary">{slip.office}</span>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 group-hover:scale-105 transition-transform">
+                            {slip.name ? slip.name.charAt(0) : 'E'}
+                          </div>
+                          <div>
+                            <span className="font-black text-text-primary tracking-tight group-hover:text-primary transition-colors block text-sm">{slip.name}</span>
+                            <span className="text-[11px] font-medium text-text-secondary">{slip.office}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-8 py-7">
+                      <td className="px-6 py-5">
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-text-primary">{slip.designation}</span>
-                          <span className="text-micro font-bold text-text-secondary uppercase tracking-[0.1em] mt-1">{slip.department}</span>
+                          <span className="text-xs font-black text-text-primary">{slip.designation}</span>
+                          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">{slip.department}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-7">
+                      <td className="px-6 py-5">
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-primary tracking-tighter">₹{slip.netSalary.toLocaleString('en-IN')}</span>
-                          <span className="text-label font-bold text-text-secondary mt-1">₹{slip.baseSalary.toLocaleString('en-IN')} Base</span>
+                          <span className="text-sm font-black text-primary font-mono tracking-tight">₹{slip.netSalary.toLocaleString('en-IN')}</span>
+                          <span className="text-[10px] font-medium text-text-secondary mt-0.5">Base: ₹{slip.baseSalary.toLocaleString('en-IN')}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-7">
+                      <td className="px-6 py-5">
                         <span className={cn(
-                          "px-4 py-2 rounded-sm text-label inline-flex items-center gap-2.5 transition-all border shadow-sm",
-                          slip.status === 'Approved' ? "bg-success/10 text-success border-success/10" : "bg-warning/10 text-warning border-warning/10"
+                          "px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-2 border shadow-sm",
+                          slip.status === 'Approved' 
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" 
+                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
                         )}>
                           <span className={cn(
-                            "w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]",
-                            slip.status === 'Approved' ? "bg-success animate-pulse" : "bg-warning"
+                            "w-1.5 h-1.5 rounded-full",
+                            slip.status === 'Approved' ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" : "bg-amber-500"
                           )} />
                           {slip.status}
                         </span>
                       </td>
-                      <td className="px-8 py-7 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           {slip.status === 'Pending Approval' ? (
                             <button 
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleApproveSlip(slip.id); }}
-                              className="px-4 py-2 bg-primary/20 text-primary border border-primary/20 hover:bg-primary hover:text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                              className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-primary/20 active:scale-95"
                             >
                               Approve & Generate
                             </button>
@@ -842,7 +746,7 @@ const PayrollPage = () => {
                             <button 
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setSelectedSlip(slip); setIsSlipModalOpen(true); }}
-                              className="px-4 py-2 bg-success/20 text-success border border-success/20 hover:bg-success hover:text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                              className="px-4 py-2 bg-surface-variant/80 hover:bg-surface-variant text-text-primary border border-border/60 dark:border-white/10 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95"
                             >
                               View & Download
                             </button>
@@ -857,19 +761,19 @@ const PayrollPage = () => {
           )
           ) : (
             <div className="overflow-x-auto">
-              <div className="p-4 bg-surface-variant/30 border-b border-border flex flex-wrap items-center justify-between gap-4">
+              <div className="p-4 bg-surface-variant/30 dark:bg-slate-950/30 border-b border-border/50 dark:border-white/10 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Filter:</span>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mr-1">Filter:</span>
                   {(['ALL', 'PENDING', 'APPROVED', 'PAID_OFF', 'REJECTED'] as const).map(filter => (
                     <button
                       key={filter}
                       type="button"
                       onClick={() => setAdvanceFilter(filter)}
                       className={cn(
-                        "px-3.5 py-1.5 rounded-sm text-micro font-black uppercase tracking-wider transition-all",
+                        "px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border",
                         advanceFilter === filter
-                          ? "bg-primary text-white shadow-sm"
-                          : "bg-surface text-text-secondary border border-border hover:text-text-primary"
+                          ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                          : "bg-surface/60 text-text-secondary border-border/50 dark:border-white/10 hover:text-text-primary hover:bg-surface"
                       )}
                     >
                       {filter === 'PAID_OFF' ? 'Paid Off' : filter}
@@ -877,7 +781,7 @@ const PayrollPage = () => {
                   ))}
                 </div>
                 <div className="text-xs font-bold text-text-secondary">
-                  Showing <span className="font-black text-text-primary">{filteredAdvances.length}</span> request(s)
+                  Showing <span className="font-black text-text-primary font-mono">{filteredAdvances.length}</span> request(s)
                 </div>
               </div>
 
@@ -893,50 +797,57 @@ const PayrollPage = () => {
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-surface-variant/50">
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Employee</th>
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Advance Amount</th>
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">EMI Plan</th>
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Paid / Remaining</th>
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">EMI Progress</th>
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border">Status</th>
-                      <th className="px-6 py-5 text-micro font-black uppercase tracking-[0.2em] text-text-secondary border-b border-border text-right">Actions</th>
+                    <tr className="bg-surface-variant/40 dark:bg-slate-950/40 border-b border-border/50 dark:border-white/10">
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Employee</th>
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Advance Amount</th>
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">EMI Plan</th>
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Paid / Remaining</th>
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">EMI Progress</th>
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Status</th>
+                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/40 dark:divide-white/10">
                     {filteredAdvances.map((adv) => (
-                      <tr key={adv.id} className="hover:bg-surface-variant/30 transition-colors">
+                      <tr key={adv.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02] transition-colors">
                         <td className="px-6 py-5">
-                          <div>
-                            <span className="font-black text-text-primary block">{adv.employeeName}</span>
-                            <span className="font-mono text-micro text-text-secondary bg-slate-900 px-2 py-0.5 rounded border border-white/5">{adv.employeeCode}</span>
-                            <span className="text-xs font-medium text-text-secondary ml-2">{adv.designation}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600 dark:text-teal-400 font-black text-xs shrink-0">
+                              {adv.employeeName ? adv.employeeName.charAt(0) : 'A'}
+                            </div>
+                            <div>
+                              <span className="font-black text-text-primary block text-sm">{adv.employeeName}</span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="font-mono text-[10px] font-black text-text-secondary bg-surface-variant/80 dark:bg-white/[0.06] px-2 py-0.5 rounded border border-border/50 dark:border-white/10">{adv.employeeCode}</span>
+                                <span className="text-[11px] font-medium text-text-secondary">{adv.designation}</span>
+                              </div>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5 font-mono font-black text-emerald-500 text-sm">
+                        <td className="px-6 py-5 font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
                           ₹{adv.amount.toLocaleString('en-IN')}
                         </td>
                         <td className="px-6 py-5">
                           <div className="flex flex-col">
-                            <span className="text-xs font-bold text-text-primary">₹{adv.monthlyEmi.toLocaleString('en-IN')} / month</span>
-                            <span className="text-micro font-bold text-text-secondary uppercase">{adv.months} EMI Installments</span>
+                            <span className="text-xs font-black text-text-primary font-mono">₹{adv.monthlyEmi.toLocaleString('en-IN')} / mo</span>
+                            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">{adv.months} EMI Installments</span>
                           </div>
                         </td>
                         <td className="px-6 py-5">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-emerald-500">Paid: ₹{adv.paidAmount.toLocaleString('en-IN')}</span>
-                            <span className="text-xs font-bold text-amber-500">Remaining: ₹{adv.remainingAmount.toLocaleString('en-IN')}</span>
+                          <div className="flex flex-col font-mono text-xs">
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">Paid: ₹{adv.paidAmount.toLocaleString('en-IN')}</span>
+                            <span className="font-bold text-amber-600 dark:text-amber-400">Rem: ₹{adv.remainingAmount.toLocaleString('en-IN')}</span>
                           </div>
                         </td>
                         <td className="px-6 py-5">
-                          <div className="w-32">
-                            <div className="flex justify-between text-[10px] font-bold text-text-secondary mb-1">
+                          <div className="w-36">
+                            <div className="flex justify-between text-[10px] font-black text-text-secondary mb-1 uppercase tracking-wider">
                               <span>{adv.paidEmis} / {adv.months} EMIs</span>
-                              <span>{Math.round((adv.paidEmis / (adv.months || 1)) * 100)}%</span>
+                              <span className="font-mono">{Math.round((adv.paidEmis / (adv.months || 1)) * 100)}%</span>
                             </div>
-                            <div className="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
+                            <div className="h-2.5 w-full bg-surface-variant dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-border/40 dark:border-white/10">
                               <div
-                                className="h-full bg-emerald-500 rounded-full transition-all"
+                                className="h-full bg-gradient-to-r from-teal-400 to-emerald-500 rounded-full transition-all shadow-sm"
                                 style={{ width: `${Math.min(100, (adv.paidEmis / (adv.months || 1)) * 100)}%` }}
                               />
                             </div>
@@ -944,11 +855,11 @@ const PayrollPage = () => {
                         </td>
                         <td className="px-6 py-5">
                           <span className={cn(
-                            "px-3 py-1 rounded-sm text-micro font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
-                            adv.status === 'APPROVED' && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-                            adv.status === 'PENDING' && "bg-warning/10 text-warning border-warning/20 animate-pulse",
-                            adv.status === 'PAID_OFF' && "bg-blue-500/10 text-blue-400 border-blue-500/20",
-                            adv.status === 'REJECTED' && "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                            "px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
+                            adv.status === 'APPROVED' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+                            adv.status === 'PENDING' && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 animate-pulse",
+                            adv.status === 'PAID_OFF' && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+                            adv.status === 'REJECTED' && "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
                           )}>
                             {adv.status === 'APPROVED' && <CheckCircle2 size={12} />}
                             {adv.status === 'PENDING' && <Clock size={12} />}
@@ -966,7 +877,7 @@ const PayrollPage = () => {
                                 setReviewNote('');
                                 setIsReviewModalOpen(true);
                               }}
-                              className="px-3.5 py-2 bg-primary text-white hover:bg-primary/90 rounded-sm text-xs font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                              className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-primary/20 active:scale-95"
                             >
                               Review & Set EMI
                             </button>
@@ -979,7 +890,7 @@ const PayrollPage = () => {
                                 setReviewNote(adv.reviewNote || '');
                                 setIsReviewModalOpen(true);
                               }}
-                              className="px-3 py-1.5 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary rounded-sm text-xs font-bold uppercase tracking-wider border border-border"
+                              className="px-4 py-2 bg-surface-variant/80 hover:bg-surface-variant text-text-primary rounded-xl text-xs font-black uppercase tracking-wider border border-border/60 dark:border-white/10 transition-all active:scale-95"
                             >
                               View Details
                             </button>

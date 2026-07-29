@@ -15,7 +15,8 @@ import {
   Clock,
   DollarSign,
   Calendar,
-  Eye
+  Eye,
+  Download
 } from 'lucide-react';
 import { 
   getCommissionTransactions,
@@ -40,6 +41,41 @@ export default function CommissionTransactions() {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [notes, setNotes] = useState('');
+
+  const handleExportCSV = () => {
+    if (!filteredTransactions || filteredTransactions.length === 0) {
+      toast.error('No transactions available to export');
+      return;
+    }
+
+    const headers = ['Invoice / Bill No', 'Employee Name', 'Store', 'Sale Amount (INR)', 'Commission Amount (INR)', 'Status', 'Date'];
+    const rows = filteredTransactions.map(t => [
+      t.invoiceNumber || t.billId || '',
+      `${t.employee?.firstName || ''} ${t.employee?.lastName || ''}`.trim(),
+      t.store?.name || '',
+      t.saleAmount || 0,
+      t.commissionAmount || 0,
+      t.status || '',
+      t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : ''
+    ]);
+
+    const csvRows = [
+      headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(','),
+      ...rows.map(row => row.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(','))
+    ];
+    
+    const blob = new Blob(['\ufeff' + csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `commission_transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success('Transactions exported successfully');
+  };
 
   useEffect(() => {
     loadTransactions();
@@ -177,6 +213,15 @@ export default function CommissionTransactions() {
             Review and manage commission transactions
           </p>
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="font-semibold flex items-center gap-2"
+          onClick={handleExportCSV}
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Filters */}
