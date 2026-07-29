@@ -25,9 +25,14 @@ export interface Store {
 }
 
 export const fetchStores = async (branchId?: string): Promise<Store[]> => {
-  const params = branchId ? { branchId } : {};
-  const response = await api.get('/api/admin/stores', { params });
-  return response.data.data || [];
+  try {
+    const params = branchId ? { branchId } : {};
+    const response = await api.get('/api/admin/stores', { params });
+    return response.data.data || response.data?.stores || (Array.isArray(response.data) ? response.data : []);
+  } catch (error) {
+    console.warn('[storeService] Failed to fetch stores:', error);
+    return [];
+  }
 };
 
 export const fetchStoreById = async (id: string): Promise<Store> => {

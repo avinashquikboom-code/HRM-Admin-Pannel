@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -20,20 +21,22 @@ import {
   Zap,
   Sparkles,
   ArrowUpRight,
-  ShieldCheck
+  ShieldCheck,
+  Search
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { 
   getCommissionDashboard, 
   getCommissionTransactions,
+  syncHopkidSalesNow,
   type CommissionDashboardStats,
   type CommissionTransaction 
 } from '@/services/commissionService';
 import { fetchStores } from '@/services/storeService';
-import { fetchHopkidEmployeeList } from '@/services/employeeService';
 import { toast } from 'sonner';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
+import Modal from '@/components/Modal';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -63,30 +66,97 @@ export default function CommissionDashboard() {
   const [stats, setStats] = useState<CommissionDashboardStats | null>(null);
   const [transactions, setTransactions] = useState<CommissionTransaction[]>([]);
   const [stores, setStores] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState<string>('');
-  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [dateRange, setDateRange] = useState('month');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Derived filtered lists
+  const queryLower = searchQuery.trim().toLowerCase();
+
+  const filteredTransactions = transactions.filter((t) => {
+    if (!queryLower) return true;
+    const empName = `${t.employee?.firstName || ''} ${t.employee?.lastName || ''}`.toLowerCase();
+    const empCode = (t.employee?.employeeCode || '').toLowerCase();
+    const storeName = (t.store?.name || '').toLowerCase();
+    const inv = (t.invoiceNumber || t.billId || '').toLowerCase();
+    return (
+      empName.includes(queryLower) ||
+      empCode.includes(queryLower) ||
+      storeName.includes(queryLower) ||
+      inv.includes(queryLower)
+    );
+  });
+
+  const filteredTopPerformers = (stats?.topPerformers || []).filter((p) => {
+    if (!queryLower) return true;
+    const empName = `${p.employee?.firstName || ''} ${p.employee?.lastName || ''}`.toLowerCase();
+    const empCode = (p.employee?.employeeCode || '').toLowerCase();
+    return empName.includes(queryLower) || empCode.includes(queryLower);
+  });
+
+  // Sync sales state
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Employee Monthly Commission Modal state
+  const [selectedEmpForCommission, setSelectedEmpForCommission] = useState<any | null>(null);
+  const [empCommissionModalOpen, setEmpCommissionModalOpen] = useState(false);
+  const [empCommissionLoading, setEmpCommissionLoading] = useState(false);
+  const [empCommissionStats, setEmpCommissionStats] = useState<any | null>(null);
+  const [empCommissionTxns, setEmpCommissionTxns] = useState<any[]>([]);
+
+  const handleEmployeeClick = async (emp: any) => {
+    if (!emp) return;
+    setSelectedEmpForCommission(emp);
+    setEmpCommissionModalOpen(true);
+    setEmpCommissionLoading(true);
+    setEmpCommissionStats(null);
+    setEmpCommissionTxns([]);
+
+    try {
+      const empId = emp.id || emp.employeeCode || emp.employeeID;
+      const [statsRes, txnsRes] = await Promise.allSettled([
+        getCommissionDashboard({ employeeId: String(empId) }),
+        getCommissionTransactions({ employeeId: String(empId) }),
+      ]);
+
+      if (statsRes.status === 'fulfilled' && statsRes.value?.stats) {
+        setEmpCommissionStats(statsRes.value.stats);
+      }
+      if (txnsRes.status === 'fulfilled' && txnsRes.value?.transactions) {
+        setEmpCommissionTxns(txnsRes.value.transactions);
+      }
+    } catch (err) {
+      console.error('Failed to load employee commission data:', err);
+    } finally {
+      setEmpCommissionLoading(false);
+    }
+  };
+
+  const handleSyncSales = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await syncHopkidSalesNow();
+      toast.success(`✅ ${res.message}`);
+      // Reload dashboard with fresh data
+      loadDashboardData();
+    } catch (err: any) {
+      toast.error(err?.message || 'HopKid sales sync failed.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Filter stores
   const filteredStores = stores;
 
-  // Filter employees based on selected store's name
-  const selectedStoreName = stores.find(s => s.id.toString() === selectedStore)?.name;
-
-  const filteredEmployees = selectedStore && selectedStoreName
-    ? employees.filter(emp => emp.branchName === selectedStoreName)
-    : employees;
-
   const handleStoreChange = (storeId: string) => {
     setSelectedStore(storeId);
-    setSelectedEmployee('');
   };
 
   useEffect(() => {
     loadDashboardData();
-  }, [selectedStore, selectedEmployee, dateRange]);
+  }, [selectedStore, dateRange]);
 
   useEffect(() => {
     loadDropdownData();
@@ -97,7 +167,6 @@ export default function CommissionDashboard() {
     try {
       const params: any = {};
       if (selectedStore) params.storeId = selectedStore;
-      if (selectedEmployee) params.employeeId = selectedEmployee;
       
       if (dateRange === 'today') {
         const today = new Date();
@@ -115,16 +184,18 @@ export default function CommissionDashboard() {
         params.endDate = new Date().toISOString().split('T')[0];
       }
 
-      const [statsRes, transactionsRes] = await Promise.all([
+      const [statsRes, transactionsRes] = await Promise.allSettled([
         getCommissionDashboard(params),
         getCommissionTransactions(params),
       ]);
 
-      setStats(statsRes.stats);
-      setTransactions(transactionsRes.transactions);
+      const statsData = statsRes.status === 'fulfilled' ? statsRes.value.stats : null;
+      const txnsData = transactionsRes.status === 'fulfilled' ? transactionsRes.value.transactions : [];
+
+      setStats(statsData);
+      setTransactions(txnsData || []);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      toast.error('Failed to load commission data');
     } finally {
       setIsLoading(false);
     }
@@ -132,18 +203,11 @@ export default function CommissionDashboard() {
 
   const loadDropdownData = async () => {
     try {
-      const [storesRes, employeesRes] = await Promise.all([
-        fetchStores().catch((err) => {
-          console.error('Failed to load stores:', err);
-          return [];
-        }),
-        fetchHopkidEmployeeList().catch((err) => {
-          console.error('Failed to load Hopkid employees:', err);
-          return null;
-        })
-      ]);
+      const storesRes = await fetchStores().catch((err) => {
+        console.error('Failed to load stores:', err);
+        return [];
+      });
       setStores(Array.isArray(storesRes) ? storesRes : []);
-      setEmployees(employeesRes?.data || []);
     } catch (error) {
       console.error('Failed to load dropdown data:', error);
     }
@@ -259,6 +323,16 @@ export default function CommissionDashboard() {
           </span>
           <span>Export CSV Report</span>
         </button>
+        <button
+          onClick={handleSyncSales}
+          disabled={isSyncing}
+          className="btn-secondary group relative overflow-hidden px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed border border-border/60"
+        >
+          <span className="p-1 rounded-lg bg-muted/60 group-hover:rotate-180 transition-transform duration-500">
+            <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+          </span>
+          <span>{isSyncing ? 'Syncing...' : 'Sync HopKid Sales'}</span>
+        </button>
       </SuperAdminHeader>
 
       {/* Filter Control Toolbar */}
@@ -278,8 +352,27 @@ export default function CommissionDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <div className="relative min-w-[220px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-secondary" />
+              <Input
+                type="text"
+                placeholder="Search employee, bill, store..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-8 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs font-bold h-9 outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+
             <Select value={selectedStore} onValueChange={handleStoreChange}>
-              <SelectTrigger className="w-48 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs font-bold outline-none">
+              <SelectTrigger className="w-52 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs font-bold outline-none h-9">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -287,32 +380,6 @@ export default function CommissionDashboard() {
                 {filteredStores.map((store) => (
                   <SelectItem key={store.id} value={store.id.toString()}>
                     {store.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={!!selectedStore && filteredEmployees.length === 0}>
-              <SelectTrigger className="w-52 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs font-bold outline-none">
-                <SelectValue placeholder={!!selectedStore && filteredEmployees.length === 0 ? "No employees" : "All Representatives"} />
-              </SelectTrigger>
-              <SelectContent className="max-h-64">
-                <SelectItem value="">All Representatives</SelectItem>
-                {filteredEmployees.map((emp) => (
-                  <SelectItem key={emp.employeeID} value={emp.employeeCode} className="py-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black">
-                        {emp.employeeName?.[0] || 'E'}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-text-primary">
-                          {emp.employeeName}
-                        </span>
-                        <span className="text-[10px] text-text-secondary font-mono">
-                          {emp.employeeCode}
-                        </span>
-                      </div>
-                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -328,7 +395,7 @@ export default function CommissionDashboard() {
                   key={range.key}
                   onClick={() => setDateRange(range.key)}
                   className={cn(
-                    "px-3 py-1.5 text-xs font-black rounded-lg transition-all uppercase tracking-wider",
+                    "px-3 py-1 text-xs font-black rounded-lg transition-all uppercase tracking-wider",
                     dateRange === range.key
                       ? "bg-primary text-white shadow-md shadow-primary/25"
                       : "text-text-secondary hover:text-text-primary hover:bg-surface/50"
@@ -344,10 +411,10 @@ export default function CommissionDashboard() {
               size="sm"
               onClick={() => {
                 setSelectedStore('');
-                setSelectedEmployee('');
                 setDateRange('month');
+                setSearchQuery('');
               }}
-              className="px-3.5 py-2 rounded-xl border border-border/50 dark:border-white/10 text-xs font-bold text-text-secondary hover:text-text-primary"
+              className="px-3.5 py-1.5 h-9 rounded-xl border border-border/50 dark:border-white/10 text-xs font-bold text-text-secondary hover:text-text-primary"
             >
               <X className="h-3.5 w-3.5 mr-1" />
               Reset
@@ -356,7 +423,7 @@ export default function CommissionDashboard() {
         </div>
 
         {/* Active Filter Chips */}
-        {(selectedStore || selectedEmployee || dateRange !== 'month') && (
+        {(selectedStore || dateRange !== 'month') && (
           <div className="mt-4 pt-3 border-t border-border/40 dark:border-white/10 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-text-secondary mr-1">Active:</span>
             {selectedStore && (
@@ -364,15 +431,6 @@ export default function CommissionDashboard() {
                 <Building2 className="h-3 w-3" />
                 {stores.find(s => s.id.toString() === selectedStore)?.name}
                 <button onClick={() => setSelectedStore('')} className="hover:text-primary/70">
-                  <X className="h-3 w-3 ml-0.5" />
-                </button>
-              </span>
-            )}
-            {selectedEmployee && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-bold text-primary">
-                <UserIcon className="h-3 w-3" />
-                {employees.find(e => e.employeeCode === selectedEmployee)?.employeeName || selectedEmployee}
-                <button onClick={() => setSelectedEmployee('')} className="hover:text-primary/70">
                   <X className="h-3 w-3 ml-0.5" />
                 </button>
               </span>
@@ -414,10 +472,12 @@ export default function CommissionDashboard() {
             </div>
 
             <div className="space-y-3.5">
-              {stats?.topPerformers.map((performer, index) => (
+              {filteredTopPerformers.map((performer, index) => (
                 <div 
                   key={index}
-                  className="p-4 rounded-xl bg-surface-variant/40 dark:bg-slate-950/40 border border-border/50 dark:border-white/10 flex items-center justify-between group hover:border-primary/40 transition-all duration-300"
+                  onClick={() => handleEmployeeClick(performer.employee)}
+                  className="p-4 rounded-xl bg-surface-variant/40 dark:bg-slate-950/40 border border-border/50 dark:border-white/10 flex items-center justify-between group hover:border-primary/40 hover:bg-surface-variant/80 transition-all duration-300 cursor-pointer"
+                  title="Click to view employee monthly commission details"
                 >
                   <div className="flex items-center gap-3">
                     <div className={cn(
@@ -450,7 +510,7 @@ export default function CommissionDashboard() {
                 </div>
               ))}
 
-              {(!stats?.topPerformers || stats.topPerformers.length === 0) && (
+              {filteredTopPerformers.length === 0 && (
                 <div className="text-center text-text-secondary py-12 font-medium text-xs">
                   No top performer data recorded for this selection.
                 </div>
@@ -480,7 +540,7 @@ export default function CommissionDashboard() {
               </div>
             </div>
             <span className="text-xs font-mono font-bold text-text-secondary bg-surface-variant/60 dark:bg-white/[0.05] px-3 py-1 rounded-xl border border-border/50 dark:border-white/10">
-              {transactions.length} Records
+              {filteredTransactions.length} {searchQuery ? `of ${transactions.length}` : ''} Records
             </span>
           </div>
 
@@ -497,8 +557,13 @@ export default function CommissionDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                {transactions.slice(0, 10).map((transaction) => (
-                  <tr key={transaction.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02] transition-colors group">
+                {filteredTransactions.slice(0, 10).map((transaction) => (
+                  <tr 
+                    key={transaction.id} 
+                    onClick={() => handleEmployeeClick(transaction.employee)}
+                    className="hover:bg-surface-variant/40 dark:hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                    title="Click to view employee monthly commission details"
+                  >
                     <td className="px-6 py-4 font-mono text-xs font-bold text-text-primary">
                       <span className="bg-surface-variant/80 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-border/50 dark:border-white/10">
                         {transaction.invoiceNumber || transaction.billId || `TXN-${transaction.id}`}
@@ -541,6 +606,137 @@ export default function CommissionDashboard() {
           </div>
         </motion.div>
       </div>
+
+      {/* Employee Monthly Commission Intelligence Modal */}
+      <Modal
+        isOpen={empCommissionModalOpen}
+        onClose={() => setEmpCommissionModalOpen(false)}
+        title="Employee Monthly Commission Intelligence"
+        maxWidth="max-w-4xl"
+      >
+        {selectedEmpForCommission && (
+          <div className="p-6 space-y-6">
+            {/* Employee Profile Header */}
+            <div className="flex items-center justify-between p-4 bg-surface-variant/40 dark:bg-slate-900/60 border border-border/50 dark:border-white/10 rounded-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center font-black text-primary text-lg shadow-sm">
+                  {selectedEmpForCommission.firstName?.[0] || 'E'}
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-text-primary">
+                    {selectedEmpForCommission.firstName} {selectedEmpForCommission.lastName}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="font-mono text-xs font-bold text-text-secondary bg-surface-variant/80 dark:bg-white/[0.06] px-2.5 py-0.5 rounded border border-border/50 dark:border-white/10">
+                      {selectedEmpForCommission.employeeCode || `ID: ${selectedEmpForCommission.id}`}
+                    </span>
+                    <span className="text-xs font-semibold text-text-secondary">
+                      {selectedEmpForCommission.store?.name || selectedEmpForCommission.designation || 'Sales Staff'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-wider border border-primary/20">
+                Monthly Breakdown
+              </span>
+            </div>
+
+            {/* Monthly Stats Summary */}
+            {empCommissionLoading ? (
+              <div className="py-12 text-center text-xs font-bold text-text-secondary flex items-center justify-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                <span>Fetching monthly commission statistics...</span>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-surface-variant/30 dark:bg-slate-950/30 border border-border/50 dark:border-white/10 rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-text-secondary">Monthly Commission</span>
+                    <p className="text-lg font-black text-primary font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.month?.commission || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-text-secondary">Current Month Earned</span>
+                  </div>
+                  <div className="p-4 bg-surface-variant/30 dark:bg-slate-950/30 border border-border/50 dark:border-white/10 rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-text-secondary">Monthly Sales</span>
+                    <p className="text-lg font-black text-text-primary font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.month?.sales || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-text-secondary">{empCommissionStats?.month?.transactions || 0} Total Sales</span>
+                  </div>
+                  <div className="p-4 bg-surface-variant/30 dark:bg-slate-950/30 border border-border/50 dark:border-white/10 rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-text-secondary">Pending Payout</span>
+                    <p className="text-lg font-black text-amber-500 font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.pending?.commission || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400">Awaiting Settlement</span>
+                  </div>
+                  <div className="p-4 bg-surface-variant/30 dark:bg-slate-950/30 border border-border/50 dark:border-white/10 rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-text-secondary">Disbursed Paid</span>
+                    <p className="text-lg font-black text-emerald-500 font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.paid?.commission || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">Settled to Salary</span>
+                  </div>
+                </div>
+
+                {/* Monthly Transactions List */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
+                      Monthly Commission Transactions ({empCommissionTxns.length})
+                    </h4>
+                    <span className="text-[11px] font-bold text-text-secondary font-mono">
+                      Filtered by logged-in period
+                    </span>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto rounded-xl border border-border/50 dark:border-white/10">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-surface-variant/40 dark:bg-slate-950/40 border-b border-border/50 dark:border-white/10 sticky top-0 backdrop-blur-md">
+                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary">Bill / Invoice</th>
+                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary">Date</th>
+                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Sale Amount</th>
+                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Commission</th>
+                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/40 dark:divide-white/10">
+                        {empCommissionTxns.map((t) => (
+                          <tr key={t.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02]">
+                            <td className="px-4 py-3 font-mono text-xs font-bold text-text-primary">
+                              {t.invoiceNumber || t.billId || `TXN-${t.id}`}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-text-secondary">
+                              {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-right font-mono text-xs font-bold text-text-primary">
+                              {formatCurrency(t.saleAmount)}
+                            </td>
+                            <td className="px-4 py-3 text-right font-mono text-xs font-black text-primary">
+                              {formatCurrency(t.commissionAmount)}
+                            </td>
+                            <td className="px-4 py-3">
+                              {getStatusBadge(t.status)}
+                            </td>
+                          </tr>
+                        ))}
+                        {empCommissionTxns.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="text-center py-8 text-xs text-text-secondary font-medium">
+                              No commission transactions found for this employee.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </motion.div>
   );
 }

@@ -26,7 +26,7 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000, // 30 second timeout for all requests
+  timeout: 60000, // 60 second (1 min) extended timeout for all API calls
 });
 
 if (typeof window !== 'undefined' && isApiLoggingEnabled()) {
@@ -155,7 +155,7 @@ api.interceptors.response.use(
           }
         }
       } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+        console.warn('Token refresh failed:', refreshError);
         isRefreshing = false;
         refreshSubscribers = [];
 

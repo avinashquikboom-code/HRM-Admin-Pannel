@@ -46,14 +46,6 @@ import {
 import ChartContainer from '@/components/ChartContainer';
 
 
-const reports = [
-  { id: 1, name: 'Monthly Payroll Summary - April 2024', type: 'Payroll', format: 'PDF', date: '01 May 2024', size: '2.4 MB', status: 'Verified' },
-  { id: 2, name: 'Platform Revenue Report - Q1 2024', type: 'Financial', format: 'Excel', date: '15 Apr 2024', size: '1.8 MB', status: 'Verified' },
-  { id: 3, name: 'Global Attendance Audit', type: 'Attendance', format: 'CSV', date: '10 Apr 2024', size: '4.2 MB', status: 'Pending' },
-  { id: 4, name: 'Company Onboarding Analytics', type: 'System', format: 'PDF', date: '02 Apr 2024', size: '1.2 MB', status: 'Verified' },
-  { id: 5, name: 'Tax Compliance Report', type: 'Compliance', format: 'PDF', date: '28 Mar 2024', size: '3.1 MB', status: 'Verified' },
-];
-
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -79,7 +71,7 @@ const itemVariants: Variants = {
 };
 
 const ReportsPage = () => {
-  const [reportList, setReportList] = useState<any[]>(reports);
+  const [reportList, setReportList] = useState<any[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
   
   // Search & Filter State

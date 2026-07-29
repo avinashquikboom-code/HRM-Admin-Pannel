@@ -168,7 +168,15 @@ export async function fetchHREmployees(params: {
     const { data } = await api.get<HREmployeesResponse>('/api/hr/employees', { params });
     return data;
   } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to fetch HR employees.'));
+    console.warn('[hrService] Failed to fetch HR employees:', error);
+    return {
+      success: false,
+      employees: [],
+      total: 0,
+      page: params.page || 1,
+      limit: params.limit || 10,
+      totalPages: 1,
+    };
   }
 }
 

@@ -35,6 +35,8 @@ export interface AdminEmployee {
   employeeCode: string;
   firstName: string;
   lastName: string;
+  mobileNumber?: string;
+  phone?: string;
   designation: string | null;
   designationId: number | null;
   designationRelation: { id: number; name: string } | null;
@@ -80,17 +82,26 @@ interface AssignEmployeeResponse {
   employee: AssignedEmployeeResult;
 }
 
-export async function fetchEmployees(params?: { page?: number; limit?: number; search?: string }): Promise<EmployeesResponse> {
+export async function fetchEmployees(
+  params?: { page?: number; limit?: number; search?: string },
+  options?: { timeout?: number; suppressError?: boolean }
+): Promise<EmployeesResponse> {
   try {
-    console.log('[employeeService] Fetching employees from /api/admin/employees', params);
-    const { data } = await api.get<EmployeesResponse>('/api/admin/employees', { params });
-    console.log('[employeeService] Employees response received:', data);
+    const { data } = await api.get<EmployeesResponse>('/api/admin/employees', { 
+      params,
+      timeout: options?.timeout || 10000,
+    });
     return data;
   } catch (error) {
-    console.error('[employeeService] Error fetching employees:', error);
-    throw new Error(
-      getApiErrorMessage(error, 'Failed to load employees. Please try again.')
-    );
+    console.warn('[employeeService] Exception during fetchEmployees (network/timeout):', error);
+    return {
+      count: 0,
+      total: 0,
+      page: params?.page || 1,
+      limit: params?.limit || 20,
+      registeredCount: 0,
+      employees: [],
+    };
   }
 }
 
@@ -404,21 +415,32 @@ export interface HopkidEmployeeListResponse {
   data: HopkidEmployee[];
 }
 
+export async function triggerEmployeeSyncApi(): Promise<{ success: boolean; message: string }> {
+  try {
+    const { data } = await api.post<{ success: boolean; message: string }>('/api/admin/employees/sync');
+    return data;
+  } catch (error) {
+    console.warn('[employeeService] Failed to trigger employee sync:', error);
+    return { success: false, message: 'Failed to initiate employee sync' };
+  }
+}
+
 export async function fetchHopkidEmployeeList(): Promise<HopkidEmployeeListResponse> {
   try {
     const { data } = await api.get<HopkidEmployeeListResponse>('/api/Employee/GetEmployeeList', {
       headers: {
         'x-api-key': 'HOPKID-MOBILE-ACCESS-API-KEY',
       },
+      timeout: 6000,
     });
     if (data && Array.isArray(data.data)) {
       return data;
     }
     throw new Error('Invalid response structure from Hopkid API');
   } catch (primaryError) {
-    console.warn('[employeeService] Hopkid API fetch failed, attempting fallback to local employees:', primaryError);
+    console.warn('[employeeService] Hopkid API fetch failed or timed out, attempting fallback to local employees');
     try {
-      const localData = await fetchEmployees({ limit: 500 });
+      const localData = await fetchEmployees({ limit: 500 }, { timeout: 6000 });
       if (localData && Array.isArray(localData.employees)) {
         const mappedEmployees: HopkidEmployee[] = localData.employees.map((emp) => ({
           employeeID: String(emp.id || emp.employeeID || emp.employeeCode),
@@ -429,26 +451,26 @@ export async function fetchHopkidEmployeeList(): Promise<HopkidEmployeeListRespo
           dateofJoining: null,
           pinCode: null,
           address: '',
-          branchName: emp.branch?.name || emp.office?.name || '',
+          branchName: emp.store?.name || emp.office?.name || '',
           country: 'India',
           countryID: 1,
           stateID: 1,
           cityID: 1,
           state: '',
           city: '',
-          mobileNo: '',
+          mobileNo: emp.mobileNumber || emp.phone || '',
           email: emp.user?.email || null,
           salary: 0,
           commissionPercentage: emp.commissionPercentage || 0,
           companyId: '',
-          branchId: emp.branchId || '',
-          isActive: emp.status === 'ACTIVE',
+          branchId: emp.storeId || emp.branchId || '',
+          isActive: emp.status === 'ACTIVE' || emp.status === 'active',
           createdBy: '',
           createdOn: '',
           updatedBy: '',
           updatedOn: '',
           updatedLog: '',
-          branchId2: '',
+          branchId2: emp.storeId || '',
           alternativeMobileNumber: null,
         }));
         return {
@@ -458,7 +480,7 @@ export async function fetchHopkidEmployeeList(): Promise<HopkidEmployeeListRespo
         };
       }
     } catch (fallbackError) {
-      console.error('[employeeService] Fallback employee fetch failed:', fallbackError);
+      console.warn('[employeeService] Fallback employee fetch failed or timed out');
     }
     return {
       success: false,

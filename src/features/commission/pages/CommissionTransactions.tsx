@@ -19,6 +19,7 @@ import {
   Download
 } from 'lucide-react';
 import { 
+  getCommissionDashboard,
   getCommissionTransactions,
   approveCommissionTransaction,
   rejectCommissionTransaction,
@@ -26,21 +27,55 @@ import {
 } from '@/services/commissionService';
 import { fetchStores } from '@/services/storeService';
 import { fetchEmployees } from '@/services/employeeService';
+import Modal from '@/components/Modal';
 import { toast } from 'sonner';
 
 export default function CommissionTransactions() {
   const [transactions, setTransactions] = useState<CommissionTransaction[]>([]);
   const [stores, setStores] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState<string>('');
-  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<CommissionTransaction | null>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // Employee Monthly Commission Modal state
+  const [selectedEmpForCommission, setSelectedEmpForCommission] = useState<any | null>(null);
+  const [empCommissionModalOpen, setEmpCommissionModalOpen] = useState(false);
+  const [empCommissionLoading, setEmpCommissionLoading] = useState(false);
+  const [empCommissionStats, setEmpCommissionStats] = useState<any | null>(null);
+  const [empCommissionTxns, setEmpCommissionTxns] = useState<any[]>([]);
+
+  const handleEmployeeClick = async (emp: any) => {
+    if (!emp) return;
+    setSelectedEmpForCommission(emp);
+    setEmpCommissionModalOpen(true);
+    setEmpCommissionLoading(true);
+    setEmpCommissionStats(null);
+    setEmpCommissionTxns([]);
+
+    try {
+      const empId = emp.id || emp.employeeCode || emp.employeeID;
+      const [statsRes, txnsRes] = await Promise.allSettled([
+        getCommissionDashboard({ employeeId: String(empId) }),
+        getCommissionTransactions({ employeeId: String(empId) }),
+      ]);
+
+      if (statsRes.status === 'fulfilled' && statsRes.value?.stats) {
+        setEmpCommissionStats(statsRes.value.stats);
+      }
+      if (txnsRes.status === 'fulfilled' && txnsRes.value?.transactions) {
+        setEmpCommissionTxns(txnsRes.value.transactions);
+      }
+    } catch (err) {
+      console.error('Failed to load employee commission data:', err);
+    } finally {
+      setEmpCommissionLoading(false);
+    }
+  };
 
   const handleExportCSV = () => {
     if (!filteredTransactions || filteredTransactions.length === 0) {
@@ -80,14 +115,14 @@ export default function CommissionTransactions() {
   useEffect(() => {
     loadTransactions();
     loadDropdownData();
-  }, [selectedStore, selectedEmployee, selectedStatus]);
+  }, [selectedStore, selectedStatus]);
 
   const loadTransactions = async () => {
     setIsLoading(true);
     try {
       const params: any = {};
       if (selectedStore) params.storeId = selectedStore;
-      if (selectedEmployee) params.employeeId = selectedEmployee;
+      if (selectedStatus) params.status = selectedStatus;
       if (selectedStatus) params.status = selectedStatus;
 
       const response = await getCommissionTransactions(params);
@@ -102,12 +137,8 @@ export default function CommissionTransactions() {
 
   const loadDropdownData = async () => {
     try {
-      const [storesRes, employeesRes] = await Promise.all([
-        fetchStores(),
-        fetchEmployees(),
-      ]);
+      const storesRes = await fetchStores().catch(() => []);
       setStores(Array.isArray(storesRes) ? storesRes : []);
-      setEmployees(Array.isArray(employeesRes) ? employeesRes : employeesRes?.employees || []);
     } catch (error) {
       console.error('Failed to load dropdown data:', error);
     }
@@ -227,7 +258,7 @@ export default function CommissionTransactions() {
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Store</Label>
               <Select value={selectedStore} onValueChange={setSelectedStore}>
@@ -239,34 +270,6 @@ export default function CommissionTransactions() {
                   {stores.map((store) => (
                     <SelectItem key={store.id} value={store.id.toString()}>
                       {store.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Employee</Label>
-              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Employees" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  <SelectItem value="">All Employees</SelectItem>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id.toString()} className="py-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                          {emp.firstName?.[0]}{emp.lastName?.[0]}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-semibold text-text-primary">
-                            {emp.firstName} {emp.lastName}
-                          </span>
-                          <span className="text-[10px] text-text-secondary">
-                            {emp.employeeCode || emp.id}
-                          </span>
-                        </div>
-                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -375,7 +378,11 @@ export default function CommissionTransactions() {
                   <TableCell className="font-medium">
                     {transaction.invoiceNumber || transaction.billId || '-'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell 
+                    className="cursor-pointer hover:text-primary transition-colors font-medium"
+                    onClick={() => handleEmployeeClick(transaction.employee)}
+                    title="Click to view monthly commission details"
+                  >
                     {transaction.employee?.firstName} {transaction.employee?.lastName}
                   </TableCell>
                   <TableCell>{transaction.store?.name || '-'}</TableCell>
@@ -504,6 +511,128 @@ export default function CommissionTransactions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Employee Monthly Commission Intelligence Modal */}
+      <Modal
+        isOpen={empCommissionModalOpen}
+        onClose={() => setEmpCommissionModalOpen(false)}
+        title="Employee Monthly Commission Intelligence"
+        maxWidth="max-w-4xl"
+      >
+        {selectedEmpForCommission && (
+          <div className="p-6 space-y-6">
+            {/* Employee Profile Header */}
+            <div className="flex items-center justify-between p-4 bg-muted/50 border border-border rounded-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center font-black text-primary text-lg">
+                  {selectedEmpForCommission.firstName?.[0] || 'E'}
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-text-primary">
+                    {selectedEmpForCommission.firstName} {selectedEmpForCommission.lastName}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="font-mono text-xs font-bold text-muted-foreground bg-muted px-2.5 py-0.5 rounded border border-border">
+                      {selectedEmpForCommission.employeeCode || `ID: ${selectedEmpForCommission.id}`}
+                    </span>
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      {selectedEmpForCommission.store?.name || selectedEmpForCommission.designation || 'Sales Staff'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <Badge className="bg-primary/10 text-primary border-primary/20">Monthly Breakdown</Badge>
+            </div>
+
+            {empCommissionLoading ? (
+              <div className="py-12 text-center text-sm font-bold text-muted-foreground flex items-center justify-center gap-2">
+                <Clock className="h-4 w-4 animate-spin text-primary" />
+                <span>Fetching monthly commission data...</span>
+              </div>
+            ) : (
+              <>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-muted/40 border border-border rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-muted-foreground">Monthly Commission</span>
+                    <p className="text-xl font-black text-primary font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.month?.commission || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-muted-foreground">{empCommissionStats?.month?.transactions || 0} sales this month</span>
+                  </div>
+                  <div className="p-4 bg-muted/40 border border-border rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-muted-foreground">Monthly Sales</span>
+                    <p className="text-xl font-black font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.month?.sales || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-muted-foreground">Total revenue generated</span>
+                  </div>
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">Pending Payout</span>
+                    <p className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.pending?.commission || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-amber-600/70 dark:text-amber-500/70">Awaiting settlement</span>
+                  </div>
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-xl">
+                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Total Paid</span>
+                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
+                      {formatCurrency(empCommissionStats?.paid?.commission || 0)}
+                    </p>
+                    <span className="text-[9px] font-bold text-emerald-600/70 dark:text-emerald-500/70">Disbursed to salary</span>
+                  </div>
+                </div>
+
+                {/* Transactions Table */}
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3">
+                    All Commission Transactions ({empCommissionTxns.length})
+                  </h4>
+                  <div className="max-h-72 overflow-y-auto rounded-xl border border-border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Bill / Invoice</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead className="text-right">Sale Amount</TableHead>
+                          <TableHead className="text-right">Commission</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {empCommissionTxns.map((t) => (
+                          <TableRow key={t.id}>
+                            <TableCell className="font-mono text-xs font-bold">
+                              {t.invoiceNumber || t.billId || `TXN-${t.id}`}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs font-bold">
+                              {formatCurrency(t.saleAmount)}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs font-black text-primary">
+                              {formatCurrency(t.commissionAmount)}
+                            </TableCell>
+                            <TableCell>{getStatusBadge(t.status)}</TableCell>
+                          </TableRow>
+                        ))}
+                        {empCommissionTxns.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8 text-sm text-muted-foreground">
+                              No commission transactions found for this employee.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

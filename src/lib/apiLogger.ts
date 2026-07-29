@@ -31,10 +31,7 @@ declare module 'axios' {
 let requestCounter = 0;
 
 export function isApiLoggingEnabled(): boolean {
-  return (
-    process.env.NODE_ENV === 'development' ||
-    process.env.NEXT_PUBLIC_API_DEBUG === 'true'
-  );
+  return process.env.NEXT_PUBLIC_API_DEBUG === 'true';
 }
 
 function nextRequestId(): string {

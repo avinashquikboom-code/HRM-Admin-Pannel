@@ -237,11 +237,13 @@ export default function EditEmployeeModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* HopKid read-only banner */}
         {isHopkid && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-sm">
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-sm flex items-center justify-between">
             <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
-              🔒 HopKid Employee — Name, status, and store are managed in the HopKid portal.
-              Only shift, department, commission, and work mode can be changed here.
+              🔒 HopKid Employee — Name, mobile, store, salary, and commission rate are managed in HopKid.
             </p>
+            <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-300 rounded border border-amber-500/40">
+              Managed in HopKid
+            </span>
           </div>
         )}
 
@@ -254,7 +256,10 @@ export default function EditEmployeeModal({
         {/* First Name / Last Name */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>First Name</label>
+            <div className="flex items-center justify-between">
+              <label className={labelCls}>First Name</label>
+              {isHopkid && <span className="text-[9px] font-bold text-amber-500">Managed in HopKid</span>}
+            </div>
             <input
               type="text"
               value={form.firstName}
@@ -265,7 +270,10 @@ export default function EditEmployeeModal({
             />
           </div>
           <div>
-            <label className={labelCls}>Last Name</label>
+            <div className="flex items-center justify-between">
+              <label className={labelCls}>Last Name</label>
+              {isHopkid && <span className="text-[9px] font-bold text-amber-500">Managed in HopKid</span>}
+            </div>
             <input
               type="text"
               value={form.lastName}
@@ -297,11 +305,14 @@ export default function EditEmployeeModal({
 
         {/* Store */}
         <div>
-          <label className={labelCls}>Store</label>
+          <div className="flex items-center justify-between">
+            <label className={labelCls}>Store</label>
+            {isHopkid && <span className="text-[9px] font-bold text-amber-500">Managed in HopKid</span>}
+          </div>
           <select
             value={form.storeId}
             onChange={(e) => setForm({ ...form, storeId: e.target.value })}
-            disabled={isLoadingData}
+            disabled={isLoadingData || isHopkid}
             className={inputCls}
           >
             <option value="">Select Store</option>
@@ -396,7 +407,10 @@ export default function EditEmployeeModal({
 
         {/* Commission Percentage */}
         <div>
-          <label className={labelCls}>Commission Rate (%)</label>
+          <div className="flex items-center justify-between">
+            <label className={labelCls}>Commission Rate (%)</label>
+            {isHopkid && <span className="text-[9px] font-bold text-amber-500">Managed in HopKid</span>}
+          </div>
           <input
             type="number"
             min={0}
@@ -406,18 +420,27 @@ export default function EditEmployeeModal({
             onChange={(e) => setForm({ ...form, commissionPercentage: e.target.value })}
             className={inputCls}
             placeholder="e.g. 5"
+            disabled={isHopkid}
           />
         </div>
 
-        {/* Phone Number */}
+        {/* Phone Number / Mobile Number */}
         <div>
-          <label className={labelCls}>Phone Number</label>
+          <div className="flex items-center justify-between">
+            <label className={labelCls}>Phone / Mobile Number</label>
+            {isHopkid && (
+              <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                Managed in HopKid
+              </span>
+            )}
+          </div>
           <input
             type="tel"
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             className={inputCls}
             placeholder="+91 9876543210"
+            disabled={isHopkid}
           />
         </div>
 

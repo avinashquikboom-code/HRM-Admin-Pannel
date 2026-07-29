@@ -37,49 +37,6 @@ import {
 import { cn } from '@/utils/cn';
 import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
-const payrollStats = [
-  { name: 'Jan', amount: 2400000, trend: 1500000 },
-  { name: 'Feb', amount: 2100000, trend: 1800000 },
-  { name: 'Mar', amount: 2800000, trend: 2100000 },
-  { name: 'Apr', amount: 2600000, trend: 2400000 },
-  { name: 'May', amount: 3200000, trend: 2800000 },
-];
-
-const recentPayrollRuns = [
-  { 
-    id: 'PR-9041', 
-    company: 'TechVibe Inc.', 
-    employees: 450, 
-    totalAmount: '₹382,500', 
-    status: 'Completed', 
-    date: '28 Apr 2024' 
-  },
-  { 
-    id: 'PR-9042', 
-    company: 'Global Logistics', 
-    employees: 1200, 
-    totalAmount: '₹744,000', 
-    status: 'Processing', 
-    date: '30 Apr 2024' 
-  },
-  { 
-    id: 'PR-9043', 
-    company: 'EcoWare Solutions', 
-    employees: 85, 
-    totalAmount: '₹66,300', 
-    status: 'Failed', 
-    date: '01 May 2024' 
-  },
-  { 
-    id: 'PR-9044', 
-    company: 'Innovate Digital', 
-    employees: 320, 
-    totalAmount: '₹176,000', 
-    status: 'Pending Approval', 
-    date: '02 May 2024' 
-  },
-];
-
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -163,9 +120,9 @@ function computeSlipData(slip: any, slipMonth: string) {
 // ───────────────────────────────────────────────────────────────────────────
 
 const PayrollPage = () => {
-  const [stats, setStats] = useState<any>({ mtdVolume: 4128400, disbursed: 3842100, pending: 210450, errors: 0 });
-  const [trendData, setTrendData] = useState<any[]>(payrollStats);
-  const [runsList, setRunsList] = useState<any[]>(recentPayrollRuns);
+  const [stats, setStats] = useState<any>({ mtdVolume: 0, disbursed: 0, pending: 0, errors: 0 });
+  const [trendData, setTrendData] = useState<any[]>([]);
+  const [runsList, setRunsList] = useState<any[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
   const [isDisbursing, setIsDisbursing] = useState(false);
@@ -209,12 +166,12 @@ const PayrollPage = () => {
   const loadAdvancesData = useCallback(async () => {
     setIsAdvancesLoading(true);
     try {
-      const res = await api.get<{ success: boolean; advances: any[] }>('/api/payroll/admin/advances');
-      if (res.data.success) {
-        setAdvancesList(res.data.advances);
-      }
+      const res = await api.get<any>('/api/payroll/admin/advances');
+      const list = res.data?.advances || res.data?.data || res.data?.records || (Array.isArray(res.data) ? res.data : []);
+      setAdvancesList(Array.isArray(list) ? list : []);
     } catch (err) {
-      console.error('Failed to load salary advances:', err);
+      console.warn('Failed to load salary advances:', err);
+      setAdvancesList([]);
     } finally {
       setIsAdvancesLoading(false);
     }
@@ -239,7 +196,7 @@ const PayrollPage = () => {
         await loadAdvancesData();
       }
     } catch (err: any) {
-      console.error('Review advance error:', err);
+      console.warn('Review advance error:', err);
       toast.error(err?.response?.data?.message || 'Failed to process advance review.');
     } finally {
       setIsSubmittingReview(false);
@@ -260,24 +217,31 @@ const PayrollPage = () => {
     setIsSlipsLoading(true);
     try {
       const [statsRes, runsRes, slipsRes] = await Promise.allSettled([
-        api.get<{ success: boolean; stats: any; trend: any[] }>('/api/payroll/admin/stats'),
-        api.get<{ success: boolean; runs: any[] }>('/api/payroll/admin/runs'),
-        api.get<{ success: boolean; slips: any[] }>(`/api/payroll/admin/slips?month=${slipMonth}`),
+        api.get<any>('/api/payroll/admin/stats'),
+        api.get<any>('/api/payroll/admin/runs'),
+        api.get<any>(`/api/payroll/admin/slips?month=${slipMonth}`),
         loadAdvancesData()
       ]);
 
-      if (statsRes.status === 'fulfilled' && statsRes.value.data.success) {
-        setStats(statsRes.value.data.stats);
-        setTrendData(statsRes.value.data.trend);
+      if (statsRes.status === 'fulfilled' && statsRes.value.data) {
+        const sData = statsRes.value.data.stats || statsRes.value.data.data || statsRes.value.data;
+        if (sData) setStats(sData);
+        if (statsRes.value.data.trend) setTrendData(statsRes.value.data.trend);
       }
-      if (runsRes.status === 'fulfilled' && runsRes.value.data.success) {
-        setRunsList(runsRes.value.data.runs);
+      if (runsRes.status === 'fulfilled' && runsRes.value.data) {
+        const rList = runsRes.value.data.runs || runsRes.value.data.data || (Array.isArray(runsRes.value.data) ? runsRes.value.data : []);
+        if (Array.isArray(rList) && rList.length > 0) setRunsList(rList);
       }
-      if (slipsRes.status === 'fulfilled' && slipsRes.value.data.success) {
-        setSlipsList(slipsRes.value.data.slips);
+
+      let fetchedSlips: any[] = [];
+      if (slipsRes.status === 'fulfilled' && slipsRes.value.data) {
+        fetchedSlips = slipsRes.value.data.slips || slipsRes.value.data.data || slipsRes.value.data.records || (Array.isArray(slipsRes.value.data) ? slipsRes.value.data : []);
       }
+
+      setSlipsList(Array.isArray(fetchedSlips) ? fetchedSlips : []);
     } catch (err) {
-      console.error('Failed to load payroll data:', err);
+      console.warn('Failed to load payroll data:', err);
+      setSlipsList([]);
     } finally {
       setIsPageLoading(false);
       setIsSlipsLoading(false);

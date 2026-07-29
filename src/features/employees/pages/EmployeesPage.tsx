@@ -6,6 +6,7 @@ import {
   Search,
   MoreVertical,
   Mail,
+  Phone,
   Building2,
   Briefcase,
   Calendar,
@@ -30,7 +31,7 @@ import ResetPasswordModal from '../components/ResetPasswordModal';
 import EditEmployeeModal from '../components/EditEmployeeModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
-import { deleteEmployee, unassignEmployeeFromOffice, unassignEmployeeFromDepartment } from '@/services/employeeService';
+import { deleteEmployee, unassignEmployeeFromOffice, unassignEmployeeFromDepartment, triggerEmployeeSyncApi } from '@/services/employeeService';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -212,11 +213,17 @@ const EmployeesPage = () => {
       >
         <button
             type="button"
-            onClick={() => refetch()}
-            className="p-4 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary hover:text-text-primary rounded-sm border border-border transition-all active:scale-95 cursor-pointer"
-            title="Refresh employees list"
+            onClick={async () => {
+              toast.info('Triggering HopKid employee sync...');
+              await triggerEmployeeSyncApi();
+              toast.success('HopKid sync started in background');
+              refetch();
+            }}
+            className="p-4 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary hover:text-text-primary rounded-sm border border-border transition-all active:scale-95 cursor-pointer flex items-center gap-2 text-xs font-bold"
+            title="Sync employees from HopKid API"
           >
             <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
+            <span className="hidden sm:inline">Sync HopKid</span>
           </button>
           <Link href="/users/register" className="btn-primary px-6 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2">
             <UserPlus size={18} />
@@ -353,6 +360,11 @@ const EmployeesPage = () => {
                         <p className="text-xs text-text-secondary truncate mt-0.5">
                           {employee.user?.email ?? employee.employeeCode}
                         </p>
+                        {(employee.mobileNumber || employee.phone) && (
+                          <p className="text-[11px] font-mono text-text-secondary truncate">
+                            {employee.mobileNumber || employee.phone}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -556,9 +568,17 @@ const EmployeesPage = () => {
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-1">
-                                <Mail size={12} className="text-text-secondary/70" />
-                                {employee.user?.email ?? employee.employeeCode}
+                              <div className="flex flex-col gap-0.5 mt-1">
+                                <div className="flex items-center gap-1.5 text-xs text-text-secondary">
+                                  <Mail size={12} className="text-text-secondary/70" />
+                                  {employee.user?.email ?? employee.employeeCode}
+                                </div>
+                                {(employee.mobileNumber || employee.phone) && (
+                                  <div className="flex items-center gap-1.5 text-[11px] font-mono text-text-secondary">
+                                    <Phone size={11} className="text-text-secondary/70" />
+                                    {employee.mobileNumber || employee.phone}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>

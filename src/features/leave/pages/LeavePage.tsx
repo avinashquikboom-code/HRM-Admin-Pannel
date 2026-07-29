@@ -220,34 +220,50 @@ export default function LeavePage() {
   const loadData = useCallback(async (requestsPage: number = 1, balancesPage: number = 1) => {
     setIsLoading(true);
     try {
-      const [leaves, balances, empRes, holidaysRes] = await Promise.all([
+      const [leavesResult, balancesResult, empResult, holidaysResult] = await Promise.allSettled([
         fetchAllLeaves(requestsPage, 20),
         fetchLeaveBalances(balancesPage, 20),
-        api.get<{ success: boolean; employees: any[] }>('/api/admin/employees'),
+        api.get<{ success: boolean; employees: any[] }>('/api/admin/employees', { timeout: 10000 }),
         fetchAdminHolidays().catch(err => {
           console.error('Failed to fetch holidays:', err);
           return [];
         })
       ]);
 
-      console.log('Loaded leaves:', leaves);
-      console.log('Loaded balances:', balances);
-      setLeaveRequests(leaves.leaves);
-      setRequestsCurrentPage(leaves.page);
-      setRequestsTotalPages(leaves.totalPages);
-      setRequestsCount(leaves.count);
-      setLeaveBalances(balances.balances);
-      setBalancesCurrentPage(balances.page);
-      setBalancesTotalPages(balances.totalPages);
-      setBalancesCount(balances.count);
+      const leaves = leavesResult.status === 'fulfilled' ? leavesResult.value : { success: false, count: 0, page: 1, limit: 20, totalPages: 1, leaves: [] };
+      const balances = balancesResult.status === 'fulfilled' ? balancesResult.value : { success: false, count: 0, page: 1, limit: 20, totalPages: 1, balances: [] };
+      const empData = empResult.status === 'fulfilled' ? empResult.value.data : { success: false, employees: [] };
+      const holidaysData = holidaysResult.status === 'fulfilled' ? holidaysResult.value : [];
 
-      if (empRes.data.success && empRes.data.employees.length > 0) {
-        setRealEmployees(empRes.data.employees);
-        setEmployeeName(`${empRes.data.employees[0].firstName} ${empRes.data.employees[0].lastName}`);
-        setAdjustEmployee(`${empRes.data.employees[0].firstName} ${empRes.data.employees[0].lastName}`);
+      if (leavesResult.status === 'rejected') {
+        console.warn('Leaves fetch failed or timed out:', leavesResult.reason);
+      }
+      if (balancesResult.status === 'rejected') {
+        console.warn('Balances fetch failed or timed out:', balancesResult.reason);
       }
 
-      setHolidays(Array.isArray(holidaysRes) ? holidaysRes : []);
+      console.log('Loaded leaves:', leaves);
+      console.log('Loaded balances:', balances);
+      setLeaveRequests(leaves.leaves || []);
+      setRequestsCurrentPage(leaves.page || 1);
+      setRequestsTotalPages(leaves.totalPages || 1);
+      setRequestsCount(leaves.count || 0);
+
+      setLeaveBalances(balances.balances || []);
+      setBalancesCurrentPage(balances.page || 1);
+      setBalancesTotalPages(balances.totalPages || 1);
+      setBalancesCount(balances.count || 0);
+
+      if (empData.success && Array.isArray(empData.employees) && empData.employees.length > 0) {
+        setRealEmployees(empData.employees);
+        const firstEmpName = `${empData.employees[0].firstName || ''} ${empData.employees[0].lastName || ''}`.trim();
+        if (firstEmpName) {
+          setEmployeeName(firstEmpName);
+          setAdjustEmployee(firstEmpName);
+        }
+      }
+
+      setHolidays(Array.isArray(holidaysData) ? holidaysData : []);
     } catch (err) {
       console.error('Failed to load leave admin data:', err);
       toast.error('Failed to load leave data. Please try again.');
