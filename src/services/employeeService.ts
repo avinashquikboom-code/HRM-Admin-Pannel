@@ -87,8 +87,9 @@ export async function fetchEmployees(
   options?: { timeout?: number; suppressError?: boolean }
 ): Promise<EmployeesResponse> {
   try {
+    const queryParams = { limit: 1000, ...params };
     const { data } = await api.get<EmployeesResponse>('/api/admin/employees', { 
-      params,
+      params: queryParams,
       timeout: options?.timeout || 10000,
     });
     return data;
