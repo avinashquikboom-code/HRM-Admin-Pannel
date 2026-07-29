@@ -116,7 +116,7 @@ export async function assignEmployeeToOffice(
 }
 
 export async function assignUserToOffice(
-  userId: number,
+  userId: number | string,
   officeId: string,
   departmentId?: number
 ): Promise<{ message: string; employee: AssignedEmployeeResult }> {
@@ -225,7 +225,7 @@ export async function resetEmployeePassword(
 ): Promise<ResetPasswordResponse> {
   try {
     const { data } = await api.put<ResetPasswordResponse>(
-      `/api/admin/employees/${employeeId.toLowerCase()}/reset-password`,
+      `/api/admin/employees/${String(employeeId).toLowerCase()}/reset-password`,
       payload
     );
     return data;

@@ -153,15 +153,15 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
-      const query = userSearch.toLowerCase().trim();
+      const query = (userSearch || '').toString().toLowerCase().trim();
       const matchesSearch = 
         !query ||
-        u.name.toLowerCase().includes(query) || 
-        u.email.toLowerCase().includes(query) ||
-        (u.employee?.employeeCode && u.employee.employeeCode.toLowerCase().includes(query)) ||
-        (u.employee?.firstName && u.employee.firstName.toLowerCase().includes(query)) ||
-        (u.employee?.lastName && u.employee.lastName.toLowerCase().includes(query)) ||
-        (u.employee?.office?.name && u.employee.office.name.toLowerCase().includes(query));
+        (u.name ? String(u.name).toLowerCase().includes(query) : false) || 
+        (u.email ? String(u.email).toLowerCase().includes(query) : false) ||
+        (u.employee?.employeeCode && String(u.employee.employeeCode).toLowerCase().includes(query)) ||
+        (u.employee?.firstName && String(u.employee.firstName).toLowerCase().includes(query)) ||
+        (u.employee?.lastName && String(u.employee.lastName).toLowerCase().includes(query)) ||
+        (u.employee?.office?.name && String(u.employee.office.name).toLowerCase().includes(query));
 
       const matchesRole = roleFilter === 'All' || u.role === roleFilter;
       const matchesProfile = 

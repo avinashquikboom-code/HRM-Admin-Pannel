@@ -33,6 +33,26 @@ export default function EditEmployeeModal({
     workMode: 'OFFICE',
     shiftType: 'MORNING',
     commissionPercentage: '0',
+    phone: '',
+    aadharNumber: '',
+    pfNumber: '',
+    esicNumber: '',
+    isHandicapped: false,
+    currentAddress: '',
+    permanentAddress: '',
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
+    accountType: 'Savings',
+    branchName: '',
+    basicSalary: 0,
+    grossSalary: 0,
+    hra: 0,
+    medicalAllowance: 0,
+    travelAllowance: 0,
+    specialAllowance: 0,
+    incentive: 0,
+    bonus: 0,
   });
 
   const [error, setError] = useState('');
@@ -73,6 +93,26 @@ export default function EditEmployeeModal({
         workMode: initialWorkMode,
         shiftType: initialShiftType,
         commissionPercentage: employee.commissionPercentage?.toString() || '0',
+        phone: employee.phone || employee.mobileNumber || '',
+        aadharNumber: employee.aadharNumber || '',
+        pfNumber: employee.pfNumber || '',
+        esicNumber: employee.esicNumber || '',
+        isHandicapped: employee.isHandicapped || false,
+        currentAddress: employee.currentAddress || '',
+        permanentAddress: employee.permanentAddress || '',
+        bankName: employee.bankName || '',
+        accountNumber: employee.accountNumber || '',
+        ifscCode: employee.ifscCode || '',
+        accountType: employee.accountType || 'Savings',
+        branchName: employee.branchName || '',
+        basicSalary: employee.basicSalary || 0,
+        grossSalary: employee.grossSalary || 0,
+        hra: employee.hra || 0,
+        medicalAllowance: employee.medicalAllowance || 0,
+        travelAllowance: employee.travelAllowance || 0,
+        specialAllowance: employee.specialAllowance || 0,
+        incentive: employee.incentive || 0,
+        bonus: employee.bonus || 0,
       });
       setError('');
       loadDropdownData();
@@ -152,7 +192,27 @@ export default function EditEmployeeModal({
         workMode: form.workMode || undefined,
         shiftType: form.shiftType || undefined,
         commissionPercentage: parseFloat(form.commissionPercentage) || 0,
-      });
+        phone: form.phone || undefined,
+        aadharNumber: form.aadharNumber || undefined,
+        pfNumber: form.pfNumber || undefined,
+        esicNumber: form.esicNumber || undefined,
+        isHandicapped: form.isHandicapped,
+        currentAddress: form.currentAddress || undefined,
+        permanentAddress: form.permanentAddress || undefined,
+        bankName: form.bankName || undefined,
+        accountNumber: form.accountNumber || undefined,
+        ifscCode: form.ifscCode || undefined,
+        accountType: form.accountType || undefined,
+        branchName: form.branchName || undefined,
+        basicSalary: form.basicSalary || 0,
+        grossSalary: form.grossSalary || 0,
+        hra: form.hra || 0,
+        medicalAllowance: form.medicalAllowance || 0,
+        travelAllowance: form.travelAllowance || 0,
+        specialAllowance: form.specialAllowance || 0,
+        incentive: form.incentive || 0,
+        bonus: form.bonus || 0,
+      } as any);
       toast.success('Employee updated successfully!');
       onUpdated();
       onClose();
@@ -344,6 +404,243 @@ export default function EditEmployeeModal({
             className={inputCls}
             placeholder="e.g. 5"
           />
+        </div>
+
+        {/* Phone Number */}
+        <div>
+          <label className={labelCls}>Phone Number</label>
+          <input
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            className={inputCls}
+            placeholder="+91 9876543210"
+          />
+        </div>
+
+        {/* Identification & Address Section */}
+        <div className="p-4 bg-surface-variant/30 border border-border rounded-sm space-y-3">
+          <h4 className="text-xs font-black text-text-secondary uppercase tracking-wider">Personal & Identification</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Aadhar Number</label>
+              <input
+                type="text"
+                maxLength={12}
+                value={form.aadharNumber}
+                onChange={(e) => setForm({ ...form, aadharNumber: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                placeholder="12-digit Aadhar"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">PF Number</label>
+              <input
+                type="text"
+                value={form.pfNumber}
+                onChange={(e) => setForm({ ...form, pfNumber: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                placeholder="PF Number"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">ESIC Number</label>
+              <input
+                type="text"
+                value={form.esicNumber}
+                onChange={(e) => setForm({ ...form, esicNumber: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                placeholder="ESIC Number"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-4">
+              <input
+                type="checkbox"
+                id="editIsHandicapped"
+                checked={form.isHandicapped}
+                onChange={(e) => setForm({ ...form, isHandicapped: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label htmlFor="editIsHandicapped" className="text-xs font-bold text-text-primary cursor-pointer">
+                Handicapped
+              </label>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Permanent Address</label>
+            <textarea
+              rows={2}
+              value={form.permanentAddress}
+              onChange={(e) => setForm({ ...form, permanentAddress: e.target.value })}
+              className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold resize-none"
+              placeholder="Permanent Address"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Current Address</label>
+            <textarea
+              rows={2}
+              value={form.currentAddress}
+              onChange={(e) => setForm({ ...form, currentAddress: e.target.value })}
+              className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold resize-none"
+              placeholder="Current Address"
+            />
+          </div>
+        </div>
+
+        {/* Bank Details Section */}
+        <div className="p-4 bg-surface-variant/30 border border-border rounded-sm space-y-3">
+          <h4 className="text-xs font-black text-text-secondary uppercase tracking-wider">Bank Details</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Bank Name</label>
+              <input
+                type="text"
+                value={form.bankName}
+                onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                placeholder="e.g. HDFC Bank"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Account Number</label>
+              <input
+                type="text"
+                value={form.accountNumber}
+                onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                placeholder="Account number"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">IFSC Code</label>
+              <input
+                type="text"
+                value={form.ifscCode}
+                onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold uppercase"
+                placeholder="HDFC0001234"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Account Type</label>
+              <select
+                value={form.accountType}
+                onChange={(e) => setForm({ ...form, accountType: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+              >
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+                <option value="Salary">Salary</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Branch Name</label>
+              <input
+                type="text"
+                value={form.branchName}
+                onChange={(e) => setForm({ ...form, branchName: e.target.value })}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                placeholder="Branch location"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Salary Structure Section */}
+        <div className="p-4 bg-gradient-to-r from-blue-500/5 to-purple-500/5 border border-blue-500/10 rounded-sm">
+          <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-3">Salary Structure</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Basic Salary</label>
+              <input
+                type="number"
+                min={0}
+                value={form.basicSalary}
+                onChange={(e) => {
+                  const basic = parseFloat(e.target.value) || 0;
+                  setForm(prev => ({
+                    ...prev,
+                    basicSalary: basic,
+                    grossSalary: basic + prev.hra + prev.medicalAllowance + prev.travelAllowance + prev.specialAllowance + prev.incentive + prev.bonus
+                  }));
+                }}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">HRA</label>
+              <input
+                type="number"
+                min={0}
+                value={form.hra}
+                onChange={(e) => {
+                  const hra = parseFloat(e.target.value) || 0;
+                  setForm(prev => ({
+                    ...prev,
+                    hra: hra,
+                    grossSalary: prev.basicSalary + hra + prev.medicalAllowance + prev.travelAllowance + prev.specialAllowance + prev.incentive + prev.bonus
+                  }));
+                }}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Medical</label>
+              <input
+                type="number"
+                min={0}
+                value={form.medicalAllowance}
+                onChange={(e) => {
+                  const med = parseFloat(e.target.value) || 0;
+                  setForm(prev => ({
+                    ...prev,
+                    medicalAllowance: med,
+                    grossSalary: prev.basicSalary + prev.hra + med + prev.travelAllowance + prev.specialAllowance + prev.incentive + prev.bonus
+                  }));
+                }}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Travel</label>
+              <input
+                type="number"
+                min={0}
+                value={form.travelAllowance}
+                onChange={(e) => {
+                  const trv = parseFloat(e.target.value) || 0;
+                  setForm(prev => ({
+                    ...prev,
+                    travelAllowance: trv,
+                    grossSalary: prev.basicSalary + prev.hra + prev.medicalAllowance + trv + prev.specialAllowance + prev.incentive + prev.bonus
+                  }));
+                }}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Special</label>
+              <input
+                type="number"
+                min={0}
+                value={form.specialAllowance}
+                onChange={(e) => {
+                  const spc = parseFloat(e.target.value) || 0;
+                  setForm(prev => ({
+                    ...prev,
+                    specialAllowance: spc,
+                    grossSalary: prev.basicSalary + prev.hra + prev.medicalAllowance + prev.travelAllowance + spc + prev.incentive + prev.bonus
+                  }));
+                }}
+                className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Gross Total</label>
+              <p className="p-2 text-sm font-black text-primary">₹{form.grossSalary.toLocaleString('en-IN')}</p>
+            </div>
+          </div>
         </div>
 
         {/* Status */}

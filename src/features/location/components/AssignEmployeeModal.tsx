@@ -29,7 +29,7 @@ export default function AssignEmployeeModal({
   onAssigned,
 }: AssignEmployeeModalProps) {
   const [users, setUsers] = useState<PlatformUser[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | string | null>(null);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | undefined>();
   const [departments, setDepartments] = useState<any[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);

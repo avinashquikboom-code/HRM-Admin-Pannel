@@ -68,7 +68,7 @@ function formatStatus(status: string) {
     case 'INACTIVE':
       return 'Inactive';
     default:
-      return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      return status ? String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase() : '';
   }
 }
 
@@ -336,7 +336,14 @@ const EmployeesPage = () => {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-text-primary truncate">{fullName}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleEditEmployee(employee)}
+                            className="font-bold text-text-primary truncate hover:text-primary hover:underline cursor-pointer text-left transition-colors"
+                            title="Click to view & edit employee details"
+                          >
+                            {fullName}
+                          </button>
                           {employee.source === 'HOPKID' && (
                             <span className="px-1.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider shrink-0 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                               HopKid
@@ -574,10 +581,10 @@ const EmployeesPage = () => {
                           <span className="text-sm font-medium text-text-secondary">{employee.shift?.name ?? '—'}</span>
                         </td>
                         <td className="px-8 py-4.5">
-                          <span className="text-xs font-bold text-text-primary capitalize">{employee.workModeId?.toLowerCase() || 'office'}</span>
+                          <span className="text-xs font-bold text-text-primary capitalize">{typeof employee.workModeId === 'string' ? employee.workModeId.toLowerCase() : (employee.workModeId ? String(employee.workModeId).toLowerCase() : 'office')}</span>
                         </td>
                         <td className="px-8 py-4.5">
-                          <span className="text-xs font-bold text-text-primary capitalize">{employee.shiftTypeId?.toLowerCase().replace('_', ' ') || 'morning'}</span>
+                          <span className="text-xs font-bold text-text-primary capitalize">{typeof employee.shiftTypeId === 'string' ? employee.shiftTypeId.toLowerCase().replace('_', ' ') : (employee.shiftTypeId ? String(employee.shiftTypeId).toLowerCase().replace('_', ' ') : 'morning')}</span>
                         </td>
                         <td className="px-8 py-4.5">
                           <span className="text-sm font-semibold text-text-primary">

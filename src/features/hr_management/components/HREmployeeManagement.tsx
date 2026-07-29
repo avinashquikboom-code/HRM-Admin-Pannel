@@ -181,23 +181,23 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
   const loadOfficesAndDepartments = useCallback(async () => {
     try {
       const [officesRes, departmentsRes, shiftsRes, workModesRes, designationsRes, branchesRes, storesRes] = await Promise.all([
-        fetchHROffices(),
-        fetchHRDepartments(),
-        fetchShifts(),
-        fetchWorkModes().catch(() => []), // Fallback in case endpoint is not available
-        fetchDesignations().catch(() => []), // Fallback in case endpoint is not available
+        fetchHROffices().catch(() => []),
+        fetchHRDepartments().catch(() => []),
+        fetchShifts().catch(() => []),
+        fetchWorkModes().catch(() => []),
+        fetchDesignations().catch(() => []),
         fetchBranches().catch(() => []),
         fetchStores().catch(() => [])
       ]);
-      setOffices(officesRes);
-      setDepartments(departmentsRes);
+      setOffices(officesRes || []);
+      setDepartments(departmentsRes || []);
       setShiftsList(shiftsRes || []);
       setWorkModesList(workModesRes || []);
       setDesignationsList(designationsRes || []);
       setBranchesList(branchesRes || []);
       setStoresList(storesRes || []);
     } catch (err: any) {
-      console.error('Failed to load offices, departments, shifts, and designations:', err);
+      console.warn('Failed to load offices, departments, shifts, and designations:', err);
       // Set empty arrays to prevent UI from hanging
       setOffices([]);
       setDepartments([]);
@@ -418,15 +418,29 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
       accountNumber: employee.accountNumber || '',
       ifscCode: employee.ifscCode || '',
       accountType: employee.accountType || 'Savings',
-      branchName: employee.branchName || ''
+      branchName: employee.branchName || '',
+      basicSalary: (employee as any).basicSalary || 0,
+      grossSalary: (employee as any).grossSalary || 0,
+      hra: (employee as any).hra || 0,
+      medicalAllowance: (employee as any).medicalAllowance || 0,
+      travelAllowance: (employee as any).travelAllowance || 0,
+      specialAllowance: (employee as any).specialAllowance || 0,
+      incentive: (employee as any).incentive || 0,
+      bonus: (employee as any).bonus || 0,
+      pfEnabled: (employee as any).pfEnabled || false,
+      employeePfRate: (employee as any).employeePfRate || 12.0,
+      employerPfRate: (employee as any).employerPfRate || 12.0,
+      esicEnabled: (employee as any).esicEnabled || false,
+      employeeEsicRate: (employee as any).employeeEsicRate || 0.75,
+      employerEsicRate: (employee as any).employerEsicRate || 3.25,
     });
     setSameAsPermanent(false);
     setEditPassword('');
     setIsEditModalOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getStatusColor = (status: any) => {
+    switch (String(status || '').toLowerCase()) {
       case 'active':
         return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
       case 'inactive':
@@ -617,7 +631,14 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                     <td className="p-4">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-bold text-text-primary">{employee.fullName}</p>
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(employee)}
+                            className="text-sm font-bold text-text-primary hover:text-primary hover:underline cursor-pointer text-left transition-colors"
+                            title="Click to view & edit all employee details"
+                          >
+                            {employee.fullName}
+                          </button>
                           {employee.source === 'HOPKID' && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                               HopKid
@@ -669,10 +690,10 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs font-bold text-text-primary capitalize">{employee.workModeId?.toLowerCase() || 'office'}</span>
+                      <span className="text-xs font-bold text-text-primary capitalize">{typeof employee.workModeId === 'string' ? employee.workModeId.toLowerCase() : (employee.workModeId ? String(employee.workModeId).toLowerCase() : 'office')}</span>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs font-bold text-text-primary capitalize">{employee.shiftTypeId?.toLowerCase().replace('_', ' ') || 'morning'}</span>
+                      <span className="text-xs font-bold text-text-primary capitalize">{typeof employee.shiftTypeId === 'string' ? employee.shiftTypeId.toLowerCase().replace('_', ' ') : (employee.shiftTypeId ? String(employee.shiftTypeId).toLowerCase().replace('_', ' ') : 'morning')}</span>
                     </td>
                     <td className="p-4">
                       <span className="text-xs font-bold text-text-primary">{employee.shift?.name || '—'}</span>
@@ -1223,7 +1244,7 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="border border-border bg-surface rounded-sm p-8 w-full max-w-md"
+              className="border border-border bg-surface rounded-sm p-6 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-lg font-black text-text-primary mb-6 flex items-center gap-2">
@@ -1463,6 +1484,65 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Bank Details Section */}
+                <div className="p-4 bg-surface-variant/30 border border-border rounded-sm space-y-3">
+                  <h4 className="text-xs font-black text-text-secondary uppercase tracking-wider">Bank Details</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Bank Name</label>
+                      <input
+                        type="text"
+                        value={formData.bankName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
+                        className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                        placeholder="e.g. HDFC Bank"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Account Number</label>
+                      <input
+                        type="text"
+                        value={formData.accountNumber}
+                        onChange={(e) => setFormData(prev => ({ ...prev, accountNumber: e.target.value }))}
+                        className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                        placeholder="Account number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">IFSC Code</label>
+                      <input
+                        type="text"
+                        value={formData.ifscCode}
+                        onChange={(e) => setFormData(prev => ({ ...prev, ifscCode: e.target.value.toUpperCase() }))}
+                        className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold uppercase"
+                        placeholder="HDFC0001234"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Account Type</label>
+                      <select
+                        value={formData.accountType}
+                        onChange={(e) => setFormData(prev => ({ ...prev, accountType: e.target.value }))}
+                        className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                      >
+                        <option value="Savings">Savings</option>
+                        <option value="Current">Current</option>
+                        <option value="Salary">Salary</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1">Branch Name</label>
+                      <input
+                        type="text"
+                        value={formData.branchName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, branchName: e.target.value }))}
+                        className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
+                        placeholder="Branch location"
+                      />
+                    </div>
                   </div>
                 </div>
 

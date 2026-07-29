@@ -51,6 +51,12 @@ export interface AdminSettings {
     includeTax: boolean;
     includeProvidentFund: boolean;
   };
+  integrations?: {
+    hopkidApiUrl: string;
+    hopkidApiKey: string;
+    mobileApiKey: string;
+    firebaseServerKey?: string;
+  };
 }
 
 export interface SettingsResponse {

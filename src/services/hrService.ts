@@ -304,18 +304,20 @@ export interface UpdateHREmployeeRequest {
 export async function fetchHROffices(): Promise<HROffice[]> {
   try {
     const { data } = await api.get<{ success: boolean; offices: HROffice[] }>('/api/admin/offices');
-    return data.offices;
+    return data.offices || [];
   } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to fetch offices.'));
+    console.warn('Failed to fetch offices, returning fallback:', error);
+    return [];
   }
 }
 
 export async function fetchHRDepartments(): Promise<HRDepartment[]> {
   try {
     const { data } = await api.get<{ success: boolean; departments: HRDepartment[] }>('/api/admin/departments');
-    return data.departments;
+    return data.departments || [];
   } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to fetch departments.'));
+    console.warn('Failed to fetch departments, returning fallback:', error);
+    return [];
   }
 }
 

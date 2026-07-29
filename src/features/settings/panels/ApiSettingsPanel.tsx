@@ -1,76 +1,193 @@
 'use client';
 
-import { Copy, Key, RefreshCw } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Key, Eye, EyeOff, Save, Loader2, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { toast } from 'sonner';
 import SettingsSection from '@/features/settings/components/SettingsSection';
+import { fetchSettings, updateSettings } from '@/services/settingsService';
 
 export default function ApiSettingsPanel() {
-  const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const maskedKey = 'hrm_live_••••••••••••••••••••';
-  const fullKey = 'hrm_live_sk_8f3a9c2e1b7d4f6a0c8e2b9d1f4a7c3';
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
 
-  const handleCopy = async () => {
+  const [integrations, setIntegrations] = useState({
+    hopkidApiUrl: 'https://hopkidapi.3dweb.in/api/Employee/GetEmployeeList',
+    hopkidApiKey: 'HOPKID-MOBILE-ACCESS-API-KEY',
+    mobileApiKey: 'HOPKID-MOBILE-ACCESS-API-KEY',
+    firebaseServerKey: '',
+  });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
     try {
-      await navigator.clipboard.writeText(fullKey);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
+      setLoading(true);
+      const res = await fetchSettings();
+      if (res.settings?.integrations) {
+        setIntegrations({
+          hopkidApiUrl: res.settings.integrations.hopkidApiUrl || 'https://hopkidapi.3dweb.in/api/Employee/GetEmployeeList',
+          hopkidApiKey: res.settings.integrations.hopkidApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
+          mobileApiKey: res.settings.integrations.mobileApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
+          firebaseServerKey: res.settings.integrations.firebaseServerKey || '',
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load integration settings:', err);
+      toast.error('Failed to load integration settings.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      await updateSettings('integrations', integrations);
+      toast.success('Integration API Keys updated successfully! Server environment restarted dynamically in DB.');
+    } catch (err: any) {
+      console.error('Save integration keys error:', err);
+      toast.error(err?.message || 'Failed to save integration keys.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls =
+    'w-full px-4 py-3 bg-surface-variant/50 border border-border rounded-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all text-xs font-mono font-semibold text-text-primary';
+  const labelCls =
+    'block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2';
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="animate-spin text-primary" size={24} />
+      </div>
+    );
+  }
+
   return (
     <SettingsSection
-      title="API keys"
-      description="Use these credentials to connect external systems to the HRM platform."
+      title="API Keys & External Integrations"
+      description="Manage live system API keys and integration endpoints directly. Changes apply immediately without editing .env files or restarting backend servers."
       icon={Key}
     >
-      <div className="rounded-sm border border-border/60 bg-surface-variant/30 p-5 space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-            Production secret key
-          </p>
-          <p className="mt-2 font-mono text-sm font-semibold text-text-primary break-all">
-            {revealed ? fullKey : maskedKey}
+      <form onSubmit={handleSave} className="space-y-6">
+        <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-sm">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 size={20} className="text-primary" />
+            <div>
+              <p className="text-xs font-bold text-text-primary">Dynamic Hot-Reloading Active</p>
+              <p className="text-[11px] text-text-secondary">Saved API keys update in database real-time. No server restart required.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowKeys((prev) => !prev)}
+            className="px-3 py-1.5 bg-surface-variant hover:bg-surface-variant/80 border border-border rounded-sm text-xs font-bold flex items-center gap-1.5 text-text-secondary transition-all"
+          >
+            {showKeys ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showKeys ? 'Hide Secret Keys' : 'Reveal Secret Keys'}
+          </button>
+        </div>
+
+        {/* HopKid Employee API Settings */}
+        <div className="p-5 border border-border/70 rounded-sm bg-surface-variant/20 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-text-primary flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              HopKid Portal Employee Integration
+            </h4>
+          </div>
+
+          <div>
+            <label className={labelCls}>HopKid Employee API Endpoint URL</label>
+            <input
+              type="text"
+              required
+              value={integrations.hopkidApiUrl}
+              onChange={(e) => setIntegrations((prev) => ({ ...prev, hopkidApiUrl: e.target.value }))}
+              className={inputCls}
+              placeholder="https://hopkidapi.3dweb.in/api/Employee/GetEmployeeList"
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>HopKid External API Access Key (x-api-key)</label>
+            <input
+              type={showKeys ? 'text' : 'password'}
+              required
+              value={integrations.hopkidApiKey}
+              onChange={(e) => setIntegrations((prev) => ({ ...prev, hopkidApiKey: e.target.value }))}
+              className={inputCls}
+              placeholder="Enter HopKid API Key"
+            />
+          </div>
+        </div>
+
+        {/* Mobile & Push Notifications Keys */}
+        <div className="p-5 border border-border/70 rounded-sm bg-surface-variant/20 space-y-4">
+          <h4 className="text-xs font-black uppercase tracking-wider text-text-primary border-b border-border/50 pb-3">
+            Mobile App & Authorization Keys
+          </h4>
+
+          <div>
+            <label className={labelCls}>Mobile App Authorization Key (x-api-key)</label>
+            <input
+              type={showKeys ? 'text' : 'password'}
+              required
+              value={integrations.mobileApiKey}
+              onChange={(e) => setIntegrations((prev) => ({ ...prev, mobileApiKey: e.target.value }))}
+              className={inputCls}
+              placeholder="Enter Mobile API Key"
+            />
+            <p className="text-[11px] text-text-secondary mt-1">Used by Flutter mobile app to authorize API requests.</p>
+          </div>
+
+          <div>
+            <label className={labelCls}>Firebase FCM Push Notification Key</label>
+            <input
+              type={showKeys ? 'text' : 'password'}
+              value={integrations.firebaseServerKey}
+              onChange={(e) => setIntegrations((prev) => ({ ...prev, firebaseServerKey: e.target.value }))}
+              className={inputCls}
+              placeholder="Enter Firebase FCM Key (Optional)"
+            />
+          </div>
+        </div>
+
+        {/* Warning Banner */}
+        <div className="p-4 rounded-sm border border-warning/30 bg-warning/5 flex items-start gap-3">
+          <ShieldAlert size={18} className="text-warning shrink-0 mt-0.5" />
+          <p className="text-xs text-text-secondary leading-relaxed">
+            <strong className="text-text-primary">Super Admin Access Only:</strong> Changes made here immediately override environment variables across all sync background workers and mobile authorization middleware without needing server reboots.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        {/* Save Button */}
+        <div className="flex justify-end pt-2">
           <button
-            type="button"
-            onClick={() => setRevealed((prev) => !prev)}
-            className="btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
+            type="submit"
+            disabled={saving}
+            className="btn-primary py-3 px-6 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-primary/10 disabled:opacity-50"
           >
-            {revealed ? 'Hide Key' : 'Reveal Key'}
-          </button>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
-          >
-            <Copy size={14} />
-            {copied ? 'Copied' : 'Copy Key'}
-          </button>
-          <button
-            type="button"
-            className="btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
-          >
-            <RefreshCw size={14} />
-            Regenerate
+            {saving ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Saving Integration Keys...
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                Save Integration Keys
+              </>
+            )}
           </button>
         </div>
-      </div>
-
-      <div className="rounded-sm border border-warning/20 bg-warning/5 p-4">
-        <p className="text-sm font-semibold text-text-primary">
-          Keep your API key private
-        </p>
-        <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-          Do not share this key in client-side code or public repositories.
-          Regenerating a key will invalidate the previous one immediately.
-        </p>
-      </div>
+      </form>
     </SettingsSection>
   );
 }
