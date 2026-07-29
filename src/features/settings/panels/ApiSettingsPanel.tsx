@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Key, Eye, EyeOff, Save, Loader2, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Key, Eye, EyeOff, Save, Loader2, CheckCircle2, ShieldAlert, MapPin, Cloud } from 'lucide-react';
 import { toast } from 'sonner';
 import SettingsSection from '@/features/settings/components/SettingsSection';
 import { fetchSettings, updateSettings } from '@/services/settingsService';
@@ -16,6 +16,11 @@ export default function ApiSettingsPanel() {
     hopkidApiKey: 'HOPKID-MOBILE-ACCESS-API-KEY',
     mobileApiKey: 'HOPKID-MOBILE-ACCESS-API-KEY',
     firebaseServerKey: '',
+    googleMapsApiKey: '',
+    awsAccessKeyId: '',
+    awsSecretAccessKey: '',
+    awsRegion: 'ap-south-1',
+    awsBucketName: '',
   });
 
   useEffect(() => {
@@ -32,6 +37,11 @@ export default function ApiSettingsPanel() {
           hopkidApiKey: res.settings.integrations.hopkidApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
           mobileApiKey: res.settings.integrations.mobileApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
           firebaseServerKey: res.settings.integrations.firebaseServerKey || '',
+          googleMapsApiKey: res.settings.integrations.googleMapsApiKey || '',
+          awsAccessKeyId: res.settings.integrations.awsAccessKeyId || '',
+          awsSecretAccessKey: res.settings.integrations.awsSecretAccessKey || '',
+          awsRegion: res.settings.integrations.awsRegion || 'ap-south-1',
+          awsBucketName: res.settings.integrations.awsBucketName || '',
         });
       }
     } catch (err) {
@@ -157,6 +167,85 @@ export default function ApiSettingsPanel() {
               placeholder="Enter Firebase FCM Key (Optional)"
             />
           </div>
+        </div>
+
+        {/* Google Maps API Key */}
+        <div className="p-5 border border-border/70 rounded-sm bg-surface-variant/20 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-text-primary flex items-center gap-2">
+              <MapPin size={16} className="text-rose-500" />
+              Google Maps & Geofencing API
+            </h4>
+          </div>
+
+          <div>
+            <label className={labelCls}>Google Maps API Key</label>
+            <input
+              type={showKeys ? 'text' : 'password'}
+              value={integrations.googleMapsApiKey}
+              onChange={(e) => setIntegrations((prev) => ({ ...prev, googleMapsApiKey: e.target.value }))}
+              className={inputCls}
+              placeholder="AIzaSy..."
+            />
+            <p className="text-[11px] text-text-secondary mt-1">Used for Geofencing validation, Live Location Tracking, and Address Geocoding APIs.</p>
+          </div>
+        </div>
+
+        {/* AWS S3 Cloud Storage Integration */}
+        <div className="p-5 border border-border/70 rounded-sm bg-surface-variant/20 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-text-primary flex items-center gap-2">
+              <Cloud size={16} className="text-amber-500" />
+              AWS S3 Cloud Storage
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>AWS Access Key ID</label>
+              <input
+                type={showKeys ? 'text' : 'password'}
+                value={integrations.awsAccessKeyId}
+                onChange={(e) => setIntegrations((prev) => ({ ...prev, awsAccessKeyId: e.target.value }))}
+                className={inputCls}
+                placeholder="AKIA..."
+              />
+            </div>
+
+            <div>
+              <label className={labelCls}>AWS Secret Access Key</label>
+              <input
+                type={showKeys ? 'text' : 'password'}
+                value={integrations.awsSecretAccessKey}
+                onChange={(e) => setIntegrations((prev) => ({ ...prev, awsSecretAccessKey: e.target.value }))}
+                className={inputCls}
+                placeholder="Enter AWS Secret Key"
+              />
+            </div>
+
+            <div>
+              <label className={labelCls}>AWS Region</label>
+              <input
+                type="text"
+                value={integrations.awsRegion}
+                onChange={(e) => setIntegrations((prev) => ({ ...prev, awsRegion: e.target.value }))}
+                className={inputCls}
+                placeholder="ap-south-1"
+              />
+            </div>
+
+            <div>
+              <label className={labelCls}>S3 Bucket Name</label>
+              <input
+                type="text"
+                value={integrations.awsBucketName}
+                onChange={(e) => setIntegrations((prev) => ({ ...prev, awsBucketName: e.target.value }))}
+                className={inputCls}
+                placeholder="hopkid-hrm-bucket"
+              />
+            </div>
+          </div>
+          <p className="text-[11px] text-text-secondary mt-1">Used for storing payslip PDFs, employee avatars, expense receipts, and document attachments.</p>
         </div>
 
         {/* Warning Banner */}

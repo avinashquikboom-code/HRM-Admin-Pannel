@@ -56,6 +56,11 @@ export interface AdminSettings {
     hopkidApiKey: string;
     mobileApiKey: string;
     firebaseServerKey?: string;
+    googleMapsApiKey?: string;
+    awsAccessKeyId?: string;
+    awsSecretAccessKey?: string;
+    awsRegion?: string;
+    awsBucketName?: string;
   };
 }
 
@@ -65,8 +70,9 @@ export interface SettingsResponse {
 
 export async function fetchSettings(): Promise<SettingsResponse> {
   try {
-    const { data } = await api.get<SettingsResponse>('/api/admin/settings');
-    return data;
+    const { data } = await api.get<any>('/api/admin/settings');
+    const settingsData = data.settings || data.data || data;
+    return { settings: settingsData };
   } catch (error) {
     throw new Error(
       getApiErrorMessage(error, 'Failed to load settings. Please try again.')
