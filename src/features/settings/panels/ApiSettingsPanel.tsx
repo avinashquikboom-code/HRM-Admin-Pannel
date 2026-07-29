@@ -31,22 +31,20 @@ export default function ApiSettingsPanel() {
     try {
       setLoading(true);
       const res = await fetchSettings();
-      if (res.settings?.integrations) {
-        setIntegrations({
-          hopkidApiUrl: res.settings.integrations.hopkidApiUrl || 'https://hopkidapi.3dweb.in/api/Employee/GetEmployeeList',
-          hopkidApiKey: res.settings.integrations.hopkidApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
-          mobileApiKey: res.settings.integrations.mobileApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
-          firebaseServerKey: res.settings.integrations.firebaseServerKey || '',
-          googleMapsApiKey: res.settings.integrations.googleMapsApiKey || '',
-          awsAccessKeyId: res.settings.integrations.awsAccessKeyId || '',
-          awsSecretAccessKey: res.settings.integrations.awsSecretAccessKey || '',
-          awsRegion: res.settings.integrations.awsRegion || 'ap-south-1',
-          awsBucketName: res.settings.integrations.awsBucketName || '',
-        });
-      }
-    } catch (err) {
-      console.error('Failed to load integration settings:', err);
-      toast.error('Failed to load integration settings.');
+      const integrationsData = res.settings?.integrations || (res.settings as any) || {};
+      setIntegrations({
+        hopkidApiUrl: integrationsData.hopkidApiUrl || 'https://hopkidapi.3dweb.in/api/Employee/GetEmployeeList',
+        hopkidApiKey: integrationsData.hopkidApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
+        mobileApiKey: integrationsData.mobileApiKey || 'HOPKID-MOBILE-ACCESS-API-KEY',
+        firebaseServerKey: integrationsData.firebaseServerKey || '',
+        googleMapsApiKey: integrationsData.googleMapsApiKey || '',
+        awsAccessKeyId: integrationsData.awsAccessKeyId || '',
+        awsSecretAccessKey: integrationsData.awsSecretAccessKey || '',
+        awsRegion: integrationsData.awsRegion || 'ap-south-1',
+        awsBucketName: integrationsData.awsBucketName || '',
+      });
+    } catch (err: any) {
+      console.warn('[ApiSettingsPanel] Failed to load remote integration settings, using default state:', err);
     } finally {
       setLoading(false);
     }
