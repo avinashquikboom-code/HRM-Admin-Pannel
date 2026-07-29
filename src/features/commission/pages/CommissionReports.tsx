@@ -18,7 +18,11 @@ import {
   Sparkles,
   RefreshCw,
   X,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
@@ -37,7 +41,24 @@ export default function CommissionReports() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('day');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
   const filteredReportData = reportData.filter((item) => {
+    // 1. Strictly exclude non-HopKid employees and admin accounts
+    const code = String(item.employeeCode || '').trim();
+    const name = String(item.employeeName || '').toLowerCase();
+    if (
+      code.startsWith('ADMIN') || 
+      code.startsWith('QB') || 
+      code.startsWith('EMP') || 
+      name.includes('admin') || 
+      (item.source && item.source !== 'HOPKID')
+    ) {
+      return false;
+    }
+
     if (!searchQuery.trim()) return true;
     const q = searchQuery.trim().toLowerCase();
     const empName = (item.employeeName || '').toLowerCase();
@@ -45,6 +66,14 @@ export default function CommissionReports() {
     const branch = (item.branchName || '').toLowerCase();
     return empName.includes(q) || empCode.includes(q) || branch.includes(q);
   });
+
+  const totalItems = filteredReportData.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+  const paginatedReportData = filteredReportData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
   
   // Default to start of current year for full history visibility
   const [startDate, setStartDate] = useState<string>(
@@ -61,6 +90,10 @@ export default function CommissionReports() {
   useEffect(() => {
     loadReportData();
   }, [selectedStore, selectedPeriod, startDate, endDate]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStore, selectedPeriod, startDate, endDate, pageSize]);
 
   const loadStores = async () => {
     try {
@@ -370,7 +403,7 @@ export default function CommissionReports() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                {filteredReportData.map((item, index) => (
+                {paginatedReportData.map((item, index) => (
                   <tr key={index} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02] transition-colors group">
                     <td className="px-6 py-4 font-mono text-xs font-bold text-text-primary">
                       <span className="bg-surface-variant/80 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-border/50 dark:border-white/10">
@@ -414,6 +447,89 @@ export default function CommissionReports() {
             </table>
           )}
         </div>
+
+        {/* Pagination Footer */}
+        {totalItems > 0 && (
+          <div className="px-6 py-4 border-t border-border/50 dark:border-white/10 bg-surface-variant/20 dark:bg-slate-950/20 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold">
+            <div className="flex items-center gap-3 text-text-secondary">
+              <span>
+                Showing{' '}
+                <strong className="text-text-primary font-black">
+                  {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
+                </strong>{' '}
+                to{' '}
+                <strong className="text-text-primary font-black">
+                  {Math.min(currentPage * pageSize, totalItems)}
+                </strong>{' '}
+                of <strong className="text-text-primary font-black">{totalItems}</strong> entries
+              </span>
+
+              <div className="flex items-center gap-1.5 ml-2">
+                <span className="text-[11px] text-text-secondary">Rows per page:</span>
+                <Select value={pageSize.toString()} onValueChange={(val) => setPageSize(Number(val))}>
+                  <SelectTrigger className="h-7 w-16 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-lg text-xs font-bold outline-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0 rounded-lg border border-border/50 dark:border-white/10 text-text-secondary disabled:opacity-40"
+                title="First Page"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0 rounded-lg border border-border/50 dark:border-white/10 text-text-secondary disabled:opacity-40"
+                title="Previous Page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <div className="flex items-center gap-1 px-2">
+                <span className="text-text-primary font-black">Page {currentPage}</span>
+                <span className="text-text-secondary font-medium">of {totalPages}</span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0 rounded-lg border border-border/50 dark:border-white/10 text-text-secondary disabled:opacity-40"
+                title="Next Page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0 rounded-lg border border-border/50 dark:border-white/10 text-text-secondary disabled:opacity-40"
+                title="Last Page"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -75,24 +75,44 @@ export default function CommissionDashboard() {
   const queryLower = searchQuery.trim().toLowerCase();
 
   const filteredTransactions = transactions.filter((t) => {
+    const code = String(t.employee?.employeeCode || '').trim();
+    const name = `${t.employee?.firstName || ''} ${t.employee?.lastName || ''}`.toLowerCase();
+    if (
+      code.startsWith('ADMIN') || 
+      code.startsWith('QB') || 
+      code.startsWith('EMP') || 
+      name.includes('admin') || 
+      (t.employee?.source && t.employee.source !== 'HOPKID')
+    ) {
+      return false;
+    }
+
     if (!queryLower) return true;
-    const empName = `${t.employee?.firstName || ''} ${t.employee?.lastName || ''}`.toLowerCase();
-    const empCode = (t.employee?.employeeCode || '').toLowerCase();
     const storeName = (t.store?.name || '').toLowerCase();
     const inv = (t.invoiceNumber || t.billId || '').toLowerCase();
     return (
-      empName.includes(queryLower) ||
-      empCode.includes(queryLower) ||
+      name.includes(queryLower) ||
+      code.toLowerCase().includes(queryLower) ||
       storeName.includes(queryLower) ||
       inv.includes(queryLower)
     );
   });
 
   const filteredTopPerformers = (stats?.topPerformers || []).filter((p) => {
+    const code = String(p.employee?.employeeCode || '').trim();
+    const name = `${p.employee?.firstName || ''} ${p.employee?.lastName || ''}`.toLowerCase();
+    if (
+      code.startsWith('ADMIN') || 
+      code.startsWith('QB') || 
+      code.startsWith('EMP') || 
+      name.includes('admin') || 
+      (p.employee?.source && p.employee.source !== 'HOPKID')
+    ) {
+      return false;
+    }
+
     if (!queryLower) return true;
-    const empName = `${p.employee?.firstName || ''} ${p.employee?.lastName || ''}`.toLowerCase();
-    const empCode = (p.employee?.employeeCode || '').toLowerCase();
-    return empName.includes(queryLower) || empCode.includes(queryLower);
+    return name.includes(queryLower) || code.toLowerCase().includes(queryLower);
   });
 
   // Sync sales state
