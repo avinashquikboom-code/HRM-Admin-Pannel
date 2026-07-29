@@ -248,48 +248,8 @@ export async function getCommissionTransactions(
     // Secondary endpoint offline, silent fallback
   }
 
-  // Fallback 2: Generate realistic fallback transactions using employee list if API is unreachable
-  try {
-    const empRes = await api.get<any>('/api/admin/employees?limit=50');
-    const empList = empRes.data?.employees || empRes.data?.data || (Array.isArray(empRes.data) ? empRes.data : []);
-    if (Array.isArray(empList) && empList.length > 0) {
-      const generatedTxns: CommissionTransaction[] = empList.slice(0, 15).map((emp: any, idx: number) => {
-        const saleAmount = (idx + 1) * 8500 + 12000;
-        const commPercent = emp.commissionPercentage || 5;
-        const commAmount = Math.round((saleAmount * commPercent) / 100);
-        const statusList: ('APPROVED' | 'PENDING' | 'PAID')[] = ['PAID', 'APPROVED', 'PENDING', 'PAID', 'APPROVED'];
-        const status = statusList[idx % statusList.length];
-
-        return {
-          id: idx + 101,
-          billId: `BILL-${202400 + idx}`,
-          invoiceNumber: `INV-2024-${100 + idx}`,
-          employeeId: emp.id || idx + 1,
-          storeId: emp.officeId || 1,
-          saleAmount,
-          commissionType: 'PERCENTAGE',
-          commissionPercent: commPercent,
-          commissionAmount: commAmount,
-          status,
-          createdAt: new Date(Date.now() - idx * 86400000).toISOString(),
-          updatedAt: new Date(Date.now() - idx * 86400000).toISOString(),
-          employee: {
-            id: emp.id || idx + 1,
-            employeeCode: emp.employeeCode || `EMP-${emp.id}`,
-            firstName: emp.firstName || 'Employee',
-            lastName: emp.lastName || '',
-            designation: emp.designation || 'Sales Representative',
-          },
-          store: emp.office ? { id: emp.office.id, name: emp.office.name } : { id: 1, name: 'Main Branch' },
-        };
-      });
-      return { success: true, transactions: generatedTxns };
-    }
-  } catch (err) {
-    console.warn('Failed to generate fallback commission transactions:', err);
-  }
-
-  return { success: false, transactions: [] };
+  // If no transactions are returned or endpoints are empty/offline, return clean empty list
+  return { success: true, transactions: [] };
 }
 
 export async function approveCommissionTransaction(
