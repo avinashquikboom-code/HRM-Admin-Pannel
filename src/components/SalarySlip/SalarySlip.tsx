@@ -34,6 +34,9 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
     netInWords = ''
   } = slipData;
 
+  const totalDaysInMonth = yr && mo ? new Date(yr, mo, 0).getDate() : 30;
+  const totalMonths = slipData?.totalMonths ?? selectedSlip?.totalMonths ?? 1;
+
   return (
     <div className="border border-white/10 rounded-sm overflow-hidden bg-slate-950/60 shadow-2xl print-bg-white print-border">
       <style>{`
@@ -109,14 +112,16 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Employee Info Grid */}
-          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4 border border-white/8 rounded-sm p-6 print-border">
+          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 border border-white/8 rounded-sm p-6 print-border">
             {([
-              ['Employee Name',   selectedSlip.name],
-              ['Employee Code',   selectedSlip.employeeCode],
-              ['Designation',     selectedSlip.designation],
-              ['Department',      selectedSlip.department],
-              ['Office / Branch', selectedSlip.office],
-              ['Pay Period',      monthLabel],
+              ['Employee Name',        selectedSlip.name],
+              ['Employee Code',        selectedSlip.employeeCode],
+              ['Designation',          selectedSlip.designation],
+              ['Department',           selectedSlip.department],
+              ['Office / Branch',      selectedSlip.office],
+              ['Pay Period',           monthLabel],
+              ['Total Days of Month',  `${totalDaysInMonth} Days`],
+              ['Total Months',         `${totalMonths} ${totalMonths === 1 ? 'Month' : 'Months'}`],
             ] as [string, string][]).map(([label, value]) => (
               <div key={label} className="flex flex-col gap-0.5">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print-text-muted">{label}</span>
@@ -129,14 +134,15 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
           <div className="border border-white/10 rounded-sm overflow-hidden flex flex-col justify-between p-5 bg-white/3 print-border print-bg-white">
             <div>
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 print-text-muted">Attendance Summary</h4>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { label: 'Working Days', value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100 print-text-dark' },
-                  { label: 'Present',      value: slipAttendance?.present     ?? 0, numColor: 'text-emerald-400 print-text-emerald' },
-                  { label: 'Absent',       value: slipAttendance?.absent      ?? 0, numColor: 'text-rose-400 print-text-rose' },
-                  { label: 'Half Day',     value: slipAttendance?.halfDay     ?? 0, numColor: 'text-blue-400 print-text-dark' },
-                  { label: 'Late',         value: slipAttendance?.late        ?? 0, numColor: 'text-amber-400 print-text-dark' },
-                  { label: 'Leave',        value: slipAttendance?.leave       ?? 0, numColor: 'text-purple-400 print-text-dark' },
+                  { label: 'Total Month Days', value: slipAttendance?.totalDaysInMonth ?? totalDaysInMonth, numColor: 'text-cyan-400 print-text-dark' },
+                  { label: 'Working Days',     value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100 print-text-dark' },
+                  { label: 'Present',          value: slipAttendance?.present     ?? 0, numColor: 'text-emerald-400 print-text-emerald' },
+                  { label: 'Absent',           value: slipAttendance?.absent      ?? 0, numColor: 'text-rose-400 print-text-rose' },
+                  { label: 'Half Day',         value: slipAttendance?.halfDay     ?? 0, numColor: 'text-blue-400 print-text-dark' },
+                  { label: 'Late',             value: slipAttendance?.late        ?? 0, numColor: 'text-amber-400 print-text-dark' },
+                  { label: 'Leave',            value: slipAttendance?.leave       ?? 0, numColor: 'text-purple-400 print-text-dark' },
                 ].map(({ label, value, numColor }) => (
                   <div key={label} className="flex flex-col items-center justify-center p-2 rounded bg-white/5 border border-white/5 print-border print-bg-white">
                     <span className={`text-lg font-black font-mono leading-none ${numColor}`}>{value}</span>

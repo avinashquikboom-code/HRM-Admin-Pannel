@@ -112,10 +112,12 @@ function computeSlipData(slip: any, slipMonth: string) {
   const totalDeductions = pf + pt + tds;
   const netPay        = grossEarnings - totalDeductions;
   const [yr, mo]      = slipMonth.split('-').map(Number);
+  const totalDaysInMonth = yr && mo ? new Date(yr, mo, 0).getDate() : 30;
+  const totalMonths   = slip.totalMonths ?? 1;
   const monthLabel    = new Date(yr, mo - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
   const monthShort    = new Date(yr, mo - 1, 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }).replace(' ', '-');
   const netInWords    = numToWords(netPay) + ' Rupees Only';
-  return { basic, hra, ta, special, grossEarnings, pf, pt, tds, totalDeductions, netPay, yr, mo, monthLabel, monthShort, netInWords };
+  return { basic, hra, ta, special, grossEarnings, pf, pt, tds, totalDeductions, netPay, yr, mo, totalDaysInMonth, totalMonths, monthLabel, monthShort, netInWords };
 }
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -204,6 +206,7 @@ const PayrollPage = () => {
   };
 
   const [slipAttendance, setSlipAttendance] = useState<{
+    totalDaysInMonth?: number;
     workingDays: number;
     present: number;
     absent: number;
@@ -260,6 +263,9 @@ const PayrollPage = () => {
 
     const fetchAttendance = async () => {
       try {
+        const [yrStr, moStr] = slipMonth.split('-');
+        const calcDays = yrStr && moStr ? new Date(parseInt(yrStr), parseInt(moStr), 0).getDate() : 30;
+
         const res = await api.get<{ success: boolean; details: any[] }>(
           `/api/admin/reports/attendance-details?month=${slipMonth}`
         );
@@ -269,6 +275,7 @@ const PayrollPage = () => {
           );
           if (empRecord) {
             setSlipAttendance({
+              totalDaysInMonth: calcDays,
               workingDays: empRecord.totalDays || 26,
               present: empRecord.present || 0,
               absent: empRecord.absent || 0,
@@ -278,6 +285,7 @@ const PayrollPage = () => {
             });
           } else {
             setSlipAttendance({
+              totalDaysInMonth: calcDays,
               workingDays: 26,
               present: 26,
               absent: 0,
@@ -998,14 +1006,16 @@ const PayrollPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
                   {/* Employee Info Grid */}
-                  <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4 border border-white/8 rounded-sm p-6 print-border">
+                  <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 border border-white/8 rounded-sm p-6 print-border">
                     {([
-                      ['Employee Name',   selectedSlip.name],
-                      ['Employee Code',   selectedSlip.employeeCode],
-                      ['Designation',     selectedSlip.designation],
-                      ['Department',      selectedSlip.department],
-                      ['Office / Branch', selectedSlip.office],
-                      ['Pay Period',      monthLabel],
+                      ['Employee Name',        selectedSlip.name],
+                      ['Employee Code',        selectedSlip.employeeCode],
+                      ['Designation',          selectedSlip.designation],
+                      ['Department',           selectedSlip.department],
+                      ['Office / Branch',      selectedSlip.office],
+                      ['Pay Period',           monthLabel],
+                      ['Total Days of Month',  `${slipData?.totalDaysInMonth ?? (yr && mo ? new Date(yr, mo, 0).getDate() : 30)} Days`],
+                      ['Total Months',         `${slipData?.totalMonths ?? selectedSlip?.totalMonths ?? 1} ${((slipData?.totalMonths ?? selectedSlip?.totalMonths ?? 1) === 1) ? 'Month' : 'Months'}`],
                     ] as [string, string][]).map(([label, value]) => (
                       <div key={label} className="flex flex-col gap-0.5">
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print-text-muted">{label}</span>
@@ -1018,14 +1028,15 @@ const PayrollPage = () => {
                   <div className="border border-white/10 rounded-sm overflow-hidden flex flex-col justify-between p-5 bg-white/3 print-border print-bg-white">
                     <div>
                       <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 print-text-muted">Attendance Summary</h4>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {[
-                          { label: 'Working Days', value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100 print-text-dark' },
-                          { label: 'Present',      value: slipAttendance?.present     ?? 0, numColor: 'text-emerald-400 print-text-emerald' },
-                          { label: 'Absent',       value: slipAttendance?.absent      ?? 0, numColor: 'text-rose-400 print-text-rose' },
-                          { label: 'Half Day',     value: slipAttendance?.halfDay     ?? 0, numColor: 'text-blue-400 print-text-dark' },
-                          { label: 'Late',         value: slipAttendance?.late        ?? 0, numColor: 'text-amber-400 print-text-dark' },
-                          { label: 'Leave',        value: slipAttendance?.leave       ?? 0, numColor: 'text-purple-400 print-text-dark' },
+                          { label: 'Total Month Days', value: slipAttendance?.totalDaysInMonth ?? (yr && mo ? new Date(yr, mo, 0).getDate() : 30), numColor: 'text-cyan-400 print-text-dark' },
+                          { label: 'Working Days',     value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100 print-text-dark' },
+                          { label: 'Present',          value: slipAttendance?.present     ?? 0, numColor: 'text-emerald-400 print-text-emerald' },
+                          { label: 'Absent',           value: slipAttendance?.absent      ?? 0, numColor: 'text-rose-400 print-text-rose' },
+                          { label: 'Half Day',         value: slipAttendance?.halfDay     ?? 0, numColor: 'text-blue-400 print-text-dark' },
+                          { label: 'Late',             value: slipAttendance?.late        ?? 0, numColor: 'text-amber-400 print-text-dark' },
+                          { label: 'Leave',            value: slipAttendance?.leave       ?? 0, numColor: 'text-purple-400 print-text-dark' },
                         ].map(({ label, value, numColor }) => (
                           <div key={label} className="flex flex-col items-center justify-center p-2 rounded bg-white/5 border border-white/5 print-border print-bg-white">
                             <span className={`text-lg font-black font-mono leading-none ${numColor}`}>{value}</span>
