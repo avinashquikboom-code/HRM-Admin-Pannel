@@ -52,13 +52,11 @@ export default function CommissionReports() {
 
     // Exclude HR and admin accounts
     const code = String(item.employeeCode || '').trim().toUpperCase();
-    const name = String(item.employeeName || '').toLowerCase();
     const des = String(item.designation || '').toLowerCase();
     const role = String(item.role || '').toLowerCase();
     if (
       code.startsWith('ADMIN') || 
       code.startsWith('HR') || 
-      name.includes('admin') || 
       des.includes('hr') ||
       role.includes('admin') ||
       role.includes('hr')
@@ -66,12 +64,15 @@ export default function CommissionReports() {
       return false;
     }
 
+    // Must be a HopKid store
+    const branch = String(item.branchName || '').toUpperCase();
+    if (branch && !branch.startsWith('HOPKID')) return false;
+
     if (!searchQuery.trim()) return true;
     const q = searchQuery.trim().toLowerCase();
     const empName = (item.employeeName || '').toLowerCase();
     const empCode = (item.employeeCode || '').toLowerCase();
-    const branch = (item.branchName || '').toLowerCase();
-    return empName.includes(q) || empCode.includes(q) || branch.includes(q);
+    return empName.includes(q) || empCode.includes(q) || branch.toLowerCase().includes(q);
   });
 
   const totalItems = filteredReportData.length;
@@ -105,7 +106,8 @@ export default function CommissionReports() {
   const loadStores = async () => {
     try {
       const res = await fetchStores();
-      setStores(Array.isArray(res) ? res : []);
+      const list = Array.isArray(res) ? res : [];
+      setStores(list.filter((s: any) => String(s.name || '').toUpperCase().startsWith('HOPKID')));
     } catch (error) {
       console.error('Failed to load stores:', error);
     }

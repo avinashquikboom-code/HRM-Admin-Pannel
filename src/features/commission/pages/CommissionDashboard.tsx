@@ -97,13 +97,15 @@ export default function CommissionDashboard() {
       return false;
     }
 
+    const storeName = String(t.store?.name || emp.store?.name || '').toUpperCase();
+    if (storeName && !storeName.startsWith('HOPKID')) return false;
+
     if (!queryLower) return true;
-    const storeName = (t.store?.name || '').toLowerCase();
     const inv = (t.invoiceNumber || t.billId || '').toLowerCase();
     return (
       name.includes(queryLower) ||
       code.toLowerCase().includes(queryLower) ||
-      storeName.includes(queryLower) ||
+      storeName.toLowerCase().includes(queryLower) ||
       inv.includes(queryLower)
     );
   });
@@ -247,7 +249,8 @@ export default function CommissionDashboard() {
         console.error('Failed to load stores:', err);
         return [];
       });
-      setStores(Array.isArray(storesRes) ? storesRes : []);
+      const list = Array.isArray(storesRes) ? storesRes : [];
+      setStores(list.filter((s: any) => String(s.name || '').toUpperCase().startsWith('HOPKID')));
     } catch (error) {
       console.error('Failed to load dropdown data:', error);
     }
