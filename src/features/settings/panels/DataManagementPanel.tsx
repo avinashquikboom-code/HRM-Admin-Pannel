@@ -27,6 +27,7 @@ import TableSkeleton from '@/components/TableSkeleton';
 const WHITELISTED_TABLES = [
   { id: 'Attendance', label: 'Attendance / Punches', desc: 'Clock-in, clock-out, & punch logs' },
   { id: 'Leaves', label: 'Leaves / Requests', desc: 'Employee leave & absence requests' },
+  { id: 'Payroll', label: 'Payroll & Advances', desc: 'Employee payslips & salary advance records' },
   { id: 'Sales', label: 'Sales & Commissions', desc: 'Commission transactions & sales ledger' },
   { id: 'Breaks', label: 'Breaks & Logs', desc: 'Employee break records & duration telemetry' },
   { id: 'ShiftRequests', label: 'Shift Requests', desc: 'Pending & processed shift change requests' },
@@ -45,6 +46,7 @@ export default function DataManagementPanel() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [attendanceStatus, setAttendanceStatus] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -145,6 +147,7 @@ export default function DataManagementPanel() {
         filters: {
           branchId: selectedBranch || undefined,
           employeeId: selectedEmployee || undefined,
+          attendanceStatus: attendanceStatus || undefined,
           dateFrom: dateFrom || undefined,
           dateTo: dateTo || undefined,
         },
@@ -183,6 +186,7 @@ export default function DataManagementPanel() {
         filters: {
           branchId: selectedBranch || undefined,
           employeeId: selectedEmployee || undefined,
+          attendanceStatus: attendanceStatus || undefined,
           dateFrom: dateFrom || undefined,
           dateTo: dateTo || undefined,
         },
@@ -375,7 +379,7 @@ export default function DataManagementPanel() {
                 </select>
               </div>
 
-              {/* Employee Filter */}
+              {/* Specific Employee */}
               <div>
                 <label className="block text-xs font-bold text-text-secondary mb-1.5 flex items-center gap-1.5">
                   <User size={13} /> Specific Employee
@@ -389,6 +393,27 @@ export default function DataManagementPanel() {
                   }}
                   placeholder="All Employees"
                 />
+              </div>
+
+              {/* Attendance Status Filter */}
+              <div>
+                <label className="block text-xs font-bold text-text-secondary mb-1.5 flex items-center gap-1.5">
+                  <Filter size={13} /> Attendance Status
+                </label>
+                <select
+                  value={attendanceStatus}
+                  onChange={(e) => {
+                    setAttendanceStatus(e.target.value);
+                    setDryRunPreview(null);
+                  }}
+                  className="w-full px-3 py-2.5 bg-surface-variant border border-border/60 rounded-xl text-xs font-semibold outline-none focus:border-primary"
+                >
+                  <option value="">All Statuses (Present, Absent, etc.)</option>
+                  <option value="PRESENT">PRESENT Only</option>
+                  <option value="ABSENT">ABSENT Only</option>
+                  <option value="HALF_DAY">HALF DAY Only</option>
+                  <option value="LATE">LATE Only</option>
+                </select>
               </div>
 
               {/* Date From */}
