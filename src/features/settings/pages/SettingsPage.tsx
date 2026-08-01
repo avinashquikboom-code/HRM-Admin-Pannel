@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Save,
   Settings,
+  Database,
 } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { api, getApiErrorMessage } from '@/lib/api';
@@ -24,6 +25,7 @@ import NotificationsSettingsPanel, {
   defaultNotificationPreferences,
 } from '@/features/settings/panels/NotificationsSettingsPanel';
 import ApiSettingsPanel from '@/features/settings/panels/ApiSettingsPanel';
+import DataManagementPanel from '@/features/settings/panels/DataManagementPanel';
 import {
   fetchSettings,
   updateSettings,
@@ -42,6 +44,12 @@ const tabs: SettingsTab[] = [
     label: 'Security',
     description: 'Authentication and audit policies',
     icon: Shield,
+  },
+  {
+    id: 'data-management',
+    label: 'Data Management',
+    description: 'Selective resets & dry-run previews',
+    icon: Database,
   },
   {
     id: 'notifications',
@@ -230,6 +238,8 @@ export default function SettingsPage() {
             }}
           />
         );
+      case 'data-management':
+        return <DataManagementPanel />;
       case 'api':
         return <ApiSettingsPanel />;
       default:

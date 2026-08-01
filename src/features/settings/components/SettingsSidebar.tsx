@@ -11,7 +11,8 @@ export type SettingsTabId =
   | 'leave-policy'
   | 'holidays'
   | 'notifications'
-  | 'api';
+  | 'api'
+  | 'data-management';
 
 export interface SettingsTab {
   id: SettingsTabId;
