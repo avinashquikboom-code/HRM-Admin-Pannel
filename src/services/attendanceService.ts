@@ -60,7 +60,7 @@ export async function fetchTodayAttendance(): Promise<TodayAttendanceResponse> {
     const rawList = data?.attendances || data?.attendance || data?.records || data?.data || (Array.isArray(data) ? data : []);
     const distribution = data?.attendanceDistribution || data?.distribution || [];
     
-    if (Array.isArray(rawList) && rawList.length > 0) {
+    if (Array.isArray(rawList)) {
       return {
         date: data?.date || todayStr,
         count: rawList.length,
@@ -79,7 +79,7 @@ export async function fetchTodayAttendance(): Promise<TodayAttendanceResponse> {
   try {
     const { data } = await api.get<any>('/api/mobile/attendance/all');
     const rawList = data?.records || data?.attendances || data?.data || (Array.isArray(data) ? data : []);
-    if (Array.isArray(rawList) && rawList.length > 0) {
+    if (Array.isArray(rawList)) {
       return {
         date: todayStr,
         count: rawList.length,
