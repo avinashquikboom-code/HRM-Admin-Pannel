@@ -6,6 +6,7 @@ export interface ShiftRuleRecord {
   content: string;
   shiftType: string | null;
   branchId: string | null;
+  employeeId?: string | null;
   isActive: boolean;
   priority: number;
   createdBy: string;
@@ -19,6 +20,7 @@ export interface CreateShiftRuleInput {
   content: string;
   shiftType?: string | null;
   branchId?: string | null;
+  employeeId?: string | null;
   priority?: number;
 }
 
@@ -27,6 +29,7 @@ export interface UpdateShiftRuleInput {
   content?: string;
   shiftType?: string | null;
   branchId?: string | null;
+  employeeId?: string | null;
   isActive?: boolean;
   priority?: number;
 }

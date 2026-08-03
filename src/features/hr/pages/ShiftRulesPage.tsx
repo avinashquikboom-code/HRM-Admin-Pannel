@@ -12,11 +12,14 @@ import {
   XCircle,
   Clock,
   Building2,
+  Users,
+  User,
   Smartphone,
   ChevronDown,
   ChevronUp,
   Sparkles,
   AlertTriangle,
+  Filter,
 } from 'lucide-react';
 import {
   fetchHrShiftRules,
@@ -25,13 +28,21 @@ import {
   deleteHrShiftRule,
   ShiftRuleRecord,
 } from '@/services/shiftRuleService';
+import { fetchOffices, Office } from '@/services/officesService';
+import { fetchEmployees, AdminEmployee } from '@/services/employeeService';
 
 export default function ShiftRulesPage() {
   const [rules, setRules] = useState<ShiftRuleRecord[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [employees, setEmployees] = useState<AdminEmployee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [shiftFilter, setShiftFilter] = useState('ALL');
+  const [branchFilter, setBranchFilter] = useState('ALL');
+  const [employeeFilter, setEmployeeFilter] = useState('ALL');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,6 +51,7 @@ export default function ShiftRulesPage() {
   const [formContent, setFormContent] = useState('');
   const [formShiftType, setFormShiftType] = useState('ALL');
   const [formBranchId, setFormBranchId] = useState('ALL');
+  const [formEmployeeId, setFormEmployeeId] = useState('ALL');
   const [formPriority, setFormPriority] = useState<number>(0);
   const [formIsActive, setFormIsActive] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState(false);
@@ -51,13 +63,21 @@ export default function ShiftRulesPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchHrShiftRules({ shiftType: shiftFilter });
-      setRules(data);
-      if (data.length > 0 && !previewOpenRuleId) {
-        setPreviewOpenRuleId(data[0].id);
+      const [rulesData, officesData, employeesData] = await Promise.all([
+        fetchHrShiftRules({ shiftType: shiftFilter }),
+        fetchOffices().catch(() => []),
+        fetchEmployees({ limit: 1000 }).then(res => res.employees).catch(() => []),
+      ]);
+
+      setRules(rulesData);
+      setOffices(officesData);
+      setEmployees(employeesData);
+
+      if (rulesData.length > 0 && !previewOpenRuleId) {
+        setPreviewOpenRuleId(rulesData[0].id);
       }
     } catch (err: any) {
-      console.error('Failed to load shift rules:', err);
+      console.error('Failed to load shift rules data:', err);
       setError(err.message || 'Failed to fetch shift guidelines.');
     } finally {
       setLoading(false);
@@ -74,6 +94,7 @@ export default function ShiftRulesPage() {
     setFormContent('');
     setFormShiftType('ALL');
     setFormBranchId('ALL');
+    setFormEmployeeId('ALL');
     setFormPriority(0);
     setFormIsActive(true);
     setIsModalOpen(true);
@@ -85,6 +106,7 @@ export default function ShiftRulesPage() {
     setFormContent(rule.content);
     setFormShiftType(rule.shiftType || 'ALL');
     setFormBranchId(rule.branchId || 'ALL');
+    setFormEmployeeId(rule.employeeId || 'ALL');
     setFormPriority(rule.priority || 0);
     setFormIsActive(rule.isActive);
     setIsModalOpen(true);
@@ -105,6 +127,7 @@ export default function ShiftRulesPage() {
           content: formContent.trim(),
           shiftType: formShiftType,
           branchId: formBranchId,
+          employeeId: formEmployeeId,
           priority: formPriority,
           isActive: formIsActive,
         });
@@ -114,6 +137,7 @@ export default function ShiftRulesPage() {
           content: formContent.trim(),
           shiftType: formShiftType,
           branchId: formBranchId,
+          employeeId: formEmployeeId,
           priority: formPriority,
         });
       }
@@ -146,16 +170,56 @@ export default function ShiftRulesPage() {
     }
   };
 
+  // Helper maps for Office/Branch and Employee names
+  const officeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    offices.forEach((o) => map.set(String(o.id), o.name));
+    return map;
+  }, [offices]);
+
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    employees.forEach((e) => map.set(String(e.id), `${e.firstName} ${e.lastName || ''}`.trim()));
+    return map;
+  }, [employees]);
+
+  // Filtered Rules
   const filteredRules = useMemo(() => {
-    if (!searchTerm.trim()) return rules;
-    const term = searchTerm.toLowerCase();
-    return rules.filter(
-      (r) =>
-        r.title.toLowerCase().includes(term) ||
-        r.content.toLowerCase().includes(term) ||
-        (r.shiftType || '').toLowerCase().includes(term)
-    );
-  }, [rules, searchTerm]);
+    return rules.filter((r) => {
+      // Branch filter
+      if (branchFilter !== 'ALL') {
+        if (r.branchId && r.branchId !== 'ALL' && r.branchId !== branchFilter) {
+          return false;
+        }
+      }
+
+      // Employee filter
+      if (employeeFilter !== 'ALL') {
+        if (r.employeeId && r.employeeId !== 'ALL' && r.employeeId !== employeeFilter) {
+          return false;
+        }
+      }
+
+      // Search Term
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const branchName = r.branchId ? (officeMap.get(r.branchId) || '') : '';
+        const empName = r.employeeId ? (employeeMap.get(r.employeeId) || '') : '';
+
+        const matchesTitle = r.title.toLowerCase().includes(term);
+        const matchesContent = r.content.toLowerCase().includes(term);
+        const matchesShift = (r.shiftType || '').toLowerCase().includes(term);
+        const matchesBranch = branchName.toLowerCase().includes(term);
+        const matchesEmployee = empName.toLowerCase().includes(term);
+
+        if (!matchesTitle && !matchesContent && !matchesShift && !matchesBranch && !matchesEmployee) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [rules, branchFilter, employeeFilter, searchTerm, officeMap, employeeMap]);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -168,7 +232,7 @@ export default function ShiftRulesPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Shift Rules & Guidelines</h1>
             <p className="text-slate-500 text-sm">
-              Define operational policies, shift rules, and conduct guidelines for employees
+              Define operational policies, shift rules, and conduct guidelines for employees & branches
             </p>
           </div>
         </div>
@@ -193,39 +257,76 @@ export default function ShiftRulesPage() {
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search Box */}
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by title, content, shift, branch, or employee..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          {/* Shift Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-slate-500">Shift:</span>
+            <select
+              value={shiftFilter}
+              onChange={(e) => setShiftFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="ALL">All Shifts</option>
+              <option value="MORNING">Morning Shift</option>
+              <option value="AFTERNOON">Afternoon Shift</option>
+              <option value="EVENING">Evening Shift</option>
+            </select>
+          </div>
+
+          {/* Branch Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-slate-500">Branch:</span>
+            <select
+              value={branchFilter}
+              onChange={(e) => setBranchFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[180px]"
+            >
+              <option value="ALL">All Branches (Global)</option>
+              {offices.map((office) => (
+                <option key={office.id} value={String(office.id)}>
+                  {office.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Employee Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-slate-500">Employee:</span>
+            <select
+              value={employeeFilter}
+              onChange={(e) => setEmployeeFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[200px]"
+            >
+              <option value="ALL">All Employees (Global)</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={String(emp.id)}>
+                  {emp.firstName} {emp.lastName || ''} ({emp.employeeCode})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Main Grid (List + Mobile Preview) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Rules Table / List (2 Cols) */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Shift Filter:</span>
-              <select
-                value={shiftFilter}
-                onChange={(e) => setShiftFilter(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="ALL">All Shifts</option>
-                <option value="MORNING">Morning Shift</option>
-                <option value="AFTERNOON">Afternoon Shift</option>
-                <option value="EVENING">Evening Shift</option>
-              </select>
-            </div>
-
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search rules..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-
-          {/* Cards / Table */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {loading ? (
               <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-3">
@@ -247,174 +348,187 @@ export default function ShiftRulesPage() {
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {filteredRules.map((rule) => (
-                  <div
-                    key={rule.id}
-                    className={`p-5 hover:bg-slate-50/70 transition-colors ${
-                      previewOpenRuleId === rule.id ? 'bg-indigo-50/30' : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-slate-900 text-base">{rule.title}</h3>
+                {filteredRules.map((rule) => {
+                  const branchName =
+                    !rule.branchId || rule.branchId === 'ALL'
+                      ? 'All Branches (Global)'
+                      : officeMap.get(rule.branchId) || `Branch #${rule.branchId}`;
 
-                          {/* Shift Badge */}
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              !rule.shiftType || rule.shiftType === 'ALL'
-                                ? 'bg-indigo-100 text-indigo-800'
-                                : rule.shiftType === 'MORNING'
-                                ? 'bg-amber-100 text-amber-800'
-                                : rule.shiftType === 'AFTERNOON'
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-purple-100 text-purple-800'
+                  const employeeName =
+                    !rule.employeeId || rule.employeeId === 'ALL'
+                      ? 'All Employees (Global)'
+                      : employeeMap.get(rule.employeeId) || `Employee #${rule.employeeId}`;
+
+                  return (
+                    <div
+                      key={rule.id}
+                      className={`p-5 transition-colors ${
+                        previewOpenRuleId === rule.id ? 'bg-indigo-50/40' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-bold text-slate-900 text-base">{rule.title}</h3>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                                rule.isActive
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
+                              }`}
+                            >
+                              {rule.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                            {rule.priority > 0 && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-700">
+                                P-{rule.priority}
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                            {rule.content}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-slate-500">
+                            <span className="flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
+                              <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                              Shift: {rule.shiftType || 'ALL SHIFTS'}
+                            </span>
+
+                            <span className="flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
+                              <Building2 className="w-3.5 h-3.5 text-emerald-500" />
+                              Branch: {branchName}
+                            </span>
+
+                            <span className="flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
+                              <User className="w-3.5 h-3.5 text-violet-500" />
+                              Target: {employeeName}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => setPreviewOpenRuleId(rule.id)}
+                            title="Preview Mobile Card"
+                            className={`p-2 rounded-lg transition-colors ${
+                              previewOpenRuleId === rule.id
+                                ? 'bg-indigo-600 text-white'
+                                : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-100'
                             }`}
                           >
-                            {rule.shiftType || 'ALL SHIFTS'}
-                          </span>
+                            <Smartphone className="w-4 h-4" />
+                          </button>
 
-                          {/* Branch Badge */}
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                            {rule.branchId ? `Branch #${rule.branchId}` : 'ALL BRANCHES'}
-                          </span>
+                          <button
+                            onClick={() => openEditModal(rule)}
+                            title="Edit Guideline"
+                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
 
-                          {/* Active Status */}
                           <button
                             onClick={() => handleToggleActive(rule)}
-                            className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors ${
-                              rule.isActive
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                            }`}
+                            title={rule.isActive ? 'Deactivate' : 'Activate'}
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors"
                           >
                             {rule.isActive ? (
-                              <>
-                                <CheckCircle2 className="w-3 h-3" /> Active
-                              </>
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                             ) : (
-                              <>
-                                <XCircle className="w-3 h-3" /> Inactive
-                              </>
+                              <XCircle className="w-4 h-4 text-slate-400" />
                             )}
                           </button>
+
+                          <button
+                            onClick={() => handleDelete(rule.id)}
+                            title="Delete Guideline"
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-
-                        <p className="text-slate-600 text-sm whitespace-pre-line line-clamp-3">
-                          {rule.content}
-                        </p>
-
-                        <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
-                          <span>Priority: {rule.priority}</span>
-                          <span>Updated: {new Date(rule.updatedAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setPreviewOpenRuleId(rule.id)}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
-                          title="Preview in Mobile View"
-                        >
-                          <Smartphone className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => openEditModal(rule)}
-                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors"
-                          title="Edit Guideline"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(rule.id)}
-                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-                          title="Deactivate Guideline"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
 
-        {/* Mobile Preview Column (1 Col) */}
-        <div className="lg:col-span-1">
-          <div className="bg-slate-900 text-white rounded-3xl p-5 shadow-2xl border-4 border-slate-800 space-y-4 sticky top-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-indigo-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                  Mobile Preview (Employee)
-                </span>
-              </div>
-              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-mono">
-                iOS / Android
-              </span>
+        {/* Mobile Preview Sidebar (1 Col) */}
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm sticky top-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Smartphone className="w-5 h-5 text-indigo-600" />
+              <h2 className="font-bold text-slate-900 text-sm">Mobile View Preview</h2>
             </div>
 
-            <div className="bg-slate-950 rounded-2xl p-4 space-y-3 min-h-[380px] max-h-[500px] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4 text-indigo-400" /> Shift Guidelines
-                </h4>
-                <span className="text-[10px] text-slate-400">Pull to refresh</span>
-              </div>
+            {previewOpenRuleId && rules.find((r) => r.id === previewOpenRuleId) ? (
+              (() => {
+                const previewRule = rules.find((r) => r.id === previewOpenRuleId)!;
+                const branchName =
+                  !previewRule.branchId || previewRule.branchId === 'ALL'
+                    ? 'All Branches'
+                    : officeMap.get(previewRule.branchId) || `Branch #${previewRule.branchId}`;
 
-              {filteredRules.filter((r) => r.isActive).length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-xs">
-                  No active guidelines visible to employee
-                </div>
-              ) : (
-                filteredRules
-                  .filter((r) => r.isActive)
-                  .map((rule) => {
-                    const isExpanded = previewOpenRuleId === rule.id;
-                    const isNew =
-                      new Date().getTime() - new Date(rule.updatedAt).getTime() <
-                      7 * 24 * 3600 * 1000;
+                const empName =
+                  !previewRule.employeeId || previewRule.employeeId === 'ALL'
+                    ? 'All Employees'
+                    : employeeMap.get(previewRule.employeeId) || `Employee #${previewRule.employeeId}`;
 
-                    return (
-                      <div
-                        key={rule.id}
-                        onClick={() => setPreviewOpenRuleId(isExpanded ? null : rule.id)}
-                        className="bg-slate-900 border border-slate-800 rounded-xl p-3 cursor-pointer hover:border-slate-700 transition-all"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs text-white">{rule.title}</span>
-                            {isNew && (
-                              <span className="bg-emerald-500 text-slate-950 font-bold text-[9px] px-1.5 py-0.2 rounded-full uppercase flex items-center gap-0.5">
-                                <Sparkles className="w-2.5 h-2.5" /> NEW
-                              </span>
-                            )}
-                          </div>
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-slate-400" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
-                          )}
-                        </div>
+                return (
+                  <div className="mx-auto w-[280px] bg-slate-950 p-4 rounded-[36px] shadow-2xl border-4 border-slate-800 text-white space-y-4">
+                    {/* Speaker Notch */}
+                    <div className="w-16 h-3 bg-slate-800 rounded-full mx-auto" />
 
-                        {isExpanded && (
-                          <div className="mt-2 pt-2 border-t border-slate-800 text-xs text-slate-300 space-y-2">
-                            <p className="whitespace-pre-line leading-relaxed">{rule.content}</p>
-                            <div className="text-[10px] text-slate-500 pt-1">
-                              Target: {rule.shiftType || 'All Shifts'} • Last updated:{' '}
-                              {new Date(rule.updatedAt).toLocaleDateString()}
-                            </div>
-                          </div>
-                        )}
+                    {/* App Header Bar */}
+                    <div className="pt-2 border-b border-slate-800/80 pb-2 flex items-center justify-between">
+                      <span className="text-[11px] font-bold tracking-tight text-slate-300">
+                        Shift Guidelines
+                      </span>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono">
+                        LIVE
+                      </span>
+                    </div>
+
+                    {/* Guideline Mobile Card */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold text-indigo-400 uppercase tracking-wider">
+                          {previewRule.shiftType || 'ALL SHIFTS'}
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-semibold bg-slate-800 px-1.5 py-0.5 rounded">
+                          {branchName}
+                        </span>
                       </div>
-                    );
-                  })
-              )}
-            </div>
+
+                      <h4 className="font-bold text-xs text-white leading-tight">
+                        {previewRule.title}
+                      </h4>
+
+                      <p className="text-[11px] text-slate-300 leading-normal font-normal">
+                        {previewRule.content}
+                      </p>
+
+                      <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[9px] text-slate-400">
+                        <span>Target: {empName}</span>
+                        <span>Priority #{previewRule.priority}</span>
+                      </div>
+                    </div>
+
+                    {/* Mobile Home indicator */}
+                    <div className="w-20 h-1 bg-slate-700 rounded-full mx-auto pt-1" />
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="p-8 text-center text-slate-400 text-xs">
+                Select a guideline to preview mobile appearance.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -447,7 +561,7 @@ export default function ShiftRulesPage() {
                 Content / Details *
               </label>
               <textarea
-                rows={5}
+                rows={4}
                 required
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
@@ -456,7 +570,7 @@ export default function ShiftRulesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Target Shift
@@ -483,8 +597,29 @@ export default function ShiftRulesPage() {
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="ALL">ALL BRANCHES (Global)</option>
-                  <option value="1">Main Office</option>
-                  <option value="2">Adajan Branch</option>
+                  {offices.map((office) => (
+                    <option key={office.id} value={String(office.id)}>
+                      {office.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Target Employee
+                </label>
+                <select
+                  value={formEmployeeId}
+                  onChange={(e) => setFormEmployeeId(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="ALL">ALL EMPLOYEES (Global)</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={String(emp.id)}>
+                      {emp.firstName} {emp.lastName || ''} ({emp.employeeCode})
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
