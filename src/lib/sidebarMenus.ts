@@ -19,6 +19,7 @@ import {
   Clock,
   Store,
   GitBranch,
+  Globe,
 } from 'lucide-react';
 import type { PortalType } from '@/lib/portals';
 import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
@@ -55,6 +56,7 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
+  { name: 'Remote Work', icon: Globe, path: '/remote-work', moduleId: 'pa-remote-work' },
   { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },
   { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
 ];
