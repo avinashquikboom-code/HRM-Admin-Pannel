@@ -20,6 +20,7 @@ import {
   Store,
   GitBranch,
   Globe,
+  BookOpen,
 } from 'lucide-react';
 import type { PortalType } from '@/lib/portals';
 import { SUPER_ADMIN_PREFIX } from '@/lib/portals';
@@ -53,6 +54,7 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Departments', icon: Building2, path: '/departments', moduleId: 'pa-departments' },
   { name: 'Designations', icon: Briefcase, path: '/designations', moduleId: 'pa-designations' },
   { name: 'Shifts', icon: Clock, path: '/shifts', moduleId: 'pa-shifts' },
+  { name: 'Shift Guidelines', icon: BookOpen, path: '/shift-rules', moduleId: 'pa-shift-rules' },
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
   { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
