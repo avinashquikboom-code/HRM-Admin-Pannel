@@ -88,8 +88,7 @@ export function isSuperAdminRole(role: string | undefined | null) {
 
 export function isPlatformAdminRole(role: string | undefined | null) {
   const normalized = normalizeUserRole(role);
-  // Only HR can access the Admin Panel portal
-  return normalized === 'HR';
+  return normalized === 'HR' || normalized === 'ADMIN' || normalized === 'PLATFORM_ADMIN';
 }
 
 export function isEmployeeRole(role: string | undefined | null) {
