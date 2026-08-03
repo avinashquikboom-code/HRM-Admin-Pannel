@@ -1,6 +1,7 @@
 import type { User } from '@/store/slices/authSlice';
 import {
   portalForRole,
+  roleAllowedForPortal,
   normalizeUserRole,
   isSuperAdminPath,
   isEmployeePath,
@@ -165,25 +166,22 @@ export function readTokenCookie(portal: PortalType, role?: string | null): strin
   const token = readCookie(cookieName);
   if (token) return token;
 
-  // Legacy shared cookies — migrate to the correct portal bucket once.
-  if (portal === 'platform_admin') {
-    const legacy = readCookie('token');
-    if (legacy) return legacy;
-  }
+  const standardToken = readCookie('token') || readCookie('auth_token');
+  if (standardToken) return standardToken;
 
   return null;
 }
 
 export function writeTokenCookie(token: string, portal: PortalType, role?: string | null): void {
   writeCookie(getPortalAuthKeys(portal, role).cookieName, token);
+  writeCookie('token', token);
+  writeCookie('auth_token', token);
 }
 
 function clearTokenCookie(portal: PortalType, role?: string | null): void {
   clearCookie(getPortalAuthKeys(portal, role).cookieName);
-
-  if (portal === 'platform_admin') {
-    clearCookie('token');
-  }
+  clearCookie('token');
+  clearCookie('auth_token');
 }
 
 function buildSessionFromJwt(token: string, portal: PortalType): AuthSession | null {
@@ -192,8 +190,7 @@ function buildSessionFromJwt(token: string, portal: PortalType): AuthSession | n
     return null;
   }
 
-  const resolvedPortal = portalForRole(decoded.role);
-  if (!resolvedPortal || resolvedPortal !== portal) {
+  if (!roleAllowedForPortal(decoded.role, portal)) {
     return null;
   }
 
@@ -256,8 +253,7 @@ function migrateLegacySharedStorage(): void {
     const legacy = JSON.parse(legacyRaw) as AuthSession;
     if (!legacy.token || !legacy.user) return;
 
-    const portal =
-      legacy.portal ?? portalForRole(legacy.user.role) ?? 'platform_admin';
+    const portal = legacy.portal ?? 'platform_admin';
     const targetKey = getPortalAuthKeys(portal, legacy.user.role).storageKey;
 
     if (!localStorage.getItem(targetKey)) {
@@ -271,10 +267,9 @@ function migrateLegacySharedStorage(): void {
       }
     }
 
-    if (portal === 'super_admin') {
+    if (legacy.portal === 'super_admin') {
       localStorage.removeItem('hrm_auth');
       clearCookie('hrm_token');
-      clearCookie('token');
     }
   } catch {
     localStorage.removeItem('hrm_auth');
@@ -288,8 +283,6 @@ function migrateLegacySharedStorage(): void {
       const portal = portalForRole(user.role) ?? 'platform_admin';
       const session: AuthSession = { token: legacyToken, user, portal };
       setAuthSession(session);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
     } catch {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -332,6 +325,8 @@ export function setAuthSession(session: AuthSession): void {
   const role = session.user?.role;
   const { storageKey } = getPortalAuthKeys(portal, role);
   localStorage.setItem(storageKey, JSON.stringify(session));
+  localStorage.setItem('token', session.token);
+  localStorage.setItem('auth_token', session.token);
   writeTokenCookie(session.token, portal, role);
 
   // Remember which super-portal role is active so reads target the right bucket.
@@ -364,10 +359,9 @@ export function clearAuthSession(portal?: PortalType, role?: string | null): voi
     clearTokenCookie(target, role);
   }
 
-  if (!portal || portal === 'platform_admin') {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  }
+  localStorage.removeItem('token');
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('user');
 }
 
 /** JWT for API calls — scoped to the active route portal (and role for super_admin). */
@@ -375,15 +369,27 @@ export function getAuthToken(portal?: PortalType, role?: string | null): string 
   const targetPortal = portal ?? resolvePortalFromWindow();
   const sessionToken = getAuthSession(targetPortal, role)?.token ?? null;
 
-  // Allow dev tokens for local development
   if (sessionToken) {
     return sessionToken;
   }
 
-  const cookieToken = readTokenCookie(targetPortal, role);
+  const anySessionToken = getAnyAuthSession()?.token ?? null;
+  if (anySessionToken) {
+    return anySessionToken;
+  }
+
+  const cookieToken = readTokenCookie(targetPortal, role) || readCookie('token') || readCookie('auth_token');
   if (cookieToken) {
     return cookieToken;
   }
 
-  return sessionToken;
+  if (isBrowser()) {
+    const localToken =
+      localStorage.getItem('token') ||
+      localStorage.getItem('auth_token') ||
+      localStorage.getItem('hrm_auth_token');
+    if (localToken) return localToken;
+  }
+
+  return null;
 }

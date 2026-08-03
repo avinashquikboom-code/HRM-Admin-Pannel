@@ -2,7 +2,7 @@
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { hydrateAuth } from '@/store/slices/authSlice';
-import { getAuthSession, portalFromRoute } from '@/lib/authStorage';
+import { getAuthSession, getAnyAuthSession, portalFromRoute } from '@/lib/authStorage';
 import { canAccessPath } from '@/lib/roleAccess';
 import {
   getLoginPathForPortal,
@@ -10,6 +10,7 @@ import {
   isAlwaysPublicPath,
   isSuperAdminPath,
   isEmployeePath,
+  roleAllowedForPortal,
   type PortalType,
 } from '@/lib/portals';
 import {
@@ -61,18 +62,19 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     setIsReady(true);
   }, [dispatch, routePortal]);
 
-  const session = getAuthSession(routePortal);
+  const session = getAuthSession(routePortal) ?? getAnyAuthSession();
   const sessionMatchesRoute =
-    Boolean(session?.token) && session?.portal === routePortal;
+    Boolean(session?.token) &&
+    (session?.portal === routePortal || (session?.user?.role ? roleAllowedForPortal(session.user.role, routePortal) : false));
   const reduxMatchesRoute =
-    Boolean(token) && isAuthenticated && portal === routePortal;
+    Boolean(token) && isAuthenticated && (portal === routePortal || (user?.role ? roleAllowedForPortal(user.role, routePortal) : false));
   const isLoggedInForRoute = sessionMatchesRoute || reduxMatchesRoute;
 
   const activePortal: PortalType | null = sessionMatchesRoute
-    ? session!.portal
+    ? (session?.portal ?? routePortal)
     : reduxMatchesRoute
-      ? portal
-      : session?.portal ?? portal ?? null;
+      ? (portal ?? routePortal)
+      : session?.portal ?? portal ?? routePortal;
 
   const userEmail = session?.user?.email ?? user?.email ?? null;
 
