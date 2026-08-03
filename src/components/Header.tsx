@@ -60,7 +60,7 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
     dispatch(logout());
-    router.push(getLoginPathForPortal(portal));
+    window.location.href = getLoginPathForPortal(portal);
   };
 
 

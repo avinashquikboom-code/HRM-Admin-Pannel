@@ -114,7 +114,7 @@ const Sidebar = () => {
     setIsSignOutModalOpen(false);
     console.log('🚪 [SIDEBAR] Sign out initiated for user:', user?.email);
     dispatch(logout());
-    router.push(getLoginPathForPortal('platform_admin'));
+    window.location.href = getLoginPathForPortal('platform_admin');
   };
 
   return (

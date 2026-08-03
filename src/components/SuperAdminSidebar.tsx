@@ -113,7 +113,7 @@ const SuperAdminSidebar = () => {
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
     dispatch(logout());
-    router.push(getLoginPathForPortal('super_admin'));
+    window.location.href = getLoginPathForPortal('super_admin');
   };
 
   const isProfileActive =

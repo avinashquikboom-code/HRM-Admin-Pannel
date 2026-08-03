@@ -123,7 +123,7 @@ const EmployeeSidebar = () => {
   const handleSignOut = () => {
     setIsSignOutModalOpen(false);
     dispatch(logout());
-    router.push(getLoginPathForPortal('employee'));
+    window.location.href = getLoginPathForPortal('employee');
   };
 
   return (

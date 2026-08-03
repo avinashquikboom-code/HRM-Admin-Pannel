@@ -343,25 +343,27 @@ export function clearAuthSession(portal?: PortalType, role?: string | null): voi
 
   for (const target of portals) {
     if (target === 'super_admin') {
-      // When a role is given, clear only that bucket; otherwise clear both.
       const superRoles: SuperRole[] = role != null ? [toSuperRole(role)] : ['SUPER_ADMIN', 'ADMIN'];
       for (const superRole of superRoles) {
         localStorage.removeItem(SUPER_ROLE_AUTH_KEYS[superRole].storageKey);
         clearCookie(SUPER_ROLE_AUTH_KEYS[superRole].cookieName);
       }
-      if (role == null || superRoles.includes(readActiveSuperRole())) {
-        localStorage.removeItem(SUPER_ACTIVE_ROLE_KEY);
-        clearCookie(SUPER_ACTIVE_ROLE_KEY);
-      }
-      continue;
+      localStorage.removeItem(SUPER_ACTIVE_ROLE_KEY);
+      clearCookie(SUPER_ACTIVE_ROLE_KEY);
+    } else {
+      localStorage.removeItem(getPortalAuthKeys(target, role).storageKey);
+      clearCookie(getPortalAuthKeys(target, role).cookieName);
     }
-    localStorage.removeItem(getPortalAuthKeys(target, role).storageKey);
-    clearTokenCookie(target, role);
   }
 
   localStorage.removeItem('token');
   localStorage.removeItem('auth_token');
+  localStorage.removeItem('hrm_auth_token');
+  localStorage.removeItem('hrm_auth');
   localStorage.removeItem('user');
+  clearCookie('token');
+  clearCookie('auth_token');
+  clearCookie('hrm_token');
 }
 
 /** JWT for API calls — scoped to the active route portal (and role for super_admin). */
