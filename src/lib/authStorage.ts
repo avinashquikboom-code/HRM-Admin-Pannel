@@ -201,7 +201,7 @@ function buildSessionFromJwt(token: string, portal: PortalType): AuthSession | n
   return {
     token,
     user: {
-      id: typeof decoded.userId === 'number' ? decoded.userId : 1,
+      id: typeof decoded.id === 'number' ? decoded.id : (typeof decoded.userId === 'number' ? decoded.userId : 1),
       email: decoded.email,
       role: normalizeUserRole(decoded.role),
       name: fallbackName,

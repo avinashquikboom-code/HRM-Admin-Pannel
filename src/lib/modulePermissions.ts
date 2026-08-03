@@ -5,6 +5,7 @@ import {
   SUPER_ADMIN_PREFIX,
 } from '@/lib/portals';
 import {
+  getDefaultRolePermissions,
   loadRolePermissions,
   ROLE_ACCESS,
   type RolePermissionsMap,
@@ -100,6 +101,8 @@ export function getEffectivePermissions(
   portal: PortalType,
   email?: string | null
 ): Record<string, boolean> {
+  const defaults = getDefaultRolePermissions();
+
   if (portal === 'super_admin') {
     const full: Record<string, boolean> = {};
     for (const module of ROLE_ACCESS.super_admin.moduleDefs) {
@@ -108,7 +111,12 @@ export function getEffectivePermissions(
     return full;
   }
 
-  return { ...loadRolePermissions()[portal] };
+  const loaded = loadRolePermissions()[portal];
+  const result: Record<string, boolean> = { ...defaults[portal], ...loaded };
+  if (portal === 'platform_admin') {
+    result['pa-hr'] = true;
+  }
+  return result;
 }
 
 export function isModuleEnabled(
