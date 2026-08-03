@@ -7,6 +7,7 @@ import {
 } from '@/lib/loginLocation';
 import {
   portalForRole,
+  roleAllowedForPortal,
   normalizeUserRole,
   type PortalType,
 } from '@/lib/portals';
@@ -62,9 +63,12 @@ async function tryApiLogin(
   });
 
   const user = mapLoginUser(data.user);
-  const resolvedPortal = portalForRole(user.role);
+  let resolvedPortal = portalForRole(user.role);
+  if (roleAllowedForPortal(user.role, portal)) {
+    resolvedPortal = portal;
+  }
 
-  if (!resolvedPortal || resolvedPortal !== portal) {
+  if (!resolvedPortal) {
     const messages: Record<PortalType, string> = {
       super_admin:
         'This account cannot access Super Admin. Use a Super Admin account.',

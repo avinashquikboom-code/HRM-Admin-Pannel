@@ -88,7 +88,12 @@ export function isSuperAdminRole(role: string | undefined | null) {
 
 export function isPlatformAdminRole(role: string | undefined | null) {
   const normalized = normalizeUserRole(role);
-  return normalized === 'HR' || normalized === 'ADMIN' || normalized === 'PLATFORM_ADMIN';
+  return (
+    normalized === 'HR' ||
+    normalized === 'ADMIN' ||
+    normalized === 'PLATFORM_ADMIN' ||
+    normalized === 'SUPER_ADMIN'
+  );
 }
 
 export function isEmployeeRole(role: string | undefined | null) {
