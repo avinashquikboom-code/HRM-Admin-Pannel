@@ -56,6 +56,11 @@ export default function ShiftRulesPage() {
   const [formIsActive, setFormIsActive] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // Delete confirmation state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteTitle, setDeleteTitle] = useState<string>('');
+  const [deleting, setDeleting] = useState(false);
+
   // Mobile Preview State
   const [previewOpenRuleId, setPreviewOpenRuleId] = useState<string | null>(null);
 
@@ -160,13 +165,23 @@ export default function ShiftRulesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to deactivate/delete this guideline?')) return;
+  const requestDelete = (rule: ShiftRuleRecord) => {
+    setDeleteConfirmId(rule.id);
+    setDeleteTitle(rule.title);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setDeleting(true);
     try {
-      await deleteHrShiftRule(id);
+      await deleteHrShiftRule(deleteConfirmId);
+      setDeleteConfirmId(null);
+      setDeleteTitle('');
       await loadData();
     } catch (err: any) {
       alert(`Failed to delete rule: ${err.message}`);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -442,9 +457,9 @@ export default function ShiftRulesPage() {
                           </button>
 
                           <button
-                            onClick={() => handleDelete(rule.id)}
+                            onClick={() => requestDelete(rule)}
                             title="Delete Guideline"
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -668,6 +683,60 @@ export default function ShiftRulesPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-md w-full p-6 space-y-5">
+            {/* Icon */}
+            <div className="flex items-center justify-center w-14 h-14 bg-rose-50 rounded-2xl mx-auto">
+              <Trash2 className="w-7 h-7 text-rose-600" />
+            </div>
+
+            {/* Title */}
+            <div className="text-center space-y-1.5">
+              <h3 className="text-lg font-bold text-slate-900">Delete Guideline?</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Are you sure you want to permanently delete{' '}
+                <span className="font-semibold text-slate-800">&quot;{deleteTitle}&quot;</span>?
+                <br />
+                <span className="text-rose-500 font-medium">This action cannot be undone.</span>
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setDeleteConfirmId(null);
+                  setDeleteTitle('');
+                }}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm disabled:opacity-70"
+              >
+                {deleting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    Deleting...
+                  </span>
+                ) : (
+                  'Yes, Delete'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
