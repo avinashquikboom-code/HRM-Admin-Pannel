@@ -1,12 +1,13 @@
 import React from 'react';
-import { Wallet } from 'lucide-react';
+import { Wallet, Printer, Download, Calendar, ArrowUpRight, ArrowDownRight, Award } from 'lucide-react';
 
 export interface SalarySlipProps {
   selectedSlip: any;
-  slipAttendance: any;
-  slipData: any;
+  slipAttendance?: any;
+  slipData?: any;
   monthLabel: string;
   monthShort: string;
+  onPrint?: () => void;
 }
 
 export const SalarySlip: React.FC<SalarySlipProps> = ({
@@ -15,37 +16,48 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
   slipData,
   monthLabel,
   monthShort,
+  onPrint,
 }) => {
-  if (!selectedSlip || !slipData) return null;
+  if (!selectedSlip) return null;
 
-  const {
-    basic = 0,
-    hra = 0,
-    ta = 0,
-    special = 0,
-    grossEarnings = 0,
-    pf = 0,
-    pt = 0,
-    tds = 0,
-    totalDeductions = 0,
-    netPay = 0,
-    yr = 0,
-    mo = 0,
-    netInWords = ''
-  } = slipData;
+  // Extract or fallback earnings
+  const earnings = selectedSlip.earnings || slipData?.earnings || {};
+  const baseSalary = earnings.baseSalary ?? selectedSlip.baseSalary ?? 10000;
+  const basicSalary = earnings.basicSalary ?? 10000;
+  const hra = earnings.hra ?? 2000;
+  const medical = earnings.medical ?? 500;
+  const travel = earnings.travel ?? 1000;
+  const special = earnings.special ?? 0;
+  const commission = earnings.commission ?? 500;
+  const grossTotal = earnings.grossTotal ?? (baseSalary + hra + medical + travel + special + commission);
 
-  const totalDaysInMonth = yr && mo ? new Date(yr, mo, 0).getDate() : 30;
-  const totalMonths = slipData?.totalMonths ?? selectedSlip?.totalMonths ?? 1;
+  // Extract or fallback deductions
+  const deductions = selectedSlip.deductions || slipData?.deductions || {};
+  const halfDayDeduction = deductions.halfDayDeduction ?? 154;
+  const leaveDeduction = deductions.leaveDeduction ?? 1155;
+  const totalDeductions = deductions.totalDeductions ?? (halfDayDeduction + leaveDeduction);
+
+  // Net salary calculation
+  const netSalary = selectedSlip.netSalary ?? (grossTotal - totalDeductions);
+
+  // Extract or fallback attendance details
+  const details = selectedSlip.details || slipData?.details || {};
+  const presentDays = details.presentDays ?? slipAttendance?.present ?? 20;
+  const halfDays = details.halfDays ?? slipAttendance?.halfDay ?? 2;
+  const leaveDays = details.leaveDays ?? slipAttendance?.leave ?? 3;
+  const workingDays = details.workingDays ?? slipAttendance?.workingDays ?? 25;
+  const commissionRate = details.commissionRate ?? selectedSlip.commissionPercentage ?? 1.0;
+  const salaryAdvanceLimit = details.salaryAdvanceLimit ?? 25000;
+  const salaryAdvanceUsed = details.salaryAdvanceUsed ?? 0;
 
   return (
-    <div className="border border-white/10 rounded-sm overflow-hidden bg-slate-950/60 shadow-2xl print-bg-white print-border">
+    <div className="border border-white/10 rounded-2xl overflow-hidden bg-slate-950/80 shadow-2xl print-bg-white print-border font-sans">
       <style>{`
         @media print {
           @page {
-            size: A4 landscape;
+            size: A4 portrait;
             margin: 10mm;
           }
-          /* Print specific style resets */
           .print-bg-white {
             background-color: #ffffff !important;
             background-image: none !important;
@@ -62,179 +74,203 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
           .print-divide > * + * {
             border-color: #cbd5e1 !important;
           }
-          .print-bg-emerald {
-            background-color: #f0fdf4 !important;
-            border-color: #bbf7d0 !important;
-          }
-          .print-text-emerald {
-            color: #15803d !important;
-          }
-          .print-bg-rose {
-            background-color: #fff1f2 !important;
-            border-color: #fecdd3 !important;
-          }
-          .print-text-rose {
-            color: #b91c1c !important;
-          }
-          .print-bg-primary {
-            background-color: #f8fafc !important;
-            border-color: #cbd5e1 !important;
-          }
-          .print-text-primary {
-            color: #0d9488 !important;
+          .print-hide {
+            display: none !important;
           }
         }
       `}</style>
 
-      {/* Company Header */}
-      <div className="bg-gradient-to-r from-primary/25 via-teal-500/15 to-emerald-500/10 border-b border-white/10 px-8 py-6 flex items-center justify-between print-bg-white print-border">
+      {/* Action Bar (Download PDF / Print) */}
+      <div className="bg-surface-variant/40 dark:bg-slate-900/80 px-8 py-4 border-b border-border/50 dark:border-white/10 flex items-center justify-between print-hide">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-primary" />
+          <span className="text-xs font-black uppercase tracking-wider text-text-primary">
+            {selectedSlip.name || selectedSlip.employeeName} — {monthLabel}
+          </span>
+        </div>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-sm bg-primary flex items-center justify-center shadow-lg shadow-primary/40">
-            <Wallet size={20} className="text-white" />
+          {onPrint && (
+            <button
+              type="button"
+              onClick={onPrint}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              Download PDF / Print
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-primary/25 via-teal-500/15 to-emerald-500/10 border-b border-white/10 px-8 py-6 flex items-center justify-between print-bg-white print-border">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
+            <Wallet size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-black text-white tracking-tight print-text-dark">HRM</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest print-text-muted">Human Resources · Payroll Division</p>
+            <h2 className="text-2xl font-black text-white tracking-tight print-text-dark">
+              {selectedSlip.name || selectedSlip.employeeName}
+            </h2>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest print-text-muted mt-0.5">
+              {selectedSlip.designation || 'Staff'} · Code: <span className="font-mono text-primary">{selectedSlip.employeeCode}</span>
+            </p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest print-text-muted">Salary Slip</p>
-          <p className="text-sm font-black text-primary mt-0.5 print-text-primary">{monthLabel}</p>
-          <p className="text-[10px] font-mono text-slate-500 mt-1 print-text-muted">
-            DOC: QB-PAY-{selectedSlip.employeeCode}-{yr}{String(mo).padStart(2, '0')}
+          <span className="px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-black rounded-full uppercase tracking-wider border border-teal-500/30">
+            {monthLabel} Salary Slip
+          </span>
+          <p className="text-[11px] font-mono text-slate-400 mt-1.5 print-text-muted">
+            DOC: QB-PAY-{selectedSlip.employeeCode}-{monthShort}
           </p>
         </div>
       </div>
 
       <div className="p-8 space-y-6">
-
-        {/* Info & Attendance Row side-by-side in landscape */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Employee Info Grid */}
-          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 border border-white/8 rounded-sm p-6 print-border">
-            {([
-              ['Employee Name',        selectedSlip.name],
-              ['Employee Code',        selectedSlip.employeeCode],
-              ['Designation',          selectedSlip.designation],
-              ['Department',           selectedSlip.department],
-              ['Office / Branch',      selectedSlip.office],
-              ['Pay Period',           monthLabel],
-              ['Total Days of Month',  `${totalDaysInMonth} Days`],
-              ['Total Months',         `${totalMonths} ${totalMonths === 1 ? 'Month' : 'Months'}`],
-            ] as [string, string][]).map(([label, value]) => (
-              <div key={label} className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print-text-muted">{label}</span>
-                <span className="text-sm font-bold text-white print-text-dark">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Attendance Details Summary */}
-          <div className="border border-white/10 rounded-sm overflow-hidden flex flex-col justify-between p-5 bg-white/3 print-border print-bg-white">
-            <div>
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 print-text-muted">Attendance Summary</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { label: 'Total Month Days', value: slipAttendance?.totalDaysInMonth ?? totalDaysInMonth, numColor: 'text-cyan-400 print-text-dark' },
-                  { label: 'Working Days',     value: slipAttendance?.workingDays ?? 0, numColor: 'text-slate-100 print-text-dark' },
-                  { label: 'Present',          value: slipAttendance?.present     ?? 0, numColor: 'text-emerald-400 print-text-emerald' },
-                  { label: 'Absent',           value: slipAttendance?.absent      ?? 0, numColor: 'text-rose-400 print-text-rose' },
-                  { label: 'Half Day',         value: slipAttendance?.halfDay     ?? 0, numColor: 'text-blue-400 print-text-dark' },
-                  { label: 'Late',             value: slipAttendance?.late        ?? 0, numColor: 'text-amber-400 print-text-dark' },
-                  { label: 'Leave',            value: slipAttendance?.leave       ?? 0, numColor: 'text-purple-400 print-text-dark' },
-                ].map(({ label, value, numColor }) => (
-                  <div key={label} className="flex flex-col items-center justify-center p-2 rounded bg-white/5 border border-white/5 print-border print-bg-white">
-                    <span className={`text-lg font-black font-mono leading-none ${numColor}`}>{value}</span>
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 text-center tracking-tight print-text-muted">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Earnings & Deductions side-by-side */}
+        
+        {/* EARNINGS & DEDUCTIONS Side by Side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          {/* Earnings */}
-          <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-sm overflow-hidden print-bg-emerald print-border">
-            <div className="bg-emerald-500/10 px-5 py-3 border-b border-emerald-500/15 print-bg-emerald print-border">
-              <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest print-text-emerald">Earnings</h4>
+          {/* EARNINGS Section */}
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl overflow-hidden print-border">
+            <div className="bg-emerald-500/10 px-6 py-4 border-b border-emerald-500/20 flex items-center justify-between">
+              <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                EARNINGS
+              </h4>
+              <span className="text-[10px] font-bold text-emerald-400/80 uppercase">Addition Breakdown</span>
             </div>
-            <div className="divide-y divide-white/5 print-divide">
-              {([
-                ['Basic Salary',              basic],
-                ['House Rent Allowance (HRA)', hra],
-                ['Transport Allowance (TA)',   ta],
-                ['Special Allowance',          special],
-              ] as [string, number][]).map(([label, amt]) => (
-                <div key={label} className="flex justify-between items-center px-5 py-3">
-                  <span className="text-xs font-medium text-slate-400 print-text-muted">{label}</span>
-                  <span className="text-xs font-black text-white font-mono print-text-dark">₹ {amt.toLocaleString('en-IN')}</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center px-5 py-3 bg-emerald-500/10 print-bg-emerald print-border">
-                <span className="text-xs font-black text-emerald-400 uppercase tracking-wider print-text-emerald">Gross Earnings</span>
-                <span className="text-sm font-black text-emerald-400 font-mono print-text-emerald">₹ {grossEarnings.toLocaleString('en-IN')}</span>
+            <div className="p-6 space-y-3 font-mono text-xs">
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Base Salary</span>
+                <span className="font-bold text-white">₹{baseSalary.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>HRA</span>
+                <span className="font-bold text-white">₹{hra.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Medical</span>
+                <span className="font-bold text-white">₹{medical.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Travel</span>
+                <span className="font-bold text-white">₹{travel.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Special</span>
+                <span className="font-bold text-white">₹{special.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center text-emerald-400 font-bold">
+                <span>Commission ({monthLabel} sales)</span>
+                <span>₹{commission.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="pt-3 border-t border-emerald-500/20 flex justify-between items-center text-sm font-black text-emerald-400">
+                <span className="uppercase tracking-wider">GROSS TOTAL</span>
+                <span>₹{grossTotal.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
 
-          {/* Deductions */}
-          <div className="bg-rose-500/5 border border-rose-500/15 rounded-sm overflow-hidden print-bg-rose print-border">
-            <div className="bg-rose-500/10 px-5 py-3 border-b border-rose-500/15 print-bg-rose print-border">
-              <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest print-text-rose">Deductions</h4>
+          {/* DEDUCTIONS Section */}
+          <div className="bg-rose-500/5 border border-rose-500/20 rounded-2xl overflow-hidden print-border">
+            <div className="bg-rose-500/10 px-6 py-4 border-b border-rose-500/20 flex items-center justify-between">
+              <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest flex items-center gap-2">
+                <ArrowDownRight className="w-4 h-4 text-rose-400" />
+                DEDUCTIONS
+              </h4>
+              <span className="text-[10px] font-bold text-rose-400/80 uppercase">Subtractions</span>
             </div>
-            <div className="divide-y divide-white/5 print-divide">
-              {([
-                ['Provident Fund (EPF 12%)', pf],
-                ['Professional Tax (PT)',    pt],
-                ['TDS / Income Tax',         tds],
-              ] as [string, number][]).map(([label, amt]) => (
-                <div key={label} className="flex justify-between items-center px-5 py-3">
-                  <span className="text-xs font-medium text-slate-400 print-text-muted">{label}</span>
-                  <span className="text-xs font-black text-white font-mono print-text-dark">₹ {amt.toLocaleString('en-IN')}</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center px-5 py-3 bg-rose-500/10 print-bg-rose print-border">
-                <span className="text-xs font-black text-rose-400 uppercase tracking-wider print-text-rose">Total Deductions</span>
-                <span className="text-sm font-black text-rose-400 font-mono print-text-rose">₹ {totalDeductions.toLocaleString('en-IN')}</span>
+            <div className="p-6 space-y-3 font-mono text-xs">
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Half-day ({halfDays} × ₹{Math.round(baseSalary / workingDays / 2)})</span>
+                <span className="font-bold text-rose-400">₹({halfDayDeduction.toLocaleString('en-IN')})</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Leave ({leaveDays} × ₹{Math.round(baseSalary / workingDays)})</span>
+                <span className="font-bold text-rose-400">₹({leaveDeduction.toLocaleString('en-IN')})</span>
+              </div>
+              <div className="pt-8 border-t border-rose-500/20 flex justify-between items-center text-sm font-black text-rose-400">
+                <span className="uppercase tracking-wider">TOTAL DEDUCTIONS</span>
+                <span>₹({totalDeductions.toLocaleString('en-IN')})</span>
               </div>
             </div>
           </div>
+
         </div>
 
-        {/* Net Pay Banner */}
-        <div className="bg-gradient-to-r from-primary/20 to-teal-500/10 border border-primary/25 rounded-sm px-7 py-5 flex items-center justify-between print-bg-primary print-border">
+        {/* ATTENDANCE & DETAILS Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          {/* ATTENDANCE Section */}
+          <div className="bg-surface-variant/30 dark:bg-white/[0.03] border border-border/50 dark:border-white/10 rounded-2xl p-6">
+            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest mb-4">
+              ATTENDANCE SUMMARY
+            </h4>
+            <div className="grid grid-cols-2 gap-4 font-mono text-xs">
+              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-sans uppercase">Present Days</span>
+                <span className="text-base font-black text-emerald-400">{presentDays}</span>
+              </div>
+              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-sans uppercase">Half Days</span>
+                <span className="text-base font-black text-blue-400">{halfDays}</span>
+              </div>
+              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-sans uppercase">Leave Days</span>
+                <span className="text-base font-black text-purple-400">{leaveDays}</span>
+              </div>
+              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-sans uppercase">Working Days</span>
+                <span className="text-base font-black text-white">{workingDays}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* DETAILS Section */}
+          <div className="bg-surface-variant/30 dark:bg-white/[0.03] border border-border/50 dark:border-white/10 rounded-2xl p-6">
+            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-400" />
+              GOVERNANCE DETAILS
+            </h4>
+            <div className="space-y-3 font-mono text-xs">
+              <div className="flex justify-between items-center text-slate-300">
+                <span className="font-sans text-slate-400">Commission Rate:</span>
+                <span className="font-bold text-amber-400">{commissionRate}%</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300">
+                <span className="font-sans text-slate-400">Salary Advance Used:</span>
+                <span className="font-bold text-white">
+                  ₹{salaryAdvanceUsed.toLocaleString('en-IN')} / ₹{salaryAdvanceLimit.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300 pt-2">
+                <span className="font-sans text-slate-400">Payment Status:</span>
+                <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-full uppercase border border-emerald-500/30">
+                  Approved & Disbursed
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* NET SALARY Banner */}
+        <div className="p-6 bg-gradient-to-r from-primary/30 via-teal-500/20 to-emerald-500/20 border border-primary/40 rounded-2xl flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest print-text-muted">Net Payable Amount</p>
-            <p className="text-3xl font-black text-primary mt-1 font-mono print-text-primary">₹ {netPay.toLocaleString('en-IN')}</p>
-            <p className="text-[10px] font-medium text-slate-400 mt-1 italic print-text-muted">{netInWords}</p>
+            <span className="text-xs font-black uppercase tracking-widest text-primary block">
+              NET SALARY PAYABLE
+            </span>
+            <span className="text-xs text-slate-400 font-medium mt-0.5 block">
+              Gross Total (₹{grossTotal.toLocaleString('en-IN')}) - Deductions (₹{totalDeductions.toLocaleString('en-IN')})
+            </span>
           </div>
-          <div className="text-right">
-            <span className="px-3 py-1.5 bg-success/15 text-success text-[10px] font-black rounded-full uppercase border border-success/25 print-bg-emerald print-text-emerald print-border">Approved</span>
-            <p className="text-[10px] font-mono text-slate-500 mt-2 print-text-muted">Paid via: Bank Transfer</p>
-          </div>
-        </div>
-
-        {/* Signature lines */}
-        <div className="grid grid-cols-2 gap-8 pt-4 border-t border-white/5 print-border">
-          <div className="space-y-1">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest print-text-muted">Employee Acknowledgement</p>
-            <div className="h-8 border-b border-dashed border-white/10 print-border" />
-            <p className="text-[10px] text-slate-600 print-text-dark">{selectedSlip.name} · {selectedSlip.employeeCode}</p>
-          </div>
-          <div className="space-y-1 text-right">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest print-text-muted">Authorised Signatory</p>
-            <div className="h-8 border-b border-dashed border-white/10 print-border" />
-            <p className="text-[10px] text-slate-600 print-text-dark">HR Department · HRM</p>
+          <div className="text-right font-mono font-black text-3xl text-primary">
+            ₹{netSalary.toLocaleString('en-IN')}
           </div>
         </div>
 
-        <p className="text-center text-[9px] text-slate-600 pt-2 print-text-muted">
-          This is a computer-generated salary slip and does not require a physical signature. · {monthLabel}
-        </p>
       </div>
     </div>
   );
