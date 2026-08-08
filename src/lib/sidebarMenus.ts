@@ -32,6 +32,12 @@ export interface SidebarMenuItem {
   moduleId: string;
 }
 
+export interface SidebarMenuGroup {
+  title: string;
+  icon: LucideIcon;
+  items: SidebarMenuItem[];
+}
+
 /** Legacy module — never show on HRM Admin sidebar. */
 export const ADMIN_REMOVED_MODULE_IDS = new Set<string>([]);
 
@@ -45,23 +51,63 @@ export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Settings', icon: Settings, path: `${SUPER_ADMIN_PREFIX}/settings`, moduleId: 'sa-settings' },
 ];
 
-export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
-  { name: 'Live Dashboard', icon: LayoutDashboard, path: '/live-dashboard', moduleId: 'pa-live-dashboard' },
-  { name: 'HR Management', icon: Users, path: '/hr-management', moduleId: 'pa-hr' },
-  { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
-  { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
-  { name: 'Tasks', icon: CheckSquare, path: '/tasks', moduleId: 'pa-tasks' },
-  { name: 'Departments', icon: Building2, path: '/departments', moduleId: 'pa-departments' },
-  { name: 'Designations', icon: Briefcase, path: '/designations', moduleId: 'pa-designations' },
-  { name: 'Shifts', icon: Clock, path: '/shifts', moduleId: 'pa-shifts' },
-  { name: 'Shift Guidelines', icon: BookOpen, path: '/shift-rules', moduleId: 'pa-shift-rules' },
-  { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
-  { name: 'Expenses Report', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
-  { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
-  { name: 'Remote Work', icon: Globe, path: '/remote-work', moduleId: 'pa-remote-work' },
-  { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },
-  { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
+export const PLATFORM_ADMIN_MENU_GROUPS: SidebarMenuGroup[] = [
+  {
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    items: [
+      { name: 'Live Dashboard', icon: LayoutDashboard, path: '/live-dashboard', moduleId: 'pa-live-dashboard' },
+    ],
+  },
+  {
+    title: 'Employees',
+    icon: UserSquare2,
+    items: [
+      { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
+      { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
+      { name: 'HR Management', icon: Users, path: '/hr-management', moduleId: 'pa-hr' },
+    ],
+  },
+  {
+    title: 'Organization',
+    icon: Building2,
+    items: [
+      { name: 'Departments', icon: Building2, path: '/departments', moduleId: 'pa-departments' },
+      { name: 'Designations', icon: Briefcase, path: '/designations', moduleId: 'pa-designations' },
+      { name: 'Shifts', icon: Clock, path: '/shifts', moduleId: 'pa-shifts' },
+      { name: 'Shift Guidelines', icon: BookOpen, path: '/shift-rules', moduleId: 'pa-shift-rules' },
+    ],
+  },
+  {
+    title: 'Operations',
+    icon: CheckSquare,
+    items: [
+      { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
+      { name: 'Tasks', icon: CheckSquare, path: '/tasks', moduleId: 'pa-tasks' },
+      { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
+      { name: 'Remote Work', icon: Globe, path: '/remote-work', moduleId: 'pa-remote-work' },
+    ],
+  },
+  {
+    title: 'Finance',
+    icon: Wallet,
+    items: [
+      { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
+      { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },
+    ],
+  },
+  {
+    title: 'Policies',
+    icon: Shield,
+    items: [
+      { name: 'Policies', icon: Shield, path: '/policies', moduleId: 'pa-policies' },
+    ],
+  },
 ];
+
+export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = PLATFORM_ADMIN_MENU_GROUPS.flatMap(
+  (g) => g.items
+);
 
 export const PLATFORM_ADMIN_ACCOUNT_ITEMS: SidebarMenuItem[] = [
   { name: 'Profile', icon: User, path: '/profile', moduleId: 'pa-profile' },
