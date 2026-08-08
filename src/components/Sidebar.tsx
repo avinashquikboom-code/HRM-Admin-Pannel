@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -10,10 +10,11 @@ import SignOutModal from './SignOutModal';
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LogOut,
   type LucideIcon,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getLoginPathForPortal } from '@/lib/portals';
@@ -102,6 +103,30 @@ const Sidebar = () => {
     const items = stripRemovedAdminModules(filterMenuItems(group.items));
     return { ...group, items };
   }).filter((group) => group.items.length > 0);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    PLATFORM_ADMIN_MENU_GROUPS.forEach((g) => {
+      initial[g.title] = true;
+    });
+    return initial;
+  });
+
+  // Ensure category containing current active route is open
+  useEffect(() => {
+    visibleGroups.forEach((g) => {
+      if (g.items.some((item) => item.path === pathname)) {
+        setOpenGroups((prev) => ({ ...prev, [g.title]: true }));
+      }
+    });
+  }, [pathname]);
+
+  const toggleGroup = (title: string) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [title]: !(prev[title] ?? true),
+    }));
+  };
+
   const visibleAccountItems = stripRemovedAdminModules(
     filterMenuItems(PLATFORM_ADMIN_ACCOUNT_ITEMS)
   );
@@ -153,30 +178,56 @@ const Sidebar = () => {
           )}
         </div>
 
-        <nav className="sidebar-nav space-y-3 py-2">
-          {visibleGroups.map((group) => (
-            <div key={group.title} className="space-y-1">
-              {isOpen ? (
-                <div className="px-3 pt-2 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400/90 flex items-center gap-1.5 select-none">
-                  <group.icon className="w-3.5 h-3.5 text-primary/80" />
-                  <span>{group.title}</span>
-                </div>
-              ) : (
-                <div className="my-1.5 border-t border-white/10" />
-              )}
-              <div className={cn("space-y-0.5", isOpen && "pl-2 border-l border-white/10 ml-3")}>
-                {group.items.map((item) => (
-                  <NavItem
-                    key={item.path}
-                    item={item}
-                    isActive={pathname === item.path}
-                    isOpen={isOpen}
-                    onNavigate={closeMobileSidebar}
-                  />
-                ))}
+        <nav className="sidebar-nav space-y-2 py-2">
+          {visibleGroups.map((group) => {
+            const isGroupOpen = openGroups[group.title] ?? true;
+            return (
+              <div key={group.title} className="space-y-1">
+                {isOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.title)}
+                    className="w-full px-3 pt-2 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400/90 hover:text-slate-200 flex items-center justify-between gap-1.5 select-none transition-colors group/header text-left"
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <group.icon className="w-3.5 h-3.5 text-primary/80 flex-shrink-0" />
+                      <span className="truncate">{group.title}</span>
+                    </div>
+                    <motion.div
+                      animate={{ rotate: isGroupOpen ? 0 : -90 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover/header:text-slate-200" />
+                    </motion.div>
+                  </button>
+                ) : (
+                  <div className="my-1.5 border-t border-white/10" />
+                )}
+
+                <AnimatePresence initial={false}>
+                  {(isGroupOpen || !isOpen) && (
+                    <motion.div
+                      initial={isOpen ? { height: 0, opacity: 0 } : false}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={isOpen ? { height: 0, opacity: 0 } : undefined}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className={cn("overflow-hidden space-y-0.5", isOpen && "pl-2 border-l border-white/10 ml-3")}
+                    >
+                      {group.items.map((item) => (
+                        <NavItem
+                          key={item.path}
+                          item={item}
+                          isActive={pathname === item.path}
+                          isOpen={isOpen}
+                          onNavigate={closeMobileSidebar}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
 
         <div className="sidebar-footer">
