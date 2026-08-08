@@ -609,6 +609,7 @@ const PayrollPage = () => {
               {advancesList.length} Total
             </span>
           )}
+        </button>
         <button
           type="button"
           onClick={() => setMainTab('structure')}
