@@ -13,12 +13,14 @@ import {
   UserCheck,
   UserX,
   X,
-  Play
+  Play,
+  FileSpreadsheet
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
+import { exportLiveDashboardToExcel } from '@/utils/excelExport';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -163,6 +165,15 @@ export default function LiveDashboardPage() {
     ? stats.breaks.lunch + stats.breaks.tea + stats.breaks.personal + stats.breaks.meeting
     : 0;
 
+  const handleExportExcel = () => {
+    if (!stats) return;
+    try {
+      exportLiveDashboardToExcel(stats, upcomingLeaves);
+    } catch (err) {
+      console.error('Error exporting Excel report:', err);
+    }
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -176,14 +187,24 @@ export default function LiveDashboardPage() {
           <h1 className="text-2xl font-black text-text-primary tracking-tight">Live Telemetry Dashboard</h1>
           <p className="text-xs font-semibold text-text-secondary mt-1">Real-time status tracking for all branch employees. Auto-refreshes every 30s.</p>
         </div>
-        <button
-          onClick={() => fetchLiveStats(true)}
-          disabled={isRefreshing}
-          className="self-start sm:self-center px-4 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
-        >
-          <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
-          {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleExportExcel}
+            disabled={!stats}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-bold flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 shadow-sm"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Export Excel Report
+          </button>
+          <button
+            onClick={() => fetchLiveStats(true)}
+            disabled={isRefreshing}
+            className="px-4 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -414,15 +435,41 @@ export default function LiveDashboardPage() {
         maxWidth="max-w-4xl"
       >
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
-            <input
-              type="text"
-              placeholder="Search by name, code, designation, branch..."
-              value={detailSearch}
-              onChange={(e) => setDetailSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-xs font-bold"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
+              <input
+                type="text"
+                placeholder="Search by name, code, designation, branch..."
+                value={detailSearch}
+                onChange={(e) => setDetailSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-surface-variant rounded-sm outline-none focus:ring-2 focus:ring-primary/50 text-xs font-bold"
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (filteredDetails.length === 0) return;
+                const dataToExport = filteredDetails.map((emp) => ({
+                  'Employee Code': emp.employeeCode || '-',
+                  'Employee Name': `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
+                  Designation: emp.designation || 'Staff',
+                  Branch: emp.officeName || 'General',
+                  ...(emp.startAt ? { 'Started At': new Date(emp.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : {}),
+                }));
+                const XLSX = require('xlsx');
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+                const cleanTitle = detailTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+                XLSX.utils.book_append_sheet(wb, ws, cleanTitle);
+                const dateStr = new Date().toISOString().split('T')[0];
+                XLSX.writeFile(wb, `${cleanTitle}_${dateStr}.xlsx`);
+              }}
+              disabled={filteredDetails.length === 0}
+              className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50 shrink-0"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Export List
+            </button>
           </div>
 
           <div className="border border-border rounded-sm max-h-[450px] overflow-y-auto">
