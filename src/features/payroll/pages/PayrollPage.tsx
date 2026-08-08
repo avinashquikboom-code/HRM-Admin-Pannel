@@ -121,6 +121,8 @@ function computeSlipData(slip: any, slipMonth: string) {
 }
 // ───────────────────────────────────────────────────────────────────────────
 
+import SalaryStructureTab from '../components/SalaryStructureTab';
+
 const PayrollPage = () => {
   const [stats, setStats] = useState<any>({ mtdVolume: 0, disbursed: 0, pending: 0, errors: 0 });
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -155,7 +157,7 @@ const PayrollPage = () => {
   });
 
   // Salary Advances state
-  const [mainTab, setMainTab] = useState<'slips' | 'advances'>('slips');
+  const [mainTab, setMainTab] = useState<'slips' | 'advances' | 'structure'>('slips');
   const [advancesList, setAdvancesList] = useState<any[]>([]);
   const [isAdvancesLoading, setIsAdvancesLoading] = useState(false);
   const [advanceFilter, setAdvanceFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'PAID_OFF' | 'REJECTED'>('ALL');
@@ -607,11 +609,28 @@ const PayrollPage = () => {
               {advancesList.length} Total
             </span>
           )}
+        <button
+          type="button"
+          onClick={() => setMainTab('structure')}
+          className={cn(
+            "px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 flex-1 sm:flex-none justify-center border",
+            mainTab === 'structure'
+              ? "bg-primary text-white border-primary shadow-lg shadow-primary/25"
+              : "bg-transparent text-text-secondary border-transparent hover:text-text-primary hover:bg-surface/50"
+          )}
+        >
+          <ShieldCheck size={16} />
+          <span>Salary Structure & Components</span>
         </button>
       </div>
 
-      {/* Employee Payslips or Advances Table */}
-      <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
+      {/* Employee Payslips, Advances, or Salary Structure Table */}
+      {mainTab === 'structure' ? (
+        <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
+          <SalaryStructureTab />
+        </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
           <div className="p-6 md:p-8 border-b border-border/50 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-surface-variant/20 dark:bg-slate-950/20">
             <div>
               <h3 className="heading-2 text-xl font-black text-text-primary">
@@ -876,6 +895,7 @@ const PayrollPage = () => {
             </div>
           )}
         </motion.div>
+      )}
 
       {/* View Payslip Modal */}
       <Modal

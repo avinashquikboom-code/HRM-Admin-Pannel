@@ -168,6 +168,43 @@ const DashboardPage = () => {
     }
   }, [loading, data]);
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportFrom, setExportFrom] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+  });
+  const [exportTo, setExportTo] = useState(() => new Date().toISOString().split('T')[0]);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const response = await api.get('/api/admin/reports/dashboard', {
+        params: {
+          format: 'excel',
+          from: exportFrom,
+          to: exportTo,
+        },
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `dashboard-report-${exportFrom}-to-${exportTo}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setIsExportModalOpen(false);
+    } catch (err) {
+      console.error('Failed to export Excel report:', err);
+      alert('Failed to download Excel report.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <motion.div 
       initial="hidden"
@@ -187,10 +224,18 @@ const DashboardPage = () => {
           { label: 'System Health', value: '98.5%', icon: ShieldCheck }
         ]}
       >
-        <div className="relative">
-          <button 
-            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-surface-variant border border-border rounded-sm text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95"
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsExportModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-black uppercase tracking-wider shadow-lg transition-all cursor-pointer"
+          >
+            <FileText size={16} />
+            Export Report
+          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-surface-variant border border-border rounded-sm text-sm font-semibold text-text-secondary hover:text-primary transition-all hover:shadow-lg active:scale-95 cursor-pointer"
             >
               <CalendarIcon size={18} />
               {selectedDate}
@@ -235,6 +280,7 @@ const DashboardPage = () => {
             <Zap size={18} className="group-hover:fill-current transition-all" />
             Quick Action
           </button>
+        </div>
       </SuperAdminHeader>
 
       {loading ? (
@@ -740,6 +786,65 @@ const DashboardPage = () => {
         </div>
         <div className="mt-8 p-6 bg-surface-variant/50 rounded-sm border border-dashed border-border text-center">
           <p className="text-xs font-bold text-text-secondary">More advanced controls are available in specific module settings.</p>
+        </div>
+      </Modal>
+
+      {/* Excel Export Modal */}
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Dashboard Reports (Excel)"
+      >
+        <div className="space-y-5">
+          <p className="text-xs font-semibold text-text-secondary">
+            Select a date range to generate a comprehensive Multi-Sheet Excel report (.xlsx) containing Attendance, Leaves, Commission, Salary, Tasks, and Breaks.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-black text-text-primary uppercase tracking-wider mb-1.5">
+                From Date
+              </label>
+              <input
+                type="date"
+                value={exportFrom}
+                onChange={(e) => setExportFrom(e.target.value)}
+                className="w-full p-2.5 bg-surface-variant border border-border rounded-sm text-xs font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-text-primary uppercase tracking-wider mb-1.5">
+                To Date
+              </label>
+              <input
+                type="date"
+                value={exportTo}
+                onChange={(e) => setExportTo(e.target.value)}
+                className="w-full p-2.5 bg-surface-variant border border-border rounded-sm text-xs font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+          </div>
+
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-emerald-600 text-xs font-semibold">
+            ✓ Export includes 6 multi-sheet data tables ready for analysis.
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setIsExportModalOpen(false)}
+              className="px-4 py-2 bg-surface-variant hover:bg-surface text-text-secondary rounded-sm text-xs font-bold transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleExportExcel}
+              disabled={isExporting}
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-bold transition-all cursor-pointer shadow-md disabled:opacity-50 flex items-center gap-2"
+            >
+              <FileText size={16} />
+              {isExporting ? 'Generating Excel...' : 'Download Excel (.xlsx)'}
+            </button>
+          </div>
         </div>
       </Modal>
     </motion.div>

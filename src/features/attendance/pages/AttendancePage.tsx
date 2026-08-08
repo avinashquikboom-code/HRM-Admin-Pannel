@@ -37,8 +37,7 @@ import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
-import { api } from '@/lib/api';
-
+import AttendanceCorrectionsTab from '../components/AttendanceCorrectionsTab';
 
 function formatCheckInTime(value: string | null) {
   if (!value) return '—';
@@ -260,6 +259,8 @@ const AttendancePage = () => {
     },
   ];
 
+  const [activeTab, setActiveTab] = useState<'feed' | 'corrections'>('feed');
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -288,7 +289,35 @@ const AttendancePage = () => {
         </button>
       </SuperAdminHeader>
 
-      {/* Top Metrics */}
+      {/* Tab Switcher */}
+      <div className="flex border-b border-border">
+        <button
+          onClick={() => setActiveTab('feed')}
+          className={`px-6 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+            activeTab === 'feed'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          Today's Activity Feed
+        </button>
+        <button
+          onClick={() => setActiveTab('corrections')}
+          className={`px-6 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'corrections'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          Attendance Corrections Tab
+        </button>
+      </div>
+
+      {activeTab === 'corrections' ? (
+        <AttendanceCorrectionsTab />
+      ) : (
+        <>
+          {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {topStats.map((stat) => (
           <motion.div
@@ -556,6 +585,8 @@ const AttendancePage = () => {
           </div>
         )}
       </Modal>
+        </>
+      )}
 
     </motion.div>
   );
