@@ -56,7 +56,7 @@ export const PLATFORM_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Shifts', icon: Clock, path: '/shifts', moduleId: 'pa-shifts' },
   { name: 'Shift Guidelines', icon: BookOpen, path: '/shift-rules', moduleId: 'pa-shift-rules' },
   { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
-  { name: 'Payroll', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
+  { name: 'Expenses Report', icon: Wallet, path: '/payroll', moduleId: 'pa-payroll' },
   { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
   { name: 'Remote Work', icon: Globe, path: '/remote-work', moduleId: 'pa-remote-work' },
   { name: 'Commission', icon: DollarSign, path: '/commission', moduleId: 'pa-commission' },

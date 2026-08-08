@@ -50,7 +50,7 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
       { id: 'pa-employees', label: 'Employees', group: 'Workforce', description: 'Employee directory and records' },
       { id: 'pa-leave', label: 'Leave Management', group: 'Operations', description: 'Leave requests and approvals' },
       { id: 'pa-tasks', label: 'Task Management', group: 'Operations', description: 'Assign and track team tasks' },
-      { id: 'pa-payroll', label: 'Payroll', group: 'Finance', description: 'Salary runs and disbursements' },
+      { id: 'pa-payroll', label: 'Expenses Report', group: 'Finance', description: 'Salary runs, expenses report and disbursements' },
       { id: 'pa-attendance', label: 'Attendance', group: 'Operations', description: 'Attendance logs and policies' },
       { id: 'pa-shift-rules', label: 'Shift Guidelines', group: 'Operations', description: 'Operational shift rules and conduct guidelines' },
       { id: 'pa-remote-work', label: 'Remote Work', group: 'Operations', description: 'Remote work approvals and geofence bypass' },

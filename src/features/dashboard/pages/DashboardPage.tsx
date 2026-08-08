@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { api } from '@/lib/api';
 import { 
   Users, 
   Building2, 
@@ -157,7 +158,7 @@ const DashboardPage = () => {
 
   const quickActions = [
     { name: 'Add Company', icon: Building2, color: 'primary', desc: 'Onboard a new enterprise' },
-    { name: 'Process Payroll', icon: Wallet, color: 'success', desc: 'Disburse monthly salaries' },
+    { name: 'Process Expenses Report', icon: Wallet, color: 'success', desc: 'Disburse monthly salaries' },
     { name: 'Generate Report', icon: FileText, color: 'accent', desc: 'Export system analytics' },
     { name: 'System Audit', icon: ShieldCheck, color: 'warning', desc: 'Run security protocols' },
   ];
@@ -760,7 +761,7 @@ const DashboardPage = () => {
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => {
-                if (action.name === 'Process Payroll') router.push('/payroll');
+                if (action.name.includes('Process')) router.push('/payroll');
                 setIsQuickActionOpen(false);
               }}
               className="flex items-center gap-4 p-5 glass-card hover:border-primary/30 transition-all text-left group shadow-sm"
