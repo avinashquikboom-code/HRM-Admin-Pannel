@@ -66,16 +66,57 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
     portal: 'employee',
     label: 'Employee',
     title: 'Employee Login',
-    description: 'Self-service — your attendance, leave, tasks & profile',
+    description: 'Self-service — attendance, wallet, leave, tasks, shift, remote work & profile',
     moduleDefs: [
-      { id: 'em-dashboard', label: 'My Dashboard', group: 'Self Service', description: 'Personal overview and quick links' },
-      { id: 'em-attendance', label: 'My Attendance', group: 'Self Service', description: 'View and mark attendance' },
-      { id: 'em-leave', label: 'My Leave', group: 'Self Service', description: 'Apply and track leave balance' },
-      { id: 'em-tasks', label: 'My Tasks', group: 'Self Service', description: 'Assigned tasks and deadlines' },
-      { id: 'canViewSalary', label: 'View Salary Slip', group: 'Finance Access', description: 'Allow viewing monthly salary slips & wallet details' },
-      { id: 'canViewCommission', label: 'View Commission', group: 'Finance Access', description: 'Allow viewing commission dashboard & sales stats' },
-      { id: 'em-notifications', label: 'Notifications', group: 'Communication', description: 'Updates from HR and system' },
-      { id: 'em-profile', label: 'Profile', group: 'Account', description: 'Personal details and password' },
+      // 1. HOME & DASHBOARD
+      { id: 'canViewGeofence', label: 'View Geofence Banner', group: 'Home & Dashboard', description: 'Displays office geofence status & GPS radius' },
+      { id: 'canPunchInOut', label: 'Punch In / Out Access', group: 'Home & Dashboard', description: 'Mark daily check-in and check-out attendance' },
+      { id: 'canPunchHalfDay', label: 'Half-Day Punch', group: 'Home & Dashboard', description: 'Punch in/out specifically for half-day shift' },
+      { id: 'canTakeBreaks', label: 'Take Break Timers', group: 'Home & Dashboard', description: 'Start and stop active break timers (Lunch, Tea, Personal)' },
+
+      // 2. ATTENDANCE & LOGS
+      { id: 'canViewAttendance', label: 'View Attendance Calendar', group: 'Attendance & Logs', description: 'View monthly attendance logs and history' },
+      { id: 'canViewBreakHistory', label: 'View Break History', group: 'Attendance & Logs', description: 'View past break timestamps and durations' },
+      { id: 'canRequestAttendanceCorrection', label: 'Attendance Regularization', group: 'Attendance & Logs', description: 'Submit correction request for missed punches' },
+
+      // 3. WALLET & FINANCIALS
+      { id: 'canViewSalary', label: 'View Salary Slip', group: 'Wallet & Financials', description: 'View monthly base salary, allowances, deductions & net pay' },
+      { id: 'canDownloadSalaryPDF', label: 'Download Salary PDF', group: 'Wallet & Financials', description: 'Download or print PDF salary slip' },
+      { id: 'canRequestSalaryAdvance', label: 'Request Salary Advance', group: 'Wallet & Financials', description: 'Submit salary advance application' },
+      { id: 'canViewCommission', label: 'View Commission Dashboard', group: 'Wallet & Financials', description: 'View sales commission earnings and targets' },
+      { id: 'canLogSale', label: 'Log New Sale', group: 'Wallet & Financials', description: 'Submit new sale transaction for commission calculation' },
+      { id: 'canViewExpenses', label: 'View Expense Claims', group: 'Wallet & Financials', description: 'View history of submitted expense claims' },
+      { id: 'canSubmitExpenseClaim', label: 'Submit Expense Claim', group: 'Wallet & Financials', description: 'Submit reimbursement claim with receipt photo' },
+      { id: 'canCancelExpenseClaim', label: 'Cancel Expense Claim', group: 'Wallet & Financials', description: 'Revoke pending reimbursement claim' },
+      { id: 'canRequestBankDetailsEdit', label: 'Request Bank Details Edit', group: 'Wallet & Financials', description: 'Request permission to update bank account details' },
+
+      // 4. LEAVE & HOLIDAYS
+      { id: 'canViewLeaveBalance', label: 'View Leave Balance', group: 'Leave & Holidays', description: 'View casual, paid, and sick leave balances' },
+      { id: 'canViewLeaveHistory', label: 'View Leave History', group: 'Leave & Holidays', description: 'View status of past leave applications' },
+      { id: 'canApplyLeave', label: 'Apply for Leave', group: 'Leave & Holidays', description: 'Submit new leave application with dates & reason' },
+      { id: 'canCancelLeave', label: 'Cancel Pending Leave', group: 'Leave & Holidays', description: 'Withdraw pending leave request before HR review' },
+      { id: 'canViewHolidays', label: 'View Holiday Calendar', group: 'Leave & Holidays', description: 'View official company holiday list' },
+
+      // 5. TASKS MANAGEMENT
+      { id: 'canViewTasks', label: 'View Assigned Tasks', group: 'Tasks Management', description: 'View task titles, priority badges, and due dates' },
+      { id: 'canCompleteTask', label: 'Complete Task', group: 'Tasks Management', description: 'Mark task as completed or add progress notes' },
+
+      // 6. SHIFT & GUIDELINES
+      { id: 'canViewShift', label: 'View Shift Schedule', group: 'Shift & Guidelines', description: 'View assigned shift timings and office location' },
+      { id: 'canRequestShiftChange', label: 'Request Shift Change', group: 'Shift & Guidelines', description: 'Submit shift timing change or swap request' },
+      { id: 'canCancelShiftRequest', label: 'Cancel Shift Request', group: 'Shift & Guidelines', description: 'Revoke pending shift change request' },
+      { id: 'canViewShiftGuidelines', label: 'View Shift Guidelines', group: 'Shift & Guidelines', description: 'Read operational rules and store guidelines' },
+
+      // 7. REMOTE WORK
+      { id: 'canViewRemoteWorkStatus', label: 'View Remote Work Status', group: 'Remote Work', description: 'View history of remote work approvals' },
+      { id: 'canApplyRemoteWork', label: 'Apply for Remote Work', group: 'Remote Work', description: 'Request remote work / geofence bypass permission' },
+      { id: 'canCancelRemoteRequest', label: 'Cancel Remote Request', group: 'Remote Work', description: 'Withdraw pending remote work request' },
+
+      // 8. PROFILE & SYSTEM
+      { id: 'canViewProfile', label: 'View Profile', group: 'Profile & System', description: 'View personal details, employee code & designation' },
+      { id: 'canEditAvatar', label: 'Edit Profile Photo', group: 'Profile & System', description: 'Upload or update profile picture' },
+      { id: 'canChangePassword', label: 'Change Password', group: 'Profile & System', description: 'Update account password' },
+      { id: 'canViewNotifications', label: 'View Notifications', group: 'Profile & System', description: 'View system alerts & broadcast messages' },
     ],
     accent: 'accent',
   },
