@@ -72,6 +72,8 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
       { id: 'em-attendance', label: 'My Attendance', group: 'Self Service', description: 'View and mark attendance' },
       { id: 'em-leave', label: 'My Leave', group: 'Self Service', description: 'Apply and track leave balance' },
       { id: 'em-tasks', label: 'My Tasks', group: 'Self Service', description: 'Assigned tasks and deadlines' },
+      { id: 'canViewSalary', label: 'View Salary Slip', group: 'Finance Access', description: 'Allow viewing monthly salary slips & wallet details' },
+      { id: 'canViewCommission', label: 'View Commission', group: 'Finance Access', description: 'Allow viewing commission dashboard & sales stats' },
       { id: 'em-notifications', label: 'Notifications', group: 'Communication', description: 'Updates from HR and system' },
       { id: 'em-profile', label: 'Profile', group: 'Account', description: 'Personal details and password' },
     ],
