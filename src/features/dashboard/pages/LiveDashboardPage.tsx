@@ -14,13 +14,31 @@ import {
   UserX,
   X,
   Play,
-  FileSpreadsheet
+  FileSpreadsheet,
+  UserPlus,
+  Activity,
+  ShieldCheck,
+  CheckSquare,
+  Building,
+  TrendingUp,
+  Radio,
+  Award
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 import { cn } from '@/utils/cn';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import { exportLiveDashboardToExcel } from '@/utils/excelExport';
+import { fetchHRStats, HRStats } from '@/services/hrService';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -85,6 +103,7 @@ interface LiveStats {
 
 export default function LiveDashboardPage() {
   const [stats, setStats] = useState<LiveStats | null>(null);
+  const [hrStats, setHrStats] = useState<HRStats | null>(null);
   const [upcomingLeaves, setUpcomingLeaves] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -100,9 +119,10 @@ export default function LiveDashboardPage() {
   const fetchLiveStats = useCallback(async (showRefreshingIndicator = false) => {
     if (showRefreshingIndicator) setIsRefreshing(true);
     try {
-      const [statsRes, upcomingRes] = await Promise.allSettled([
+      const [statsRes, upcomingRes, hrStatsRes] = await Promise.allSettled([
         api.get<{ success: boolean; stats: LiveStats }>('/api/admin/dashboard/live'),
-        api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves/upcoming')
+        api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves/upcoming'),
+        fetchHRStats()
       ]);
 
       if (statsRes.status === 'fulfilled' && statsRes.value.data.success) {
@@ -112,6 +132,10 @@ export default function LiveDashboardPage() {
 
       if (upcomingRes.status === 'fulfilled' && upcomingRes.value.data.success) {
         setUpcomingLeaves(upcomingRes.value.data.leaves);
+      }
+
+      if (hrStatsRes.status === 'fulfilled') {
+        setHrStats(hrStatsRes.value);
       }
     } catch (err) {
       console.error('Error fetching live stats:', err);
@@ -215,6 +239,100 @@ export default function LiveDashboardPage() {
 
       {stats && (
         <>
+          {/* HR Key Metrics Grid */}
+          {hrStats && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-primary" />
+                <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Organization HR Overview</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <motion.div variants={itemVariants} className="p-6 border border-border bg-surface rounded-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-none">Total Workforce</p>
+                    <h3 className="text-4xl font-black text-text-primary mt-2.5 leading-none">{hrStats.totalEmployees}</h3>
+                    <p className="text-xs font-semibold text-text-secondary mt-2">{hrStats.activeEmployees} active employees</p>
+                  </div>
+                  <div className="w-12 h-12 bg-primary/10 text-primary flex items-center justify-center rounded-sm">
+                    <Users size={24} />
+                  </div>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="p-6 border border-border bg-surface rounded-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-none">HR Admins</p>
+                    <h3 className="text-4xl font-black text-text-primary mt-2.5 leading-none">{hrStats.totalHRAdmins}</h3>
+                    <p className="text-xs font-semibold text-text-secondary mt-2">Active admin profiles</p>
+                  </div>
+                  <div className="w-12 h-12 bg-violet-500/10 text-violet-500 flex items-center justify-center rounded-sm">
+                    <ShieldCheck size={24} />
+                  </div>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="p-6 border border-border bg-surface rounded-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-none">Platform Hires (30d)</p>
+                    <h3 className="text-4xl font-black text-emerald-500 mt-2.5 leading-none">{hrStats.newHires}</h3>
+                    <p className="text-xs font-semibold text-text-secondary mt-2">New hires onboarded</p>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 flex items-center justify-center rounded-sm">
+                    <UserPlus size={24} />
+                  </div>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="p-6 border border-border bg-surface rounded-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-none">Onboarding Rate</p>
+                    <h3 className="text-4xl font-black text-sky-500 mt-2.5 leading-none">{hrStats.onboardingRate}</h3>
+                    <p className="text-xs font-semibold text-text-secondary mt-2">Successful validations</p>
+                  </div>
+                  <div className="w-12 h-12 bg-sky-500/10 text-sky-500 flex items-center justify-center rounded-sm">
+                    <UserCheck size={24} />
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Hiring Growth Chart Row */}
+              {hrStats.hiringGrowth && hrStats.hiringGrowth.length > 0 && (
+                <motion.div variants={itemVariants} className="p-6 border border-border bg-surface rounded-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+                        <TrendingUp size={16} className="text-primary" />
+                        Ecosystem Hiring Growth
+                      </h3>
+                      <p className="text-xs font-semibold text-text-secondary mt-0.5">Platform-wide monthly hiring trend</p>
+                    </div>
+                  </div>
+                  <div className="h-44 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={hrStats.hiringGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                        <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'var(--surface)',
+                            borderColor: 'var(--border)',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        />
+                        <Bar dataKey="hires" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-2">
+            <Radio size={16} className="text-emerald-500 animate-pulse" />
+            <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Live Attendance Telemetry</h3>
+          </div>
+
           {/* Main Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Present */}
