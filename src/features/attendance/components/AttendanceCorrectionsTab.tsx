@@ -99,7 +99,12 @@ export default function AttendanceCorrectionsTab() {
     }
   };
 
-  const pendingCount = requests.filter(r => r.status === 'PENDING').length;
+  const counts = {
+    ALL: requests.length,
+    PENDING: requests.filter(r => r.status === 'PENDING').length,
+    APPROVED: requests.filter(r => r.status === 'APPROVED').length,
+    REJECTED: requests.filter(r => r.status === 'REJECTED').length,
+  };
 
   const filteredRequests = requests.filter(r => {
     const term = searchTerm.toLowerCase().trim();
@@ -129,12 +134,12 @@ export default function AttendanceCorrectionsTab() {
                   : 'bg-surface-variant text-text-secondary hover:text-text-primary'
               }`}
             >
-              {st === 'PENDING' && pendingCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center">
-                  {pendingCount}
-                </span>
-              )}
               {st}
+              <span className={`px-1.5 min-w-4 h-4 rounded-full text-[10px] flex items-center justify-center ${
+                statusFilter === st ? "bg-white/20 text-white" : "bg-border text-text-secondary"
+              }`}>
+                {counts[st as keyof typeof counts]}
+              </span>
             </button>
           ))}
         </div>
