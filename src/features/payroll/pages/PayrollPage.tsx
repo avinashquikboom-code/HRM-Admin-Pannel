@@ -238,6 +238,10 @@ const PayrollPage = () => {
     leave: number;
   } | null>(null);
 
+  const handleExpensesLoaded = useCallback((list: ExpenseClaim[]) => {
+    setExpensesList(list);
+  }, []);
+
   const loadExpensesData = useCallback(async () => {
     try {
       const res = await api.get<any>('/api/hr/expenses');
@@ -586,23 +590,23 @@ const PayrollPage = () => {
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/15 border border-emerald-500/30 text-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl relative overflow-hidden"
+          className="p-5 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl relative overflow-hidden"
         >
           <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center gap-4 relative z-10">
-            <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 shadow-inner flex items-center justify-center shrink-0">
+            <div className="p-3 bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-500/30 shadow-inner flex items-center justify-center shrink-0">
               <Receipt size={24} className="animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider text-emerald-300">
+                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-300">
                   {expensesList.filter(e => e.status === 'PENDING').length} Pending Expense Reimbursement Claim(s)
                 </h4>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black border border-emerald-400/30 animate-pulse">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 text-[10px] font-black border border-emerald-500/40 animate-pulse">
                   Review Required
                 </span>
               </div>
-              <p className="text-xs font-medium text-emerald-200/80 mt-0.5">
+              <p className="text-xs font-semibold text-emerald-900/90 dark:text-emerald-200/80 mt-0.5">
                 Employees have submitted new expense reimbursement claims awaiting HR review and approval.
               </p>
             </div>
@@ -610,7 +614,7 @@ const PayrollPage = () => {
           <button
             type="button"
             onClick={() => { setMainTab('expenses'); loadExpensesData(); }}
-            className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 shrink-0 border border-emerald-400/30 flex items-center gap-2 relative z-10"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 shrink-0 border border-emerald-400/30 flex items-center gap-2 relative z-10 cursor-pointer"
           >
             <span>Review Expenses Now</span>
             <ArrowRight size={14} />
@@ -623,23 +627,23 @@ const PayrollPage = () => {
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl relative overflow-hidden"
+          className="p-5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl relative overflow-hidden"
         >
           <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center gap-4 relative z-10">
-            <div className="p-3 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 shadow-inner flex items-center justify-center shrink-0">
+            <div className="p-3 bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl border border-amber-500/30 shadow-inner flex items-center justify-center shrink-0">
               <Wallet size={24} className="animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-300">
+                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider text-amber-950 dark:text-amber-300">
                   {advancesList.filter(a => a.status === 'PENDING').length} Pending Salary Advance Request(s)
                 </h4>
-                <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black border border-amber-400/30 animate-pulse">
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:text-amber-300 text-[10px] font-black border border-amber-500/40 animate-pulse">
                   Action Required
                 </span>
               </div>
-              <p className="text-xs font-medium text-amber-200/80 mt-0.5">
+              <p className="text-xs font-semibold text-amber-900/90 dark:text-amber-200/80 mt-0.5">
                 Employees have submitted new salary advance & EMI applications awaiting your review and approval.
               </p>
             </div>
@@ -647,7 +651,7 @@ const PayrollPage = () => {
           <button
             type="button"
             onClick={() => { setMainTab('advances'); loadAdvancesData(); }}
-            className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 shrink-0 border border-amber-400/30 flex items-center gap-2 relative z-10"
+            className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 shrink-0 border border-amber-400/30 flex items-center gap-2 relative z-10 cursor-pointer"
           >
             <span>Review Advances Now</span>
             <ArrowRight size={14} />
@@ -736,7 +740,7 @@ const PayrollPage = () => {
         </motion.div>
       ) : mainTab === 'expenses' ? (
         <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl p-6 md:p-8 overflow-hidden shadow-xl">
-          <ExpenseClaimsTab onDataLoaded={(list) => setExpensesList(list)} />
+          <ExpenseClaimsTab onDataLoaded={handleExpensesLoaded} />
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">

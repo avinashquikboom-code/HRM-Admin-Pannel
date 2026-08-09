@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { sendNotificationToEmployee } from '@/services/notificationService';
@@ -82,14 +82,24 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
   const [detailExpense, setDetailExpense] = useState<ExpenseClaim | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
+  const onDataLoadedRef = useRef(onDataLoaded);
+  useEffect(() => {
+    onDataLoadedRef.current = onDataLoaded;
+  }, [onDataLoaded]);
+
   const fetchExpenses = useCallback(async () => {
-    setLoading(true);
+    // Only show full skeleton on initial load when expenses list is empty
+    if (expenses.length === 0) {
+      setLoading(true);
+    }
     try {
       const res = await api.get<{ success: boolean; expenses: ExpenseClaim[] }>('/api/hr/expenses');
       if (res.data.success) {
         const list = res.data.expenses || [];
         setExpenses(list);
-        if (onDataLoaded) onDataLoaded(list);
+        if (onDataLoadedRef.current) {
+          onDataLoadedRef.current(list);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch expense claims:', err);
@@ -97,7 +107,7 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
     } finally {
       setLoading(false);
     }
-  }, [onDataLoaded]);
+  }, [expenses.length]);
 
   useEffect(() => {
     fetchExpenses();
@@ -376,7 +386,7 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
 
       {/* Main Expense Claims Table */}
       <div className="rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
-        {loading ? (
+        {loading && expenses.length === 0 ? (
           <div className="p-6">
             <TableSkeleton rows={6} columns={7} />
           </div>
