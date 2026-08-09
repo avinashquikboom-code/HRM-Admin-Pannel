@@ -88,7 +88,7 @@ export async function fetchAllLeaves(page: number = 1, limit: number = 20): Prom
   }
 }
 
-export async function fetchLeaveBalances(page: number = 1, limit: number = 20): Promise<LeaveBalancesResponse> {
+export async function fetchLeaveBalances(page: number = 1, limit: number = 100): Promise<LeaveBalancesResponse> {
   try {
     const { data } = await api.get<LeaveBalancesResponse>('/api/admin/leaves/balances', {
       params: { page, limit },

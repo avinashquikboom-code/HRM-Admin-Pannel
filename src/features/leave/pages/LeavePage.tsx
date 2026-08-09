@@ -222,7 +222,7 @@ export default function LeavePage() {
     try {
       const [leavesResult, balancesResult, empResult, holidaysResult] = await Promise.allSettled([
         fetchAllLeaves(requestsPage, 20),
-        fetchLeaveBalances(balancesPage, 20),
+        fetchLeaveBalances(balancesPage, 100),
         api.get<{ success: boolean; employees: any[] }>('/api/admin/employees', { timeout: 10000 }),
         fetchAdminHolidays().catch(err => {
           console.error('Failed to fetch holidays:', err);
