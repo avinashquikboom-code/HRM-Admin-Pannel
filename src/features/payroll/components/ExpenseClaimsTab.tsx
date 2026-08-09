@@ -46,6 +46,7 @@ export interface ExpenseClaim {
   reviewedBy?: string | null;
   reviewNote?: string | null;
   hasReceipt: boolean;
+  receiptUrl?: string | null;
 }
 
 interface ExpenseClaimsTabProps {
@@ -663,6 +664,19 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
                 <div className="pt-2 border-t border-border/40">
                   <span className="text-text-secondary block text-[10px] font-bold uppercase">Purpose / Description</span>
                   <p className="text-xs text-text-primary font-medium mt-0.5">{detailExpense.description}</p>
+                </div>
+              )}
+
+              {detailExpense.receiptUrl && (
+                <div className="pt-2 border-t border-border/40">
+                  <span className="text-text-secondary block text-[10px] font-bold uppercase mb-1">Attached Receipt</span>
+                  <div className="rounded-xl overflow-hidden border border-border/60 bg-black/20 p-1 max-h-56 flex items-center justify-center">
+                    <img 
+                      src={detailExpense.receiptUrl} 
+                      alt="Expense Receipt" 
+                      className="max-h-52 object-contain rounded-lg shadow-sm"
+                    />
+                  </div>
                 </div>
               )}
             </div>
