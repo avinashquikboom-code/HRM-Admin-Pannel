@@ -22,7 +22,8 @@ import {
   X,
   ShieldCheck,
   Plus,
-  Zap
+  Zap,
+  Receipt
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -122,6 +123,7 @@ function computeSlipData(slip: any, slipMonth: string) {
 // ───────────────────────────────────────────────────────────────────────────
 
 import SalaryStructureTab from '../components/SalaryStructureTab';
+import ExpenseClaimsTab, { ExpenseClaim } from '../components/ExpenseClaimsTab';
 import { SalarySlip } from '@/components/SalarySlip/SalarySlip';
 
 const PayrollPage = () => {
@@ -158,7 +160,8 @@ const PayrollPage = () => {
   });
 
   // Salary Advances state
-  const [mainTab, setMainTab] = useState<'slips' | 'advances' | 'structure'>('slips');
+  const [mainTab, setMainTab] = useState<'slips' | 'advances' | 'expenses' | 'structure'>('slips');
+  const [expensesList, setExpensesList] = useState<ExpenseClaim[]>([]);
   const [advancesList, setAdvancesList] = useState<any[]>([]);
   const [isAdvancesLoading, setIsAdvancesLoading] = useState(false);
   const [advanceFilter, setAdvanceFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'PAID_OFF' | 'REJECTED'>('ALL');
@@ -218,6 +221,17 @@ const PayrollPage = () => {
     leave: number;
   } | null>(null);
 
+  const loadExpensesData = useCallback(async () => {
+    try {
+      const res = await api.get<any>('/api/hr/expenses');
+      const list = res.data?.expenses || (Array.isArray(res.data) ? res.data : []);
+      setExpensesList(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.warn('Failed to load expense claims:', err);
+      setExpensesList([]);
+    }
+  }, []);
+
   const loadPayrollData = useCallback(async () => {
     setIsPageLoading(true);
     setIsSlipsLoading(true);
@@ -226,7 +240,8 @@ const PayrollPage = () => {
         api.get<any>('/api/payroll/admin/stats'),
         api.get<any>('/api/payroll/admin/runs'),
         api.get<any>(`/api/payroll/admin/slips?month=${slipMonth}`),
-        loadAdvancesData()
+        loadAdvancesData(),
+        loadExpensesData()
       ]);
 
       if (statsRes.status === 'fulfilled' && statsRes.value.data) {
@@ -252,7 +267,7 @@ const PayrollPage = () => {
       setIsPageLoading(false);
       setIsSlipsLoading(false);
     }
-  }, [slipMonth, loadAdvancesData]);
+  }, [slipMonth, loadAdvancesData, loadExpensesData]);
 
   useEffect(() => {
     loadPayrollData();
@@ -537,6 +552,43 @@ const PayrollPage = () => {
 
 
 
+      {/* Pending Expense Claims Alert Banner */}
+      {expensesList.filter(e => e.status === 'PENDING').length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/15 border border-emerald-500/30 text-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl relative overflow-hidden"
+        >
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 shadow-inner flex items-center justify-center shrink-0">
+              <Receipt size={24} className="animate-bounce" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider text-emerald-300">
+                  {expensesList.filter(e => e.status === 'PENDING').length} Pending Expense Reimbursement Claim(s)
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black border border-emerald-400/30 animate-pulse">
+                  Review Required
+                </span>
+              </div>
+              <p className="text-xs font-medium text-emerald-200/80 mt-0.5">
+                Employees have submitted new expense reimbursement claims awaiting HR review and approval.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setMainTab('expenses'); loadExpensesData(); }}
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 shrink-0 border border-emerald-400/30 flex items-center gap-2 relative z-10"
+          >
+            <span>Review Expenses Now</span>
+            <ArrowRight size={14} />
+          </button>
+        </motion.div>
+      )}
+
       {/* Pending Salary Advance Requests Alert Banner */}
       {advancesList.filter(a => a.status === 'PENDING').length > 0 && (
         <motion.div 
@@ -613,6 +665,28 @@ const PayrollPage = () => {
         </button>
         <button
           type="button"
+          onClick={() => { setMainTab('expenses'); loadExpensesData(); }}
+          className={cn(
+            "px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 relative flex-1 sm:flex-none justify-center border",
+            mainTab === 'expenses'
+              ? "bg-primary text-white border-primary shadow-lg shadow-primary/25"
+              : "bg-transparent text-text-secondary border-transparent hover:text-text-primary hover:bg-surface/50"
+          )}
+        >
+          <Receipt size={16} />
+          <span>Expense Claims & History</span>
+          {expensesList.filter(e => e.status === 'PENDING').length > 0 ? (
+            <span className="ml-1.5 px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full shadow-sm animate-pulse">
+              {expensesList.filter(e => e.status === 'PENDING').length} REQ
+            </span>
+          ) : (
+            <span className="ml-1.5 px-2 py-0.5 bg-surface-variant dark:bg-white/10 text-text-secondary text-[10px] font-black rounded-full border border-border/50 dark:border-white/10">
+              {expensesList.length} Total
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
           onClick={() => setMainTab('structure')}
           className={cn(
             "px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 flex-1 sm:flex-none justify-center border",
@@ -626,10 +700,14 @@ const PayrollPage = () => {
         </button>
       </div>
 
-      {/* Employee Payslips, Advances, or Salary Structure Table */}
+      {/* Employee Payslips, Advances, Expense Claims, or Salary Structure Table */}
       {mainTab === 'structure' ? (
         <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
           <SalaryStructureTab />
+        </motion.div>
+      ) : mainTab === 'expenses' ? (
+        <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl p-6 md:p-8 overflow-hidden shadow-xl">
+          <ExpenseClaimsTab onDataLoaded={(list) => setExpensesList(list)} />
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="glass-card rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl overflow-hidden shadow-xl">
