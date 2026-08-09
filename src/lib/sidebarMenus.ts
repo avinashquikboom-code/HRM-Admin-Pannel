@@ -39,7 +39,7 @@ export interface SidebarMenuGroup {
 }
 
 /** Legacy module — never show on HRM Admin sidebar. */
-export const ADMIN_REMOVED_MODULE_IDS = new Set<string>([]);
+export const ADMIN_REMOVED_MODULE_IDS = new Set<string>(['pa-hr']);
 
 export const SUPER_ADMIN_MENU_ITEMS: SidebarMenuItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, path: SUPER_ADMIN_PREFIX, moduleId: 'sa-dashboard' },
@@ -65,7 +65,6 @@ export const PLATFORM_ADMIN_MENU_GROUPS: SidebarMenuGroup[] = [
     items: [
       { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
       { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
-      { name: 'HR Management', icon: Users, path: '/hr-management', moduleId: 'pa-hr' },
     ],
   },
   {

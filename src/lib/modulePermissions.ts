@@ -23,7 +23,6 @@ export const MODULE_PATHS: Record<PortalType, Record<string, string>> = {
     'sa-profile': `${SUPER_ADMIN_PREFIX}/profile`,
   },
   platform_admin: {
-    'pa-hr': '/hr-management',
     'pa-employee-rights': '/user-rights',
     'pa-employees': '/employees',
     'pa-leave': '/leave',
@@ -113,9 +112,6 @@ export function getEffectivePermissions(
 
   const loaded = loadRolePermissions()[portal];
   const result: Record<string, boolean> = { ...defaults[portal], ...loaded };
-  if (portal === 'platform_admin') {
-    result['pa-hr'] = true;
-  }
   return result;
 }
 

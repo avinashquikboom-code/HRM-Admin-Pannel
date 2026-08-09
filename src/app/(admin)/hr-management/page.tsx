@@ -1,5 +1,5 @@
-import HRManagementPage from '@/features/hr_management/pages/HRManagementPage';
+import { redirect } from 'next/navigation';
 
 export default function HRManagementPageWrapper() {
-  return <HRManagementPage />;
+  redirect('/live-dashboard');
 }

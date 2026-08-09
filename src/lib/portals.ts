@@ -5,7 +5,7 @@ export const PLATFORM_LOGIN_PATH = '/login';
 export const EMPLOYEE_PREFIX = '/employee';
 
 export const SUPER_ADMIN_HOME = '/super-admin';
-export const PLATFORM_HOME = '/hr-management';
+export const PLATFORM_HOME = '/live-dashboard';
 export const EMPLOYEE_HOME = '/employee';
 
 export const SUPER_ADMIN_PREFIX = '/super-admin';

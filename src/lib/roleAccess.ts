@@ -45,7 +45,6 @@ export const ROLE_ACCESS: Record<PortalType, RoleAccessInfo> = {
     title: 'HRM Admin Login',
     description: 'HR & operations — manage workforce across the organization',
     moduleDefs: [
-      { id: 'pa-hr', label: 'HR Management', group: 'Workforce', description: 'HR activity and hiring oversight' },
       { id: 'pa-employee-rights', label: 'Employee Rights', group: 'Security', description: 'Configure employee module access' },
       { id: 'pa-employees', label: 'Employees', group: 'Workforce', description: 'Employee directory and records' },
       { id: 'pa-leave', label: 'Leave Management', group: 'Operations', description: 'Leave requests and approvals' },
