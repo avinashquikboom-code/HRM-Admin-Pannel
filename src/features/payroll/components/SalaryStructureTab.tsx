@@ -6,11 +6,20 @@ import { toast } from 'sonner';
 import { Search, Edit, Check, X, ShieldCheck, IndianRupee, Calculator, Loader2 } from 'lucide-react';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
+import PaginationFooter from '@/components/PaginationFooter';
 
 export default function SalaryStructureTab() {
   const [structures, setStructures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const [selectedStructure, setSelectedStructure] = useState<any | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -186,7 +195,7 @@ export default function SalaryStructureTab() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40 dark:divide-white/10">
-              {filteredStructures.map((struct) => {
+              {paginatedStructures.map((struct) => {
                 const totalGross = (struct.basicSalary || 0) + (struct.hra || 0) + (struct.medicalAllowance || 0) + (struct.travelAllowance || 0) + (struct.specialAllowance || 0);
                 const displayGross = totalGross > 0 ? totalGross : (struct.grossSalary || struct.monthlySalary || 0);
 
@@ -235,6 +244,17 @@ export default function SalaryStructureTab() {
               })}
             </tbody>
           </table>
+
+          {/* Pagination Footer */}
+          <PaginationFooter
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredStructures.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="structures"
+          />
         </div>
       )}
 

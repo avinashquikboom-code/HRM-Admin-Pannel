@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import TableSkeleton from '@/components/TableSkeleton';
+import PaginationFooter from '@/components/PaginationFooter';
 import { 
   XAxis, 
   YAxis, 
@@ -170,6 +171,22 @@ const PayrollPage = () => {
   const [reviewMonths, setReviewMonths] = useState<number>(4);
   const [reviewNote, setReviewNote] = useState<string>('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  // Slips pagination state
+  const [slipsPage, setSlipsPage] = useState(1);
+  const [slipsPageSize, setSlipsPageSize] = useState(10);
+
+  // Advances pagination state
+  const [advancesPage, setAdvancesPage] = useState(1);
+  const [advancesPageSize, setAdvancesPageSize] = useState(10);
+
+  useEffect(() => {
+    setSlipsPage(1);
+  }, [searchTerm, slipMonth]);
+
+  useEffect(() => {
+    setAdvancesPage(1);
+  }, [searchTerm, advanceFilter]);
 
   const loadAdvancesData = useCallback(async () => {
     setIsAdvancesLoading(true);
@@ -402,6 +419,18 @@ const PayrollPage = () => {
     const matchesFilter = advanceFilter === 'ALL' || adv.status === advanceFilter;
     return matchesSearch && matchesFilter;
   });
+
+  const slipsTotalPages = Math.ceil(filteredSlips.length / slipsPageSize) || 1;
+  const paginatedSlips = filteredSlips.slice(
+    (slipsPage - 1) * slipsPageSize,
+    slipsPage * slipsPageSize
+  );
+
+  const advancesTotalPages = Math.ceil(filteredAdvances.length / advancesPageSize) || 1;
+  const paginatedAdvances = filteredAdvances.slice(
+    (advancesPage - 1) * advancesPageSize,
+    advancesPage * advancesPageSize
+  );
 
   const isLoading = isPageLoading;
 
@@ -755,7 +784,7 @@ const PayrollPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                  {filteredSlips.map((slip) => (
+                  {paginatedSlips.map((slip) => (
                     <motion.tr 
                       key={slip.id}
                       variants={itemVariants}
@@ -828,6 +857,17 @@ const PayrollPage = () => {
                   ))}
                 </tbody>
               </table>
+
+              {/* Slips Pagination Footer */}
+              <PaginationFooter
+                currentPage={slipsPage}
+                totalPages={slipsTotalPages}
+                totalItems={filteredSlips.length}
+                pageSize={slipsPageSize}
+                onPageChange={setSlipsPage}
+                onPageSizeChange={setSlipsPageSize}
+                itemLabel="payslips"
+              />
             </div>
           )
           ) : (
@@ -866,111 +906,124 @@ const PayrollPage = () => {
                   <p className="text-sm font-bold text-text-secondary">No salary advance records match the selected filter.</p>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-variant/40 dark:bg-slate-950/40 border-b border-border/50 dark:border-white/10">
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Employee</th>
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Advance Amount</th>
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">EMI Plan</th>
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Paid / Remaining</th>
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">EMI Progress</th>
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Status</th>
-                      <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                    {filteredAdvances.map((adv) => (
-                      <tr key={adv.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02] transition-colors">
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600 dark:text-teal-400 font-black text-xs shrink-0">
-                              {adv.employeeName ? adv.employeeName.charAt(0) : 'A'}
-                            </div>
-                            <div>
-                              <span className="font-black text-text-primary block text-sm">{adv.employeeName}</span>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="font-mono text-[10px] font-black text-text-secondary bg-surface-variant/80 dark:bg-white/[0.06] px-2 py-0.5 rounded border border-border/50 dark:border-white/10">{adv.employeeCode}</span>
-                                <span className="text-[11px] font-medium text-text-secondary">{adv.designation}</span>
+                <>
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-surface-variant/40 dark:bg-slate-950/40 border-b border-border/50 dark:border-white/10">
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Employee</th>
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Advance Amount</th>
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">EMI Plan</th>
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Paid / Remaining</th>
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">EMI Progress</th>
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Status</th>
+                        <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40 dark:divide-white/10">
+                      {paginatedAdvances.map((adv) => (
+                        <tr key={adv.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02] transition-colors">
+                          <td className="px-6 py-5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600 dark:text-teal-400 font-black text-xs shrink-0">
+                                {adv.employeeName ? adv.employeeName.charAt(0) : 'A'}
+                              </div>
+                              <div>
+                                <span className="font-black text-text-primary block text-sm">{adv.employeeName}</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="font-mono text-[10px] font-black text-text-secondary bg-surface-variant/80 dark:bg-white/[0.06] px-2 py-0.5 rounded border border-border/50 dark:border-white/10">{adv.employeeCode}</span>
+                                  <span className="text-[11px] font-medium text-text-secondary">{adv.designation}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
-                          ₹{adv.amount.toLocaleString('en-IN')}
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-text-primary font-mono">₹{adv.monthlyEmi.toLocaleString('en-IN')} / mo</span>
-                            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">{adv.months} EMI Installments</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex flex-col font-mono text-xs">
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">Paid: ₹{adv.paidAmount.toLocaleString('en-IN')}</span>
-                            <span className="font-bold text-amber-600 dark:text-amber-400">Rem: ₹{adv.remainingAmount.toLocaleString('en-IN')}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="w-36">
-                            <div className="flex justify-between text-[10px] font-black text-text-secondary mb-1 uppercase tracking-wider">
-                              <span>{adv.paidEmis} / {adv.months} EMIs</span>
-                              <span className="font-mono">{Math.round((adv.paidEmis / (adv.months || 1)) * 100)}%</span>
+                          </td>
+                          <td className="px-6 py-5 font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                            ₹{adv.amount.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-6 py-5">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-black text-text-primary font-mono">₹{adv.monthlyEmi.toLocaleString('en-IN')} / mo</span>
+                              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">{adv.months} EMI Installments</span>
                             </div>
-                            <div className="h-2.5 w-full bg-surface-variant dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-border/40 dark:border-white/10">
-                              <div
-                                className="h-full bg-gradient-to-r from-teal-400 to-emerald-500 rounded-full transition-all shadow-sm"
-                                style={{ width: `${Math.min(100, (adv.paidEmis / (adv.months || 1)) * 100)}%` }}
-                              />
+                          </td>
+                          <td className="px-6 py-5">
+                            <div className="flex flex-col font-mono text-xs">
+                              <span className="font-bold text-emerald-600 dark:text-emerald-400">Paid: ₹{adv.paidAmount.toLocaleString('en-IN')}</span>
+                              <span className="font-bold text-amber-600 dark:text-amber-400">Rem: ₹{adv.remainingAmount.toLocaleString('en-IN')}</span>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className={cn(
-                            "px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
-                            adv.status === 'APPROVED' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-                            adv.status === 'PENDING' && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 animate-pulse",
-                            adv.status === 'PAID_OFF' && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-                            adv.status === 'REJECTED' && "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                          )}>
-                            {adv.status === 'APPROVED' && <CheckCircle2 size={12} />}
-                            {adv.status === 'PENDING' && <Clock size={12} />}
-                            {adv.status === 'PAID_OFF' && <ShieldCheck size={12} />}
-                            {adv.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          {adv.status === 'PENDING' ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedAdvance(adv);
-                                setReviewMonths(adv.months || 4);
-                                setReviewNote('');
-                                setIsReviewModalOpen(true);
-                              }}
-                              className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-primary/20 active:scale-95"
-                            >
-                              Review & Set EMI
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedAdvance(adv);
-                                setReviewMonths(adv.months || 4);
-                                setReviewNote(adv.reviewNote || '');
-                                setIsReviewModalOpen(true);
-                              }}
-                              className="px-4 py-2 bg-surface-variant/80 hover:bg-surface-variant text-text-primary rounded-xl text-xs font-black uppercase tracking-wider border border-border/60 dark:border-white/10 transition-all active:scale-95"
-                            >
-                              View Details
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          </td>
+                          <td className="px-6 py-5">
+                            <div className="w-36">
+                              <div className="flex justify-between text-[10px] font-black text-text-secondary mb-1 uppercase tracking-wider">
+                                <span>{adv.paidEmis} / {adv.months} EMIs</span>
+                                <span className="font-mono">{Math.round((adv.paidEmis / (adv.months || 1)) * 100)}%</span>
+                              </div>
+                              <div className="h-2.5 w-full bg-surface-variant dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-border/40 dark:border-white/10">
+                                <div
+                                  className="h-full bg-gradient-to-r from-teal-400 to-emerald-500 rounded-full transition-all shadow-sm"
+                                  style={{ width: `${Math.min(100, (adv.paidEmis / (adv.months || 1)) * 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-5">
+                            <span className={cn(
+                              "px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 border shadow-sm",
+                              adv.status === 'APPROVED' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+                              adv.status === 'PENDING' && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 animate-pulse",
+                              adv.status === 'PAID_OFF' && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+                              adv.status === 'REJECTED' && "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                            )}>
+                              {adv.status === 'APPROVED' && <CheckCircle2 size={12} />}
+                              {adv.status === 'PENDING' && <Clock size={12} />}
+                              {adv.status === 'PAID_OFF' && <ShieldCheck size={12} />}
+                              {adv.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 text-right">
+                            {adv.status === 'PENDING' ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedAdvance(adv);
+                                  setReviewMonths(adv.months || 4);
+                                  setReviewNote('');
+                                  setIsReviewModalOpen(true);
+                                }}
+                                className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-primary/20 active:scale-95"
+                              >
+                                Review & Set EMI
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedAdvance(adv);
+                                  setReviewMonths(adv.months || 4);
+                                  setReviewNote(adv.reviewNote || '');
+                                  setIsReviewModalOpen(true);
+                                }}
+                                className="px-4 py-2 bg-surface-variant/80 hover:bg-surface-variant text-text-primary rounded-xl text-xs font-black uppercase tracking-wider border border-border/60 dark:border-white/10 transition-all active:scale-95"
+                              >
+                                View Details
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Advances Pagination Footer */}
+                  <PaginationFooter
+                    currentPage={advancesPage}
+                    totalPages={advancesTotalPages}
+                    totalItems={filteredAdvances.length}
+                    pageSize={advancesPageSize}
+                    onPageChange={setAdvancesPage}
+                    onPageSizeChange={setAdvancesPageSize}
+                    itemLabel="advance requests"
+                  />
+                </>
               )}
             </div>
           )}

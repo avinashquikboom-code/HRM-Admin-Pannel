@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import Modal from '@/components/Modal';
 import TableSkeleton from '@/components/TableSkeleton';
+import PaginationFooter from '@/components/PaginationFooter';
 import { cn } from '@/utils/cn';
 
 export interface ExpenseClaim {
@@ -164,6 +165,14 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
     }
   };
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter]);
+
   // Metrics
   const pendingClaims = expenses.filter(e => e.status === 'PENDING');
   const approvedClaims = expenses.filter(e => e.status === 'APPROVED');
@@ -186,6 +195,12 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
 
     return matchesStatus && matchesCategory && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredExpenses.length / pageSize) || 1;
+  const paginatedExpenses = filteredExpenses.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   const categories = Array.from(new Set(expenses.map(e => e.category))).filter(Boolean);
 
@@ -392,7 +407,7 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-white/5 text-xs font-medium">
-                {filteredExpenses.map((claim) => {
+                {paginatedExpenses.map((claim) => {
                   const IconComp = CATEGORY_ICONS[claim.category] || FileText;
 
                   return (
@@ -535,6 +550,17 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
                 })}
               </tbody>
             </table>
+
+            {/* Pagination Footer */}
+            <PaginationFooter
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredExpenses.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              itemLabel="expense claims"
+            />
           </div>
         )}
       </div>
