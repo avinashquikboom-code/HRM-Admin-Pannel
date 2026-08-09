@@ -119,7 +119,7 @@ export default function AttendanceCorrectionsTab() {
       {/* Filters & Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-border bg-surface rounded-sm">
         <div className="flex items-center gap-2 overflow-x-auto">
-          {['PENDING', 'APPROVED', 'REJECTED', 'ALL'].map((st) => (
+          {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}

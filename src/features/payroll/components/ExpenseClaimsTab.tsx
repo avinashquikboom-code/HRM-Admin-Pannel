@@ -238,6 +238,29 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
       {/* Upper Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div 
+          onClick={() => setStatusFilter('ALL')}
+          className={cn(
+            "p-5 rounded-2xl border transition-all cursor-pointer shadow-md backdrop-blur-xl relative overflow-hidden",
+            statusFilter === 'ALL'
+              ? "bg-primary/10 border-primary/50 ring-2 ring-primary/30"
+              : "bg-surface/80 dark:bg-slate-900/80 border-border/60 dark:border-white/10 hover:border-primary/30"
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-primary">All Expense Records</span>
+            <div className="p-2 rounded-xl bg-primary/15 text-primary border border-primary/20">
+              <Receipt size={18} />
+            </div>
+          </div>
+          <p className="text-2xl font-black text-text-primary mt-2 font-mono">
+            {expenses.length} Total
+          </p>
+          <p className="text-xs font-bold text-text-secondary mt-1">
+            Complete Claims Audit History
+          </p>
+        </div>
+
+        <div 
           onClick={() => setStatusFilter('PENDING')}
           className={cn(
             "p-5 rounded-2xl border transition-all cursor-pointer shadow-md backdrop-blur-xl relative overflow-hidden",
@@ -305,29 +328,6 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
             Declined Expense Claims
           </p>
         </div>
-
-        <div 
-          onClick={() => setStatusFilter('ALL')}
-          className={cn(
-            "p-5 rounded-2xl border transition-all cursor-pointer shadow-md backdrop-blur-xl relative overflow-hidden",
-            statusFilter === 'ALL'
-              ? "bg-primary/10 border-primary/50 ring-2 ring-primary/30"
-              : "bg-surface/80 dark:bg-slate-900/80 border-border/60 dark:border-white/10 hover:border-primary/30"
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-primary">All Expense Records</span>
-            <div className="p-2 rounded-xl bg-primary/15 text-primary border border-primary/20">
-              <Receipt size={18} />
-            </div>
-          </div>
-          <p className="text-2xl font-black text-text-primary mt-2 font-mono">
-            {expenses.length} Total
-          </p>
-          <p className="text-xs font-bold text-text-secondary mt-1">
-            Complete Claims Audit History
-          </p>
-        </div>
       </div>
 
       {/* Filter and Control Bar */}
@@ -335,10 +335,10 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
         {/* Status Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
           {[
+            { id: 'ALL', label: 'All Expenses', count: expenses.length, color: 'primary' },
             { id: 'PENDING', label: 'Requested Claims', count: pendingClaims.length, color: 'amber' },
             { id: 'APPROVED', label: 'Reimbursed History', count: approvedClaims.length, color: 'emerald' },
             { id: 'REJECTED', label: 'Declined History', count: rejectedClaims.length, color: 'rose' },
-            { id: 'ALL', label: 'All Expenses', count: expenses.length, color: 'primary' },
           ].map((tab) => (
             <button
               key={tab.id}
