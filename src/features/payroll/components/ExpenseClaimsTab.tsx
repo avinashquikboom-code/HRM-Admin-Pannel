@@ -68,7 +68,7 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
   const [expenses, setExpenses] = useState<ExpenseClaim[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
   // Review Modal state

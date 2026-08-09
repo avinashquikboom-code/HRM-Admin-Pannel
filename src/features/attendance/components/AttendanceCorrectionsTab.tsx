@@ -44,7 +44,7 @@ interface CorrectionRequest {
 export default function AttendanceCorrectionsTab() {
   const [requests, setRequests] = useState<CorrectionRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('PENDING');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   
   // Modal review state
