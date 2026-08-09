@@ -458,10 +458,10 @@ const PayrollPage = () => {
           <div className="space-y-3 max-w-xl">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/15 via-emerald-500/10 to-teal-500/15 border border-primary/30 text-primary text-[10.5px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-sm backdrop-blur-md">
               <Wallet size={13} className="animate-pulse text-primary" />
-              <span>Expenses Report & Financial Operations</span>
+              <span>Payroll Governance & Financial Operations</span>
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-text-primary tracking-tight leading-tight">
-              Expenses Report
+              Payroll Governance 
             </h1>
             <p className="text-xs md:text-sm text-text-secondary font-medium leading-relaxed">
               Strategic oversight of fund flows, salary slips generation, bulk disbursement, and salary advance EMI management.
