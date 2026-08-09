@@ -61,6 +61,7 @@ const SUPER_ACTIVE_ROLE_KEY = 'super_hrm_active_role';
 
 export interface AuthSession {
   token: string;
+  refreshToken?: string;
   user: User;
   portal: PortalType;
 }

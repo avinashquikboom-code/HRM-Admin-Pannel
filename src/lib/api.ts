@@ -123,9 +123,17 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const storedRefreshToken =
+          getAuthSession(activePortal, activeRole)?.refreshToken ||
+          (typeof window !== 'undefined'
+            ? localStorage.getItem('refreshToken') ||
+              localStorage.getItem('hrm_refresh_token') ||
+              localStorage.getItem('refresh_token')
+            : null);
+
         const response = await axios.post(
           `${API_BASE_URL}/api/auth/refresh`,
-          {},
+          { refreshToken: storedRefreshToken },
           {
             headers: {
               Authorization: `Bearer ${currentToken}`,
@@ -136,13 +144,25 @@ api.interceptors.response.use(
 
         if (response.data.success && response.data.token) {
           const newToken = response.data.token;
+          const newRefreshToken = response.data.refreshToken || storedRefreshToken;
           const session = getAuthSession(activePortal, activeRole);
 
           if (session) {
             setAuthSession({
               ...session,
               token: newToken,
+              refreshToken: newRefreshToken,
             });
+          }
+
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('token', newToken);
+            localStorage.setItem('auth_token', newToken);
+            localStorage.setItem('hrm_auth_token', newToken);
+            if (newRefreshToken) {
+              localStorage.setItem('refreshToken', newRefreshToken);
+              localStorage.setItem('hrm_refresh_token', newRefreshToken);
+            }
           }
 
           onTokenRefreshed(newToken);
@@ -159,7 +179,15 @@ api.interceptors.response.use(
         isRefreshing = false;
         refreshSubscribers = [];
 
-        // Refresh failed, logout user
+        // Refresh failed, clear tokens and logout user
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('hrm_auth_token');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('hrm_refresh_token');
+        }
+
         const sessionPortal = getAuthSession(activePortal)?.portal ?? activePortal;
         store.dispatch(logout());
 
