@@ -131,9 +131,11 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
       toast.error('Receipt PDF not available for this claim.');
       return;
     }
-    const fullUrl = url.startsWith('http')
-      ? url
-      : `${api.defaults.baseURL || ''}${url.startsWith('/') ? '' : '/'}${url}`;
+    let fullUrl = url;
+    if (!url.startsWith('http')) {
+      const base = api.defaults.baseURL || '';
+      fullUrl = base ? `${base}${url.startsWith('/') ? '' : '/'}${url}` : `/api${url.startsWith('/') ? '' : '/'}${url}`;
+    }
     window.open(fullUrl, '_blank');
   };
 
