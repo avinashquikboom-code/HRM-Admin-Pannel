@@ -12,7 +12,7 @@ import {
   FileText,
   UserCheck,
   UserX,
-  History
+  History, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -51,6 +51,10 @@ export default function AttendanceCorrectionsTab() {
   const [selectedRequest, setSelectedRequest] = useState<CorrectionRequest | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchCorrections = useCallback(async () => {
     setIsLoading(true);
@@ -73,6 +77,11 @@ export default function AttendanceCorrectionsTab() {
   useEffect(() => {
     fetchCorrections();
   }, [fetchCorrections]);
+  
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchTerm]);
 
   const handleAction = async (status: 'APPROVED' | 'REJECTED') => {
     if (!selectedRequest) return;
@@ -118,6 +127,13 @@ export default function AttendanceCorrectionsTab() {
       reason.toLowerCase().includes(term)
     );
   });
+
+  // Pagination logic
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / itemsPerPage));
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="space-y-6">
@@ -180,81 +196,110 @@ export default function AttendanceCorrectionsTab() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-variant/40 border-b border-border">
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Employee</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Date to Correct</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Current Status</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Requested Status</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Reason</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Status</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {filteredRequests.map((r) => (
-                  <tr key={r.id} className="hover:bg-surface-variant/20 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <div>
-                        <p className="text-xs font-black text-text-primary">{r.employee?.name || r.employeeId}</p>
-                        <p className="text-[10px] font-bold text-text-secondary">{r.employee?.employeeCode} • {r.employee?.designation}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-xs font-bold text-text-primary tabular-nums">
-                      {new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-surface-variant text-text-secondary border border-border">
-                        {r.currentStatus}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-primary/10 text-primary border border-primary/20">
-                        {r.requestedStatus}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-xs font-semibold text-text-secondary max-w-[200px] truncate" title={r.reason}>
-                      {r.reason}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${
-                        r.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                        r.status === 'REJECTED' ? 'bg-error/10 text-error border border-error/20' :
-                        'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                      }`}>
-                        {r.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-right">
-                      {r.status === 'PENDING' ? (
-                        <button
-                          onClick={() => {
-                            setSelectedRequest(r);
-                            setReviewNote('');
-                          }}
-                          className="px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded-sm text-xs font-bold transition-all cursor-pointer shadow-sm"
-                        >
-                          Review
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSelectedRequest(r);
-                            setReviewNote(r.reviewNote || '');
-                          }}
-                          className="px-3 py-1 bg-surface-variant text-text-secondary hover:text-text-primary rounded-sm text-xs font-bold transition-all cursor-pointer"
-                        >
-                          Details
-                        </button>
-                      )}
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-variant/40 border-b border-border">
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Employee</th>
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Date to Correct</th>
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Current Status</th>
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Requested Status</th>
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Reason</th>
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Status</th>
+                    <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {paginatedRequests.map((r) => (
+                    <tr key={r.id} className="hover:bg-surface-variant/20 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div>
+                          <p className="text-xs font-black text-text-primary">{r.employee?.name || r.employeeId}</p>
+                          <p className="text-[10px] font-bold text-text-secondary">{r.employee?.employeeCode} • {r.employee?.designation}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-bold text-text-primary tabular-nums">
+                        {new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-surface-variant text-text-secondary border border-border">
+                          {r.currentStatus}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-primary/10 text-primary border border-primary/20">
+                          {r.requestedStatus}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-semibold text-text-secondary max-w-[200px] truncate" title={r.reason}>
+                        {r.reason}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${
+                          r.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                          r.status === 'REJECTED' ? 'bg-error/10 text-error border border-error/20' :
+                          'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                        }`}>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        {r.status === 'PENDING' ? (
+                          <button
+                            onClick={() => {
+                              setSelectedRequest(r);
+                              setReviewNote('');
+                            }}
+                            className="px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded-sm text-xs font-bold transition-all cursor-pointer shadow-sm"
+                          >
+                            Review
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedRequest(r);
+                              setReviewNote(r.reviewNote || '');
+                            }}
+                            className="px-3 py-1 bg-surface-variant text-text-secondary hover:text-text-primary rounded-sm text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Details
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-surface">
+                <span className="text-xs text-text-secondary font-medium">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredRequests.length)} of {filteredRequests.length}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1 border border-border bg-surface hover:bg-surface-variant rounded-sm text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-bold text-text-primary min-w-[3rem] text-center">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1 border border-border bg-surface hover:bg-surface-variant rounded-sm text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

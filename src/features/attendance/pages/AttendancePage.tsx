@@ -147,6 +147,23 @@ const AttendancePage = () => {
   const [employeeAttendance, setEmployeeAttendance] = useState<any[]>([]);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
   const [isLoadingEmployeeData, setIsLoadingEmployeeData] = useState(false);
+  const [pendingCorrectionsCount, setPendingCorrectionsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPendingCorrections = async () => {
+      try {
+        const response = await api.get('/api/hr/attendance/correction-requests', {
+          params: { status: 'PENDING' }
+        });
+        if (response.data.success) {
+          setPendingCorrectionsCount(response.data.requests?.length || 0);
+        }
+      } catch (err) {
+        // Silently fail
+      }
+    };
+    fetchPendingCorrections();
+  }, []);
 
   // Auto-refresh attendance every 30 seconds to show new submissions from mobile app
   useEffect(() => {
@@ -311,6 +328,11 @@ const AttendancePage = () => {
           }`}
         >
           Attendance Corrections Tab
+          {pendingCorrectionsCount > 0 && (
+            <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-5 text-center ml-1">
+              {pendingCorrectionsCount}
+            </span>
+          )}
         </button>
       </div>
 
