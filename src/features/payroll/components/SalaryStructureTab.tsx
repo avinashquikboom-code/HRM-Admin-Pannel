@@ -142,9 +142,15 @@ export default function SalaryStructureTab() {
 
   const filteredStructures = structures.filter(
     (s) =>
-      s.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.designation.toLowerCase().includes(searchTerm.toLowerCase())
+      (s.employeeName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.employeeCode || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.designation || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredStructures.length / pageSize) || 1;
+  const paginatedStructures = filteredStructures.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
   return (
