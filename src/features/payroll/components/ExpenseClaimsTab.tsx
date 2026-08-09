@@ -48,6 +48,7 @@ export interface ExpenseClaim {
   reviewNote?: string | null;
   hasReceipt: boolean;
   receiptUrl?: string | null;
+  receiptPdfUrl?: string | null;
 }
 
 interface ExpenseClaimsTabProps {
@@ -125,6 +126,17 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
     setIsDetailModalOpen(true);
   };
 
+  const handleDownloadReceipt = (url?: string | null) => {
+    if (!url) {
+      toast.error('Receipt PDF not available for this claim.');
+      return;
+    }
+    const fullUrl = url.startsWith('http')
+      ? url
+      : `${api.defaults.baseURL || ''}${url.startsWith('/') ? '' : '/'}${url}`;
+    window.open(fullUrl, '_blank');
+  };
+
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedExpense) return;
@@ -135,17 +147,24 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
       : `/api/hr/expenses/${selectedExpense.id}/reject`;
 
     try {
-      const res = await api.put<{ success: boolean; message: string; expense: any }>(endpoint, {
+      const res = await api.put<{ success: boolean; message: string; expense: any; receiptPdfUrl?: string }>(endpoint, {
         reviewerName: reviewerName || 'HR Admin',
         reviewNote,
+        status: reviewAction === 'APPROVE' ? 'APPROVED' : 'REJECTED',
       });
 
       if (res.data.success) {
+        const generatedReceipt = res.data.receiptPdfUrl || res.data.expense?.receiptPdfUrl;
+
         toast.success(
           reviewAction === 'APPROVE'
-            ? `Expense claim ₹${selectedExpense.amount.toLocaleString('en-IN')} approved successfully!`
+            ? `Expense claim ₹${selectedExpense.amount.toLocaleString('en-IN')} approved successfully!${generatedReceipt ? ' Receipt PDF generated.' : ''}`
             : `Expense claim rejected.`
         );
+
+        if (generatedReceipt) {
+          handleDownloadReceipt(generatedReceipt);
+        }
 
         // Send push notification to employee
         try {
@@ -154,7 +173,7 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
             employeeId: empNumId,
             title: reviewAction === 'APPROVE' ? '🧾 Expense Reimbursement Approved' : '❌ Expense Claim Rejected',
             body: reviewAction === 'APPROVE'
-              ? `Your expense claim of ₹${selectedExpense.amount.toLocaleString('en-IN')} for ${selectedExpense.category} has been approved.`
+              ? `Your expense claim of ₹${selectedExpense.amount.toLocaleString('en-IN')} for ${selectedExpense.category} has been approved.${generatedReceipt ? ' [Download Receipt]' : ''}`
               : `Your expense claim of ₹${selectedExpense.amount.toLocaleString('en-IN')} for ${selectedExpense.category} was rejected. Note: ${reviewNote}`,
             category: 'expense',
             actionType: 'expense_reviewed',
@@ -545,13 +564,25 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
                               </button>
                             </>
                           ) : (
-                            <button
-                              onClick={() => handleOpenDetails(claim)}
-                              className="px-3 py-1.5 rounded-xl bg-surface-variant/60 hover:bg-surface-variant text-text-primary font-bold text-xs border border-border/50 dark:border-white/10 flex items-center gap-1.5 transition-all"
-                            >
-                              <Eye size={13} className="text-primary" />
-                              <span>Audit Details</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                              {claim.receiptPdfUrl && (
+                                <button
+                                  onClick={() => handleDownloadReceipt(claim.receiptPdfUrl)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-bold text-xs border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                                  title="Download Approval Receipt PDF"
+                                >
+                                  <FileText size={13} />
+                                  <span>Receipt PDF</span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleOpenDetails(claim)}
+                                className="px-3 py-1.5 rounded-xl bg-surface-variant/60 hover:bg-surface-variant text-text-primary font-bold text-xs border border-border/50 dark:border-white/10 flex items-center gap-1.5 transition-all"
+                              >
+                                <Eye size={13} className="text-primary" />
+                                <span>Audit Details</span>
+                              </button>
+                            </div>
                           )}
                         </div>
                       </td>
@@ -705,7 +736,7 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
 
               {detailExpense.receiptUrl && (
                 <div className="pt-2 border-t border-border/40">
-                  <span className="text-text-secondary block text-[10px] font-bold uppercase mb-1">Attached Receipt</span>
+                  <span className="text-text-secondary block text-[10px] font-bold uppercase mb-1">Attached Receipt Photo</span>
                   <div className="rounded-xl overflow-hidden border border-border/60 bg-black/20 p-1 max-h-56 flex items-center justify-center">
                     <img 
                       src={detailExpense.receiptUrl} 
@@ -740,9 +771,30 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
                   <p className="font-medium text-text-primary italic mt-0.5">"{detailExpense.reviewNote}"</p>
                 </div>
               )}
+              {detailExpense.receiptPdfUrl && (
+                <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Approval Receipt PDF Available</span>
+                  <button
+                    onClick={() => handleDownloadReceipt(detailExpense.receiptPdfUrl)}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition-all"
+                  >
+                    <FileText size={14} />
+                    <span>Download Receipt PDF</span>
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-between pt-2">
+              {detailExpense.receiptPdfUrl ? (
+                <button
+                  onClick={() => handleDownloadReceipt(detailExpense.receiptPdfUrl)}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all"
+                >
+                  <FileText size={14} />
+                  <span>Download Official Receipt PDF</span>
+                </button>
+              ) : <div />}
               <button
                 onClick={() => setIsDetailModalOpen(false)}
                 className="px-5 py-2.5 rounded-xl bg-primary text-white font-bold text-xs uppercase tracking-wider"
