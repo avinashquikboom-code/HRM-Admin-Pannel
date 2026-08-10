@@ -38,6 +38,7 @@ import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useTodayAttendance } from '@/hooks/useTodayAttendance';
+import { useOffices } from '@/hooks/useOffices';
 import AttendanceCorrectionsTab from '../components/AttendanceCorrectionsTab';
 
 function formatCheckInTime(value: string | null) {
@@ -142,7 +143,11 @@ const MiniCalendar = () => {
 
 const AttendancePage = () => {
   const { records, distribution, isLoading, error, refetch } = useTodayAttendance();
+  const { offices } = useOffices();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [officeFilter, setOfficeFilter] = useState<string>('ALL');
+  const [breakFilter, setBreakFilter] = useState<string>('ALL');
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [employeeAttendance, setEmployeeAttendance] = useState<any[]>([]);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
@@ -234,12 +239,64 @@ const AttendancePage = () => {
   const activeTodayCount = presentCount + lateCount;
   const onTimePercentage = activeTodayCount > 0 ? `${Math.round((presentCount / activeTodayCount) * 100)}%` : '0%';
 
+  const availableOffices = Array.from(
+    new Set([
+      ...offices.map((o) => o.name),
+      ...records.map((r) => r.office?.name).filter(Boolean) as string[],
+    ])
+  ).sort();
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('ALL');
+    setOfficeFilter('ALL');
+    setBreakFilter('ALL');
+  };
+
+  const isFilterActive =
+    searchTerm !== '' ||
+    statusFilter !== 'ALL' ||
+    officeFilter !== 'ALL' ||
+    breakFilter !== 'ALL';
+
   const filteredRecords = records.filter(record => {
     const employeeName = `${record.employee.firstName} ${record.employee.lastName}`.toLowerCase();
     const employeeCode = (record.employee.employeeCode || '').toLowerCase();
     const officeName = (record.office?.name || '').toLowerCase();
-    const search = searchTerm.toLowerCase();
-    return employeeName.includes(search) || employeeCode.includes(search) || officeName.includes(search);
+    const designation = (record.employee.designation || '').toLowerCase();
+    const search = searchTerm.toLowerCase().trim();
+
+    const matchesSearch =
+      !search ||
+      employeeName.includes(search) ||
+      employeeCode.includes(search) ||
+      designation.includes(search) ||
+      officeName.includes(search);
+
+    let matchesStatus = true;
+    if (statusFilter !== 'ALL') {
+      if (statusFilter === 'ON_BREAK') {
+        matchesStatus = Boolean(record.isOnBreak);
+      } else {
+        matchesStatus = record.status?.toUpperCase() === statusFilter.toUpperCase();
+      }
+    }
+
+    let matchesOffice = true;
+    if (officeFilter !== 'ALL') {
+      matchesOffice = record.office?.name?.toLowerCase() === officeFilter.toLowerCase();
+    }
+
+    let matchesBreak = true;
+    if (breakFilter === 'ON_BREAK') {
+      matchesBreak = Boolean(record.isOnBreak);
+    } else if (breakFilter === 'HAS_BREAK') {
+      matchesBreak = Boolean(record.totalBreakSeconds && record.totalBreakSeconds > 0);
+    } else if (breakFilter === 'NO_BREAK') {
+      matchesBreak = !record.isOnBreak && (!record.totalBreakSeconds || record.totalBreakSeconds === 0);
+    }
+
+    return matchesSearch && matchesStatus && matchesOffice && matchesBreak;
   });
 
   const topStats = [
@@ -379,26 +436,90 @@ const AttendancePage = () => {
 
       {/* Live Activity Feed Table */}
       <motion.div variants={itemVariants} className="glass-card overflow-hidden">
-        <div className="p-8 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-sm bg-primary/10 text-primary flex items-center justify-center animate-pulse shadow-sm">
-              <Activity size={24} />
+        <div className="p-6 border-b border-border space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-sm bg-primary/10 text-primary flex items-center justify-center animate-pulse shadow-sm">
+                <Activity size={20} />
+              </div>
+              <div>
+                <h3 className="heading-2">Live Activity Feed</h3>
+                <p className="text-xs text-page-desc mt-0.5">Real-time check-in stream from across all client companies</p>
+              </div>
             </div>
-            <div>
-              <h3 className="heading-2">Live Activity Feed</h3>
-              <p className="text-sm text-page-desc mt-1">Real-time check-in stream from across all client companies</p>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-text-secondary">
+                Showing <strong className="text-text-primary">{filteredRecords.length}</strong> of {records.length} records
+              </span>
+              {isFilterActive && (
+                <button
+                  onClick={resetFilters}
+                  className="px-2.5 py-1 text-xs font-bold text-red-500 hover:text-red-600 bg-red-500/10 hover:bg-red-500/20 rounded-sm flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <X size={12} /> Clear Filters
+                </button>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-grow sm:flex-grow-0 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors w-4 h-4" />
+
+          {/* Filter Bar Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+            {/* Search Input */}
+            <div className="relative group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors w-4 h-4" />
               <input 
                 type="text" 
-                placeholder="Search employees..." 
+                placeholder="Search employee, code, branch..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 pr-4 py-3 bg-surface-variant border-none rounded-sm text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all w-full sm:w-64 font-bold text-text-primary"
+                className="w-full pl-10 pr-3 py-2.5 bg-surface-variant border border-border/50 rounded-sm text-xs outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-text-primary"
               />
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-surface-variant border border-border/50 rounded-sm text-xs font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="ALL">All Statuses (Present, Late, Absent, Break)</option>
+                <option value="PRESENT">Present (On-time)</option>
+                <option value="LATE">Late Arrivals</option>
+                <option value="ABSENT">Absent</option>
+                <option value="ON_BREAK">Currently On Break</option>
+              </select>
+            </div>
+
+            {/* Office / Store Filter */}
+            <div className="relative">
+              <select
+                value={officeFilter}
+                onChange={(e) => setOfficeFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-surface-variant border border-border/50 rounded-sm text-xs font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="ALL">All Branches & Stores</option>
+                {availableOffices.map((off) => (
+                  <option key={off} value={off}>
+                    {off}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Break Filter */}
+            <div className="relative">
+              <select
+                value={breakFilter}
+                onChange={(e) => setBreakFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-surface-variant border border-border/50 rounded-sm text-xs font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="ALL">All Break States</option>
+                <option value="ON_BREAK">Currently On Break</option>
+                <option value="HAS_BREAK">Break Taken Today</option>
+                <option value="NO_BREAK">No Break Taken</option>
+              </select>
             </div>
           </div>
         </div>
