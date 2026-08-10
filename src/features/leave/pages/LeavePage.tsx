@@ -95,7 +95,9 @@ export default function LeavePage() {
   const [filterType, setFilterType] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
 
-  // Live Integration States
+  // Balance Ledger Filter States
+  const [balanceSearchTerm, setBalanceSearchTerm] = useState('');
+  const [balanceFilterStatus, setBalanceFilterStatus] = useState('ALL');
   const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
   const [balancesCurrentPage, setBalancesCurrentPage] = useState(1);
   const [balancesTotalPages, setBalancesTotalPages] = useState(1);
@@ -439,6 +441,28 @@ export default function LeavePage() {
       return matchesSearch && matchesType && matchesStatus;
     });
   }, [leaveRequests, searchTerm, filterType, filterStatus]);
+
+  const filteredBalances = useMemo(() => {
+    return leaveBalances.filter((bal) => {
+      const matchSearch =
+        !balanceSearchTerm ||
+        (bal.name && bal.name.toLowerCase().includes(balanceSearchTerm.toLowerCase())) ||
+        (bal.employeeId && bal.employeeId.toString().toLowerCase().includes(balanceSearchTerm.toLowerCase()));
+
+      let matchFilter = true;
+      if (balanceFilterStatus === 'LOW_CASUAL') {
+        matchFilter = (bal.casual ?? 0) <= 3;
+      } else if (balanceFilterStatus === 'LOW_SICK') {
+        matchFilter = (bal.sick ?? 0) <= 3;
+      } else if (balanceFilterStatus === 'LOW_EARNED') {
+        matchFilter = (bal.earned ?? 0) <= 3;
+      } else if (balanceFilterStatus === 'EXHAUSTED') {
+        matchFilter = (bal.casual ?? 0) === 0 || (bal.sick ?? 0) === 0 || (bal.earned ?? 0) === 0;
+      }
+
+      return matchSearch && matchFilter;
+    });
+  }, [leaveBalances, balanceSearchTerm, balanceFilterStatus]);
 
   // Chart data calculation - dynamic based on actual leave data
   const chartData = useMemo(() => {
@@ -978,6 +1002,54 @@ export default function LeavePage() {
             exit={{ opacity: 0, y: -15 }}
             className="space-y-6"
           >
+            {/* Balance Search & Filter Hub */}
+            <div className="flex flex-col xl:flex-row gap-4 items-center justify-between border border-border bg-surface p-4.5 rounded-sm">
+              <div className="relative w-full xl:w-96 group">
+                <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="Search employee by name or ID..." 
+                  value={balanceSearchTerm}
+                  onChange={(e) => setBalanceSearchTerm(e.target.value)}
+                  className="w-full pl-13 pr-4 py-3.5 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm outline-none transition-all text-xs font-semibold text-text-primary placeholder:text-text-secondary/50"
+                />
+                {balanceSearchTerm && (
+                  <button 
+                    onClick={() => setBalanceSearchTerm('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary text-xs font-bold px-2 py-1"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+                <select 
+                  value={balanceFilterStatus} 
+                  onChange={(e) => setBalanceFilterStatus(e.target.value)}
+                  className="w-full sm:w-56 bg-surface-variant/40 border border-border hover:border-border-hover focus:border-primary/30 rounded-sm px-4 py-3.5 text-xs outline-none font-bold text-text-secondary hover:text-text-primary transition-all cursor-pointer"
+                >
+                  <option value="ALL" className="bg-surface text-text-primary">All Balance Ledgers</option>
+                  <option value="LOW_CASUAL" className="bg-surface text-text-primary">Low Casual Leave (≤ 3)</option>
+                  <option value="LOW_SICK" className="bg-surface text-text-primary">Low Sick Leave (≤ 3)</option>
+                  <option value="LOW_EARNED" className="bg-surface text-text-primary">Low Earned Leave (≤ 3)</option>
+                  <option value="EXHAUSTED" className="bg-surface text-text-primary">Any Exhausted (0 Left)</option>
+                </select>
+
+                {(balanceSearchTerm || balanceFilterStatus !== 'ALL') && (
+                  <button
+                    onClick={() => {
+                      setBalanceSearchTerm('');
+                      setBalanceFilterStatus('ALL');
+                    }}
+                    className="px-4 py-3.5 border border-border hover:bg-surface-variant text-xs font-bold text-text-secondary hover:text-text-primary rounded-sm transition-all cursor-pointer"
+                  >
+                    Reset Filters
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Balance Options Panel */}
             <div className="flex items-center justify-between gap-4 p-4.5 border border-border bg-surface rounded-sm">
               <div>
@@ -1018,38 +1090,47 @@ export default function LeavePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {leaveBalances.map((bal) => (
-                      <tr key={bal.employeeId} className="hover:bg-surface-variant/30 transition-colors">
-                        <td className="px-6 py-4.5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-sm bg-primary/20 text-primary flex items-center justify-center font-black text-xs border border-primary/20">
-                              {bal.name.substring(0, 2).toUpperCase()}
+                    {filteredBalances.length > 0 ? (
+                      filteredBalances.map((bal) => (
+                        <tr key={bal.employeeId} className="hover:bg-surface-variant/30 transition-colors">
+                          <td className="px-6 py-4.5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-sm bg-primary/20 text-primary flex items-center justify-center font-black text-xs border border-primary/20">
+                                {bal.name ? bal.name.substring(0, 2).toUpperCase() : 'EM'}
+                              </div>
+                              <span className="font-bold text-text-primary">{bal.name || bal.employeeId}</span>
                             </div>
-                            <span className="font-bold text-text-primary">{bal.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4.5 text-center font-bold text-amber-500 dark:text-amber-400 tabular-nums">{bal.casual}</td>
-                        <td className="px-6 py-4.5 text-center font-bold text-rose-500 dark:text-rose-455 tabular-nums">{bal.sick}</td>
-                        <td className="px-6 py-4.5 text-center font-bold text-primary tabular-nums">{bal.earned}</td>
-                        <td className="px-6 py-4.5 text-center font-bold text-violet-500 dark:text-violet-400 tabular-nums">{bal.paid}</td>
-                        <td className="px-6 py-4.5 text-center">
-                          <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-sm">
-                            <UserCheck size={10} />
-                            Compliant
-                          </span>
-                        </td>
-                        <td className="px-6 py-4.5 text-center">
-                          <button
-                            onClick={() => handleDownloadLeaveReport(bal.employeeId, bal.name)}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 transition-all cursor-pointer active:scale-95"
-                            title={`Download leave report for ${bal.name}`}
-                          >
-                            <Download size={13} />
-                            Download
-                          </button>
+                          </td>
+                          <td className="px-6 py-4.5 text-center font-bold text-amber-500 dark:text-amber-400 tabular-nums">{bal.casual}</td>
+                          <td className="px-6 py-4.5 text-center font-bold text-rose-500 dark:text-rose-455 tabular-nums">{bal.sick}</td>
+                          <td className="px-6 py-4.5 text-center font-bold text-primary tabular-nums">{bal.earned}</td>
+                          <td className="px-6 py-4.5 text-center font-bold text-violet-500 dark:text-violet-400 tabular-nums">{bal.paid}</td>
+                          <td className="px-6 py-4.5 text-center">
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-sm">
+                              <UserCheck size={10} />
+                              Compliant
+                            </span>
+                          </td>
+                          <td className="px-6 py-4.5 text-center">
+                            <button
+                              onClick={() => handleDownloadLeaveReport(bal.employeeId, bal.name)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-[10px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 transition-all cursor-pointer active:scale-95"
+                              title={`Download leave report for ${bal.name}`}
+                            >
+                              <Download size={13} />
+                              Download
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-12 text-center text-text-secondary">
+                          <FileText size={32} className="mx-auto text-text-secondary opacity-40 mb-2" />
+                          <p className="text-xs font-bold uppercase tracking-widest">No matching leave balance records found.</p>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
