@@ -107,7 +107,7 @@ export default function CommissionReports() {
     try {
       const res = await fetchStores();
       const list = Array.isArray(res) ? res : [];
-      setStores(list.filter((s: any) => String(s.name || '').toUpperCase().startsWith('HOPKID')));
+      setStores(list);
     } catch (error) {
       console.error('Failed to load stores:', error);
     }

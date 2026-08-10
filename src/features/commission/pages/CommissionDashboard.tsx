@@ -75,66 +75,26 @@ export default function CommissionDashboard() {
   const queryLower = searchQuery.trim().toLowerCase();
 
   const filteredTransactions = transactions.filter((t) => {
-    const emp = t.employee;
-    if (!emp) return false;
-
-    // Must be HopKid employee (source is HOPKID, not MANUAL)
-    const empSource = String(emp.source || 'HOPKID').toUpperCase();
-    if (empSource === 'MANUAL') return false;
-
-    const code = String(emp.employeeCode || '').trim().toUpperCase();
-    const name = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
-    const des = String(emp.designation || '').toLowerCase();
-    const role = String(emp.user?.role || emp.role || '').toLowerCase();
-    if (
-      code.startsWith('ADMIN') || 
-      code.startsWith('HR') || 
-      name.includes('admin') || 
-      des.includes('hr') ||
-      role.includes('admin') ||
-      role.includes('hr')
-    ) {
-      return false;
-    }
-
-    const storeName = String(t.store?.name || emp.store?.name || '').toUpperCase();
-    if (storeName && !storeName.startsWith('HOPKID')) return false;
-
     if (!queryLower) return true;
+    const emp = t.employee;
+    const name = emp ? `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase() : '';
+    const code = emp ? String(emp.employeeCode || '').toLowerCase() : '';
+    const storeName = String(t.store?.name || emp?.store?.name || '').toLowerCase();
     const inv = (t.invoiceNumber || t.billId || '').toLowerCase();
     return (
       name.includes(queryLower) ||
-      code.toLowerCase().includes(queryLower) ||
-      storeName.toLowerCase().includes(queryLower) ||
+      code.includes(queryLower) ||
+      storeName.includes(queryLower) ||
       inv.includes(queryLower)
     );
   });
 
   const filteredTopPerformers = (stats?.topPerformers || []).filter((p) => {
-    const emp = p.employee;
-    if (!emp) return false;
-
-    // Must be HopKid employee (source is HOPKID, not MANUAL)
-    const empSource = String(emp.source || 'HOPKID').toUpperCase();
-    if (empSource === 'MANUAL') return false;
-
-    const code = String(emp.employeeCode || '').trim().toUpperCase();
-    const name = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
-    const des = String(emp.designation || '').toLowerCase();
-    const role = String(emp.user?.role || emp.role || '').toLowerCase();
-    if (
-      code.startsWith('ADMIN') || 
-      code.startsWith('HR') || 
-      name.includes('admin') || 
-      des.includes('hr') ||
-      role.includes('admin') ||
-      role.includes('hr')
-    ) {
-      return false;
-    }
-
     if (!queryLower) return true;
-    return name.includes(queryLower) || code.toLowerCase().includes(queryLower);
+    const emp = p.employee;
+    const name = emp ? `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase() : '';
+    const code = emp ? String(emp.employeeCode || '').toLowerCase() : '';
+    return name.includes(queryLower) || code.includes(queryLower);
   });
 
   // Sync sales state
