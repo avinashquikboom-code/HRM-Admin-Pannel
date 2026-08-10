@@ -35,7 +35,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import { cn } from '@/utils/cn';
-import { formatTime } from '@/utils/timeFormatter';
+import { formatTime, calculateWorkingHours, formatDate } from '@/utils/timeFormatter';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import { exportLiveDashboardToExcel } from '@/utils/excelExport';
