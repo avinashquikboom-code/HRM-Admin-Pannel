@@ -47,6 +47,15 @@ import {
   AlertCircle,
   SlidersHorizontal,
   X,
+  Hash,
+  User,
+  UserCheck,
+  Calendar,
+  ShieldCheck,
+  ShieldX,
+  Timer,
+  Braces,
+  LayoutList,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -74,8 +83,226 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 }
 
+/* ─── PayloadModal ─── */
+interface PayloadModalProps {
+  log: any;
+  onClose: () => void;
+  copiedId: string | null;
+  onCopy: (text: string, id: string) => void;
+  formatPayload: (raw: any) => string;
+  getStatusCfg: (s: string) => { color: string; dot: string };
+}
+
+function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatusCfg }: PayloadModalProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'raw'>('overview');
+
+  if (!log) return null;
+
+  const cfg = getStatusCfg(log.status || 'PROCESSING');
+  const statusIcon =
+    log.status === 'SUCCESS' ? <ShieldCheck className="h-4 w-4" /> :
+    log.status === 'FAILED'  ? <ShieldX className="h-4 w-4" /> :
+                               <Timer className="h-4 w-4" />;
+
+  const statChips = [
+    {
+      label: 'Sale Amount',
+      value: `₹${(log.amount || 0).toLocaleString('en-IN')}`,
+      icon: <IndianRupee className="h-4 w-4" />,
+      color: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400',
+    },
+    {
+      label: 'Event',
+      value: log.eventType || '—',
+      icon: <Zap className="h-4 w-4" />,
+      color: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 dark:text-indigo-400',
+    },
+    {
+      label: 'Received',
+      value: new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+      icon: <Calendar className="h-4 w-4" />,
+      color: 'bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400',
+    },
+  ];
+
+  const overviewFields = [
+    { icon: <Hash className="h-3.5 w-3.5" />, label: 'Bill / Invoice ID', value: log.billId || '—', mono: true, copyId: 'modal-bill', copyText: log.billId },
+    { icon: <User className="h-3.5 w-3.5" />, label: 'Customer', value: log.customerName || '—', mono: false },
+    { icon: <UserCheck className="h-3.5 w-3.5" />, label: 'Employee', value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—', mono: false },
+    { icon: <Building2 className="h-3.5 w-3.5" />, label: 'Store / Branch', value: (log.storeName && log.storeName !== 'N/A') ? log.storeName : '—', mono: false },
+    { icon: <IndianRupee className="h-3.5 w-3.5" />, label: 'Sale Amount', value: `₹${(log.amount || 0).toLocaleString('en-IN')}`, mono: false, green: true },
+    { icon: <Zap className="h-3.5 w-3.5" />, label: 'Event Type', value: log.eventType || '—', mono: true },
+  ];
+
+  return (
+    <Dialog open={!!log} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl p-0 overflow-hidden gap-0 rounded-2xl border-0 shadow-2xl">
+
+        {/* Dark header band */}
+        <div className="bg-slate-950 px-6 pt-6 pb-5 relative">
+          {/* Close region */}
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                <Braces className="h-5 w-5 text-indigo-400" />
+              </div>
+              <div>
+                <p className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold">Webhook Payload</p>
+                <p className="text-white font-bold text-base leading-tight mt-0.5">
+                  {log.billId ? (
+                    <span className="font-mono">{log.billId}</span>
+                  ) : (
+                    <span className="text-slate-400">No Bill ID</span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors mt-0.5"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Status badge + stat chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border ${cfg.color}`}>
+              {statusIcon}
+              {log.status || 'PROCESSING'}
+            </span>
+            {statChips.map((chip) => (
+              <span
+                key={chip.label}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${chip.color}`}
+              >
+                {chip.icon}
+                <span className="hidden sm:inline text-[10px] opacity-70">{chip.label}:</span>
+                <span className="font-mono">{chip.value}</span>
+              </span>
+            ))}
+          </div>
+
+          {/* Tab bar */}
+          <div className="flex items-center gap-1 mt-5 border-b border-slate-800 -mb-px">
+            {[
+              { id: 'overview' as const, label: 'Overview', icon: <LayoutList className="h-3.5 w-3.5" /> },
+              { id: 'raw' as const, label: 'Raw JSON', icon: <Braces className="h-3.5 w-3.5" /> },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold border-b-2 transition-all ${
+                  activeTab === tab.id
+                    ? 'border-indigo-400 text-indigo-300'
+                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="bg-background">
+
+          {/* Overview tab */}
+          {activeTab === 'overview' && (
+            <div className="p-5 space-y-2.5">
+              {/* Error banner */}
+              {log.errorMessage && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-xl text-xs flex gap-2 mb-1">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block mb-0.5">Processing Error</span>
+                    <span>{log.errorMessage}</span>
+                  </div>
+                </div>
+              )}
+
+              {overviewFields.map((field) => (
+                <div
+                  key={field.label}
+                  className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-muted/40 border border-border/60 hover:bg-muted/60 transition-colors group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-background border flex items-center justify-center text-muted-foreground shrink-0">
+                      {field.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                        {field.label}
+                      </p>
+                      <p className={`text-sm font-semibold truncate ${field.mono ? 'font-mono' : ''} ${field.green ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
+                        {field.value}
+                      </p>
+                    </div>
+                  </div>
+                  {field.copyText && (
+                    <button
+                      onClick={() => onCopy(field.copyText!, field.copyId!)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all shrink-0"
+                      title="Copy"
+                    >
+                      {copiedId === field.copyId
+                        ? <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <div className="pt-1">
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Received{' '}
+                  <span className="font-semibold text-foreground">
+                    {new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium' })}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Raw JSON tab */}
+          {activeTab === 'raw' && (
+            <div className="relative">
+              {/* Toolbar */}
+              <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-rose-500/70" />
+                  <span className="h-3 w-3 rounded-full bg-amber-500/70" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-500/70" />
+                  <span className="text-[11px] text-slate-500 ml-2 font-mono">webhook.payload.json</span>
+                </div>
+                <button
+                  onClick={() => onCopy(formatPayload(log.payload), 'modal-json')}
+                  className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-md border transition-all ${
+                    copiedId === 'modal-json'
+                      ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {copiedId === 'modal-json'
+                    ? <><Check className="h-3 w-3" /> Copied!</>
+                    : <><Copy className="h-3 w-3" /> Copy</>}
+                </button>
+              </div>
+              <pre className="p-5 bg-slate-950 text-slate-200 text-[11px] font-mono max-h-80 overflow-y-auto leading-relaxed scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700">
+                {formatPayload(log.payload)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ─── component ─── */
 export default function WebhookLogsPage() {
+
   const [logs, setLogs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -272,114 +499,188 @@ export default function WebhookLogsPage() {
       <Card className="border shadow-sm rounded-2xl overflow-hidden">
 
         {/* Filter Bar */}
-        <div className="p-4 border-b bg-muted/20 space-y-3">
-          <div className="flex flex-wrap items-center gap-2.5">
+        <div className="border-b bg-background">
 
-            {/* Status tabs */}
-            <div className="flex items-center gap-0.5 p-1 bg-background rounded-xl border shadow-xs">
-              {['ALL', 'SUCCESS', 'FAILED', 'PROCESSING'].map((s) => {
-                const active = statusFilter === s;
-                const cfg = s !== 'ALL' ? getStatusCfg(s) : null;
+          {/* Row 1 — Controls */}
+          <div className="px-4 py-3 flex flex-wrap items-center gap-2">
+
+            {/* Status segment group */}
+            <div className="flex items-center rounded-xl border bg-muted/40 p-0.5 gap-0.5">
+              {[
+                { key: 'ALL',        label: 'All',        dot: null,         count: logs.length,         countCls: 'bg-foreground/10 text-foreground' },
+                { key: 'SUCCESS',    label: 'Success',    dot: 'bg-emerald-500', count: stats?.success ?? 0, countCls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+                { key: 'FAILED',     label: 'Failed',     dot: 'bg-rose-500',    count: stats?.failed  ?? 0, countCls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' },
+                { key: 'PROCESSING', label: 'Processing', dot: 'bg-amber-500',   count: null,               countCls: '' },
+              ].map(({ key, label, dot, count, countCls }) => {
+                const active = statusFilter === key;
                 return (
                   <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    key={key}
+                    onClick={() => setStatusFilter(key)}
+                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-semibold transition-all whitespace-nowrap ${
                       active
-                        ? 'bg-foreground text-background shadow-xs'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                        ? 'bg-background text-foreground shadow-sm border border-border/60'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                     }`}
                   >
-                    {cfg && (
-                      <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-background' : cfg.dot.replace(' animate-pulse', '')}`} />
+                    {dot && (
+                      <span className={`h-1.5 w-1.5 rounded-full ${active ? dot : dot + ' opacity-60'}`} />
                     )}
-                    {s}
-                    {s === 'ALL' && (
-                      <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] bg-muted font-mono">{logs.length}</span>
+                    {label}
+                    {count !== null && count > 0 && (
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${active ? countCls : 'bg-muted text-muted-foreground'}`}>
+                        {count}
+                      </span>
                     )}
-                    {s === 'SUCCESS' && (stats?.success ?? 0) > 0 && (
-                      <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-mono">{stats.success}</span>
-                    )}
-                    {s === 'FAILED' && (stats?.failed ?? 0) > 0 && (
-                      <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-300 font-mono">{stats.failed}</span>
+                    {key === 'ALL' && (
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${active ? countCls : 'bg-muted text-muted-foreground'}`}>
+                        {count}
+                      </span>
                     )}
                   </button>
                 );
               })}
             </div>
 
-            <div className="h-5 w-px bg-border hidden sm:block" />
+            {/* Divider */}
+            <div className="h-6 w-px bg-border/60 hidden sm:block mx-0.5" />
 
-            {/* Store filter */}
+            {/* Store dropdown */}
             <Select value={storeFilter} onValueChange={setStoreFilter}>
-              <SelectTrigger className="h-9 w-44 text-xs rounded-lg border-muted bg-background">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <Building2 className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                  <SelectValue placeholder="All Stores" />
-                </div>
+              <SelectTrigger
+                className={`h-8 text-[12px] rounded-lg border gap-1.5 transition-all min-w-[130px] max-w-[160px] ${
+                  storeFilter !== 'ALL'
+                    ? 'border-blue-500/40 bg-blue-500/8 text-blue-700 dark:text-blue-300'
+                    : 'border-border bg-background text-muted-foreground'
+                }`}
+              >
+                <Building2 className={`h-3.5 w-3.5 shrink-0 ${storeFilter !== 'ALL' ? 'text-blue-500' : ''}`} />
+                <SelectValue placeholder="All Stores" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="text-xs">
                 {storeOptions.map((s) => (
                   <SelectItem key={s} value={s} className="text-xs">
-                    {s === 'ALL' ? 'All Stores' : s}
+                    {s === 'ALL' ? (
+                      <span className="flex items-center gap-1.5">
+                        <Building2 className="h-3 w-3 text-muted-foreground" />
+                        All Stores
+                      </span>
+                    ) : s}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* Event Type filter */}
+            {/* Event type dropdown */}
             <Select value={eventFilter} onValueChange={setEventFilter}>
-              <SelectTrigger className="h-9 w-48 text-xs rounded-lg border-muted bg-background">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <Zap className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                  <SelectValue placeholder="All Event Types" />
-                </div>
+              <SelectTrigger
+                className={`h-8 text-[12px] rounded-lg border gap-1.5 transition-all min-w-[140px] max-w-[175px] ${
+                  eventFilter !== 'ALL'
+                    ? 'border-indigo-500/40 bg-indigo-500/8 text-indigo-700 dark:text-indigo-300'
+                    : 'border-border bg-background text-muted-foreground'
+                }`}
+              >
+                <Zap className={`h-3.5 w-3.5 shrink-0 ${eventFilter !== 'ALL' ? 'text-indigo-500' : ''}`} />
+                <SelectValue placeholder="All Event Types" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="text-xs">
                 {eventOptions.map((e) => (
                   <SelectItem key={e} value={e} className="text-xs font-mono">
-                    {e === 'ALL' ? 'All Event Types' : e}
+                    {e === 'ALL' ? (
+                      <span className="flex items-center gap-1.5 font-sans">
+                        <Zap className="h-3 w-3 text-muted-foreground" />
+                        All Event Types
+                      </span>
+                    ) : e}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* Search */}
-            <div className="relative flex-1 min-w-[180px] max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            {/* Search — grows to fill remaining space */}
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search invoice, customer, employee…"
+                placeholder="Search invoice, customer, employee, store…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs rounded-lg border-muted bg-background focus-visible:ring-1"
+                className={`pl-9 h-8 text-[12px] rounded-lg transition-all ${
+                  searchQuery
+                    ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
+                    : 'border-border bg-background'
+                } focus-visible:ring-1 focus-visible:ring-primary/30`}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Clear filters */}
+            {/* Clear all pill */}
             {activeFilterCount > 0 && (
               <button
                 onClick={clearAllFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 h-8 rounded-lg text-[11px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors whitespace-nowrap shrink-0"
               >
-                <SlidersHorizontal className="h-3 w-3" />
-                Clear {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''}
+                <X className="h-3 w-3" />
+                Clear {activeFilterCount}
               </button>
             )}
           </div>
 
-          <p className="text-[11px] text-muted-foreground font-medium">
-            Showing{' '}
-            <span className="font-bold text-foreground">{filteredLogs.length}</span> of{' '}
-            <span className="font-bold text-foreground">{logs.length}</span> webhook events
-          </p>
+          {/* Row 2 — Results summary ribbon */}
+          <div className="px-4 py-2 bg-muted/20 border-t border-border/40 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] text-muted-foreground">
+                Showing{' '}
+                <span className="font-bold text-foreground tabular-nums">{filteredLogs.length}</span>
+                {' '}of{' '}
+                <span className="font-bold text-foreground tabular-nums">{logs.length}</span>
+                {' '}events
+              </span>
+
+              {/* Active filter chips */}
+              {storeFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                  <Building2 className="h-2.5 w-2.5" />
+                  {storeFilter}
+                  <button onClick={() => setStoreFilter('ALL')} className="ml-0.5 hover:text-blue-900 dark:hover:text-blue-100">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+              {eventFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-mono">
+                  <Zap className="h-2.5 w-2.5" />
+                  {eventFilter}
+                  <button onClick={() => setEventFilter('ALL')} className="ml-0.5 hover:text-indigo-900 dark:hover:text-indigo-100">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+              {searchQuery.trim() && (
+                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                  <Search className="h-2.5 w-2.5" />
+                  "{searchQuery.trim().slice(0, 20)}{searchQuery.trim().length > 20 ? '…' : ''}"
+                  <button onClick={() => setSearchQuery('')} className="ml-0.5 hover:opacity-70">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+            </div>
+
+            {filteredLogs.length > 0 && (
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                Page{' '}
+                <span className="font-semibold text-foreground">{currentPage}</span>
+                {' '}/ {totalPages}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Table */}
@@ -595,75 +896,14 @@ export default function WebhookLogsPage() {
       </Card>
 
       {/* Payload Inspector Modal */}
-      <Dialog open={!!selectedPayload} onOpenChange={(open) => !open && setSelectedPayload(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <div className="h-7 w-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                <Code2 className="h-4 w-4 text-indigo-500" />
-              </div>
-              Webhook Payload Inspector
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Raw JSON received for Bill ID:{' '}
-              <code className="font-mono text-foreground font-bold bg-muted px-1.5 py-0.5 rounded">
-                {selectedPayload?.billId || 'N/A'}
-              </code>
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedPayload && (
-            <div className="space-y-4 my-1">
-              {/* Meta grid */}
-              <div className="grid grid-cols-3 gap-2 text-xs p-4 bg-muted/30 rounded-xl border">
-                {[
-                  { label: 'Event', value: selectedPayload.eventType, mono: true, cls: '' },
-                  { label: 'Sale Amount', value: `₹${(selectedPayload.amount || 0).toLocaleString('en-IN')}`, mono: false, cls: 'text-emerald-600 dark:text-emerald-400' },
-                  { label: 'Status', value: selectedPayload.status, mono: false, cls: '' },
-                  { label: 'Employee', value: (selectedPayload.employeeName && selectedPayload.employeeName !== 'N/A') ? selectedPayload.employeeName : 'N/A', mono: false, cls: '' },
-                  { label: 'Customer', value: selectedPayload.customerName || 'N/A', mono: false, cls: '' },
-                  { label: 'Store / Branch', value: (selectedPayload.storeName && selectedPayload.storeName !== 'N/A') ? selectedPayload.storeName : 'N/A', mono: false, cls: 'text-blue-600 dark:text-blue-400' },
-                ].map(({ label, value, mono, cls }) => (
-                  <div key={label} className="space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">{label}</span>
-                    <span className={`font-semibold truncate block text-foreground ${mono ? 'font-mono' : ''} ${cls}`}>
-                      {value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Error banner */}
-              {selectedPayload.errorMessage && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-xl text-xs flex gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold block mb-0.5">Processing Error</span>
-                    <span>{selectedPayload.errorMessage}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* JSON viewer */}
-              <div className="relative">
-                <pre className="p-4 bg-slate-950 text-slate-100 rounded-xl text-[11px] font-mono max-h-72 overflow-y-auto leading-relaxed border border-slate-800 shadow-inner">
-                  {formatPayload(selectedPayload.payload)}
-                </pre>
-                <button
-                  onClick={() => copyToClipboard(formatPayload(selectedPayload.payload), 'modal-json')}
-                  className="absolute top-3 right-3 px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-700 flex items-center gap-1.5 transition-colors"
-                >
-                  {copiedId === 'modal-json'
-                    ? <><Check className="h-3 w-3 text-emerald-400" /> Copied!</>
-                    : <><Copy className="h-3 w-3" /> Copy JSON</>}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter showCloseButton />
-        </DialogContent>
-      </Dialog>
+      <PayloadModal
+        log={selectedPayload}
+        onClose={() => setSelectedPayload(null)}
+        copiedId={copiedId}
+        onCopy={copyToClipboard}
+        formatPayload={formatPayload}
+        getStatusCfg={getStatusCfg}
+      />
     </div>
   );
 }
