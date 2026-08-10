@@ -40,6 +40,7 @@ import Modal from '@/components/Modal';
 import { exportLiveDashboardToExcel } from '@/utils/excelExport';
 import { fetchHRStats, HRStats } from '@/services/hrService';
 import { StoreAttendanceModal } from '../components/StoreAttendanceModal';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -221,30 +222,29 @@ export default function LiveDashboardPage() {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <h1 className="text-2xl font-black text-text-primary tracking-tight">Live Telemetry Dashboard</h1>
-          <p className="text-xs font-semibold text-text-secondary mt-1">Real-time status tracking for all branch employees. Auto-refreshes every 30s.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={handleExportExcel}
-            disabled={!stats}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-bold flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 shadow-sm"
-          >
-            <FileSpreadsheet className="h-4 w-4" />
-            Export Excel Report
-          </button>
-          <button
-            onClick={() => fetchLiveStats(true)}
-            disabled={isRefreshing}
-            className="px-4 py-2 bg-surface hover:bg-surface-variant text-text-primary border border-border rounded-sm text-xs font-bold flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
-          >
-            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
-          </button>
-        </div>
-      </div>
+      <SuperAdminHeader
+        title="Live Telemetry Dashboard"
+        subtitle="Real-time status tracking for all branch employees. Auto-refreshes every 30s."
+        badgeText="Live Workforce Telemetry"
+        badgeIcon={Radio}
+      >
+        <button
+          onClick={handleExportExcel}
+          disabled={!stats}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-5 py-3 rounded-sm text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Export Excel Report
+        </button>
+        <button
+          onClick={() => fetchLiveStats(true)}
+          disabled={isRefreshing}
+          className="bg-surface hover:bg-surface-variant text-text-primary border border-border px-5 py-3 rounded-sm text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
+        </button>
+      </SuperAdminHeader>
 
       {error && (
         <div className="p-4 bg-error/10 border border-error/20 text-error font-medium text-sm rounded-sm">
