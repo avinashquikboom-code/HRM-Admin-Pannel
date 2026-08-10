@@ -152,6 +152,8 @@ export default function WebhookLogsPage() {
               <TableRow className="bg-muted/50">
                 <TableHead>Event Type</TableHead>
                 <TableHead>Bill / Invoice ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Employee</TableHead>
                 <TableHead className="text-right">Sale Amount</TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead>Received Time</TableHead>
@@ -164,6 +166,8 @@ export default function WebhookLogsPage() {
                   <TableRow key={log.id} className="hover:bg-muted/30">
                     <TableCell className="font-semibold">{log.eventType || 'INVOICE_CREATED'}</TableCell>
                     <TableCell className="font-mono text-sm">{log.billId || '-'}</TableCell>
+                    <TableCell className="text-sm font-medium">{log.customerName || '-'}</TableCell>
+                    <TableCell className="text-sm font-medium">{log.employeeName || '-'}</TableCell>
                     <TableCell className="text-right font-semibold">
                       ₹{(log.amount || 0).toLocaleString('en-IN')}
                     </TableCell>
@@ -190,7 +194,7 @@ export default function WebhookLogsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     {loading ? 'Loading webhook logs...' : 'No webhook logs found'}
                   </TableCell>
                 </TableRow>
