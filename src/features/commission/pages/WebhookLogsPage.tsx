@@ -35,6 +35,7 @@ import {
   IndianRupee,
   User,
   ShoppingBag,
+  Building2,
   ArrowUpDown,
   Filter,
 } from 'lucide-react';
@@ -107,12 +108,14 @@ export default function WebhookLogsPage() {
         const billId = String(log.billId || '').toLowerCase();
         const customer = String(log.customerName || '').toLowerCase();
         const employee = String(log.employeeName || '').toLowerCase();
+        const store = String(log.storeName || '').toLowerCase();
         const eventType = String(log.eventType || '').toLowerCase();
         const amount = String(log.amount || '');
         return (
           billId.includes(query) ||
           customer.includes(query) ||
           employee.includes(query) ||
+          store.includes(query) ||
           eventType.includes(query) ||
           amount.includes(query)
         );
@@ -343,7 +346,10 @@ export default function WebhookLogsPage() {
                     Customer
                   </TableHead>
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3.5">
-                    Sales Representative
+                    Employee Name
+                  </TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3.5">
+                    Store / Branch
                   </TableHead>
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-right py-3.5">
                     Sale Amount
@@ -416,11 +422,23 @@ export default function WebhookLogsPage() {
                           </div>
                         </TableCell>
 
-                        {/* Sales Representative */}
+                        {/* Employee Name */}
                         <TableCell className="text-xs font-medium">
                           <div className="flex items-center gap-1.5">
-                            <ShoppingBag className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{log.employeeName || 'HopKid Sales'}</span>
+                            <ShoppingBag className="h-3.5 w-3.5 text-indigo-500" />
+                            <span className="font-semibold text-foreground">
+                              {log.employeeName && log.employeeName !== 'N/A' ? log.employeeName : 'N/A'}
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Store / Branch */}
+                        <TableCell className="text-xs font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <Building2 className="h-3.5 w-3.5 text-blue-500" />
+                            <span>
+                              {log.storeName && log.storeName !== 'N/A' ? log.storeName : 'N/A'}
+                            </span>
                           </div>
                         </TableCell>
 
@@ -481,7 +499,7 @@ export default function WebhookLogsPage() {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="text-center py-12 text-muted-foreground"
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
@@ -580,7 +598,7 @@ export default function WebhookLogsPage() {
           {selectedPayload && (
             <div className="space-y-4 my-2">
               {/* Summary Metadata */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs p-3 bg-muted/40 rounded-xl border">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs p-3 bg-muted/40 rounded-xl border">
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">
                     Event
@@ -607,10 +625,31 @@ export default function WebhookLogsPage() {
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">
+                    Employee
+                  </span>
+                  <span className="font-semibold text-foreground truncate block">
+                    {selectedPayload.employeeName && selectedPayload.employeeName !== 'N/A'
+                      ? selectedPayload.employeeName
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[10px] uppercase font-bold">
                     Customer
                   </span>
                   <span className="font-semibold text-foreground truncate block">
                     {selectedPayload.customerName || 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[10px] uppercase font-bold flex items-center gap-1">
+                    <Building2 className="h-3 w-3 text-blue-500" />
+                    Store / Branch
+                  </span>
+                  <span className="font-semibold text-foreground truncate block">
+                    {selectedPayload.storeName && selectedPayload.storeName !== 'N/A'
+                      ? selectedPayload.storeName
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
