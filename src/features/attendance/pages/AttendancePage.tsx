@@ -34,6 +34,7 @@ import {
   Bar
 } from 'recharts';
 import { cn } from '@/utils/cn';
+import { formatTime } from '@/utils/timeFormatter';
 import ChartContainer from '@/components/ChartContainer';
 import Modal from '@/components/Modal';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
@@ -43,11 +44,8 @@ import AttendanceCorrectionsTab from '../components/AttendanceCorrectionsTab';
 
 function formatCheckInTime(value: string | null) {
   if (!value) return '—';
-  return new Date(value).toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const formatted = formatTime(value);
+  return formatted === '-' ? '—' : formatted;
 }
 
 function calculateWorkingHours(checkIn: string | null, checkOut: string | null, totalBreakSeconds: number = 0) {
@@ -673,8 +671,8 @@ const AttendancePage = () => {
                         </span>
                       </div>
                       <div className="text-xs text-text-secondary space-y-1">
-                        <p>Check-in: {att.checkIn ? new Date(att.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</p>
-                        <p>Check-out: {att.checkOut ? new Date(att.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</p>
+                        <p>Check-in: {formatTime(att.checkIn)}</p>
+                        <p>Check-out: {formatTime(att.checkOut)}</p>
                         <p>Break time: {att.totalBreakSeconds && att.totalBreakSeconds > 0 
                           ? `${Math.floor(att.totalBreakSeconds / 60)}m ${att.totalBreakSeconds % 60}s` 
                           : '—'}</p>

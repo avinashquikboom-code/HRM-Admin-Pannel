@@ -35,6 +35,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import { cn } from '@/utils/cn';
+import { formatTime } from '@/utils/timeFormatter';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import { exportLiveDashboardToExcel } from '@/utils/excelExport';
@@ -641,7 +642,7 @@ export default function LiveDashboardPage() {
                   'Employee Name': `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
                   Designation: emp.designation || 'Staff',
                   Branch: emp.officeName || 'General',
-                  ...(emp.startAt ? { 'Started At': new Date(emp.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : {}),
+                  ...(emp.startAt ? { 'Started At': formatTime(emp.startAt) } : {}),
                 }));
                 const XLSX = require('xlsx');
                 const wb = XLSX.utils.book_new();
@@ -682,7 +683,7 @@ export default function LiveDashboardPage() {
                       <td className="px-4 py-3 text-xs font-semibold text-text-secondary">{emp.officeName}</td>
                       {emp.startAt && (
                         <td className="px-4 py-3 text-xs font-bold text-amber-500">
-                          {new Date(emp.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(emp.startAt)}
                         </td>
                       )}
                     </tr>

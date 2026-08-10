@@ -16,6 +16,7 @@ import {
 import Modal from '@/components/Modal';
 import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
+import { formatTime, calculateWorkingHours } from '@/utils/timeFormatter';
 
 export interface StoreAttendanceEmployee {
   id: number;
@@ -101,9 +102,9 @@ export function StoreAttendanceModal({
         'Employee Name': emp.employeeName,
         'Designation': emp.designation,
         'Status': emp.status,
-        'Check-In Time': emp.checkInTime,
-        'Check-Out Time': emp.checkOutTime,
-        'Working Hours': emp.workingHours,
+        'Check-In Time': formatTime(emp.checkInTime),
+        'Check-Out Time': formatTime(emp.checkOutTime),
+        'Working Hours': emp.workingHours && emp.workingHours !== '-' ? emp.workingHours : calculateWorkingHours(emp.checkInTime, emp.checkOutTime),
         'Break Details': emp.breakDetails,
         'Notes': emp.notes || '-'
       }));
@@ -271,13 +272,13 @@ export function StoreAttendanceModal({
                         {getStatusBadge(emp.status)}
                       </td>
                       <td className="px-4 py-3 text-xs font-bold text-text-primary">
-                        {emp.checkInTime}
+                        {formatTime(emp.checkInTime)}
                       </td>
                       <td className="px-4 py-3 text-xs font-bold text-text-primary">
-                        {emp.checkOutTime}
+                        {formatTime(emp.checkOutTime)}
                       </td>
                       <td className="px-4 py-3 text-xs font-semibold text-emerald-600">
-                        {emp.workingHours}
+                        {emp.workingHours && emp.workingHours !== '-' ? emp.workingHours : calculateWorkingHours(emp.checkInTime, emp.checkOutTime)}
                       </td>
                       <td className="px-4 py-3 text-xs font-medium text-text-secondary">
                         {emp.breakDetails}
