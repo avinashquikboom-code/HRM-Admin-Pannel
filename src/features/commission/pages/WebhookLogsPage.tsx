@@ -51,6 +51,7 @@ import {
   User,
   UserCheck,
   Calendar,
+  CalendarDays,
   ShieldCheck,
   ShieldX,
   Timer,
@@ -308,6 +309,7 @@ export default function WebhookLogsPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [storeFilter, setStoreFilter] = useState('ALL');
   const [eventFilter, setEventFilter] = useState('ALL');
+  const [monthFilter, setMonthFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedPayload, setSelectedPayload] = useState<any>(null);
@@ -315,7 +317,7 @@ export default function WebhookLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
 
-  useEffect(() => { setCurrentPage(1); }, [statusFilter, storeFilter, eventFilter, searchQuery]);
+  useEffect(() => { setCurrentPage(1); }, [statusFilter, storeFilter, eventFilter, monthFilter, searchQuery]);
 
   useEffect(() => {
     fetchStats();
@@ -354,10 +356,35 @@ export default function WebhookLogsPage() {
     return ['ALL', ...Array.from(new Set(types)).sort()];
   }, [logs]);
 
+  // Month options derived from log timestamps — sorted newest first
+  const monthOptions = useMemo(() => {
+    const keys = logs
+      .map((l) => {
+        const d = new Date(l.createdAt);
+        return isNaN(d.getTime()) ? null : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      })
+      .filter((k): k is string => !!k);
+    const unique = Array.from(new Set(keys)).sort().reverse(); // newest first
+    return ['ALL', ...unique];
+  }, [logs]);
+
+  const formatMonthLabel = (key: string) => {
+    if (key === 'ALL') return 'All Months';
+    const [year, month] = key.split('-');
+    return new Date(Number(year), Number(month) - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+  };
+
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       if (storeFilter !== 'ALL' && log.storeName !== storeFilter) return false;
       if (eventFilter !== 'ALL' && log.eventType !== eventFilter) return false;
+      if (monthFilter !== 'ALL') {
+        const d = new Date(log.createdAt);
+        const key = isNaN(d.getTime())
+          ? ''
+          : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (key !== monthFilter) return false;
+      }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         return (
@@ -371,7 +398,7 @@ export default function WebhookLogsPage() {
       }
       return true;
     });
-  }, [logs, storeFilter, eventFilter, searchQuery]);
+  }, [logs, storeFilter, eventFilter, monthFilter, searchQuery]);
 
   const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
   const paginatedLogs = useMemo(
@@ -382,12 +409,14 @@ export default function WebhookLogsPage() {
   const activeFilterCount = [
     storeFilter !== 'ALL',
     eventFilter !== 'ALL',
+    monthFilter !== 'ALL',
     searchQuery.trim() !== '',
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
     setStoreFilter('ALL');
     setEventFilter('ALL');
+    setMonthFilter('ALL');
     setSearchQuery('');
   };
 
@@ -597,6 +626,32 @@ export default function WebhookLogsPage() {
               </SelectContent>
             </Select>
 
+            {/* Month dropdown */}
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger
+                className={`h-8 text-[12px] rounded-lg border gap-1.5 transition-all min-w-[140px] max-w-[170px] ${
+                  monthFilter !== 'ALL'
+                    ? 'border-violet-500/40 bg-violet-500/8 text-violet-700 dark:text-violet-300'
+                    : 'border-border bg-background text-muted-foreground'
+                }`}
+              >
+                <CalendarDays className={`h-3.5 w-3.5 shrink-0 ${monthFilter !== 'ALL' ? 'text-violet-500' : ''}`} />
+                <SelectValue placeholder="All Months" />
+              </SelectTrigger>
+              <SelectContent className="text-xs">
+                {monthOptions.map((m) => (
+                  <SelectItem key={m} value={m} className="text-xs">
+                    {m === 'ALL' ? (
+                      <span className="flex items-center gap-1.5">
+                        <CalendarDays className="h-3 w-3 text-muted-foreground" />
+                        All Months
+                      </span>
+                    ) : formatMonthLabel(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Search — grows to fill remaining space */}
             <div className="relative flex-1 min-w-[180px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -658,6 +713,15 @@ export default function WebhookLogsPage() {
                   <Zap className="h-2.5 w-2.5" />
                   {eventFilter}
                   <button onClick={() => setEventFilter('ALL')} className="ml-0.5 hover:text-indigo-900 dark:hover:text-indigo-100">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+              {monthFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
+                  <CalendarDays className="h-2.5 w-2.5" />
+                  {formatMonthLabel(monthFilter)}
+                  <button onClick={() => setMonthFilter('ALL')} className="ml-0.5 hover:text-violet-900 dark:hover:text-violet-100">
                     <X className="h-2.5 w-2.5" />
                   </button>
                 </span>
