@@ -451,167 +451,165 @@ export default function LiveDashboardPage() {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Branch-wise & Store Telemetry Tiles */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 border border-border bg-surface p-6 rounded-sm space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building size={16} className="text-primary" />
-                  <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Store & Branch Telemetry</h3>
-                </div>
-                <span className="text-[10px] font-bold text-text-secondary uppercase">Click tile or row to view attendance</span>
+          {/* Store & Branch Telemetry Section (Full Width) */}
+          <motion.div variants={itemVariants} className="w-full border border-border bg-surface p-6 rounded-sm space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building size={16} className="text-primary" />
+                <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Store & Branch Telemetry</h3>
               </div>
+              <span className="text-[10px] font-bold text-text-secondary uppercase">Click tile or row to view attendance</span>
+            </div>
 
-              {/* Store Tiles Grid */}
-              {stats.branchWise.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {stats.branchWise.map((b, i) => (
-                    <motion.div
-                      key={i}
-                      whileHover={{ y: -3 }}
-                      onClick={() => handleStoreClick(b.branchId, b.branch)}
-                      className="p-4 border border-border bg-surface-variant/20 hover:bg-surface-variant/40 hover:border-primary/40 rounded-sm cursor-pointer transition-all shadow-sm group"
-                    >
-                      <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <Building className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                          <h4 className="text-xs font-black text-text-primary group-hover:text-primary transition-colors">{b.branch}</h4>
-                        </div>
-                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-sm bg-primary/10 text-primary">
-                          {b.present + b.absent} staff
-                        </span>
+            {/* Store Tiles Grid */}
+            {stats.branchWise.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {stats.branchWise.map((b, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -3 }}
+                    onClick={() => handleStoreClick(b.branchId, b.branch)}
+                    className="p-4 border border-border bg-surface-variant/20 hover:bg-surface-variant/40 hover:border-primary/40 rounded-sm cursor-pointer transition-all shadow-sm group"
+                  >
+                    <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Building className="w-4 h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
+                        <h4 className="text-xs font-black text-text-primary group-hover:text-primary transition-colors truncate" title={b.branch}>{b.branch}</h4>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-                        <div className="p-1.5 rounded-sm bg-emerald-500/10 border border-emerald-500/20">
-                          <p className="text-[9px] font-black text-emerald-600 uppercase">Present</p>
-                          <p className="text-base font-black text-emerald-600 mt-0.5">{b.present}</p>
-                        </div>
-                        <div className="p-1.5 rounded-sm bg-amber-500/10 border border-amber-500/20">
-                          <p className="text-[9px] font-black text-amber-600 uppercase">Break</p>
-                          <p className="text-base font-black text-amber-600 mt-0.5">{b.onBreak}</p>
-                        </div>
-                        <div className="p-1.5 rounded-sm bg-red-500/10 border border-red-500/20">
-                          <p className="text-[9px] font-black text-red-600 uppercase">Absent</p>
-                          <p className="text-base font-black text-red-600 mt-0.5">{b.absent}</p>
-                        </div>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-sm bg-primary/10 text-primary shrink-0 ml-1">
+                        {b.present + b.absent} staff
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+                      <div className="p-1.5 rounded-sm bg-emerald-500/10 border border-emerald-500/20">
+                        <p className="text-[9px] font-black text-emerald-600 uppercase">Present</p>
+                        <p className="text-base font-black text-emerald-600 mt-0.5">{b.present}</p>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+                      <div className="p-1.5 rounded-sm bg-amber-500/10 border border-amber-500/20">
+                        <p className="text-[9px] font-black text-amber-600 uppercase">Break</p>
+                        <p className="text-base font-black text-amber-600 mt-0.5">{b.onBreak}</p>
+                      </div>
+                      <div className="p-1.5 rounded-sm bg-red-500/10 border border-red-500/20">
+                        <p className="text-[9px] font-black text-red-600 uppercase">Absent</p>
+                        <p className="text-base font-black text-red-600 mt-0.5">{b.absent}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
-              {/* Branch Summary Table View */}
-              <div className="overflow-x-auto pt-2 border-t border-border/50">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Office Branch / Store</th>
-                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Present</th>
-                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Absent</th>
-                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">On Break</th>
-                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.branchWise.length > 0 ? (
-                      stats.branchWise.map((b, i) => (
-                        <tr
-                          key={i}
-                          onClick={() => handleStoreClick(b.branchId, b.branch)}
-                          className="border-b border-border/50 hover:bg-surface-variant/30 transition-colors cursor-pointer group"
-                        >
-                          <td className="py-3.5 text-xs font-black text-text-primary group-hover:text-primary transition-colors flex items-center gap-2">
-                            <Building className="w-3.5 h-3.5 text-text-secondary group-hover:text-primary" />
-                            {b.branch}
-                          </td>
-                          <td className="py-3.5 text-xs font-bold text-emerald-500 text-center">{b.present}</td>
-                          <td className="py-3.5 text-xs font-bold text-error text-center">{b.absent}</td>
-                          <td className="py-3.5 text-xs font-bold text-amber-500 text-center">{b.onBreak}</td>
-                          <td className="py-3.5 text-xs font-bold text-primary text-right">
-                            <span className="px-2.5 py-1 bg-primary/10 group-hover:bg-primary group-hover:text-white rounded-sm transition-colors text-[10px]">
-                              View Attendance →
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
-                          No branch data available
+            {/* Branch Summary Table View */}
+            <div className="w-full overflow-x-auto rounded-sm border border-border/60 bg-surface">
+              <table className="w-full text-left border-collapse min-w-[640px]">
+                <thead>
+                  <tr className="bg-surface-variant/40 border-b border-border">
+                    <th className="px-6 py-4 text-[10px] font-black text-text-secondary uppercase tracking-widest">Office Branch / Store</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Present</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Absent</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">On Break</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {stats.branchWise.length > 0 ? (
+                    stats.branchWise.map((b, i) => (
+                      <tr
+                        key={i}
+                        onClick={() => handleStoreClick(b.branchId, b.branch)}
+                        className="hover:bg-surface-variant/30 transition-colors cursor-pointer group"
+                      >
+                        <td className="px-6 py-4 text-xs font-black text-text-primary group-hover:text-primary transition-colors flex items-center gap-2.5">
+                          <Building className="w-4 h-4 text-text-secondary group-hover:text-primary transition-colors shrink-0" />
+                          <span>{b.branch}</span>
+                        </td>
+                        <td className="px-6 py-4 text-xs font-bold text-emerald-500 text-center tabular-nums">{b.present}</td>
+                        <td className="px-6 py-4 text-xs font-bold text-error text-center tabular-nums">{b.absent}</td>
+                        <td className="px-6 py-4 text-xs font-bold text-amber-500 text-center tabular-nums">{b.onBreak}</td>
+                        <td className="px-6 py-4 text-xs font-bold text-primary text-right">
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 group-hover:bg-primary group-hover:text-white rounded-sm transition-all text-[10px] font-black uppercase tracking-wider">
+                            View Attendance →
+                          </span>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
+                        No branch data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+
+          {/* Pending Tasks & Leaves Grid (2 Columns) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
+            <motion.div variants={itemVariants} className="border border-border bg-surface p-6 rounded-sm space-y-6">
+              <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Action Pending Tasks</h3>
+              
+              <div className="space-y-4">
+                {/* Leave Requests Pending */}
+                <div className="p-4 border border-border bg-surface-variant/35 rounded-sm flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">Leave Approvals</h4>
+                    <p className="text-xs font-semibold text-text-secondary mt-1">{stats.pendingLeaves} requests waiting for HR</p>
+                  </div>
+                  {stats.pendingLeaves > 0 ? (
+                    <span className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 text-xs font-black flex items-center justify-center animate-pulse">
+                      {stats.pendingLeaves}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">Clear</span>
+                  )}
+                </div>
+
+                {/* Shift Change Requests Pending */}
+                <div className="p-4 border border-border bg-surface-variant/35 rounded-sm flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">Shift Requests</h4>
+                    <p className="text-xs font-semibold text-text-secondary mt-1">{stats.pendingShiftRequests} requests waiting for HR</p>
+                  </div>
+                  {stats.pendingShiftRequests > 0 ? (
+                    <span className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 text-xs font-black flex items-center justify-center animate-pulse">
+                      {stats.pendingShiftRequests}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">Clear</span>
+                  )}
+                </div>
               </div>
             </motion.div>
 
-            {/* Quick Actions / Pending Indicators */}
-            <div className="space-y-6">
-              <motion.div variants={itemVariants} className="border border-border bg-surface p-6 rounded-sm space-y-6">
-                <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Action Pending Tasks</h3>
-                
-                <div className="space-y-4">
-                  {/* Leave Requests Pending */}
-                  <div className="p-4 border border-border bg-surface-variant/35 rounded-sm flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">Leave Approvals</h4>
-                      <p className="text-xs font-semibold text-text-secondary mt-1">{stats.pendingLeaves} requests waiting for HR</p>
-                    </div>
-                    {stats.pendingLeaves > 0 ? (
-                      <span className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 text-xs font-black flex items-center justify-center animate-pulse">
-                        {stats.pendingLeaves}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">Clear</span>
-                    )}
-                  </div>
-
-                  {/* Shift Change Requests Pending */}
-                  <div className="p-4 border border-border bg-surface-variant/35 rounded-sm flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">Shift Requests</h4>
-                      <p className="text-xs font-semibold text-text-secondary mt-1">{stats.pendingShiftRequests} requests waiting for HR</p>
-                    </div>
-                    {stats.pendingShiftRequests > 0 ? (
-                      <span className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 text-xs font-black flex items-center justify-center animate-pulse">
-                        {stats.pendingShiftRequests}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">Clear</span>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Today & Tomorrow On Leave Widget */}
-              <motion.div variants={itemVariants} className="border border-border bg-surface p-6 rounded-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <Calendar size={16} className="text-text-secondary" />
-                  <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Today & Tomorrow On Leave</h3>
-                </div>
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                  {upcomingLeaves.length > 0 ? (
-                    upcomingLeaves.map((leave, i) => (
-                      <div key={i} className="p-3 border border-border/50 bg-surface-variant/20 rounded-sm">
-                        <div className="flex justify-between items-start">
-                          <span className="text-xs font-black text-text-primary">{leave.employeeName}</span>
-                          <span className="text-[10px] font-black uppercase bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded-sm">
-                            {leave.type}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-2 text-[10px] text-text-secondary font-semibold">
-                          <span>{leave.branch}</span>
-                          <span>{leave.dates}</span>
-                        </div>
+            {/* Today & Tomorrow On Leave Widget */}
+            <motion.div variants={itemVariants} className="border border-border bg-surface p-6 rounded-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar size={16} className="text-text-secondary" />
+                <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Today & Tomorrow On Leave</h3>
+              </div>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {upcomingLeaves.length > 0 ? (
+                  upcomingLeaves.map((leave, i) => (
+                    <div key={i} className="p-3 border border-border/50 bg-surface-variant/20 rounded-sm">
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-black text-text-primary">{leave.employeeName}</span>
+                        <span className="text-[10px] font-black uppercase bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded-sm">
+                          {leave.type}
+                        </span>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-xs font-semibold text-text-secondary text-center py-6">No employees on leave today or tomorrow</p>
-                  )}
-                </div>
-              </motion.div>
-            </div>
+                      <div className="flex justify-between items-center mt-2 text-[10px] text-text-secondary font-semibold">
+                        <span>{leave.branch}</span>
+                        <span>{leave.dates}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs font-semibold text-text-secondary text-center py-6">No employees on leave today or tomorrow</p>
+                )}
+              </div>
+            </motion.div>
           </div>
         </>
       )}
