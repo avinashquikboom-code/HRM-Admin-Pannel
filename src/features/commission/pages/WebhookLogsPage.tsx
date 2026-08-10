@@ -95,23 +95,32 @@ export default function WebhookLogsPage() {
   };
 
   const filteredLogs = useMemo(() => {
-    if (!searchQuery.trim()) return logs;
-    const query = searchQuery.toLowerCase().trim();
     return logs.filter((log) => {
-      const billId = String(log.billId || '').toLowerCase();
-      const customer = String(log.customerName || '').toLowerCase();
-      const employee = String(log.employeeName || '').toLowerCase();
-      const eventType = String(log.eventType || '').toLowerCase();
-      const amount = String(log.amount || '');
-      return (
-        billId.includes(query) ||
-        customer.includes(query) ||
-        employee.includes(query) ||
-        eventType.includes(query) ||
-        amount.includes(query)
-      );
+      // 1. Status Filter Check
+      if (filter !== 'ALL' && String(log.status || '').toUpperCase() !== filter.toUpperCase()) {
+        return false;
+      }
+
+      // 2. Search Query Check
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const billId = String(log.billId || '').toLowerCase();
+        const customer = String(log.customerName || '').toLowerCase();
+        const employee = String(log.employeeName || '').toLowerCase();
+        const eventType = String(log.eventType || '').toLowerCase();
+        const amount = String(log.amount || '');
+        return (
+          billId.includes(query) ||
+          customer.includes(query) ||
+          employee.includes(query) ||
+          eventType.includes(query) ||
+          amount.includes(query)
+        );
+      }
+
+      return true;
     });
-  }, [logs, searchQuery]);
+  }, [logs, filter, searchQuery]);
 
   const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
   const paginatedLogs = useMemo(() => {
