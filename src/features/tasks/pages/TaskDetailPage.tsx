@@ -270,7 +270,7 @@ const TaskDetailPage = ({ taskId }: Props) => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 pb-12 max-w-5xl"
+      className="space-y-8 pb-12 w-full max-w-full"
     >
       {/* ── Back + Title ── */}
       <motion.div variants={itemVariants} className="flex items-center gap-4">
@@ -310,9 +310,9 @@ const TaskDetailPage = ({ taskId }: Props) => {
         </button>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
         {/* ── Left col: detail + edit form ── */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+        <motion.div variants={itemVariants} className="lg:col-span-2 xl:col-span-3 space-y-6">
 
           {/* Task details card */}
           <div className="glass-card p-6 space-y-5">
@@ -412,7 +412,7 @@ const TaskDetailPage = ({ taskId }: Props) => {
                     </p>
                     {parsedPhotoUrls.length > 0 ? (
                       <div className="space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                           {parsedPhotoUrls.map((url, idx) => {
                             const resolvedSrc = resolvePhotoSrc(url);
                             return (
