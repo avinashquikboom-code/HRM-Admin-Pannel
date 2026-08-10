@@ -84,7 +84,6 @@ export const PLATFORM_ADMIN_MENU_GROUPS: SidebarMenuGroup[] = [
     items: [
       { name: 'Attendance', icon: CreditCard, path: '/attendance', moduleId: 'pa-attendance' },
       { name: 'Tasks', icon: CheckSquare, path: '/tasks', moduleId: 'pa-tasks' },
-      { name: 'Feature Access', icon: ShieldAlert, path: '/employee-features', moduleId: 'pa-employee-features' },
       { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
       { name: 'Remote Work', icon: Globe, path: '/remote-work', moduleId: 'pa-remote-work' },
     ],
