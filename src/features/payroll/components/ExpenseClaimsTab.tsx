@@ -126,7 +126,13 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
     setIsDetailModalOpen(true);
   };
 
-  const handleDownloadReceipt = (url?: string | null) => {
+  const handleDownloadReceipt = (claim?: ExpenseClaim | string | null) => {
+    let url: string | null = null;
+    if (typeof claim === 'string') {
+      url = claim;
+    } else if (claim && typeof claim === 'object') {
+      url = claim.receiptPdfUrl || `/api/hr/expenses/${claim.id}/receipt/pdf`;
+    }
     if (!url) {
       toast.error('Receipt PDF not available for this claim.');
       return;
@@ -567,16 +573,14 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
                             </>
                           ) : (
                             <div className="flex items-center gap-2">
-                              {claim.receiptPdfUrl && (
-                                <button
-                                  onClick={() => handleDownloadReceipt(claim.receiptPdfUrl)}
-                                  className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-bold text-xs border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
-                                  title="Download Approval Receipt PDF"
-                                >
-                                  <FileText size={13} />
-                                  <span>Receipt PDF</span>
-                                </button>
-                              )}
+                              <button
+                                onClick={() => handleDownloadReceipt(claim)}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-bold text-xs border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                                title="Download Approval Receipt PDF"
+                              >
+                                <FileText size={13} />
+                                <span>Receipt PDF</span>
+                              </button>
                               <button
                                 onClick={() => handleOpenDetails(claim)}
                                 className="px-3 py-1.5 rounded-xl bg-surface-variant/60 hover:bg-surface-variant text-text-primary font-bold text-xs border border-border/50 dark:border-white/10 flex items-center gap-1.5 transition-all"
@@ -788,15 +792,13 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              {detailExpense.receiptPdfUrl ? (
-                <button
-                  onClick={() => handleDownloadReceipt(detailExpense.receiptPdfUrl)}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all"
-                >
-                  <FileText size={14} />
-                  <span>Download Official Receipt PDF</span>
-                </button>
-              ) : <div />}
+              <button
+                onClick={() => handleDownloadReceipt(detailExpense)}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer"
+              >
+                <FileText size={14} />
+                <span>Download Official Receipt PDF</span>
+              </button>
               <button
                 onClick={() => setIsDetailModalOpen(false)}
                 className="px-5 py-2.5 rounded-xl bg-primary text-white font-bold text-xs uppercase tracking-wider"
