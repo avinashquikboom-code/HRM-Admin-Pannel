@@ -22,7 +22,9 @@ import Modal from '@/components/Modal';
 interface CorrectionRequest {
   id: string;
   employeeId: string;
-  date: string;
+  date?: string;
+  attendanceDate?: string;
+  dateToCorrect?: string;
   currentStatus: string;
   requestedStatus: string;
   reason: string;
@@ -220,7 +222,14 @@ export default function AttendanceCorrectionsTab() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-bold text-text-primary tabular-nums">
-                        {new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {(() => {
+                          const rawDate = r.date || r.attendanceDate || r.dateToCorrect;
+                          if (!rawDate) return 'N/A';
+                          const parsedDate = new Date(rawDate);
+                          return !isNaN(parsedDate.getTime())
+                            ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : 'N/A';
+                        })()}
                       </td>
                       <td className="px-4 py-3.5">
                         <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-surface-variant text-text-secondary border border-border">
@@ -329,7 +338,16 @@ export default function AttendanceCorrectionsTab() {
               <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/50 font-bold">
                 <div>
                   <span className="text-text-secondary">Target Date:</span>
-                  <p className="text-text-primary">{new Date(selectedRequest.date).toLocaleDateString()}</p>
+                  <p className="text-text-primary">
+                    {(() => {
+                      const rawDate = selectedRequest.date || selectedRequest.attendanceDate || selectedRequest.dateToCorrect;
+                      if (!rawDate) return 'N/A';
+                      const parsedDate = new Date(rawDate);
+                      return !isNaN(parsedDate.getTime())
+                        ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                        : 'N/A';
+                    })()}
+                  </p>
                 </div>
                 <div>
                   <span className="text-text-secondary">Requested Status:</span>
