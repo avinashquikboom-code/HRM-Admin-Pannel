@@ -200,8 +200,8 @@ export default function LiveDashboardPage() {
     );
   }
 
-  const breaksTotal = stats 
-    ? stats.breaks.lunch + stats.breaks.tea + stats.breaks.personal + stats.breaks.meeting
+  const breaksTotal = stats && stats.breaks
+    ? (stats.breaks.lunch || 0) + (stats.breaks.tea || 0) + (stats.breaks.personal || 0) + (stats.breaks.meeting || 0)
     : 0;
 
   const handleExportExcel = () => {
@@ -431,10 +431,10 @@ export default function LiveDashboardPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { type: 'lunch', label: 'Lunch Break', count: stats.breaks.lunch, color: 'from-sky-500/10 to-sky-500/5 text-sky-500 border-sky-500/20', list: stats.details.breaks.lunch },
-                { type: 'tea', label: 'Tea Break', count: stats.breaks.tea, color: 'from-amber-500/10 to-amber-500/5 text-amber-500 border-amber-500/20', list: stats.details.breaks.tea },
-                { type: 'personal', label: 'Personal Break', count: stats.breaks.personal, color: 'from-purple-500/10 to-purple-500/5 text-purple-500 border-purple-500/20', list: stats.details.breaks.personal },
-                { type: 'meeting', label: 'Meeting / Client', count: stats.breaks.meeting, color: 'from-pink-500/10 to-pink-500/5 text-pink-500 border-pink-500/20', list: stats.details.breaks.meeting }
+                { type: 'lunch', label: 'Lunch Break', count: stats?.breaks?.lunch ?? 0, color: 'from-sky-500/10 to-sky-500/5 text-sky-500 border-sky-500/20', list: stats?.details?.breaks?.lunch || [] },
+                { type: 'tea', label: 'Tea Break', count: stats?.breaks?.tea ?? 0, color: 'from-amber-500/10 to-amber-500/5 text-amber-500 border-amber-500/20', list: stats?.details?.breaks?.tea || [] },
+                { type: 'personal', label: 'Personal Break', count: stats?.breaks?.personal ?? 0, color: 'from-purple-500/10 to-purple-500/5 text-purple-500 border-purple-500/20', list: stats?.details?.breaks?.personal || [] },
+                { type: 'meeting', label: 'Meeting / Client', count: stats?.breaks?.meeting ?? 0, color: 'from-pink-500/10 to-pink-500/5 text-pink-500 border-pink-500/20', list: stats?.details?.breaks?.meeting || [] }
               ].map((b) => (
                 <div
                   key={b.type}
