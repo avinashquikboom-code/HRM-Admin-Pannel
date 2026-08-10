@@ -97,6 +97,20 @@ export default function CommissionDashboard() {
     return name.includes(queryLower) || code.includes(queryLower);
   });
 
+  // Pagination State for Recent Transactions
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.ceil(filteredTransactions.length / pageSize) || 1;
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStore, dateRange, pageSize]);
+
   // Sync sales state
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -561,7 +575,7 @@ export default function CommissionDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                {filteredTransactions.map((transaction) => (
+                {paginatedTransactions.map((transaction) => (
                   <tr 
                     key={transaction.id} 
                     onClick={() => handleEmployeeClick(transaction.employee)}
@@ -598,7 +612,7 @@ export default function CommissionDashboard() {
                   </tr>
                 ))}
 
-                {transactions.length === 0 && (
+                {filteredTransactions.length === 0 && (
                   <tr>
                     <td colSpan={6} className="text-center text-text-secondary py-12 font-medium text-xs">
                       No recent commission transactions found for the active filter criteria.
@@ -608,6 +622,45 @@ export default function CommissionDashboard() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Bar */}
+          {filteredTransactions.length > 0 && (
+            <div className="px-6 py-4 border-t border-border/50 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-variant/20 dark:bg-slate-950/20 text-xs text-text-secondary font-medium">
+              <div className="flex items-center gap-2">
+                <span>Showing</span>
+                <span className="font-bold text-text-primary">
+                  {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)}
+                </span>
+                <span>to</span>
+                <span className="font-bold text-text-primary">
+                  {Math.min(currentPage * pageSize, filteredTransactions.length)}
+                </span>
+                <span>of</span>
+                <span className="font-bold text-text-primary">{filteredTransactions.length}</span>
+                <span>entries</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-border/60 dark:border-white/10 bg-surface dark:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-variant transition-colors font-bold"
+                >
+                  Previous
+                </button>
+                <span className="px-2 font-mono font-bold text-text-primary">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-border/60 dark:border-white/10 bg-surface dark:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-variant transition-colors font-bold"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
