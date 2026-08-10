@@ -39,6 +39,7 @@ import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import { exportLiveDashboardToExcel } from '@/utils/excelExport';
 import { fetchHRStats, HRStats } from '@/services/hrService';
+import { StoreAttendanceModal } from '../components/StoreAttendanceModal';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -82,6 +83,7 @@ interface LiveStats {
   pendingLeaves: number;
   pendingShiftRequests: number;
   branchWise: {
+    branchId?: number;
     branch: string;
     present: number;
     absent: number;
@@ -115,6 +117,19 @@ export default function LiveDashboardPage() {
   const [detailTitle, setDetailTitle] = useState('');
   const [detailList, setDetailList] = useState<EmployeeDetail[]>([]);
   const [detailSearch, setDetailSearch] = useState('');
+
+  // Store Attendance Modal State
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+  const [selectedStoreName, setSelectedStoreName] = useState<string>('');
+  const [storeModalOpen, setStoreModalOpen] = useState<boolean>(false);
+
+  const handleStoreClick = (branchId?: number, branchName?: string) => {
+    if (branchId) {
+      setSelectedStoreId(branchId);
+      setSelectedStoreName(branchName || 'Store');
+      setStoreModalOpen(true);
+    }
+  };
 
   const fetchLiveStats = useCallback(async (showRefreshingIndicator = false) => {
     if (showRefreshingIndicator) setIsRefreshing(true);
@@ -437,35 +452,91 @@ export default function LiveDashboardPage() {
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Branch-wise Telemetry Table */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 border border-border bg-surface p-6 rounded-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin size={16} className="text-text-secondary" />
-                <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Branch-Wise Summary</h3>
+            {/* Branch-wise & Store Telemetry Tiles */}
+            <motion.div variants={itemVariants} className="lg:col-span-2 border border-border bg-surface p-6 rounded-sm space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building size={16} className="text-primary" />
+                  <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Store & Branch Telemetry</h3>
+                </div>
+                <span className="text-[10px] font-bold text-text-secondary uppercase">Click tile or row to view attendance</span>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Store Tiles Grid */}
+              {stats.branchWise.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {stats.branchWise.map((b, i) => (
+                    <motion.div
+                      key={i}
+                      whileHover={{ y: -3 }}
+                      onClick={() => handleStoreClick(b.branchId, b.branch)}
+                      className="p-4 border border-border bg-surface-variant/20 hover:bg-surface-variant/40 hover:border-primary/40 rounded-sm cursor-pointer transition-all shadow-sm group"
+                    >
+                      <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <Building className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                          <h4 className="text-xs font-black text-text-primary group-hover:text-primary transition-colors">{b.branch}</h4>
+                        </div>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-sm bg-primary/10 text-primary">
+                          {b.present + b.absent} staff
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+                        <div className="p-1.5 rounded-sm bg-emerald-500/10 border border-emerald-500/20">
+                          <p className="text-[9px] font-black text-emerald-600 uppercase">Present</p>
+                          <p className="text-base font-black text-emerald-600 mt-0.5">{b.present}</p>
+                        </div>
+                        <div className="p-1.5 rounded-sm bg-amber-500/10 border border-amber-500/20">
+                          <p className="text-[9px] font-black text-amber-600 uppercase">Break</p>
+                          <p className="text-base font-black text-amber-600 mt-0.5">{b.onBreak}</p>
+                        </div>
+                        <div className="p-1.5 rounded-sm bg-red-500/10 border border-red-500/20">
+                          <p className="text-[9px] font-black text-red-600 uppercase">Absent</p>
+                          <p className="text-base font-black text-red-600 mt-0.5">{b.absent}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* Branch Summary Table View */}
+              <div className="overflow-x-auto pt-2 border-t border-border/50">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Office Branch</th>
+                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Office Branch / Store</th>
                       <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Present</th>
                       <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Absent</th>
                       <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">On Break</th>
+                      <th className="py-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {stats.branchWise.length > 0 ? (
                       stats.branchWise.map((b, i) => (
-                        <tr key={i} className="border-b border-border/50 hover:bg-surface-variant/20 transition-colors">
-                          <td className="py-3.5 text-xs font-black text-text-primary">{b.branch}</td>
+                        <tr
+                          key={i}
+                          onClick={() => handleStoreClick(b.branchId, b.branch)}
+                          className="border-b border-border/50 hover:bg-surface-variant/30 transition-colors cursor-pointer group"
+                        >
+                          <td className="py-3.5 text-xs font-black text-text-primary group-hover:text-primary transition-colors flex items-center gap-2">
+                            <Building className="w-3.5 h-3.5 text-text-secondary group-hover:text-primary" />
+                            {b.branch}
+                          </td>
                           <td className="py-3.5 text-xs font-bold text-emerald-500 text-center">{b.present}</td>
                           <td className="py-3.5 text-xs font-bold text-error text-center">{b.absent}</td>
                           <td className="py-3.5 text-xs font-bold text-amber-500 text-center">{b.onBreak}</td>
+                          <td className="py-3.5 text-xs font-bold text-primary text-right">
+                            <span className="px-2.5 py-1 bg-primary/10 group-hover:bg-primary group-hover:text-white rounded-sm transition-colors text-[10px]">
+                              View Attendance →
+                            </span>
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={4} className="py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
+                        <td colSpan={5} className="py-8 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
                           No branch data available
                         </td>
                       </tr>
@@ -630,6 +701,13 @@ export default function LiveDashboardPage() {
           </div>
         </div>
       </Modal>
+      {/* Store Attendance Modal */}
+      <StoreAttendanceModal
+        storeId={selectedStoreId}
+        storeName={selectedStoreName}
+        isOpen={storeModalOpen}
+        onClose={() => setStoreModalOpen(false)}
+      />
     </motion.div>
   );
 }
