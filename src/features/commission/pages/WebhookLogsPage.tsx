@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api';
+import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -486,101 +487,33 @@ export default function WebhookLogsPage() {
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10 px-1">
 
-      {/* Page Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl p-6 md:p-7 shadow-lg dark:shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all duration-300">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/10 rounded-full filter blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 shadow-inner">
-            <Webhook className="h-6 w-6 text-primary" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl md:text-2xl font-black text-text-primary tracking-tight">
-                HopKid Webhook Logs
-              </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:text-emerald-400">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                Live
-              </span>
-            </div>
-            <p className="text-xs text-text-secondary font-medium">
-              Real-time POS sales events &amp; automated commission stream
-            </p>
-          </div>
-        </div>
-
-        <div className="relative z-10 shrink-0">
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await Promise.all([fetchStats(), fetchLogs()]);
-              toast.success('Webhook logs refreshed');
-            }}
-            disabled={loading}
-            className="flex items-center gap-2 h-10 px-4 rounded-xl border border-border/80 bg-background hover:bg-muted text-xs font-bold shadow-xs cursor-pointer transition-all active:scale-95"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
-            Refresh
-          </Button>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-background shadow-xs hover:shadow-md transition-shadow">
-          <CardContent className="p-5 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Total Events</p>
-              <p className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5">{(stats?.total ?? 0).toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Logged sales events</p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-              <Activity className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-background shadow-xs hover:shadow-md transition-shadow">
-          <CardContent className="p-5 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Successful</p>
-              <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tracking-tight mt-0.5">{(stats?.success ?? 0).toLocaleString()}</p>
-              <p className="text-[11px] text-emerald-600/80 font-medium mt-0.5">{stats?.successRate ?? '—'} success rate</p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-rose-500/20 bg-gradient-to-br from-rose-500/5 to-background shadow-xs hover:shadow-md transition-shadow">
-          <CardContent className="p-5 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Failed</p>
-              <p className="text-2xl font-extrabold text-rose-700 dark:text-rose-400 tracking-tight mt-0.5">{(stats?.failed ?? 0).toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Needs attention</p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
-              <AlertCircle className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-violet-500/20 bg-gradient-to-br from-violet-500/5 to-background shadow-xs hover:shadow-md transition-shadow">
-          <CardContent className="p-5 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">Total Volume</p>
-              <p className="text-2xl font-extrabold text-violet-700 dark:text-violet-400 tracking-tight mt-0.5 truncate">₹{(stats?.totalAmount ?? 0).toLocaleString('en-IN')}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Aggregated sales</p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Header Banner */}
+      <SuperAdminHeader
+        title="HopKid Webhook Logs"
+        subtitle="Real-time POS sales events, webhook payload telemetry, and automated commission logs."
+        badgeText="HopKid Webhook Stream"
+        badgeIcon={Webhook}
+        stats={[
+          { label: 'Total Events', value: (stats?.total ?? 0).toLocaleString(), icon: Activity, badge: 'All Sales' },
+          { label: 'Successful', value: (stats?.success ?? 0).toLocaleString(), icon: CheckCircle2, badge: stats?.successRate || '100%' },
+          { label: 'Failed', value: (stats?.failed ?? 0).toLocaleString(), icon: AlertCircle, badge: 'Needs Review' },
+          { label: 'Total Volume', value: `₹${(stats?.totalAmount ?? 0).toLocaleString('en-IN')}`, icon: TrendingUp, badge: 'Gross Sales' }
+        ]}
+      >
+        <button
+          onClick={async () => {
+            await Promise.all([fetchStats(), fetchLogs()]);
+            toast.success('Webhook logs refreshed');
+          }}
+          disabled={loading}
+          className="btn-primary group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-primary/40 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95 cursor-pointer disabled:opacity-60"
+        >
+          <span className="p-1 rounded-lg bg-white/20 group-hover:rotate-180 transition-transform duration-500">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          </span>
+          <span>Refresh Webhook Logs</span>
+        </button>
+      </SuperAdminHeader>
 
       {/* Main Table Card */}
       <Card className="border shadow-sm rounded-2xl overflow-hidden">
