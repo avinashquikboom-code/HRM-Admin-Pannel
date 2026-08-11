@@ -140,24 +140,24 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
 
   return (
     <Dialog open={!!log} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0 rounded-3xl border border-border/80 shadow-2xl bg-background">
+      <DialogContent className="max-w-[95vw] w-[1200px] h-[90vh] max-h-[90vh] p-0 overflow-hidden gap-0 rounded-3xl border border-border/80 shadow-2xl bg-background flex flex-col">
 
         {/* High-tech Dark Header Band */}
-        <div className="bg-slate-950 px-7 pt-7 pb-6 relative overflow-hidden">
+        <div className="bg-slate-950 px-7 pt-7 pb-6 relative overflow-hidden shrink-0">
           {/* Subtle Ambient Glow */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Close & Title Region */}
           <div className="flex items-start justify-between gap-4 mb-5 relative z-10">
             <div className="flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary/30 to-indigo-500/20 border border-primary/40 flex items-center justify-center shrink-0 shadow-inner">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/30 to-indigo-500/20 border border-primary/40 flex items-center justify-center shrink-0 shadow-inner">
                 <Braces className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
                 <p className="text-[11px] text-slate-400 uppercase tracking-widest font-black">Sales Webhook Payload</p>
-                <p className="text-white font-extrabold text-lg leading-tight mt-0.5 flex items-center gap-2">
+                <p className="text-white font-extrabold text-xl leading-tight mt-0.5 flex items-center gap-2">
                   {log.billId ? (
-                    <span className="font-mono text-primary-foreground">{log.billId}</span>
+                    <span className="font-mono text-primary-foreground select-all">{log.billId}</span>
                   ) : (
                     <span className="text-slate-400 italic">No Bill ID</span>
                   )}
@@ -166,7 +166,7 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
             </div>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white bg-slate-900/80 p-2 rounded-xl border border-slate-800 transition-colors cursor-pointer"
+              className="text-slate-400 hover:text-white bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -199,7 +199,7 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-6 py-3 text-xs font-extrabold border-b-2 transition-all cursor-pointer ${
                   activeTab === tab.id
                     ? 'border-primary text-primary-foreground bg-primary/10 rounded-t-xl'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -213,11 +213,11 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
         </div>
 
         {/* Content Body */}
-        <div className="p-6 bg-background">
+        <div className="p-6 md:p-8 bg-background flex-1 overflow-y-auto">
 
           {/* Overview tab */}
           {activeTab === 'overview' && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Error banner if applicable */}
               {log.errorMessage && (
                 <div className="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-2xl text-xs flex gap-3 shadow-xs">
@@ -229,22 +229,22 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
                 </div>
               )}
 
-              {/* Grid of overview fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Grid of overview fields — 3 columns for spacious layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {overviewFields.map((field) => (
                   <div
                     key={field.label}
-                    className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-muted/40 border border-border/80 hover:bg-muted/70 hover:border-primary/30 transition-all group"
+                    className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-muted/40 border border-border/80 hover:bg-muted/70 hover:border-primary/30 transition-all group"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-xl bg-background border border-border flex items-center justify-center shrink-0 shadow-xs">
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                      <div className="h-10 w-10 rounded-xl bg-background border border-border flex items-center justify-center shrink-0 shadow-xs">
                         {field.icon}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">
                           {field.label}
                         </p>
-                        <p className={`text-xs font-bold truncate mt-0.5 ${field.mono ? 'font-mono' : ''} ${field.green ? 'text-emerald-600 dark:text-emerald-400 font-extrabold text-sm' : 'text-foreground'}`}>
+                        <p className={`text-sm font-bold break-all mt-0.5 ${field.mono ? 'font-mono' : ''} ${field.green ? 'text-emerald-600 dark:text-emerald-400 font-extrabold text-base' : 'text-foreground'}`}>
                           {field.value}
                         </p>
                       </div>
@@ -252,7 +252,7 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
                     {field.copyText && (
                       <button
                         onClick={() => onCopy(field.copyText!, field.copyId!)}
-                        className="opacity-60 group-hover:opacity-100 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-background border border-transparent hover:border-border transition-all shrink-0 cursor-pointer"
+                        className="opacity-70 group-hover:opacity-100 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-background border border-transparent hover:border-border transition-all shrink-0 cursor-pointer"
                         title="Copy to clipboard"
                       >
                         {copiedId === field.copyId
@@ -265,23 +265,23 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
               </div>
 
               {/* Received time ribbon */}
-              <div className="pt-2 flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/20 border border-border/40 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  Received Date & Time:
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/30 border border-border/60 text-xs text-muted-foreground">
+                <span className="flex items-center gap-2 font-medium">
+                  <Clock className="h-4 w-4 text-primary" />
+                  Received Date &amp; Time:
                 </span>
-                <span className="font-bold text-foreground font-mono">
+                <span className="font-bold text-foreground font-mono text-sm">
                   {new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'medium' })}
                 </span>
               </div>
             </div>
           )}
 
-          {/* Raw JSON tab */}
+          {/* Raw JSON tab — spacious full-height editor */}
           {activeTab === 'raw' && (
-            <div className="rounded-2xl border border-slate-800 overflow-hidden shadow-inner bg-slate-950">
+            <div className="rounded-2xl border border-slate-800 overflow-hidden shadow-inner bg-slate-950 flex flex-col h-full min-h-[450px]">
               {/* Code window bar */}
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800">
+              <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800 shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-rose-500" />
                   <span className="h-3 w-3 rounded-full bg-amber-500" />
@@ -290,18 +290,18 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
                 </div>
                 <button
                   onClick={() => onCopy(formatPayload(log.payload), 'modal-json')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
                     copiedId === 'modal-json'
                       ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
                       : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-white'
                   }`}
                 >
                   {copiedId === 'modal-json'
-                    ? <><Check className="h-3.5 w-3.5" /> Copied!</>
-                    : <><Copy className="h-3.5 w-3.5" /> Copy JSON</>}
+                    ? <><Check className="h-4 w-4" /> Copied!</>
+                    : <><Copy className="h-4 w-4" /> Copy JSON</>}
                 </button>
               </div>
-              <pre className="p-5 text-slate-200 text-xs font-mono max-h-96 overflow-y-auto leading-relaxed scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700 selection:bg-primary selection:text-white">
+              <pre className="p-6 text-slate-200 text-xs md:text-sm font-mono flex-1 overflow-y-auto max-h-[55vh] leading-relaxed scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700 selection:bg-primary selection:text-white">
                 {formatPayload(log.payload)}
               </pre>
             </div>
