@@ -311,6 +311,7 @@ export default function WebhookLogsPage() {
   const [storeFilter, setStoreFilter] = useState('ALL');
   const [eventFilter, setEventFilter] = useState('ALL');
   const [monthFilter, setMonthFilter] = useState('ALL');
+  const [dayFilter, setDayFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedPayload, setSelectedPayload] = useState<any>(null);
@@ -318,7 +319,7 @@ export default function WebhookLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
 
-  useEffect(() => { setCurrentPage(1); }, [statusFilter, storeFilter, eventFilter, monthFilter, searchQuery]);
+  useEffect(() => { setCurrentPage(1); }, [statusFilter, storeFilter, eventFilter, monthFilter, dayFilter, searchQuery]);
 
   useEffect(() => {
     fetchStats();
@@ -385,6 +386,24 @@ export default function WebhookLogsPage() {
           : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         if (key !== monthFilter) return false;
       }
+      if (dayFilter !== 'ALL') {
+        const d = new Date(log.createdAt || log.date);
+        if (!isNaN(d.getTime())) {
+          const dayIndex = d.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+          if (dayFilter === 'WEEKDAY' && (dayIndex === 0 || dayIndex === 6)) return false;
+          if (dayFilter === 'WEEKEND' && (dayIndex !== 0 && dayIndex !== 6)) return false;
+          const dayMap: Record<string, number> = {
+            SUN: 0,
+            MON: 1,
+            TUE: 2,
+            WED: 3,
+            THU: 4,
+            FRI: 5,
+            SAT: 6,
+          };
+          if (dayMap[dayFilter] !== undefined && dayIndex !== dayMap[dayFilter]) return false;
+        }
+      }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         return (
@@ -398,7 +417,7 @@ export default function WebhookLogsPage() {
       }
       return true;
     });
-  }, [logs, storeFilter, eventFilter, monthFilter, searchQuery]);
+  }, [logs, storeFilter, eventFilter, monthFilter, dayFilter, searchQuery]);
 
   const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
   const paginatedLogs = useMemo(
@@ -410,6 +429,7 @@ export default function WebhookLogsPage() {
     storeFilter !== 'ALL',
     eventFilter !== 'ALL',
     monthFilter !== 'ALL',
+    dayFilter !== 'ALL',
     searchQuery.trim() !== '',
   ].filter(Boolean).length;
 
@@ -417,6 +437,7 @@ export default function WebhookLogsPage() {
     setStoreFilter('ALL');
     setEventFilter('ALL');
     setMonthFilter('ALL');
+    setDayFilter('ALL');
     setSearchQuery('');
   };
 
@@ -531,15 +552,14 @@ export default function WebhookLogsPage() {
       <Card className="border shadow-sm rounded-2xl overflow-hidden">
 
         {/* Filter Bar */}
-        <div className="border-b bg-background">
+        <div className="border-b bg-background/95 backdrop-blur-md p-4 space-y-3">
 
-          {/* Row 1 — Controls */}
-          <div className="px-4 py-3 flex flex-wrap items-center gap-2">
-
+          {/* Row 1: Status Pills & Clear Filters Action */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Status segment group */}
-            <div className="flex items-center rounded-xl border bg-muted/40 p-0.5 gap-0.5">
+            <div className="flex items-center rounded-xl border border-border/80 bg-muted/40 p-1 gap-1 flex-wrap">
               {[
-                { key: 'ALL',        label: 'All',        dot: null,         count: logs.length,         countCls: 'bg-foreground/10 text-foreground' },
+                { key: 'ALL',        label: 'All Events', dot: null,            count: logs.length,         countCls: 'bg-foreground/10 text-foreground' },
                 { key: 'SUCCESS',    label: 'Success',    dot: 'bg-emerald-500', count: stats?.success ?? 0, countCls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
                 { key: 'FAILED',     label: 'Failed',     dot: 'bg-rose-500',    count: stats?.failed  ?? 0, countCls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' },
                 { key: 'PROCESSING', label: 'Processing', dot: 'bg-amber-500',   count: null,               countCls: '' },
@@ -549,23 +569,18 @@ export default function WebhookLogsPage() {
                   <button
                     key={key}
                     onClick={() => setStatusFilter(key)}
-                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-semibold transition-all whitespace-nowrap ${
+                    className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                       active
-                        ? 'bg-background text-foreground shadow-sm border border-border/60'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                        ? 'bg-background text-foreground shadow-xs border border-border/80 font-bold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                     }`}
                   >
                     {dot && (
-                      <span className={`h-1.5 w-1.5 rounded-full ${active ? dot : dot + ' opacity-60'}`} />
+                      <span className={`h-2 w-2 rounded-full ${active ? dot : dot + ' opacity-60'}`} />
                     )}
-                    {label}
+                    <span>{label}</span>
                     {count !== null && count > 0 && (
-                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${active ? countCls : 'bg-muted text-muted-foreground'}`}>
-                        {count}
-                      </span>
-                    )}
-                    {key === 'ALL' && (
-                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${active ? countCls : 'bg-muted text-muted-foreground'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold tabular-nums ${active ? countCls : 'bg-muted text-muted-foreground'}`}>
                         {count}
                       </span>
                     )}
@@ -574,15 +589,26 @@ export default function WebhookLogsPage() {
               })}
             </div>
 
-            {/* Divider */}
-            <div className="h-6 w-px bg-border/60 hidden sm:block mx-0.5" />
+            {/* Clear all pill */}
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearAllFilters}
+                className="flex items-center gap-1.5 px-3 py-1.5 h-8 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all whitespace-nowrap cursor-pointer shrink-0 ml-auto"
+              >
+                <X className="h-3.5 w-3.5" />
+                Clear Filters ({activeFilterCount})
+              </button>
+            )}
+          </div>
 
+          {/* Row 2: Dropdowns & Search Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 items-center">
             {/* Store dropdown */}
             <Select value={storeFilter} onValueChange={setStoreFilter}>
               <SelectTrigger
-                className={`h-8 text-[12px] rounded-lg border gap-1.5 transition-all min-w-[130px] max-w-[160px] ${
+                className={`h-9 text-xs rounded-xl border gap-2 transition-all w-full ${
                   storeFilter !== 'ALL'
-                    ? 'border-blue-500/40 bg-blue-500/8 text-blue-700 dark:text-blue-300'
+                    ? 'border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold'
                     : 'border-border bg-background text-muted-foreground'
                 }`}
               >
@@ -592,12 +618,7 @@ export default function WebhookLogsPage() {
               <SelectContent className="text-xs">
                 {storeOptions.map((s) => (
                   <SelectItem key={s} value={s} className="text-xs">
-                    {s === 'ALL' ? (
-                      <span className="flex items-center gap-1.5">
-                        <Building2 className="h-3 w-3 text-muted-foreground" />
-                        All Stores
-                      </span>
-                    ) : s}
+                    {s === 'ALL' ? 'All Stores' : s}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -606,9 +627,9 @@ export default function WebhookLogsPage() {
             {/* Event type dropdown */}
             <Select value={eventFilter} onValueChange={setEventFilter}>
               <SelectTrigger
-                className={`h-8 text-[12px] rounded-lg border gap-1.5 transition-all min-w-[140px] max-w-[175px] ${
+                className={`h-9 text-xs rounded-xl border gap-2 transition-all w-full ${
                   eventFilter !== 'ALL'
-                    ? 'border-indigo-500/40 bg-indigo-500/8 text-indigo-700 dark:text-indigo-300'
+                    ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold'
                     : 'border-border bg-background text-muted-foreground'
                 }`}
               >
@@ -618,12 +639,7 @@ export default function WebhookLogsPage() {
               <SelectContent className="text-xs">
                 {eventOptions.map((e) => (
                   <SelectItem key={e} value={e} className="text-xs font-mono">
-                    {e === 'ALL' ? (
-                      <span className="flex items-center gap-1.5 font-sans">
-                        <Zap className="h-3 w-3 text-muted-foreground" />
-                        All Event Types
-                      </span>
-                    ) : e}
+                    {e === 'ALL' ? 'All Event Types' : e}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -632,9 +648,9 @@ export default function WebhookLogsPage() {
             {/* Month dropdown */}
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger
-                className={`h-8 text-[12px] rounded-lg border gap-1.5 transition-all min-w-[140px] max-w-[170px] ${
+                className={`h-9 text-xs rounded-xl border gap-2 transition-all w-full ${
                   monthFilter !== 'ALL'
-                    ? 'border-violet-500/40 bg-violet-500/8 text-violet-700 dark:text-violet-300'
+                    ? 'border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 font-semibold'
                     : 'border-border bg-background text-muted-foreground'
                 }`}
               >
@@ -644,25 +660,46 @@ export default function WebhookLogsPage() {
               <SelectContent className="text-xs">
                 {monthOptions.map((m) => (
                   <SelectItem key={m} value={m} className="text-xs">
-                    {m === 'ALL' ? (
-                      <span className="flex items-center gap-1.5">
-                        <CalendarDays className="h-3 w-3 text-muted-foreground" />
-                        All Months
-                      </span>
-                    ) : formatMonthLabel(m)}
+                    {formatMonthLabel(m)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* Search — grows to fill remaining space */}
-            <div className="relative flex-1 min-w-[180px]">
+            {/* Weekday dropdown */}
+            <Select value={dayFilter} onValueChange={setDayFilter}>
+              <SelectTrigger
+                className={`h-9 text-xs rounded-xl border gap-2 transition-all w-full ${
+                  dayFilter !== 'ALL'
+                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold'
+                    : 'border-border bg-background text-muted-foreground'
+                }`}
+              >
+                <Calendar className={`h-3.5 w-3.5 shrink-0 ${dayFilter !== 'ALL' ? 'text-amber-500' : ''}`} />
+                <SelectValue placeholder="All Weekdays" />
+              </SelectTrigger>
+              <SelectContent className="text-xs">
+                <SelectItem value="ALL">All Weekdays</SelectItem>
+                <SelectItem value="WEEKDAY">Mon - Fri (Weekdays)</SelectItem>
+                <SelectItem value="WEEKEND">Sat - Sun (Weekends)</SelectItem>
+                <SelectItem value="MON">Monday</SelectItem>
+                <SelectItem value="TUE">Tuesday</SelectItem>
+                <SelectItem value="WED">Wednesday</SelectItem>
+                <SelectItem value="THU">Thursday</SelectItem>
+                <SelectItem value="FRI">Friday</SelectItem>
+                <SelectItem value="SAT">Saturday</SelectItem>
+                <SelectItem value="SUN">Sunday</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Search Input */}
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search invoice, customer, employee, store…"
+                placeholder="Search invoice, employee..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`pl-9 h-8 text-[12px] rounded-lg transition-all ${
+                className={`pl-9 h-9 text-xs rounded-xl transition-all ${
                   searchQuery
                     ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
                     : 'border-border bg-background'
@@ -671,23 +708,12 @@ export default function WebhookLogsPage() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
-
-            {/* Clear all pill */}
-            {activeFilterCount > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="flex items-center gap-1.5 px-3 py-1.5 h-8 rounded-lg text-[11px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors whitespace-nowrap shrink-0"
-              >
-                <X className="h-3 w-3" />
-                Clear {activeFilterCount}
-              </button>
-            )}
           </div>
 
           {/* Row 2 — Results summary ribbon */}
@@ -724,7 +750,16 @@ export default function WebhookLogsPage() {
                 <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
                   <CalendarDays className="h-2.5 w-2.5" />
                   {formatMonthLabel(monthFilter)}
-                  <button onClick={() => setMonthFilter('ALL')} className="ml-0.5 hover:text-violet-900 dark:hover:text-violet-100">
+                  <button onClick={() => setMonthFilter('ALL')} className="ml-0.5 hover:text-violet-900 dark:hover:text-violet-100 cursor-pointer">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+              {dayFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                  <Calendar className="h-2.5 w-2.5" />
+                  {dayFilter === 'WEEKDAY' ? 'Mon-Fri' : dayFilter === 'WEEKEND' ? 'Sat-Sun' : dayFilter}
+                  <button onClick={() => setDayFilter('ALL')} className="ml-0.5 hover:text-amber-900 dark:hover:text-amber-100 cursor-pointer">
                     <X className="h-2.5 w-2.5" />
                   </button>
                 </span>
