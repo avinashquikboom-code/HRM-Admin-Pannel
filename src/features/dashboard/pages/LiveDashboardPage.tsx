@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   Users, 
   Clock, 
@@ -136,9 +137,10 @@ export default function LiveDashboardPage() {
   const fetchLiveStats = useCallback(async (showRefreshingIndicator = false) => {
     if (showRefreshingIndicator) setIsRefreshing(true);
     try {
+      const ts = Date.now();
       const [statsRes, upcomingRes, hrStatsRes] = await Promise.allSettled([
-        api.get<{ success: boolean; stats: LiveStats }>('/api/admin/dashboard/live'),
-        api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves/upcoming'),
+        api.get<{ success: boolean; stats: LiveStats }>('/api/admin/dashboard/live', { params: { _t: ts } }),
+        api.get<{ success: boolean; leaves: any[] }>('/api/admin/leaves/upcoming', { params: { _t: ts } }),
         fetchHRStats()
       ]);
 
@@ -238,7 +240,10 @@ export default function LiveDashboardPage() {
           Export Excel Report
         </button>
         <button
-          onClick={() => fetchLiveStats(true)}
+          onClick={async () => {
+            await fetchLiveStats(true);
+            toast.success('Live dashboard refreshed');
+          }}
           disabled={isRefreshing}
           className="bg-surface hover:bg-surface-variant text-text-primary border border-border px-5 py-3 rounded-sm text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
         >

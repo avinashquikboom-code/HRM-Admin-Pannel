@@ -165,8 +165,12 @@ const NotificationsPage = () => {
             Mark all as read
           </button>
           <button 
-            onClick={loadNotifications}
-            className="p-2.5 bg-surface-variant text-muted hover:text-primary rounded-sm transition-colors"
+            onClick={async () => {
+              await loadNotifications();
+              showSuccessMessage('Notifications refreshed');
+            }}
+            disabled={isLoading}
+            className="p-2.5 bg-surface-variant text-muted hover:text-primary rounded-sm transition-colors cursor-pointer disabled:opacity-50"
             title="Refresh notifications"
           >
             <RefreshCw size={20} className={cn(isLoading && 'animate-spin')} />

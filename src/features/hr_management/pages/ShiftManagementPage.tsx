@@ -354,9 +354,13 @@ const ShiftManagementPage = () => {
         ]}
       >
         <button
-          onClick={() => loadShifts(true)}
+          onClick={async () => {
+            await Promise.all([loadShifts(true), loadShiftRequests()]);
+            toast.success('Shift schedules refreshed');
+          }}
           disabled={isRefreshing}
-          className="p-2 bg-surface-variant hover:bg-surface-variant/80 border border-border rounded-sm transition-all mr-2"
+          className="p-2 bg-surface-variant hover:bg-surface-variant/80 border border-border rounded-sm transition-all mr-2 cursor-pointer"
+          title="Refresh Shift Configurations"
         >
           <RefreshCw className={cn("w-5 h-5 text-text-primary", isRefreshing && "animate-spin")} />
         </button>

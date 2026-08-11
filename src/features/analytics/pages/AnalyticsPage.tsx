@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import TableSkeleton from '@/components/TableSkeleton';
 
@@ -151,6 +152,18 @@ const AnalyticsPage = () => {
           { label: 'Growth Rate', value: '+12.5%', icon: Activity }
         ]}
       >
+        <Button 
+          onClick={async () => {
+            await loadAnalyticsData();
+            toast.success('Analytics intelligence refreshed');
+          }}
+          variant="outline"
+          disabled={isLoading}
+          className="shadow-xl px-4 py-4 shrink-0 text-xs font-black uppercase tracking-wider cursor-pointer mr-3"
+        >
+          <RefreshCw size={18} className={cn("mr-2", isLoading && "animate-spin")} />
+          Refresh
+        </Button>
         <Button className="shadow-xl shadow-primary/20 hover:shadow-primary/30 px-6.5 py-4 shrink-0 text-xs font-black uppercase tracking-wider">
           <Download size={18} className="mr-2" />
           Export Data

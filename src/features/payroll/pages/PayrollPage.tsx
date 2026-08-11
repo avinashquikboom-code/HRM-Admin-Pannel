@@ -23,7 +23,8 @@ import {
   ShieldCheck,
   Plus,
   Zap,
-  Receipt
+  Receipt,
+  RefreshCw
 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -515,6 +516,19 @@ const PayrollPage = () => {
               Strategic oversight of fund flows, salary slips generation, bulk disbursement, and salary advance EMI management.
             </p>
             <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button 
+                type="button"
+                onClick={() => {
+                  toast.info('Refreshing payroll records...');
+                  window.location.reload();
+                }}
+                disabled={isLoading}
+                className="btn-secondary group relative overflow-hidden px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2 transition-all duration-300 active:scale-95 border border-border/60 cursor-pointer"
+                title="Refresh Payroll Data"
+              >
+                <RefreshCw size={15} className={cn(isLoading && "animate-spin")} />
+                <span>Refresh</span>
+              </button>
               <button 
                 onClick={() => setIsProcessModalOpen(true)}
                 className="btn-primary group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-primary/40 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95"

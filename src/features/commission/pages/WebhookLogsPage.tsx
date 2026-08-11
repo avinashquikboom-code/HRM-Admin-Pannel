@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import { api } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -326,19 +327,18 @@ export default function WebhookLogsPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/webhook/stats');
-      if (res.ok) setStats((await res.json()).data);
+      const res = await api.get('/api/webhook/stats', { params: { _t: Date.now() } });
+      if (res.data?.data) setStats(res.data.data);
     } catch (e) { console.error(e); }
   };
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const url = statusFilter === 'ALL'
-        ? '/api/webhook/logs'
-        : `/api/webhook/logs?status=${statusFilter}`;
-      const res = await fetch(url);
-      if (res.ok) setLogs((await res.json()).data || []);
+      const params: any = { _t: Date.now() };
+      if (statusFilter !== 'ALL') params.status = statusFilter;
+      const res = await api.get('/api/webhook/logs', { params });
+      if (res.data?.data) setLogs(res.data.data || []);
     } catch (_e) {
       toast.error('Failed to load webhook logs');
     } finally {
@@ -463,9 +463,12 @@ export default function WebhookLogsPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => { fetchStats(); fetchLogs(); toast.info('Refreshing…'); }}
+          onClick={async () => {
+            await Promise.all([fetchStats(), fetchLogs()]);
+            toast.success('Webhook logs refreshed');
+          }}
           disabled={loading}
-          className="flex items-center gap-2 shadow-xs shrink-0"
+          className="flex items-center gap-2 shadow-xs shrink-0 cursor-pointer"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
           Refresh

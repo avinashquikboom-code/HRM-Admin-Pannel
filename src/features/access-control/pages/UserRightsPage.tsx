@@ -327,8 +327,12 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
           </div>
           <button
             type="button"
-            onClick={() => refetchUsers()}
-            className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all active:scale-95 self-end sm:self-auto cursor-pointer"
+            onClick={async () => {
+              await refetchUsers();
+              toast.success('Users & permissions directory refreshed');
+            }}
+            disabled={isUsersLoading}
+            className="p-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-sm border border-white/5 transition-all active:scale-95 self-end sm:self-auto cursor-pointer disabled:opacity-50"
             title="Refresh users & employees directory"
           >
             <RefreshCw size={16} className={cn(isUsersLoading && 'animate-spin')} />

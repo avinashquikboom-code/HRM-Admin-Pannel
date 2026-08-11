@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   Users, 
   UserCheck, 
@@ -173,9 +174,10 @@ const HRManagementPage = () => {
     loadData();
   }, [loadData]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshTrigger((prev) => prev + 1);
-    loadData(true);
+    await loadData(true);
+    toast.success('Operational pulse data refreshed');
   };
 
 

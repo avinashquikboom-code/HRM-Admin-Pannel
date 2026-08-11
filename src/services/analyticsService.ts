@@ -25,7 +25,7 @@ export interface AnalyticsResponse {
 
 export async function fetchAnalyticsOverview(): Promise<AnalyticsResponse> {
   try {
-    const { data } = await api.get<AnalyticsResponse>('/api/admin/analytics/overview');
+    const { data } = await api.get<AnalyticsResponse>('/api/admin/analytics/overview', { params: { _t: Date.now() } });
     return data;
   } catch (error) {
     throw new Error(

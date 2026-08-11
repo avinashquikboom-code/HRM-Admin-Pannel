@@ -68,6 +68,13 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  // Attach cache-busting headers if _t or noCache parameter is passed
+  if (config.params?._t || config.params?.noCache || config.headers?.['Cache-Control']) {
+    config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    config.headers['Pragma'] = 'no-cache';
+    config.headers['Expires'] = '0';
+  }
+
   logApiRequest(config);
   return config;
 });

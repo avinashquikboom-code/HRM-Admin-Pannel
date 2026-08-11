@@ -18,7 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -353,6 +354,19 @@ const AttendancePage = () => {
           { label: 'Absent', value: absentCount.toString(), icon: XCircle }
         ]}
       >
+        <button
+            type="button"
+            onClick={async () => {
+              await refetch();
+              toast.success('Attendance data refreshed');
+            }}
+            disabled={isLoading}
+            className="p-4 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary hover:text-text-primary rounded-sm border border-border transition-all active:scale-95 cursor-pointer flex items-center gap-2 text-xs font-bold mr-3"
+            title="Refresh Attendance Data"
+          >
+            <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         <button 
             onClick={() => handleDownloadAttendanceReport()}
             className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/30 px-6.5 py-4 shrink-0 rounded-sm text-xs font-black uppercase tracking-wider justify-center transition-all duration-300 mr-3"

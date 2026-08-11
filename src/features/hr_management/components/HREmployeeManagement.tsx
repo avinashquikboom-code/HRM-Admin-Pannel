@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import LinkEmployeeToOfficeModal from './LinkEmployeeToOfficeModal';
 import { 
@@ -502,9 +503,13 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
           ))}
         </select>
         <button
-          onClick={() => loadEmployees(true)}
+          onClick={async () => {
+            await loadEmployees(true);
+            toast.success('HR Employee registry refreshed');
+          }}
           disabled={isRefreshing}
-          className="p-2.5 bg-surface-variant/50 hover:bg-surface-variant/80 text-text-secondary hover:text-primary rounded-sm border border-border/50 transition-all duration-300 active:scale-95 disabled:opacity-50"
+          className="p-2.5 bg-surface-variant/50 hover:bg-surface-variant/80 text-text-secondary hover:text-primary rounded-sm border border-border/50 transition-all duration-300 active:scale-95 disabled:opacity-50 cursor-pointer"
+          title="Refresh Employee List"
         >
           <RefreshCw size={14} className={cn(isRefreshing && "animate-spin")} />
         </button>

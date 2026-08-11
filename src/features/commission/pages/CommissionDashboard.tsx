@@ -181,7 +181,7 @@ export default function CommissionDashboard() {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const params: any = {};
+      const params: any = { _t: Date.now() };
       if (selectedStore) params.storeId = selectedStore;
       
       if (dateRange === 'today') {
@@ -341,9 +341,22 @@ export default function CommissionDashboard() {
           <span>Export CSV Report</span>
         </button>
         <button
+          onClick={async () => {
+            await loadDashboardData();
+            toast.success('Commission data refreshed');
+          }}
+          disabled={isLoading}
+          className="btn-secondary group relative overflow-hidden px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed border border-border/60 cursor-pointer"
+        >
+          <span className="p-1 rounded-lg bg-muted/60 group-hover:rotate-180 transition-transform duration-500">
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+          </span>
+          <span>Refresh Data</span>
+        </button>
+        <button
           onClick={handleSyncSales}
           disabled={isSyncing}
-          className="btn-secondary group relative overflow-hidden px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed border border-border/60"
+          className="btn-secondary group relative overflow-hidden px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed border border-border/60 cursor-pointer"
         >
           <span className="p-1 rounded-lg bg-muted/60 group-hover:rotate-180 transition-transform duration-500">
             <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />

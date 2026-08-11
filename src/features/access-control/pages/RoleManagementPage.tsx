@@ -46,11 +46,12 @@ export default function RoleManagementPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
 
-  const fetchRolesData = async () => {
+  const fetchRolesData = async (showToast = false) => {
     try {
       setIsLoading(true);
       const data = await fetchRoles();
       setRoles(data);
+      if (showToast) toast.success('Role definitions refreshed');
     } catch (error) {
       toast.error('Failed to fetch roles');
     } finally {
@@ -151,9 +152,10 @@ export default function RoleManagementPage() {
               />
             </div>
             <button
-              onClick={fetchRolesData}
+              onClick={() => fetchRolesData(true)}
               disabled={isLoading}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+              title="Refresh roles"
             >
               <RefreshCw className={cn('w-5 h-5', isLoading && 'animate-spin')} />
             </button>

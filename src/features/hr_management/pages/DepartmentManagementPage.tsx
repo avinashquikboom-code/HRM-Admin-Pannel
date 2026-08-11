@@ -101,8 +101,9 @@ const DepartmentManagementPage = () => {
     loadDepartments();
   }, [loadDepartments]);
 
-  const handleRefresh = () => {
-    loadDepartments(true);
+  const handleRefresh = async () => {
+    await loadDepartments(true);
+    toast.success('Departments list refreshed');
   };
 
   const handleCreate = async (e: React.FormEvent) => {

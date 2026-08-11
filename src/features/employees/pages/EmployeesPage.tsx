@@ -214,6 +214,19 @@ const EmployeesPage = () => {
         <button
             type="button"
             onClick={async () => {
+              await refetch();
+              toast.success('Employee list refreshed');
+            }}
+            disabled={isLoading}
+            className="p-4 bg-surface-variant hover:bg-surface-variant/80 text-text-secondary hover:text-text-primary rounded-sm border border-border transition-all active:scale-95 cursor-pointer flex items-center gap-2 text-xs font-bold"
+            title="Refresh Employee Directory"
+          >
+            <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
+            <span className="hidden sm:inline">Refresh Data</span>
+          </button>
+        <button
+            type="button"
+            onClick={async () => {
               toast.info('Triggering HopKid employee sync...');
               await triggerEmployeeSyncApi();
               toast.success('HopKid sync started in background');

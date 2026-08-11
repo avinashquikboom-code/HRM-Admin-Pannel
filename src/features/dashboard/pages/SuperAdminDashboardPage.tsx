@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { toast } from 'sonner';
 import {
   Building2,
   CreditCard,
@@ -149,9 +150,12 @@ export default function SuperAdminDashboardPage() {
           }))}
         >
           <button 
-            onClick={refetch}
+            onClick={async () => {
+              await refetch();
+              toast.success('Super admin dashboard refreshed');
+            }}
             disabled={isLoading}
-            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95 disabled:opacity-60"
+            className="flex items-center gap-2.5 px-5 py-3 bg-surface/80 hover:bg-surface border border-border rounded-sm text-sm font-bold text-text-secondary hover:text-primary transition-all duration-300 hover:shadow-md active:scale-95 disabled:opacity-60 cursor-pointer"
           >
             <RefreshCw size={18} className={cn(isLoading && 'animate-spin')} />
             Refresh

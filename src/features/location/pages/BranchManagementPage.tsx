@@ -68,11 +68,12 @@ export default function BranchManagementPage() {
   });
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  const fetchBranchesData = async () => {
+  const fetchBranchesData = async (showToast = false) => {
     try {
       setIsLoading(true);
       const data = await fetchBranches();
       setBranches(data);
+      if (showToast) toast.success('Branch directory refreshed');
     } catch (error) {
       toast.error('Failed to fetch branches');
     } finally {
@@ -299,9 +300,10 @@ export default function BranchManagementPage() {
               />
             </div>
             <button
-              onClick={fetchBranchesData}
+              onClick={() => fetchBranchesData(true)}
               disabled={isLoading}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+              title="Refresh branches"
             >
               <RefreshCw className={cn('w-5 h-5', isLoading && 'animate-spin')} />
             </button>

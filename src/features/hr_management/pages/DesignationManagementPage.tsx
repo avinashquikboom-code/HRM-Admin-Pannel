@@ -213,9 +213,13 @@ const DesignationManagementPage = () => {
         ]}
       >
         <button
-          onClick={() => loadDesignations(true)}
+          onClick={async () => {
+            await loadDesignations(true);
+            toast.success('Designations list refreshed');
+          }}
           disabled={isRefreshing}
-          className="p-2 bg-surface-variant hover:bg-surface-variant/80 border border-border rounded-sm transition-all mr-2"
+          className="p-2 bg-surface-variant hover:bg-surface-variant/80 border border-border rounded-sm transition-all mr-2 cursor-pointer"
+          title="Refresh Designations"
         >
           <RefreshCw className={cn("w-5 h-5 text-text-primary", isRefreshing && "animate-spin")} />
         </button>

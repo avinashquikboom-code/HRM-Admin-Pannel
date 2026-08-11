@@ -402,9 +402,13 @@ export default function ExpenseClaimsTab({ onDataLoaded }: ExpenseClaimsTabProps
           </select>
 
           <button
-            onClick={fetchExpenses}
+            onClick={async () => {
+              await fetchExpenses();
+              toast.success('Expense claims refreshed');
+            }}
+            disabled={loading}
             title="Refresh expense list"
-            className="p-2.5 rounded-xl border border-border/60 dark:border-white/10 bg-surface/60 dark:bg-slate-950/60 text-text-secondary hover:text-text-primary hover:bg-surface transition-all"
+            className="p-2.5 rounded-xl border border-border/60 dark:border-white/10 bg-surface/60 dark:bg-slate-950/60 text-text-secondary hover:text-text-primary hover:bg-surface transition-all cursor-pointer disabled:opacity-50"
           >
             <RefreshCw size={15} className={loading ? "animate-spin text-primary" : ""} />
           </button>

@@ -29,7 +29,8 @@ interface CompanyStatsResponse {
 export async function fetchCompanyStats(): Promise<CompanyStats> {
   try {
     const { data } = await api.get<CompanyStatsResponse>(
-      '/api/admin/companies/stats'
+      '/api/admin/companies/stats',
+      { params: { _t: Date.now() } }
     );
 
     return {
