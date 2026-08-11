@@ -58,6 +58,7 @@ import {
   Timer,
   Braces,
   LayoutList,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -319,6 +320,7 @@ export default function WebhookLogsPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [storeFilter, setStoreFilter] = useState('ALL');
   const [eventFilter, setEventFilter] = useState('ALL');
+  const [exchangeFilter, setExchangeFilter] = useState('ALL');
   const [monthFilter, setMonthFilter] = useState('ALL');
   const [dayFilter, setDayFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -328,7 +330,7 @@ export default function WebhookLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
 
-  useEffect(() => { setCurrentPage(1); }, [statusFilter, storeFilter, eventFilter, monthFilter, dayFilter, searchQuery]);
+  useEffect(() => { setCurrentPage(1); }, [statusFilter, storeFilter, eventFilter, exchangeFilter, monthFilter, dayFilter, searchQuery]);
 
   useEffect(() => {
     fetchStats();
@@ -388,6 +390,20 @@ export default function WebhookLogsPage() {
     return logs.filter((log) => {
       if (storeFilter !== 'ALL' && log.storeName !== storeFilter) return false;
       if (eventFilter !== 'ALL' && log.eventType !== eventFilter) return false;
+      if (exchangeFilter !== 'ALL') {
+        const isEx =
+          String(log.eventType || '').toLowerCase().includes('exchange') ||
+          (log.payload && typeof log.payload === 'object' && (
+            !!log.payload.isExchange ||
+            !!log.payload.ExchangeInvoiceNo ||
+            !!log.payload.SalesExchangeProductList ||
+            !!log.payload.exchangeAmount ||
+            !!log.payload.returnAmount ||
+            JSON.stringify(log.payload).toLowerCase().includes('exchange')
+          ));
+        if (exchangeFilter === 'EXCHANGE' && !isEx) return false;
+        if (exchangeFilter === 'SALE' && isEx) return false;
+      }
       if (monthFilter !== 'ALL') {
         const d = new Date(log.createdAt);
         const key = isNaN(d.getTime())
@@ -426,7 +442,7 @@ export default function WebhookLogsPage() {
       }
       return true;
     });
-  }, [logs, storeFilter, eventFilter, monthFilter, dayFilter, searchQuery]);
+  }, [logs, storeFilter, eventFilter, exchangeFilter, monthFilter, dayFilter, searchQuery]);
 
   const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
   const paginatedLogs = useMemo(
@@ -437,6 +453,7 @@ export default function WebhookLogsPage() {
   const activeFilterCount = [
     storeFilter !== 'ALL',
     eventFilter !== 'ALL',
+    exchangeFilter !== 'ALL',
     monthFilter !== 'ALL',
     dayFilter !== 'ALL',
     searchQuery.trim() !== '',
@@ -445,6 +462,7 @@ export default function WebhookLogsPage() {
   const clearAllFilters = () => {
     setStoreFilter('ALL');
     setEventFilter('ALL');
+    setExchangeFilter('ALL');
     setMonthFilter('ALL');
     setDayFilter('ALL');
     setSearchQuery('');
@@ -468,16 +486,21 @@ export default function WebhookLogsPage() {
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10 px-1">
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-500/5 via-background to-violet-500/5 p-6 rounded-2xl border shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-            <Webhook className="h-5 w-5 text-indigo-500" />
+      {/* Page Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/60 dark:border-white/10 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-2xl p-6 md:p-7 shadow-lg dark:shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all duration-300">
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -left-12 w-80 h-80 bg-emerald-500/10 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 shadow-inner">
+            <Webhook className="h-6 w-6 text-primary" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-foreground">HopKid Webhook Logs</h1>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:text-emerald-400">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl md:text-2xl font-black text-text-primary tracking-tight">
+                HopKid Webhook Logs
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:text-emerald-400">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -485,24 +508,26 @@ export default function WebhookLogsPage() {
                 Live
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-text-secondary font-medium">
               Real-time POS sales events &amp; automated commission stream
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={async () => {
-            await Promise.all([fetchStats(), fetchLogs()]);
-            toast.success('Webhook logs refreshed');
-          }}
-          disabled={loading}
-          className="flex items-center gap-2 shadow-xs shrink-0 cursor-pointer"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
-          Refresh
-        </Button>
+
+        <div className="relative z-10 shrink-0">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await Promise.all([fetchStats(), fetchLogs()]);
+              toast.success('Webhook logs refreshed');
+            }}
+            disabled={loading}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl border border-border/80 bg-background hover:bg-muted text-xs font-bold shadow-xs cursor-pointer transition-all active:scale-95"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -615,7 +640,7 @@ export default function WebhookLogsPage() {
           </div>
 
           {/* Row 2: Dropdowns & Search Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 items-center">
             {/* Store dropdown */}
             <Select value={storeFilter} onValueChange={setStoreFilter}>
               <SelectTrigger
@@ -655,6 +680,25 @@ export default function WebhookLogsPage() {
                     {e === 'ALL' ? 'All Event Types' : e}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            {/* Exchange / Transaction Type dropdown */}
+            <Select value={exchangeFilter} onValueChange={setExchangeFilter}>
+              <SelectTrigger
+                className={`h-9 text-xs rounded-xl border gap-2 transition-all w-full ${
+                  exchangeFilter !== 'ALL'
+                    ? 'border-primary/40 bg-primary/10 text-primary font-bold shadow-xs'
+                    : 'border-border bg-background text-muted-foreground'
+                }`}
+              >
+                <ArrowLeftRight className={`h-3.5 w-3.5 shrink-0 ${exchangeFilter !== 'ALL' ? 'text-primary' : ''}`} />
+                <SelectValue placeholder="All Sales & Exchanges" />
+              </SelectTrigger>
+              <SelectContent className="text-xs">
+                <SelectItem value="ALL">All Sales & Exchanges</SelectItem>
+                <SelectItem value="SALE">Standard Sales Only</SelectItem>
+                <SelectItem value="EXCHANGE">Exchanges Only</SelectItem>
               </SelectContent>
             </Select>
 
@@ -755,6 +799,15 @@ export default function WebhookLogsPage() {
                   <Zap className="h-2.5 w-2.5" />
                   {eventFilter}
                   <button onClick={() => setEventFilter('ALL')} className="ml-0.5 hover:text-indigo-900 dark:hover:text-indigo-100">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+              {exchangeFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                  <ArrowLeftRight className="h-2.5 w-2.5" />
+                  {exchangeFilter === 'EXCHANGE' ? 'Exchanges Only' : 'Standard Sales Only'}
+                  <button onClick={() => setExchangeFilter('ALL')} className="ml-0.5 hover:opacity-70 cursor-pointer">
                     <X className="h-2.5 w-2.5" />
                   </button>
                 </span>
