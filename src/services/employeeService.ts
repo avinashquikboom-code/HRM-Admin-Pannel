@@ -57,6 +57,30 @@ export interface AdminEmployee {
   department: AdminEmployeeDepartment | null;
   shift: AdminEmployeeShift | null;
   commissionPercentage?: number;
+  basicSalary?: number;
+  grossSalary?: number;
+  hra?: number;
+  medicalAllowance?: number;
+  travelAllowance?: number;
+  specialAllowance?: number;
+  incentive?: number;
+  bonus?: number;
+  advanceLimit?: number;
+  salaryStructure?: {
+    id?: number;
+    basicSalary?: number;
+    grossSalary?: number;
+    monthlySalary?: number;
+    hra?: number;
+    medicalAllowance?: number;
+    travelAllowance?: number;
+    specialAllowance?: number;
+    incentive?: number;
+    bonus?: number;
+    salaryAdvanceLimit?: number;
+    pfEnabled?: boolean;
+    esicEnabled?: boolean;
+  } | null;
 }
 
 export interface EmployeesResponse {
@@ -250,21 +274,7 @@ export async function resetEmployeePassword(
 
 export async function updateEmployee(
   employeeId: number | string,
-  employeeData: {
-    firstName?: string;
-    lastName?: string;
-    designation?: string;
-    designationId?: string | number;
-    status?: string;
-    officeId?: string;
-    storeId?: string | number;
-    branchId?: string | number;
-    departmentId?: string;
-    shiftId?: string;
-    workMode?: string;
-    shiftType?: string;
-    commissionPercentage?: number;
-  }
+  employeeData: Record<string, any>
 ): Promise<{ message: string; employee: any }> {
   try {
     const { data } = await api.put<{ message: string; employee: any }>(

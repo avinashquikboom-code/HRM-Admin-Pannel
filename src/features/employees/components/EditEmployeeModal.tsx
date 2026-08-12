@@ -107,14 +107,14 @@ export default function EditEmployeeModal({
         accountType: employee.accountType || 'Savings',
         branchName: employee.branchName || '',
         basicSalary: employee.basicSalary || employee.salaryStructure?.basicSalary || 0,
-        grossSalary: employee.grossSalary || employee.salaryStructure?.grossSalary || (employee.basicSalary ? employee.basicSalary : 0),
-        hra: employee.hra || 0,
-        medicalAllowance: employee.medicalAllowance || 0,
-        travelAllowance: employee.travelAllowance || 0,
-        specialAllowance: employee.specialAllowance || 0,
-        incentive: employee.incentive || 0,
-        bonus: employee.bonus || 0,
-        advanceLimit: employee.wallet?.advanceLimit ?? 25000,
+        grossSalary: employee.grossSalary || employee.salaryStructure?.grossSalary || 0,
+        hra: employee.hra || employee.salaryStructure?.hra || 0,
+        medicalAllowance: employee.medicalAllowance || employee.salaryStructure?.medicalAllowance || 0,
+        travelAllowance: employee.travelAllowance || employee.salaryStructure?.travelAllowance || 0,
+        specialAllowance: employee.specialAllowance || employee.salaryStructure?.specialAllowance || 0,
+        incentive: employee.incentive || employee.salaryStructure?.incentive || 0,
+        bonus: employee.bonus || employee.salaryStructure?.bonus || 0,
+        advanceLimit: employee.advanceLimit || employee.wallet?.advanceLimit || employee.salaryStructure?.salaryAdvanceLimit || 25000,
       });
       setError('');
       loadDropdownData();
@@ -160,8 +160,8 @@ export default function EditEmployeeModal({
         const raw = designationsRes.value as any;
         const list = Array.isArray(raw)
           ? raw
-          : Array.isArray(raw?.data)
-          ? raw.data
+          : Array.isArray(raw?.designations)
+          ? raw.designations
           : [];
         setDesignations(list);
       }
@@ -169,8 +169,8 @@ export default function EditEmployeeModal({
       if (workModesRes.status === 'fulfilled') {
         setWorkModesList((workModesRes.value as WorkMode[]) || []);
       }
-    } catch (err) {
-      console.error('Failed to load dropdown data:', err);
+    } catch (e) {
+      console.warn('Failed loading dropdown data:', e);
     } finally {
       setIsLoadingData(false);
     }
@@ -183,7 +183,7 @@ export default function EditEmployeeModal({
     setIsSubmitting(true);
 
     try {
-      await updateEmployee(employee.id, {
+      const payload = {
         firstName: form.firstName,
         lastName: form.lastName,
         designationId: form.designationId || undefined,
@@ -206,16 +206,26 @@ export default function EditEmployeeModal({
         ifscCode: form.ifscCode || undefined,
         accountType: form.accountType || undefined,
         branchName: form.branchName || undefined,
-        basicSalary: form.basicSalary || 0,
-        grossSalary: form.grossSalary || 0,
-        hra: form.hra || 0,
-        medicalAllowance: form.medicalAllowance || 0,
-        travelAllowance: form.travelAllowance || 0,
-        specialAllowance: form.specialAllowance || 0,
-        incentive: form.incentive || 0,
-        bonus: form.bonus || 0,
-        advanceLimit: form.advanceLimit || 0,
-      } as any);
+        salaryStructure: {
+          basicSalary: form.basicSalary || 0,
+          grossSalary: form.grossSalary || 0,
+          hra: form.hra || 0,
+          medicalAllowance: form.medicalAllowance || 0,
+          travelAllowance: form.travelAllowance || 0,
+          specialAllowance: form.specialAllowance || 0,
+          incentive: form.incentive || 0,
+          bonus: form.bonus || 0,
+          salaryAdvanceLimit: form.advanceLimit || 25000,
+        },
+      };
+
+      console.log('[EditEmployeeModal] Form State:', form);
+      console.log('[EditEmployeeModal] Submitting payload:', payload);
+
+      const res = await updateEmployee(employee.id, payload as any);
+
+      console.log('[EditEmployeeModal] API Response:', res);
+
       toast.success('Employee updated successfully!');
       onUpdated();
       onClose();
