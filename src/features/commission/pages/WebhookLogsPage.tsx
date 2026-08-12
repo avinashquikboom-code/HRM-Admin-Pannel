@@ -387,8 +387,22 @@ export default function WebhookLogsPage() {
   }, [logs]);
 
   const eventOptions = useMemo(() => {
-    const types = logs.map((l) => l.eventType).filter((t): t is string => !!t);
-    return ['ALL', ...Array.from(new Set(types)).sort()];
+    const STANDARD_TYPES = [
+      'INVOICE_CREATED',
+      'INVOICE_UPDATED',
+      'CREDIT_NOTE_CREATED',
+      'CREDIT_NOTE_UPDATED',
+      'SALES_EXCHANGE_CREATED',
+      'SALES_EXCHANGE_UPDATED',
+      'EMPLOYEE_CREATED',
+      'EMPLOYEE_UPDATED',
+      'EMPLOYEE_DELETED',
+    ];
+    const logTypes = logs
+      .map((l) => (l.eventType ? String(l.eventType).toUpperCase().replace(/[\.\-]/g, '_') : ''))
+      .filter((t): t is string => !!t);
+    const combined = Array.from(new Set([...STANDARD_TYPES, ...logTypes]));
+    return ['ALL', ...combined];
   }, [logs]);
 
   // Month options derived from log timestamps — sorted newest first
@@ -412,7 +426,11 @@ export default function WebhookLogsPage() {
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       if (storeFilter !== 'ALL' && log.storeName !== storeFilter) return false;
-      if (eventFilter !== 'ALL' && log.eventType !== eventFilter) return false;
+      if (eventFilter !== 'ALL') {
+        const normFilter = eventFilter.toUpperCase().replace(/[\.\-]/g, '_');
+        const normLogType = String(log.eventType || '').toUpperCase().replace(/[\.\-]/g, '_');
+        if (normLogType !== normFilter) return false;
+      }
       if (exchangeFilter !== 'ALL') {
         const isEx =
           String(log.eventType || '').toLowerCase().includes('exchange') ||
@@ -627,12 +645,14 @@ export default function WebhookLogsPage() {
                 }`}
               >
                 <Zap className={`h-3.5 w-3.5 shrink-0 ${eventFilter !== 'ALL' ? 'text-primary' : ''}`} />
-                <SelectValue placeholder="All Event Types" />
+                <SelectValue placeholder="All Event Types">
+                  {eventFilter === 'ALL' ? 'All Event Types' : formatEventType(eventFilter)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="text-xs">
                 {eventOptions.map((e) => (
-                  <SelectItem key={e} value={e} className="text-xs font-mono">
-                    {e === 'ALL' ? 'All Event Types' : e}
+                  <SelectItem key={e} value={e} className="text-xs font-medium">
+                    {e === 'ALL' ? 'All Event Types' : formatEventType(e)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -752,7 +772,7 @@ export default function WebhookLogsPage() {
               {eventFilter !== 'ALL' && (
                 <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-mono">
                   <Zap className="h-2.5 w-2.5" />
-                  {eventFilter}
+                  {formatEventType(eventFilter)}
                   <button onClick={() => setEventFilter('ALL')} className="ml-0.5 hover:text-indigo-900 dark:hover:text-indigo-100">
                     <X className="h-2.5 w-2.5" />
                   </button>
