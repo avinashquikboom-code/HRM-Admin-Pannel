@@ -20,6 +20,12 @@ import {
   Image as ImageIcon,
   RotateCcw,
   MessageSquare,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Download,
+  X,
+  ChevronLeft,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -92,7 +98,8 @@ function resolvePhotoSrc(src: string): string {
     return trimmed;
   }
   if (trimmed.startsWith('/')) {
-    return `https://api.voxiqai.com${trimmed}`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.voxiqai.com';
+    return `${baseUrl}${trimmed}`;
   }
   if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0') || (trimmed.length > 100 && !trimmed.includes(' '))) {
     return `data:image/jpeg;base64,${trimmed}`;
@@ -146,6 +153,56 @@ const TaskDetailPage = ({ taskId }: Props) => {
   const [savingStatus, setSavingStatus] = useState(false);
   const [statusComment, setStatusComment] = useState('');
   const [showCommentFor, setShowCommentFor] = useState<HrTaskStatus | null>(null);
+
+  // ── Lightbox state & handlers
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [rotationAngle, setRotationAngle] = useState(0);
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setZoomLevel(1);
+    setRotationAngle(0);
+  };
+
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+    setZoomLevel(1);
+    setRotationAngle(0);
+  };
+
+  const handleDownloadPhoto = async (url: string, index: number) => {
+    try {
+      const resolved = resolvePhotoSrc(url);
+      let blob: Blob;
+      if (resolved.startsWith('data:image')) {
+        const parts = resolved.split(',');
+        const mimeMatch = parts[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const bstr = atob(parts[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        blob = new Blob([u8arr], { type: mime });
+      } else {
+        const res = await fetch(resolved);
+        blob = await res.blob();
+      }
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `task-proof-photo-${index + 1}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      toast.success('Photo downloaded');
+    } catch {
+      toast.error('Failed to download photo');
+    }
+  };
 
   // ── Employee directory
   const { employees } = useEmployees({ limit: 2000 });
@@ -416,20 +473,21 @@ const TaskDetailPage = ({ taskId }: Props) => {
                           {parsedPhotoUrls.map((url, idx) => {
                             const resolvedSrc = resolvePhotoSrc(url);
                             return (
-                              <div key={idx} className="relative group rounded-2xl overflow-hidden border border-primary/20 bg-surface-variant shadow-sm">
+                              <div
+                                key={idx}
+                                onClick={() => openLightbox(idx)}
+                                className="relative group rounded-2xl overflow-hidden border border-primary/20 bg-surface-variant shadow-sm cursor-pointer"
+                              >
                                 <img
                                   src={resolvedSrc}
                                   alt={`Task Proof ${idx + 1}`}
                                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
-                                <a
-                                  href={resolvedSrc}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-md text-text-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1 hover:bg-background transition-colors"
-                                >
-                                  <ImageIcon size={13} /> View Full Photo
-                                </a>
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <span className="bg-background/90 backdrop-blur-md text-text-primary px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                                    <ImageIcon size={14} /> View Full Photo
+                                  </span>
+                                </div>
                               </div>
                             );
                           })}
@@ -646,6 +704,99 @@ const TaskDetailPage = ({ taskId }: Props) => {
           </motion.div>
         </div>
       </div>
+
+      {/* ── Photo Lightbox Modal ── */}
+      {lightboxIndex !== null && parsedPhotoUrls[lightboxIndex] && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-lg p-4 sm:p-6 animate-fadeIn">
+          {/* Controls Bar */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-50">
+            <div className="flex items-center gap-2 text-white/80 text-xs font-bold bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+              <Camera size={14} />
+              <span>Photo {lightboxIndex + 1} of {parsedPhotoUrls.length}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setZoomLevel((z) => Math.max(0.5, z - 0.25))}
+                className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10"
+                title="Zoom Out"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <span className="text-white/80 text-xs font-bold min-w-[40px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <button
+                onClick={() => setZoomLevel((z) => Math.min(3, z + 0.25))}
+                className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10"
+                title="Zoom In"
+              >
+                <ZoomIn size={16} />
+              </button>
+              <button
+                onClick={() => setRotationAngle((r) => (r + 90) % 360)}
+                className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10 ml-2"
+                title="Rotate 90°"
+              >
+                <RotateCw size={16} />
+              </button>
+              <button
+                onClick={() => handleDownloadPhoto(parsedPhotoUrls[lightboxIndex], lightboxIndex)}
+                className="px-3 py-2 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary/80 transition-colors flex items-center gap-1.5 ml-2 shadow-lg"
+                title="Download Photo"
+              >
+                <Download size={14} /> Download
+              </button>
+              <button
+                onClick={closeLightbox}
+                className="p-2 rounded-xl bg-white/20 text-white hover:bg-white/30 transition-colors ml-4 border border-white/20"
+                title="Close (Esc)"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Left / Right Nav Arrows */}
+          {parsedPhotoUrls.length > 1 && (
+            <>
+              <button
+                onClick={() => {
+                  setLightboxIndex((prev) => (prev === null || prev === 0 ? parsedPhotoUrls.length - 1 : prev - 1));
+                  setZoomLevel(1);
+                  setRotationAngle(0);
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10 z-40"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={() => {
+                  setLightboxIndex((prev) => (prev === null || prev === parsedPhotoUrls.length - 1 ? 0 : prev + 1));
+                  setZoomLevel(1);
+                  setRotationAngle(0);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10 z-40"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </>
+          )}
+
+          {/* Main Full Image View */}
+          <div className="max-w-5xl max-h-[85vh] overflow-auto flex items-center justify-center p-4">
+            <img
+              src={resolvePhotoSrc(parsedPhotoUrls[lightboxIndex])}
+              alt={`Full Task Proof ${lightboxIndex + 1}`}
+              style={{
+                transform: `scale(${zoomLevel}) rotate(${rotationAngle}deg)`,
+                transition: 'transform 0.2s ease-out',
+              }}
+              className="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl select-none"
+            />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
