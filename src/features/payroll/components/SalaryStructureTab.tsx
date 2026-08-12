@@ -127,11 +127,17 @@ export default function SalaryStructureTab() {
         esicEnabled: formData.esicEnabled,
       };
 
+      console.log('Frontend Form Values:', formData);
+      console.log('Frontend API Payload:', payload);
+      console.log('Calculated Gross Total:', calculatedGrossTotal);
+
       const targetId = selectedStructure.employeeId || selectedStructure.id;
       const res = await api.patch<{ success: boolean; message: string; structure?: any }>(
         `/api/salary/structure/${targetId}`,
         payload
       );
+
+      console.log('Frontend API Response:', res.data);
 
       if (res.data.success) {
         toast.success(res.data.message || 'Salary structure updated successfully!');
