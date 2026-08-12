@@ -76,12 +76,18 @@ export default function SalaryStructureTab() {
   };
 
   // Real-time Gross Total auto-calculation
-  const calculatedGrossTotal =
+  const rawSum =
     (Number(formData.basicSalary) || 0) +
     (Number(formData.hra) || 0) +
     (Number(formData.medicalAllowance) || 0) +
     (Number(formData.travelAllowance) || 0) +
-    (Number(formData.specialAllowance) || 0);
+    (Number(formData.specialAllowance) || 0) +
+    (Number(formData.incentive) || 0) +
+    (Number(formData.bonus) || 0);
+
+  const calculatedGrossTotal = (rawSum === 0 && Number(formData.basicSalary) > 0)
+    ? Number(formData.basicSalary)
+    : rawSum;
 
   const handleSaveStructure = async (e: React.FormEvent) => {
     e.preventDefault();

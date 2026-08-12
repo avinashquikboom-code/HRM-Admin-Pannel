@@ -106,8 +106,8 @@ export default function EditEmployeeModal({
         ifscCode: employee.ifscCode || '',
         accountType: employee.accountType || 'Savings',
         branchName: employee.branchName || '',
-        basicSalary: employee.basicSalary || 0,
-        grossSalary: employee.grossSalary || 0,
+        basicSalary: employee.basicSalary || employee.salaryStructure?.basicSalary || 0,
+        grossSalary: employee.grossSalary || employee.salaryStructure?.grossSalary || (employee.basicSalary ? employee.basicSalary : 0),
         hra: employee.hra || 0,
         medicalAllowance: employee.medicalAllowance || 0,
         travelAllowance: employee.travelAllowance || 0,
@@ -585,11 +585,15 @@ export default function EditEmployeeModal({
                 value={form.basicSalary}
                 onChange={(e) => {
                   const basic = parseFloat(e.target.value) || 0;
-                  setForm(prev => ({
-                    ...prev,
-                    basicSalary: basic,
-                    grossSalary: basic + prev.hra + prev.medicalAllowance + prev.travelAllowance + prev.specialAllowance + prev.incentive + prev.bonus
-                  }));
+                  setForm(prev => {
+                    const allowSum = prev.hra + prev.medicalAllowance + prev.travelAllowance + prev.specialAllowance + prev.incentive + prev.bonus;
+                    const gross = (allowSum === 0 && basic > 0) ? basic : (basic + allowSum);
+                    return {
+                      ...prev,
+                      basicSalary: basic,
+                      grossSalary: gross
+                    };
+                  });
                 }}
                 className="w-full p-2 bg-surface border border-border rounded-sm text-xs font-semibold"
               />
