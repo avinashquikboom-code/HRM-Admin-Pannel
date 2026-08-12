@@ -195,6 +195,7 @@ export default function EditEmployeeModal({
         shiftType: form.shiftType || undefined,
         commissionPercentage: parseFloat(form.commissionPercentage) || 0,
         phone: form.phone || undefined,
+        mobileNumber: form.phone || undefined,
         aadharNumber: form.aadharNumber || undefined,
         pfNumber: form.pfNumber || undefined,
         esicNumber: form.esicNumber || undefined,
