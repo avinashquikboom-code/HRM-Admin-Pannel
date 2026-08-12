@@ -87,6 +87,28 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 }
 
+function formatEventType(rawType?: string | null): string {
+  if (!rawType || rawType === '—') return 'Invoice Created';
+  const norm = rawType.toUpperCase().replace(/[\.\-]/g, '_');
+  switch (norm) {
+    case 'INVOICE_CREATED': return 'Invoice Created';
+    case 'INVOICE_UPDATED': return 'Invoice Updated';
+    case 'CREDIT_NOTE_CREATED': return 'Credit Note Created';
+    case 'CREDIT_NOTE_UPDATED': return 'Credit Note Updated';
+    case 'SALES_EXCHANGE_CREATED': return 'Sales Exchange Created';
+    case 'SALES_EXCHANGE_UPDATED': return 'Sales Exchange Updated';
+    case 'EMPLOYEE_CREATED': return 'Employee Created';
+    case 'EMPLOYEE_UPDATED': return 'Employee Updated';
+    case 'EMPLOYEE_DELETED': return 'Employee Deleted';
+    default:
+      return rawType
+        .replace(/[\._\-]/g, ' ')
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
+  }
+}
+
 /* ─── PayloadModal ─── */
 interface PayloadModalProps {
   log: any;
@@ -117,7 +139,7 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
     },
     {
       label: 'Event Type',
-      value: log.eventType || '—',
+      value: formatEventType(log.eventType),
       icon: <Zap className="h-4 w-4" />,
       color: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 dark:text-indigo-400',
     },
@@ -135,7 +157,7 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
     { icon: <UserCheck className="h-4 w-4 text-indigo-500" />, label: 'Employee', value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—', mono: false },
     { icon: <Building2 className="h-4 w-4 text-amber-500" />, label: 'Store / Branch', value: (log.storeName && log.storeName !== 'N/A') ? log.storeName : '—', mono: false },
     { icon: <IndianRupee className="h-4 w-4 text-emerald-500" />, label: 'Total Sale Amount', value: `₹${(log.amount || 0).toLocaleString('en-IN')}`, mono: true, green: true },
-    { icon: <Zap className="h-4 w-4 text-purple-500" />, label: 'Event Type', value: log.eventType || '—', mono: true },
+    { icon: <Zap className="h-4 w-4 text-purple-500" />, label: 'Event Type', value: formatEventType(log.eventType), mono: true },
   ];
 
   return (
@@ -816,7 +838,7 @@ export default function WebhookLogsPage() {
                         <TableCell className="pl-5 py-3.5">
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-mono text-[11px] font-semibold border border-indigo-500/15 whitespace-nowrap">
                             <Zap className="h-2.5 w-2.5 shrink-0" />
-                            {log.eventType || 'invoice.created'}
+                            {formatEventType(log.eventType)}
                           </span>
                         </TableCell>
 
