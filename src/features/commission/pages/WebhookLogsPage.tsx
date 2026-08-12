@@ -865,19 +865,26 @@ export default function WebhookLogsPage() {
                         {/* Bill ID */}
                         <TableCell className="py-3.5">
                           {log.billId ? (
-                            <div className="inline-flex items-center gap-1.5">
-                              <code className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted border text-foreground tracking-wide">
-                                {log.billId}
-                              </code>
-                              <button
-                                onClick={() => copyToClipboard(log.billId, log.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                                title="Copy Bill ID"
-                              >
-                                {copiedId === log.id
-                                  ? <Check className="h-3 w-3 text-emerald-500" />
-                                  : <Copy className="h-3 w-3" />}
-                              </button>
+                            <div className="flex flex-col gap-0.5">
+                              <div className="inline-flex items-center gap-1.5">
+                                <code className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted border text-foreground tracking-wide">
+                                  {log.billId}
+                                </code>
+                                <button
+                                  onClick={() => copyToClipboard(log.billId, log.id)}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                                  title="Copy Bill ID"
+                                >
+                                  {copiedId === log.id
+                                    ? <Check className="h-3 w-3 text-emerald-500" />
+                                    : <Copy className="h-3 w-3" />}
+                                </button>
+                              </div>
+                              {log.invoiceNo && log.invoiceNo !== log.billId && (
+                                <span className="text-[10px] text-muted-foreground font-mono pl-0.5" title="Original Invoice No">
+                                  Inv: <span className="font-semibold text-foreground/80">{log.invoiceNo}</span>
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <span className="text-xs text-muted-foreground/40 font-mono">—</span>
