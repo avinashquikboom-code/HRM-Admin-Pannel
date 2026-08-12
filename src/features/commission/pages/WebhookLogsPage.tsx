@@ -109,6 +109,68 @@ function formatEventType(rawType?: string | null): string {
   }
 }
 
+function getEventBadgeStyle(rawType?: string | null): { className: string; dotColor: string } {
+  if (!rawType || rawType === '—') {
+    return {
+      className: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+      dotColor: 'bg-emerald-500',
+    };
+  }
+  const norm = rawType.toUpperCase().replace(/[\.\-]/g, '_');
+  switch (norm) {
+    case 'INVOICE_CREATED':
+      return {
+        className: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+        dotColor: 'bg-emerald-500',
+      };
+    case 'INVOICE_UPDATED':
+      return {
+        className: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20',
+        dotColor: 'bg-teal-500',
+      };
+    case 'CREDIT_NOTE_CREATED':
+      return {
+        className: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
+        dotColor: 'bg-rose-500',
+      };
+    case 'CREDIT_NOTE_UPDATED':
+      return {
+        className: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+        dotColor: 'bg-amber-500',
+      };
+    case 'SALES_EXCHANGE_CREATED':
+      return {
+        className: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+        dotColor: 'bg-purple-500',
+      };
+    case 'SALES_EXCHANGE_UPDATED':
+      return {
+        className: 'bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/20',
+        dotColor: 'bg-fuchsia-500',
+      };
+    case 'EMPLOYEE_CREATED':
+      return {
+        className: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+        dotColor: 'bg-blue-500',
+      };
+    case 'EMPLOYEE_UPDATED':
+      return {
+        className: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20',
+        dotColor: 'bg-sky-500',
+      };
+    case 'EMPLOYEE_DELETED':
+      return {
+        className: 'bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20',
+        dotColor: 'bg-red-500',
+      };
+    default:
+      return {
+        className: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20',
+        dotColor: 'bg-indigo-500',
+      };
+  }
+}
+
 /* ─── PayloadModal ─── */
 interface PayloadModalProps {
   log: any;
@@ -646,15 +708,28 @@ export default function WebhookLogsPage() {
               >
                 <Zap className={`h-3.5 w-3.5 shrink-0 ${eventFilter !== 'ALL' ? 'text-primary' : ''}`} />
                 <SelectValue placeholder="All Event Types">
-                  {eventFilter === 'ALL' ? 'All Event Types' : formatEventType(eventFilter)}
+                  {eventFilter === 'ALL' ? (
+                    'All Event Types'
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 font-medium">
+                      <span className={`h-2 w-2 rounded-full ${getEventBadgeStyle(eventFilter).dotColor}`} />
+                      {formatEventType(eventFilter)}
+                    </span>
+                  )}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="text-xs">
-                {eventOptions.map((e) => (
-                  <SelectItem key={e} value={e} className="text-xs font-medium">
-                    {e === 'ALL' ? 'All Event Types' : formatEventType(e)}
-                  </SelectItem>
-                ))}
+                {eventOptions.map((e) => {
+                  const badge = e === 'ALL' ? null : getEventBadgeStyle(e);
+                  return (
+                    <SelectItem key={e} value={e} className="text-xs font-medium">
+                      <div className="flex items-center gap-2">
+                        {badge && <span className={`h-2 w-2 rounded-full ${badge.dotColor}`} />}
+                        <span>{e === 'ALL' ? 'All Event Types' : formatEventType(e)}</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 
@@ -769,15 +844,18 @@ export default function WebhookLogsPage() {
                   </button>
                 </span>
               )}
-              {eventFilter !== 'ALL' && (
-                <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-mono">
-                  <Zap className="h-2.5 w-2.5" />
-                  {formatEventType(eventFilter)}
-                  <button onClick={() => setEventFilter('ALL')} className="ml-0.5 hover:text-indigo-900 dark:hover:text-indigo-100">
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                </span>
-              )}
+              {eventFilter !== 'ALL' && (() => {
+                const badge = getEventBadgeStyle(eventFilter);
+                return (
+                  <span className={`inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${badge.className}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${badge.dotColor}`} />
+                    {formatEventType(eventFilter)}
+                    <button onClick={() => setEventFilter('ALL')} className="ml-0.5 hover:opacity-70">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                );
+              })()}
               {exchangeFilter !== 'ALL' && (
                 <span className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
                   <ArrowLeftRight className="h-2.5 w-2.5" />
@@ -850,14 +928,15 @@ export default function WebhookLogsPage() {
                     const cfg = getStatusCfg(log.status || 'PROCESSING');
                     const empInit = initials(log.employeeName);
                     const custInit = initials(log.customerName);
+                    const eventBadge = getEventBadgeStyle(log.eventType);
 
                     return (
                       <TableRow key={log.id} className="group hover:bg-muted/25 transition-colors border-b border-border/40">
 
                         {/* Event Type */}
                         <TableCell className="pl-5 py-3.5">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-mono text-[11px] font-semibold border border-indigo-500/15 whitespace-nowrap">
-                            <Zap className="h-2.5 w-2.5 shrink-0" />
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-[11px] font-semibold border whitespace-nowrap ${eventBadge.className}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${eventBadge.dotColor}`} />
                             {formatEventType(log.eventType)}
                           </span>
                         </TableCell>
