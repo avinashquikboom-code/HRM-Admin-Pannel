@@ -559,76 +559,179 @@ export default function ActivityLogsPage() {
         </div>
       </Card>
 
-      {/* Log Detail Modal */}
+      {/* Redesigned Premium Log Detail Modal */}
       <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
-        <DialogContent className="max-w-2xl bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-zinc-100">
-              <FileText className="w-5 h-5 text-teal-500" />
-              Activity Audit Detail
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
-              Immutable system audit record ID: {selectedLog?.id}
-            </DialogDescription>
-          </DialogHeader>
-
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl">
           {selectedLog && (
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-medium">Source</span>
-                  <span className="font-semibold text-slate-800 dark:text-zinc-200">{selectedLog.source}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-medium">Action</span>
-                  <span className="font-mono font-bold text-teal-600 dark:text-teal-400">{selectedLog.action}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-medium">Actor</span>
-                  <span className="font-semibold text-slate-800 dark:text-zinc-200">{selectedLog.actorName || 'System'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-medium">Role</span>
-                  <span className="font-mono text-slate-600 dark:text-zinc-400">{selectedLog.actorRole || 'N/A'}</span>
+            <div className="space-y-0">
+              {/* Header Hero Banner */}
+              <div className="p-6 bg-gradient-to-r from-teal-500/10 via-purple-500/10 to-sky-500/10 border-b border-slate-200/60 dark:border-zinc-800 relative">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/25">
+                        {selectedLog.action}
+                      </span>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                        statusConfig[selectedLog.status?.toUpperCase()]?.color || statusConfig.SUCCESS.color
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${
+                          statusConfig[selectedLog.status?.toUpperCase()]?.dot || statusConfig.SUCCESS.dot
+                        }`} />
+                        {selectedLog.status}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
+                      Activity Audit Record Details
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
+                      Immutable Record ID: {selectedLog.id}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(formatJson(selectedLog.metadata))}
+                      className="bg-white/80 dark:bg-zinc-800/80 border-slate-200 dark:border-zinc-700 text-xs shadow-sm hover:text-teal-500"
+                    >
+                      {copiedPayload ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                      {copiedPayload ? 'Copied' : 'Copy Payload'}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-slate-500 font-medium">Description:</span>
-                <p className="p-2.5 bg-slate-100 dark:bg-zinc-800 rounded-lg text-slate-800 dark:text-zinc-200 font-mono text-xs">
-                  {selectedLog.description || 'No description provided'}
-                </p>
-              </div>
+              {/* Main Content Body */}
+              <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+                {/* Hero Actor & Entity Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Actor Card */}
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-200/80 dark:border-zinc-800 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                      <User className="w-4 h-4 text-purple-500" />
+                      Actor / Initiator
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                          {selectedLog.actorName || 'System Process'}
+                        </div>
+                        {selectedLog.actorId && (
+                          <div className="text-xs font-mono text-slate-400">
+                            ID: #{selectedLog.actorId}
+                          </div>
+                        )}
+                      </div>
+                      {selectedLog.actorRole && (
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                          {selectedLog.actorRole}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Metadata / Raw Payload Viewer */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium flex items-center gap-1">
-                    <Code2 className="w-3.5 h-3.5 text-teal-500" />
-                    Metadata / Raw Payload:
+                  {/* Target Entity Card */}
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-200/80 dark:border-zinc-800 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                      <FileText className="w-4 h-4 text-teal-500" />
+                      Target Entity
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                          {selectedLog.entityType || 'General Event'}
+                        </div>
+                        {selectedLog.entityId && (
+                          <div className="text-xs font-mono text-slate-400 truncate max-w-[180px]" title={selectedLog.entityId}>
+                            Ref: #{selectedLog.entityId}
+                          </div>
+                        )}
+                      </div>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                        {selectedLog.source}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audit Event Metadata Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-100/60 dark:bg-zinc-800/30 rounded-xl border border-slate-200/60 dark:border-zinc-800 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-medium">Event Date & Time</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-zinc-200">
+                      {new Date(selectedLog.createdAt).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-medium">Origin Source</span>
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200">{selectedLog.source}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-medium">IP Address</span>
+                    <span className="font-mono text-slate-700 dark:text-zinc-300">{selectedLog.ipAddress || '127.0.0.1 (Local)'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-medium">Client Gateway</span>
+                    <span className="font-mono text-slate-700 dark:text-zinc-300 truncate block max-w-[120px]" title={selectedLog.userAgent || 'API Direct'}>
+                      {selectedLog.userAgent || 'API Direct'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Description Callout */}
+                <div className="space-y-1.5">
+                  <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-teal-500" />
+                    Event Description:
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(formatJson(selectedLog.metadata))}
-                    className="h-6 text-[11px] text-slate-500 hover:text-teal-500"
-                  >
-                    {copiedPayload ? <Check className="w-3 h-3 mr-1 text-emerald-500" /> : <Copy className="w-3 h-3 mr-1" />}
-                    {copiedPayload ? 'Copied' : 'Copy Payload'}
-                  </Button>
+                  <div className="p-3 bg-teal-500/5 dark:bg-teal-500/10 border border-teal-500/20 rounded-xl text-slate-800 dark:text-zinc-200 font-mono text-xs leading-relaxed">
+                    {selectedLog.description || 'No detailed description provided for this audit event.'}
+                  </div>
                 </div>
-                <pre className="p-3 bg-zinc-950 text-emerald-400 font-mono text-[11px] rounded-xl overflow-x-auto max-h-60 border border-zinc-800">
-                  {formatJson(selectedLog.metadata)}
-                </pre>
+
+                {/* Structured Metadata & Raw Payload Inspector */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+                      <Code2 className="w-4 h-4 text-teal-500" />
+                      Payload & Audit Metadata Inspection
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      Format: JSON
+                    </span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden border border-zinc-800 shadow-inner">
+                    <pre className="p-4 bg-zinc-950 text-emerald-400 font-mono text-[11px] leading-relaxed overflow-x-auto max-h-72 scrollbar-thin scrollbar-thumb-zinc-800">
+                      {formatJson(selectedLog.metadata)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-slate-50 dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+                <span className="text-xs text-slate-400 font-mono">
+                  Append-only immutable audit trail
+                </span>
+                <Button
+                  variant="default"
+                  onClick={() => setSelectedLog(null)}
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs px-6 shadow-md"
+                >
+                  Close Audit Record
+                </Button>
               </div>
             </div>
           )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedLog(null)}>
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
