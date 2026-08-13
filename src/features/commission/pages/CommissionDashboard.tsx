@@ -172,6 +172,11 @@ export default function CommissionDashboard() {
 
   useEffect(() => {
     loadDashboardData();
+    // Auto-refresh every 15s to capture incoming webhooks real-time
+    const interval = setInterval(() => {
+      loadDashboardData();
+    }, 15000);
+    return () => clearInterval(interval);
   }, [selectedStore, dateRange]);
 
   useEffect(() => {
