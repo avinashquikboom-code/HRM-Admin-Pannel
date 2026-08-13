@@ -86,6 +86,7 @@ export const PLATFORM_ADMIN_MENU_GROUPS: SidebarMenuGroup[] = [
       { name: 'Tasks', icon: CheckSquare, path: '/tasks', moduleId: 'pa-tasks' },
       { name: 'Leave Management', icon: Calendar, path: '/leave', moduleId: 'pa-leave' },
       { name: 'Remote Work', icon: Globe, path: '/remote-work', moduleId: 'pa-remote-work' },
+      { name: 'Activity Logs', icon: Clock, path: '/activity-logs', moduleId: 'pa-activity-logs' },
     ],
   },
   {
