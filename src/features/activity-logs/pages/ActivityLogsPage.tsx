@@ -98,6 +98,51 @@ const statusConfig: Record<string, { color: string; dot: string }> = {
   },
 };
 
+/* ─── Action Type Badges ─── */
+function getActionBadgeStyle(action: string): { bg: string; text: string; border: string } {
+  const u = (action || '').toUpperCase();
+  if (u.includes('CREDIT_NOTE') || u.includes('DELETE') || u.includes('REMOVE') || u.includes('REVERSAL') || u.includes('CANCEL')) {
+    return {
+      bg: 'bg-rose-500/15 dark:bg-rose-500/20',
+      text: 'text-rose-700 dark:text-rose-300 font-bold',
+      border: 'border-rose-500/30',
+    };
+  }
+  if (u.includes('EXCHANGE') || u.includes('UPDATE') || u.includes('EDIT') || u.includes('MODIFY')) {
+    return {
+      bg: 'bg-purple-500/15 dark:bg-purple-500/20',
+      text: 'text-purple-700 dark:text-purple-300 font-bold',
+      border: 'border-purple-500/30',
+    };
+  }
+  if (u.includes('INVOICE') || u.includes('CREATE') || u.includes('ADD') || u.includes('SALE')) {
+    return {
+      bg: 'bg-emerald-500/15 dark:bg-emerald-500/20',
+      text: 'text-emerald-700 dark:text-emerald-300 font-bold',
+      border: 'border-emerald-500/30',
+    };
+  }
+  if (u.includes('LOGIN') || u.includes('AUTH') || u.includes('LOGOUT') || u.includes('PASSWORD')) {
+    return {
+      bg: 'bg-amber-500/15 dark:bg-amber-500/20',
+      text: 'text-amber-700 dark:text-amber-300 font-bold',
+      border: 'border-amber-500/30',
+    };
+  }
+  if (u.includes('EMPLOYEE') || u.includes('USER') || u.includes('STAFF')) {
+    return {
+      bg: 'bg-sky-500/15 dark:bg-sky-500/20',
+      text: 'text-sky-700 dark:text-sky-300 font-bold',
+      border: 'border-sky-500/30',
+    };
+  }
+  return {
+    bg: 'bg-indigo-500/15 dark:bg-indigo-500/20',
+    text: 'text-indigo-700 dark:text-indigo-300 font-bold',
+    border: 'border-indigo-500/30',
+  };
+}
+
 export default function ActivityLogsPage() {
   const [logs, setLogs] = useState<ActivityLogItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -459,9 +504,14 @@ export default function ActivityLogsPage() {
 
                       {/* Action */}
                       <TableCell>
-                        <span className="font-mono text-xs font-bold text-slate-900 dark:text-zinc-100">
-                          {log.action}
-                        </span>
+                        {(() => {
+                          const actMeta = getActionBadgeStyle(log.action);
+                          return (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] border ${actMeta.bg} ${actMeta.text} ${actMeta.border}`}>
+                              {log.action}
+                            </span>
+                          );
+                        })()}
                       </TableCell>
 
                       {/* Entity & ID */}
