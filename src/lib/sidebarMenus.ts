@@ -66,6 +66,7 @@ export const PLATFORM_ADMIN_MENU_GROUPS: SidebarMenuGroup[] = [
     items: [
       { name: 'Employees', icon: UserSquare2, path: '/employees', moduleId: 'pa-employees' },
       { name: 'Employee Rights', icon: ShieldCheck, path: '/user-rights', moduleId: 'pa-employee-rights' },
+      { name: 'Access Requests', icon: ShieldAlert, path: '/access-requests', moduleId: 'pa-access-requests' },
     ],
   },
   {
