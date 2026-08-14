@@ -63,7 +63,7 @@ function NavItem({
       onClick={handleClick}
       data-active={isActive ? 'true' : undefined}
       className={cn(
-        'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-xs font-semibold select-none',
+        'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-[13px] font-semibold select-none',
         isActive
           ? 'bg-teal-500/10 dark:bg-teal-500/15 text-teal-700 dark:text-teal-400 font-bold border-l-4 border-teal-500 shadow-sm shadow-teal-500/5'
           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100',
@@ -72,7 +72,7 @@ function NavItem({
     >
       <item.icon
         className={cn(
-          'w-4 h-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110',
+          'w-[18px] h-[18px] flex-shrink-0 transition-transform duration-200 group-hover:scale-110',
           isActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'
         )}
       />
@@ -170,7 +170,7 @@ const Sidebar = () => {
         )}
       >
         {/* Brand Header */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-3">
+        <div className="h-16 px-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-500/20 text-white">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
@@ -180,10 +180,10 @@ const Sidebar = () => {
               animate={{ opacity: 1, x: 0 }}
               className="min-w-0 flex-1"
             >
-              <h1 className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight leading-none">
+              <h1 className="font-black text-base text-slate-900 dark:text-white tracking-tight leading-none">
                 HOPKID <span className="text-teal-600 dark:text-teal-400">Admin</span>
               </h1>
-              <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">
+              <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">
                 Platform Operations
               </p>
             </motion.div>
@@ -200,17 +200,17 @@ const Sidebar = () => {
                   <button
                     type="button"
                     onClick={() => toggleGroup(group.title)}
-                    className="w-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 flex items-center justify-between gap-1.5 transition-colors group/header text-left"
+                    className="w-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 flex items-center justify-between gap-1.5 transition-colors group/header text-left"
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <group.icon className="w-3.5 h-3.5 text-teal-600/70 dark:text-teal-400/70 flex-shrink-0" />
+                      <group.icon className="w-[15px] h-[15px] text-teal-600/70 dark:text-teal-400/70 flex-shrink-0" />
                       <span className="truncate">{group.title}</span>
                     </div>
                     <motion.div
                       animate={{ rotate: isGroupOpen ? 0 : -90 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover/header:text-teal-600 dark:group-hover/header:text-teal-400" />
+                      <ChevronDown className="w-4 h-4 text-slate-400 group-hover/header:text-teal-600 dark:group-hover/header:text-teal-400" />
                     </motion.div>
                   </button>
                 ) : (
@@ -254,10 +254,10 @@ const Sidebar = () => {
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                <p className="text-[13px] font-bold text-slate-800 dark:text-slate-100 truncate">
                   {user.name || 'Priya Sharma'}
                 </p>
-                <p className="text-[10px] font-semibold text-teal-600 dark:text-teal-400 truncate">
+                <p className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 truncate">
                   {user.role || 'HR Admin'}
                 </p>
               </div>
@@ -280,11 +280,11 @@ const Sidebar = () => {
               type="button"
               onClick={() => dispatch(toggleSidebar())}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors',
+                'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors',
                 !isOpen && 'justify-center px-0'
               )}
             >
-              {isOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {isOpen ? <ChevronLeft className="w-[18px] h-[18px]" /> : <ChevronRight className="w-[18px] h-[18px]" />}
               {isOpen && <span>Collapse Menu</span>}
             </button>
 
@@ -293,11 +293,11 @@ const Sidebar = () => {
               type="button"
               onClick={() => setIsSignOutModalOpen(true)}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 transition-colors',
+                'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-bold text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 transition-colors',
                 !isOpen && 'justify-center px-0'
               )}
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-[18px] h-[18px]" />
               {isOpen && <span>Sign Out</span>}
             </button>
           </div>
