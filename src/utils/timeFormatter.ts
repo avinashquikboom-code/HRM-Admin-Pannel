@@ -6,12 +6,24 @@
 export function formatDate(date: string | Date | null | undefined): string {
   if (!date) return '-';
   try {
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
+      const parts = date.trim().split('-');
+      const year = parseInt(parts[0], 10);
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      if (!isNaN(year) && monthIdx >= 0 && monthIdx < 12 && !isNaN(day)) {
+        return `${day} ${months[monthIdx]} ${year}`;
+      }
+    }
+
     const d = typeof date === 'string' ? new Date(date) : date;
     if (isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'Asia/Kolkata'
     });
   } catch (e) {
     return '-';
@@ -32,7 +44,8 @@ export function formatTime(date: string | Date | null | undefined): string {
     return d.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
     });
   } catch (e) {
     return '-';
