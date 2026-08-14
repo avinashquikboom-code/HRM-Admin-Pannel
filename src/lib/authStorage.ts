@@ -18,12 +18,12 @@ export const PORTAL_AUTH_KEYS = {
   platform_admin: {
     storageKey: 'hrm_auth',
     cookieName: 'hrm_token',
-    displayName: 'HRM Admin',
+    displayName: 'HOPKID Admin',
   },
   employee: {
     storageKey: 'employee_hrm_auth',
     cookieName: 'employee_hrm_token',
-    displayName: 'Employee HRM',
+    displayName: 'Employee HOPKID',
   },
 } as const satisfies Record<
   PortalType,
