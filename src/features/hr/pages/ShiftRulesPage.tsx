@@ -238,7 +238,7 @@ export default function ShiftRulesPage() {
   }, [rules, branchFilter, employeeFilter, searchTerm, officeMap, employeeMap]);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 w-full max-w-[1800px] mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ export default function ShiftRulesPage() {
       <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search Box */}
-          <div className="relative flex-1 min-w-[240px]">
+          <div className="relative flex-1 min-w-[220px] w-full sm:w-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -292,12 +292,12 @@ export default function ShiftRulesPage() {
           </div>
 
           {/* Shift Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-500">Shift:</span>
+          <div className="flex items-center gap-1.5 flex-1 sm:flex-none min-w-[140px]">
+            <span className="text-xs font-semibold text-slate-500 shrink-0">Shift:</span>
             <select
               value={shiftFilter}
               onChange={(e) => setShiftFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="ALL">All Shifts</option>
               <option value="MORNING">Morning Shift</option>
@@ -307,12 +307,12 @@ export default function ShiftRulesPage() {
           </div>
 
           {/* Branch Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-500">Branch:</span>
+          <div className="flex items-center gap-1.5 flex-1 sm:flex-none min-w-[170px]">
+            <span className="text-xs font-semibold text-slate-500 shrink-0">Branch:</span>
             <select
               value={branchFilter}
               onChange={(e) => setBranchFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[180px]"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="ALL">All Branches (Global)</option>
               {offices.map((office) => (
@@ -324,12 +324,12 @@ export default function ShiftRulesPage() {
           </div>
 
           {/* Employee Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-500">Employee:</span>
+          <div className="flex items-center gap-1.5 flex-1 sm:flex-none min-w-[180px]">
+            <span className="text-xs font-semibold text-slate-500 shrink-0">Employee:</span>
             <select
               value={employeeFilter}
               onChange={(e) => setEmployeeFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[200px]"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="ALL">All Employees (Global)</option>
               {employees.map((emp) => (
@@ -343,9 +343,9 @@ export default function ShiftRulesPage() {
       </div>
 
       {/* Main Grid (List + Mobile Preview) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Rules Table / List (2 Cols) */}
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Rules Table / List (7-9 Cols) */}
+        <div className="lg:col-span-7 xl:col-span-8 2xl:col-span-9 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {loading ? (
               <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-3">
@@ -477,8 +477,8 @@ export default function ShiftRulesPage() {
           </div>
         </div>
 
-        {/* Mobile Preview Sidebar (1 Col) */}
-        <div className="space-y-4">
+        {/* Mobile Preview Sidebar (3-5 Cols) */}
+        <div className="lg:col-span-5 xl:col-span-4 2xl:col-span-3 space-y-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm sticky top-6">
             <div className="flex items-center gap-2 mb-4">
               <Smartphone className="w-5 h-5 text-indigo-600" />

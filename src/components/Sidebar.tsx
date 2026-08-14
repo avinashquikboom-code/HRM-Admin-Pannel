@@ -165,12 +165,12 @@ const Sidebar = () => {
         )}
       >
         <div className="sidebar-brand-wrap">
-          <div className="w-11 h-11 rounded-sm flex items-center justify-center flex-shrink-0 sidebar-logo">
-            <span className="text-white font-semibold text-sm">HRM</span>
+          <div className="w-11 h-11 rounded-sm flex items-center justify-center flex-shrink-0 sidebar-logo bg-teal-600">
+            <span className="text-white font-extrabold text-xs tracking-wider">HOPKID</span>
           </div>
           {isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-              <p className="sidebar-brand leading-tight">HRM Admin</p>
+              <p className="sidebar-brand leading-tight">HOPKID Admin</p>
               <p className="sidebar-subtitle">
                 Platform Operations
               </p>
