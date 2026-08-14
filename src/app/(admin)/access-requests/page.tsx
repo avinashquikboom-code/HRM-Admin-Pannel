@@ -3,86 +3,55 @@
 import { useState, useEffect } from 'react';
 import {
   ShieldCheck,
-  ShieldAlert,
   CheckCircle2,
   XCircle,
   Clock,
   Search,
   Filter,
   RefreshCw,
-  Building2,
-  UserCheck,
   Lock,
   Unlock,
 } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface AccessRequest {
-  id: string;
-  employeeId: number;
-  featureName: string;
-  reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  appliedOn: string;
-  reviewedBy?: string | null;
-  reviewedAt?: string | null;
-  reviewNote?: string | null;
-  employee: {
-    id: number;
-    employeeCode: string;
-    firstName: string;
-    lastName?: string;
-    department?: { name: string } | null;
-    office?: { name: string } | null;
-  };
-}
+import {
+  fetchAccessRequests,
+  approveAccessRequestApi,
+  rejectAccessRequestApi,
+  AccessRequestRecord,
+} from '@/services/accessRequestService';
 
 export default function AccessRequestsPage() {
-  const [requests, setRequests] = useState<AccessRequest[]>([]);
+  const [requests, setRequests] = useState<AccessRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const fetchRequests = async () => {
+  const loadRequests = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/access-requests${statusFilter !== 'ALL' ? `?status=${statusFilter}` : ''}`);
-      const data = await res.json();
-      if (data.success) {
-        setRequests(data.data || []);
-      } else {
-        toast.error(data.message || 'Failed to fetch access requests');
-      }
-    } catch (err) {
+      const data = await fetchAccessRequests(statusFilter);
+      setRequests(data);
+    } catch (err: any) {
       console.error('Fetch access requests error:', err);
-      toast.error('Error connecting to server');
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to fetch access requests');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRequests();
+    loadRequests();
   }, [statusFilter]);
 
   const handleApprove = async (id: string, featureName: string, employeeName: string) => {
     try {
       setProcessingId(id);
-      const res = await fetch(`/api/access-requests/${id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewNote: 'Approved via HR Admin Panel' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success(`Access granted for ${featureName} to ${employeeName}`);
-        fetchRequests();
-      } else {
-        toast.error(data.message || 'Failed to approve request');
-      }
-    } catch (err) {
-      toast.error('Error approving access request');
+      await approveAccessRequestApi(id, 'Approved via HR Admin Panel');
+      toast.success(`Access granted for ${featureName} to ${employeeName}`);
+      loadRequests();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to approve access request');
     } finally {
       setProcessingId(null);
     }
@@ -91,20 +60,11 @@ export default function AccessRequestsPage() {
   const handleReject = async (id: string, featureName: string, employeeName: string) => {
     try {
       setProcessingId(id);
-      const res = await fetch(`/api/access-requests/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewNote: 'Rejected via HR Admin Panel' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success(`Access request rejected for ${employeeName}`);
-        fetchRequests();
-      } else {
-        toast.error(data.message || 'Failed to reject request');
-      }
-    } catch (err) {
-      toast.error('Error rejecting access request');
+      await rejectAccessRequestApi(id, 'Rejected via HR Admin Panel');
+      toast.success(`Access request rejected for ${employeeName}`);
+      loadRequests();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to reject access request');
     } finally {
       setProcessingId(null);
     }
@@ -142,7 +102,7 @@ export default function AccessRequestsPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={fetchRequests}
+            onClick={loadRequests}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 font-semibold text-xs transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
