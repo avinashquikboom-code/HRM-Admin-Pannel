@@ -28,7 +28,7 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
   const medical = earnings.medical ?? 500;
   const travel = earnings.travel ?? 1000;
   const special = earnings.special ?? 0;
-  const commission = earnings.commission ?? 500;
+  const commission = earnings.commission ?? selectedSlip.commissionEarned ?? selectedSlip.commission ?? 0;
   const grossTotal = earnings.grossTotal ?? (baseSalary + hra + medical + travel + special + commission);
 
   // Extract or fallback deductions
@@ -162,10 +162,12 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                 <span>Special</span>
                 <span className="font-bold text-white">₹{special.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center text-emerald-400 font-bold">
-                <span>Commission ({monthLabel} sales)</span>
-                <span>₹{commission.toLocaleString('en-IN')}</span>
-              </div>
+              {commission > 0 && (
+                <div className="flex justify-between items-center text-emerald-400 font-bold">
+                  <span>Commission ({monthLabel} sales)</span>
+                  <span>₹{commission.toLocaleString('en-IN')}</span>
+                </div>
+              )}
               <div className="pt-3 border-t border-emerald-500/20 flex justify-between items-center text-sm font-black text-emerald-400">
                 <span className="uppercase tracking-wider">GROSS TOTAL</span>
                 <span>₹{grossTotal.toLocaleString('en-IN')}</span>
@@ -208,22 +210,42 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
             <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest mb-4">
               ATTENDANCE SUMMARY
             </h4>
-            <div className="grid grid-cols-2 gap-4 font-mono text-xs">
-              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
-                <span className="text-[10px] text-slate-400 block font-sans uppercase">Present Days</span>
-                <span className="text-base font-black text-emerald-400">{presentDays}</span>
+            <div className="grid grid-cols-3 gap-3 font-mono text-xs">
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Present</span>
+                <span className="text-sm font-black text-emerald-400">{selectedSlip.presentDays ?? presentDays}</span>
               </div>
-              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
-                <span className="text-[10px] text-slate-400 block font-sans uppercase">Half Days</span>
-                <span className="text-base font-black text-blue-400">{halfDays}</span>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Half Days</span>
+                <span className="text-sm font-black text-amber-400">{selectedSlip.halfDays ?? halfDays}</span>
               </div>
-              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
-                <span className="text-[10px] text-slate-400 block font-sans uppercase">Leave Days</span>
-                <span className="text-base font-black text-purple-400">{leaveDays}</span>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Absent</span>
+                <span className="text-sm font-black text-rose-400">{selectedSlip.absentDays ?? 0}</span>
               </div>
-              <div className="p-3 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
-                <span className="text-[10px] text-slate-400 block font-sans uppercase">Working Days</span>
-                <span className="text-base font-black text-white">{workingDays}</span>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Paid Leave</span>
+                <span className="text-sm font-black text-blue-400">{selectedSlip.paidLeaveDays ?? 0}</span>
+              </div>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Unpaid Leave</span>
+                <span className="text-sm font-black text-purple-400">{selectedSlip.unpaidLeaveDays ?? 0}</span>
+              </div>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Holidays</span>
+                <span className="text-sm font-black text-teal-400">{selectedSlip.holidayCount ?? 0}</span>
+              </div>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Weekly Offs</span>
+                <span className="text-sm font-black text-indigo-400">{selectedSlip.weeklyOffCount ?? 0}</span>
+              </div>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Holiday Wk.</span>
+                <span className="text-sm font-black text-emerald-400">{selectedSlip.holidayWorkedCount ?? 0}</span>
+              </div>
+              <div className="p-2.5 bg-surface-variant/60 dark:bg-white/[0.04] rounded-xl">
+                <span className="text-[9px] text-slate-400 block font-sans uppercase">Wk. Off Wk.</span>
+                <span className="text-sm font-black text-emerald-400">{selectedSlip.weeklyOffWorkedCount ?? 0}</span>
               </div>
             </div>
           </div>
