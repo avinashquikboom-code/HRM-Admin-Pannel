@@ -413,9 +413,10 @@ const PayrollPage = () => {
   );
 
   const filteredSlips = slipsList.filter(slip => 
-    slip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    slip.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    slip.designation.toLowerCase().includes(searchTerm.toLowerCase())
+    (slip.name || slip.employeeName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (slip.employeeCode || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (slip.designation || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (slip.department || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredAdvances = advancesList.filter(adv => {
@@ -770,6 +771,15 @@ const PayrollPage = () => {
               </p>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
+              <input
+                type="month"
+                value={slipMonth}
+                onChange={(e) => setSlipMonth(e.target.value)}
+                onClick={(e) => {
+                  try { e.currentTarget.showPicker(); } catch (err) {}
+                }}
+                className="px-3.5 py-2.5 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs font-bold text-text-primary focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
+              />
               <div className="relative flex-grow sm:flex-grow-0 group">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors w-4 h-4" />
                 <input 
@@ -777,7 +787,7 @@ const PayrollPage = () => {
                   placeholder="Search employees..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2.5 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/30 transition-all w-full sm:w-72 font-semibold text-text-primary placeholder:text-text-secondary"
+                  className="pl-10 pr-4 py-2.5 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/30 transition-all w-full sm:w-64 font-semibold text-text-primary placeholder:text-text-secondary"
                 />
               </div>
             </div>
@@ -787,6 +797,11 @@ const PayrollPage = () => {
             isSlipsLoading ? (
               <div className="p-8">
                 <TableSkeleton rows={5} columns={6} />
+              </div>
+            ) : filteredSlips.length === 0 ? (
+              <div className="p-16 text-center">
+                <Receipt size={44} className="mx-auto text-text-secondary/40 mb-3" />
+                <p className="text-sm font-bold text-text-secondary">No payslips found for the selected period or filter.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
