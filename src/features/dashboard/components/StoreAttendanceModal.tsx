@@ -248,7 +248,6 @@ export function StoreAttendanceModal({
               <thead>
                 <tr className="bg-surface-variant/40 border-b border-border sticky top-0 z-10">
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Employee</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Code</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Status</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Check-In</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Check-Out</th>
@@ -264,9 +263,6 @@ export function StoreAttendanceModal({
                       <td className="px-4 py-3 text-xs font-black text-text-primary">
                         <div>{emp.employeeName}</div>
                         <div className="text-[10px] text-text-secondary font-semibold">{emp.designation}</div>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-semibold text-text-secondary font-mono">
-                        {emp.employeeCode}
                       </td>
                       <td className="px-4 py-3 text-xs">
                         {getStatusBadge(emp.status)}

@@ -670,7 +670,6 @@ export default function LiveDashboardPage() {
               <thead>
                 <tr className="bg-surface-variant/40 border-b border-border sticky top-0 z-10">
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Employee Name</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Code</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Designation</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Branch</th>
                   {activeDetailType && activeDetailType.startsWith('break-') && (
@@ -683,7 +682,6 @@ export default function LiveDashboardPage() {
                   filteredDetails.map((emp) => (
                     <tr key={emp.id} className="border-b border-border/50 hover:bg-surface-variant/15 transition-colors">
                       <td className="px-4 py-3 text-xs font-black text-text-primary">{emp.firstName} {emp.lastName}</td>
-                      <td className="px-4 py-3 text-xs font-semibold text-text-secondary">{emp.employeeCode}</td>
                       <td className="px-4 py-3 text-xs font-semibold text-text-secondary">{emp.designation || 'Unassigned'}</td>
                       <td className="px-4 py-3 text-xs font-semibold text-text-secondary">{emp.officeName}</td>
                       {emp.startAt && (

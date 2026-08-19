@@ -218,7 +218,9 @@ export default function AttendanceCorrectionsTab() {
                       <td className="px-4 py-3.5">
                         <div>
                           <p className="text-xs font-black text-text-primary">{r.employee?.name || r.employeeId}</p>
-                          <p className="text-[10px] font-bold text-text-secondary">{r.employee?.employeeCode} • {r.employee?.designation}</p>
+                          {r.employee?.designation && (
+                            <p className="text-[10px] font-bold text-text-secondary">{r.employee.designation}</p>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-bold text-text-primary tabular-nums">
@@ -324,7 +326,9 @@ export default function AttendanceCorrectionsTab() {
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="text-sm font-black text-text-primary">{selectedRequest.employee?.name || selectedRequest.employeeId}</h4>
-                  <p className="text-xs font-semibold text-text-secondary">{selectedRequest.employee?.employeeCode} • {selectedRequest.employee?.designation}</p>
+                  {selectedRequest.employee?.designation && (
+                    <p className="text-xs font-semibold text-text-secondary">{selectedRequest.employee.designation}</p>
+                  )}
                 </div>
                 <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${
                   selectedRequest.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500' :

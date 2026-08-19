@@ -572,7 +572,6 @@ const AttendancePage = () => {
                             </div>
                             <div>
                               <span className="block font-bold text-text-primary tracking-tight group-hover:text-primary transition-colors">{employeeName}</span>
-                              <span className="text-micro font-black text-text-secondary tracking-wider">{record.employee.employeeCode}</span>
                             </div>
                           </div>
                         </td>
@@ -655,7 +654,6 @@ const AttendancePage = () => {
                 <div>
                   <p className="font-bold text-text-primary">{selectedEmployee.firstName} {selectedEmployee.lastName}</p>
                   <p className="text-sm text-text-secondary">{selectedEmployee.designation || 'Employee'}</p>
-                  <p className="text-xs text-muted">{selectedEmployee.employeeCode}</p>
                 </div>
               </div>
             </div>

@@ -157,7 +157,6 @@ const PayrollAttendanceModal: React.FC<PayrollAttendanceModalProps> = ({
                     <td className="px-4 py-3">
                       <div>
                         <span className="font-black text-text-primary text-sm">{record.employeeName}</span>
-                        <span className="text-xs text-text-secondary block">{record.employeeCode}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
