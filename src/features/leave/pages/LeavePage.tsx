@@ -40,8 +40,11 @@ import {
   fetchAllLeaves, 
   fetchLeaveBalances, 
   createLeaveRequest, 
-  updateLeaveStatus 
+  updateLeaveStatus,
+  fetchLeaveAvailabilityCheck,
+  StaffAvailabilityCheckResponse
 } from '@/services/leaveService';
+import StaffAvailabilityModal from '../components/StaffAvailabilityModal';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -116,6 +119,11 @@ export default function LeavePage() {
   const [remarks, setRemarks] = useState('');
   const [isRemarksModalOpen, setIsRemarksModalOpen] = useState(false);
   const [remarksAction, setRemarksAction] = useState<'approve' | 'reject'>('approve');
+
+  // Staff Availability Review Modal state
+  const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
+  const [availabilityData, setAvailabilityData] = useState<StaffAvailabilityCheckResponse['data'] | null>(null);
+  const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
 
   // Deduction Toggle State
   const [isDeductionModalOpen, setIsDeductionModalOpen] = useState(false);
@@ -316,6 +324,48 @@ export default function LeavePage() {
     setSelectedRequest(req);
     setRemarksAction(action);
     setIsRemarksModalOpen(true);
+  };
+
+  const handleOpenAvailabilityReview = async (req: any) => {
+    setSelectedRequest(req);
+    setAvailabilityData(null);
+    setIsAvailabilityModalOpen(true);
+    setIsAvailabilityLoading(true);
+    try {
+      const data = await fetchLeaveAvailabilityCheck(req.id);
+      setAvailabilityData(data);
+    } catch (err) {
+      console.error('Failed to load availability check:', err);
+      toast.error('Failed to load staff availability check.');
+    } finally {
+      setIsAvailabilityLoading(false);
+    }
+  };
+
+  const handleApproveWithAvailability = async (remarksText: string) => {
+    if (!selectedRequest) return;
+    try {
+      await updateLeaveStatus(selectedRequest.id, { status: 'APPROVED', remarks: remarksText });
+      await loadData();
+      toast.success('Leave request approved successfully!');
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : 'Approval failed');
+      throw err;
+    }
+  };
+
+  const handleRejectWithAvailability = async (remarksText: string) => {
+    if (!selectedRequest) return;
+    try {
+      await updateLeaveStatus(selectedRequest.id, { status: 'REJECTED', remarks: remarksText });
+      await loadData();
+      toast.success('Leave request rejected successfully.');
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : 'Rejection failed');
+      throw err;
+    }
   };
 
   const handleDownloadLeaveReport = async (employeeId?: number | string, employeeName?: string) => {
@@ -935,9 +985,9 @@ export default function LeavePage() {
                                 {req.status === 'Pending' ? (
                                   <div className="flex items-center justify-end gap-2">
                                     <button 
-                                      onClick={() => openRemarksModal(req, 'approve')}
+                                      onClick={() => handleOpenAvailabilityReview(req)}
                                       className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 rounded-sm text-emerald-555 dark:text-emerald-400 transition-all active:scale-95 cursor-pointer"
-                                      title="Approve time-off"
+                                      title="Review availability & approve time-off"
                                     >
                                       <Check size={16} />
                                     </button>
@@ -1341,6 +1391,16 @@ export default function LeavePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Staff Availability Review & Pre-Approval Modal */}
+      <StaffAvailabilityModal
+        isOpen={isAvailabilityModalOpen}
+        onClose={() => setIsAvailabilityModalOpen(false)}
+        availabilityData={availabilityData}
+        isLoading={isAvailabilityLoading}
+        onApprove={handleApproveWithAvailability}
+        onReject={handleRejectWithAvailability}
+      />
 
       {/* Remarks/Justification input overlay Modal */}
       <Modal isOpen={isRemarksModalOpen} onClose={() => setIsRemarksModalOpen(false)} title={`${remarksAction === 'approve' ? 'Approve' : 'Reject'} Justification Remarks`}>

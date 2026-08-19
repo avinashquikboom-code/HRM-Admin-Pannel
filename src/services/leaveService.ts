@@ -132,3 +132,67 @@ export async function updateLeaveStatus(
     );
   }
 }
+
+export interface StaffAvailabilityCheckResponse {
+  success: boolean;
+  data: {
+    employee: {
+      id: number;
+      employeeCode: string;
+      name: string;
+      department: string;
+      store: string;
+      designation: string;
+      phone: string;
+      email: string;
+    };
+    leave: {
+      id: number;
+      type: string;
+      status: string;
+      startDate: string;
+      endDate: string;
+      totalDays: number;
+      reason: string;
+      appliedOn: string;
+    };
+    scheduleContext: {
+      weeklyOffDays: Array<{ date: string; dayName: string }>;
+      weeklyOffCount: number;
+      holidays: Array<{ id: number; name: string; date: string; type: string }>;
+      holidayCount: number;
+    };
+    availability: {
+      totalStoreStaff: number;
+      totalDeptStaff: number;
+      otherEmployeesOnLeave: Array<{
+        id: number;
+        employeeId: number;
+        employeeName: string;
+        employeeCode: string;
+        department: string;
+        designation: string;
+        leaveType: string;
+        startDate: string;
+        endDate: string;
+        reason: string;
+      }>;
+      onLeaveCount: number;
+      availableStaffCount: number;
+      availabilityPercentage: number;
+      warningLevel: 'OPTIMAL' | 'MODERATE' | 'CRITICAL';
+      warningMessage: string;
+    };
+  };
+}
+
+export async function fetchLeaveAvailabilityCheck(leaveId: string | number): Promise<StaffAvailabilityCheckResponse['data']> {
+  try {
+    const { data } = await api.get<StaffAvailabilityCheckResponse>(`/api/admin/leaves/${leaveId}/availability-check`);
+    return data.data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, 'Failed to fetch staff availability check.')
+    );
+  }
+}
