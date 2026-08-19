@@ -357,7 +357,7 @@ export default function PointZoomImageViewer({
               transformOrigin: '0 0',
               transition: isDragging ? 'none' : 'transform 0.12s cubic-bezier(0.2, 0, 0, 1)',
             }}
-            className="flex items-center justify-center pointer-events-none will-change-transform"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none will-change-transform"
           >
             <img
               ref={imgRef}
