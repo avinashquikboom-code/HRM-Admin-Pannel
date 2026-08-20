@@ -118,17 +118,17 @@ export default function RemoteWorkPage() {
   }, [activeTab, pendingRequests, requests, historyRequests, searchTerm]);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto space-y-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start sm:items-center gap-3 min-w-0">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
               <Globe className="w-6 h-6" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Remote Work Requests</h1>
-              <p className="text-slate-500 text-sm">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">Remote Work Requests</h1>
+              <p className="text-slate-500 text-xs sm:text-sm mt-0.5 break-words">
                 Manage employee remote work permissions & geofence bypass approvals
               </p>
             </div>
@@ -141,7 +141,7 @@ export default function RemoteWorkPage() {
             toast.success('Remote work requests refreshed');
           }}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+          className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50 cursor-pointer shrink-0 self-start sm:self-auto w-full sm:w-auto"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -149,56 +149,56 @@ export default function RemoteWorkPage() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-amber-50/60 border border-amber-200/60 p-5 rounded-2xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-amber-50/60 border border-amber-200/60 p-4 sm:p-5 rounded-2xl flex items-center justify-between gap-3 min-w-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 truncate">
               Pending Approval
             </p>
-            <p className="text-3xl font-extrabold text-amber-900 mt-1">
+            <p className="text-2xl sm:text-3xl font-extrabold text-amber-900 mt-1 truncate">
               {pendingRequests.length}
             </p>
           </div>
-          <div className="p-3 bg-amber-100 text-amber-700 rounded-xl">
-            <Clock className="w-6 h-6" />
+          <div className="p-3 bg-amber-100 text-amber-700 rounded-xl shrink-0">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-emerald-50/60 border border-emerald-200/60 p-5 rounded-2xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+        <div className="bg-emerald-50/60 border border-emerald-200/60 p-4 sm:p-5 rounded-2xl flex items-center justify-between gap-3 min-w-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 truncate">
               Active Today (Remote)
             </p>
-            <p className="text-3xl font-extrabold text-emerald-900 mt-1">
+            <p className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 truncate">
               {activeApprovedRequests.length}
             </p>
           </div>
-          <div className="p-3 bg-emerald-100 text-emerald-700 rounded-xl">
-            <UserCheck className="w-6 h-6" />
+          <div className="p-3 bg-emerald-100 text-emerald-700 rounded-xl shrink-0">
+            <UserCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+        <div className="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl flex items-center justify-between gap-3 min-w-0 sm:col-span-2 lg:col-span-1">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 truncate">
               Total Decisions
             </p>
-            <p className="text-3xl font-extrabold text-slate-900 mt-1">
+            <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 truncate">
               {historyRequests.length}
             </p>
           </div>
-          <div className="p-3 bg-slate-200 text-slate-700 rounded-xl">
-            <FileText className="w-6 h-6" />
+          <div className="p-3 bg-slate-200 text-slate-700 rounded-xl shrink-0">
+            <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
 
       {/* Tabs & Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-3">
-        <div className="flex gap-2 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-slate-200 pb-3 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
           <button
             onClick={() => setActiveTab('pending')}
-            className={`px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all ${
+            className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shrink-0 ${
               activeTab === 'pending'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
                 : 'text-slate-600 hover:bg-slate-100'
@@ -214,7 +214,7 @@ export default function RemoteWorkPage() {
 
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all ${
+            className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shrink-0 ${
               activeTab === 'active'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
                 : 'text-slate-600 hover:bg-slate-100'
@@ -225,7 +225,7 @@ export default function RemoteWorkPage() {
 
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all ${
+            className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shrink-0 ${
               activeTab === 'history'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
                 : 'text-slate-600 hover:bg-slate-100'
@@ -235,7 +235,7 @@ export default function RemoteWorkPage() {
           </button>
         </div>
 
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-72 shrink-0">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -248,7 +248,7 @@ export default function RemoteWorkPage() {
       </div>
 
       {/* Main Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-w-0">
         {loading ? (
           <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-3">
             <RefreshCw className="w-8 h-8 animate-spin text-indigo-500" />
@@ -270,16 +270,16 @@ export default function RemoteWorkPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+          <div className="overflow-x-auto w-full max-w-full">
+            <table className="w-full text-left text-sm border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold text-xs uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Employee</th>
-                  <th className="py-3.5 px-4">Date Range</th>
-                  <th className="py-3.5 px-4">Reason</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Applied On</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-3.5 px-4 min-w-[200px] w-1/4">Employee</th>
+                  <th className="py-3.5 px-4 min-w-[180px] whitespace-nowrap">Date Range</th>
+                  <th className="py-3.5 px-4 min-w-[220px] w-1/3">Reason</th>
+                  <th className="py-3.5 px-4 min-w-[130px] whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 min-w-[110px] whitespace-nowrap">Applied On</th>
+                  <th className="py-3.5 px-4 text-right min-w-[140px] whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -290,7 +290,7 @@ export default function RemoteWorkPage() {
 
                   return (
                     <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 min-w-[200px]">
                         <div className="font-semibold text-slate-900">
                           {req.employee
                             ? `${req.employee.firstName} ${req.employee.lastName}`
@@ -302,20 +302,20 @@ export default function RemoteWorkPage() {
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 font-medium text-slate-800">
+                      <td className="py-4 px-4 font-medium text-slate-800 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <CalendarIcon className="w-4 h-4 text-indigo-500" />
+                          <CalendarIcon className="w-4 h-4 text-indigo-500 shrink-0" />
                           <span>
                             {fromStr} <span className="text-slate-400">→</span> {toStr}
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 text-slate-600 max-w-xs truncate">
+                      <td className="py-4 px-4 text-slate-600 max-w-xs break-words">
                         {req.reason || <span className="italic text-slate-300">No reason provided</span>}
                       </td>
 
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         {req.status === 'PENDING' && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                             <Clock className="w-3.5 h-3.5" /> PENDING
@@ -338,16 +338,16 @@ export default function RemoteWorkPage() {
                         )}
                       </td>
 
-                      <td className="py-4 px-4 text-slate-500 text-xs">{appliedStr}</td>
+                      <td className="py-4 px-4 text-slate-500 text-xs whitespace-nowrap">{appliedStr}</td>
 
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-4 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
                           {req.status === 'PENDING' && (
                             <>
                               <button
                                 onClick={() => handleApprove(req.id)}
                                 disabled={submitting}
-                                className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm"
+                                className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm shrink-0 whitespace-nowrap cursor-pointer"
                               >
                                 Approve
                               </button>
@@ -358,7 +358,7 @@ export default function RemoteWorkPage() {
                                   setReviewNote('');
                                 }}
                                 disabled={submitting}
-                                className="px-3 py-1.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors shadow-sm"
+                                className="px-3 py-1.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors shadow-sm shrink-0 whitespace-nowrap cursor-pointer"
                               >
                                 Reject
                               </button>
@@ -373,7 +373,7 @@ export default function RemoteWorkPage() {
                                 setReviewNote('');
                               }}
                               disabled={submitting}
-                              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors shadow-sm"
+                              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors shadow-sm shrink-0 whitespace-nowrap cursor-pointer"
                             >
                               Revoke
                             </button>
