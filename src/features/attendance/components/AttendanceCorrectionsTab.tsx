@@ -22,6 +22,10 @@ import Modal from '@/components/Modal';
 interface CorrectionRequest {
   id: string;
   employeeId: string;
+  employeeName?: string;
+  designation?: string;
+  branch?: string;
+  employeeEmail?: string;
   date?: string;
   attendanceDate?: string;
   dateToCorrect?: string;
@@ -120,12 +124,16 @@ export default function AttendanceCorrectionsTab() {
   const filteredRequests = requests.filter(r => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return true;
-    const name = r.employee?.name || r.employeeId;
-    const code = r.employee?.employeeCode || '';
+    const name = r.employee?.name || r.employeeName || r.employeeId || '';
+    const code = r.employee?.employeeCode || r.employeeId || '';
+    const desig = r.employee?.designation || r.designation || '';
+    const branch = r.employee?.officeName || r.branch || '';
     const reason = r.reason || '';
     return (
       name.toLowerCase().includes(term) ||
       code.toLowerCase().includes(term) ||
+      desig.toLowerCase().includes(term) ||
+      branch.toLowerCase().includes(term) ||
       reason.toLowerCase().includes(term)
     );
   });
@@ -167,7 +175,7 @@ export default function AttendanceCorrectionsTab() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
             <input
               type="text"
-              placeholder="Search employee, reason..."
+              placeholder="Search employee, code, reason..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-4 py-1.5 bg-surface-variant border border-border rounded-sm text-xs font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 w-full sm:w-64"
@@ -213,73 +221,89 @@ export default function AttendanceCorrectionsTab() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {paginatedRequests.map((r) => (
-                    <tr key={r.id} className="hover:bg-surface-variant/20 transition-colors">
-                      <td className="px-4 py-3.5">
-                        <div>
-                          <p className="text-xs font-black text-text-primary">{r.employee?.name || r.employeeId}</p>
-                          {r.employee?.designation && (
-                            <p className="text-[10px] font-bold text-text-secondary">{r.employee.designation}</p>
+                  {paginatedRequests.map((r) => {
+                    const empName = r.employee?.name || r.employeeName || r.employeeId;
+                    const empCode = r.employee?.employeeCode || (r.employeeId !== empName ? r.employeeId : null);
+                    const desig = r.employee?.designation || r.designation;
+                    const branch = r.employee?.officeName || r.branch;
+
+                    return (
+                      <tr key={r.id} className="hover:bg-surface-variant/20 transition-colors">
+                        <td className="px-4 py-3.5">
+                          <div>
+                            <p className="text-xs font-black text-text-primary flex items-center gap-1.5">
+                              {empName}
+                              {empCode && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface-variant text-text-secondary border border-border">
+                                  #{empCode}
+                                </span>
+                              )}
+                            </p>
+                            {(desig || branch) && (
+                              <p className="text-[10px] font-bold text-text-secondary mt-0.5">
+                                {desig || 'Staff'} {branch ? `• ${branch}` : ''}
+                              </p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs font-bold text-text-primary tabular-nums">
+                          {(() => {
+                            const rawDate = r.date || r.attendanceDate || r.dateToCorrect;
+                            if (!rawDate) return 'N/A';
+                            const parsedDate = new Date(rawDate);
+                            return !isNaN(parsedDate.getTime())
+                              ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                              : 'N/A';
+                          })()}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-surface-variant text-text-secondary border border-border">
+                            {r.currentStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-primary/10 text-primary border border-primary/20">
+                            {r.requestedStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs font-semibold text-text-secondary max-w-[200px] truncate" title={r.reason}>
+                          {r.reason}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${
+                            r.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                            r.status === 'REJECTED' ? 'bg-error/10 text-error border border-error/20' :
+                            'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                          }`}>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          {r.status === 'PENDING' ? (
+                            <button
+                              onClick={() => {
+                                setSelectedRequest(r);
+                                setReviewNote('');
+                              }}
+                              className="px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded-sm text-xs font-bold transition-all cursor-pointer shadow-sm"
+                            >
+                              Review
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setSelectedRequest(r);
+                                setReviewNote(r.reviewNote || '');
+                              }}
+                              className="px-3 py-1 bg-surface-variant text-text-secondary hover:text-text-primary rounded-sm text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Details
+                            </button>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs font-bold text-text-primary tabular-nums">
-                        {(() => {
-                          const rawDate = r.date || r.attendanceDate || r.dateToCorrect;
-                          if (!rawDate) return 'N/A';
-                          const parsedDate = new Date(rawDate);
-                          return !isNaN(parsedDate.getTime())
-                            ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-                            : 'N/A';
-                        })()}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-surface-variant text-text-secondary border border-border">
-                          {r.currentStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2 py-0.5 rounded-sm text-[10px] font-black uppercase bg-primary/10 text-primary border border-primary/20">
-                          {r.requestedStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs font-semibold text-text-secondary max-w-[200px] truncate" title={r.reason}>
-                        {r.reason}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${
-                          r.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                          r.status === 'REJECTED' ? 'bg-error/10 text-error border border-error/20' :
-                          'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                        }`}>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        {r.status === 'PENDING' ? (
-                          <button
-                            onClick={() => {
-                              setSelectedRequest(r);
-                              setReviewNote('');
-                            }}
-                            className="px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded-sm text-xs font-bold transition-all cursor-pointer shadow-sm"
-                          >
-                            Review
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setSelectedRequest(r);
-                              setReviewNote(r.reviewNote || '');
-                            }}
-                            className="px-3 py-1 bg-surface-variant text-text-secondary hover:text-text-primary rounded-sm text-xs font-bold transition-all cursor-pointer"
-                          >
-                            Details
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -325,9 +349,19 @@ export default function AttendanceCorrectionsTab() {
             <div className="p-4 bg-surface-variant/40 border border-border rounded-sm space-y-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="text-sm font-black text-text-primary">{selectedRequest.employee?.name || selectedRequest.employeeId}</h4>
-                  {selectedRequest.employee?.designation && (
-                    <p className="text-xs font-semibold text-text-secondary">{selectedRequest.employee.designation}</p>
+                  <h4 className="text-sm font-black text-text-primary flex items-center gap-2">
+                    {selectedRequest.employee?.name || selectedRequest.employeeName || selectedRequest.employeeId}
+                    {(selectedRequest.employee?.employeeCode || selectedRequest.employeeId) && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface-variant text-text-secondary border border-border">
+                        #{selectedRequest.employee?.employeeCode || selectedRequest.employeeId}
+                      </span>
+                    )}
+                  </h4>
+                  {(selectedRequest.employee?.designation || selectedRequest.designation || selectedRequest.employee?.officeName || selectedRequest.branch) && (
+                    <p className="text-xs font-semibold text-text-secondary">
+                      {selectedRequest.employee?.designation || selectedRequest.designation || 'Staff'}
+                      {(selectedRequest.employee?.officeName || selectedRequest.branch) ? ` • ${selectedRequest.employee?.officeName || selectedRequest.branch}` : ''}
+                    </p>
                   )}
                 </div>
                 <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${
