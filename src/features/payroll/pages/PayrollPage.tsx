@@ -1128,6 +1128,12 @@ const PayrollPage = () => {
                 <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Employee Name:</span>
                 <span className="text-sm font-black text-text-primary">{selectedAdvance.employeeName} ({selectedAdvance.employeeCode})</span>
               </div>
+              {selectedAdvance.advanceLimit !== undefined && selectedAdvance.advanceLimit !== null && (
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Configured Advance Limit:</span>
+                  <span className="text-sm font-black text-primary font-mono">₹{selectedAdvance.advanceLimit.toLocaleString('en-IN')}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Requested Advance Amount:</span>
                 <span className="text-base font-black text-emerald-500 font-mono">₹{selectedAdvance.amount.toLocaleString('en-IN')}</span>
