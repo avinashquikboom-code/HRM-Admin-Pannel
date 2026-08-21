@@ -15,7 +15,7 @@ import {
   Loader2
 } from 'lucide-react';
 import Modal from '@/components/Modal';
-import { StaffAvailabilityCheckResponse } from '@/services/leaveService';
+import { StaffAvailabilityCheckResponse, StaffMemberItem } from '@/services/leaveService';
 import { cn } from '@/utils/cn';
 
 interface StaffAvailabilityModalProps {
@@ -38,6 +38,15 @@ export default function StaffAvailabilityModal({
   const [remarks, setRemarks] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+
+  // Metric card employee list modal state
+  const [metricModal, setMetricModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    count: number;
+    employees: StaffMemberItem[];
+    emptyMessage?: string;
+  } | null>(null);
 
   if (!isOpen) return null;
 
@@ -67,6 +76,21 @@ export default function StaffAvailabilityModal({
 
   const isCritical = availability?.warningLevel === 'CRITICAL';
   const isModerate = availability?.warningLevel === 'MODERATE';
+
+  const openMetricModal = (
+    title: string,
+    count: number,
+    employees: StaffMemberItem[],
+    emptyMessage: string
+  ) => {
+    setMetricModal({
+      isOpen: true,
+      title,
+      count,
+      employees,
+      emptyMessage,
+    });
+  };
 
   return (
     <Modal
@@ -209,27 +233,79 @@ export default function StaffAvailabilityModal({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-surface/70 border border-border/60 p-3 rounded text-center">
                 <span className="text-[9px] font-black uppercase tracking-wider text-text-secondary block">Total Store Staff</span>
-                <span className="text-xl font-black text-text-primary mt-1 block font-mono">
+                <button
+                  type="button"
+                  onClick={() => openMetricModal(
+                    "Total Store Staff",
+                    availability?.totalStoreStaff ?? 0,
+                    availability?.storeStaffList ?? [],
+                    "No staff members found for this store."
+                  )}
+                  className="text-xl font-black text-text-primary mt-1 block font-mono mx-auto cursor-pointer hover:underline hover:text-primary active:scale-95 transition-all"
+                  title="Click to view Total Store Staff list"
+                >
                   {availability?.totalStoreStaff}
-                </span>
+                </button>
               </div>
               <div className="bg-surface/70 border border-border/60 p-3 rounded text-center">
                 <span className="text-[9px] font-black uppercase tracking-wider text-text-secondary block">Dept Staff</span>
-                <span className="text-xl font-black text-text-primary mt-1 block font-mono">
+                <button
+                  type="button"
+                  onClick={() => openMetricModal(
+                    "Department Staff",
+                    availability?.totalDeptStaff ?? 0,
+                    availability?.deptStaffList ?? [],
+                    "No staff members found for this department."
+                  )}
+                  className="text-xl font-black text-text-primary mt-1 block font-mono mx-auto cursor-pointer hover:underline hover:text-primary active:scale-95 transition-all"
+                  title="Click to view Department Staff list"
+                >
                   {availability?.totalDeptStaff}
-                </span>
+                </button>
               </div>
               <div className="bg-surface/70 border border-border/60 p-3 rounded text-center">
                 <span className="text-[9px] font-black uppercase tracking-wider text-text-secondary block">Coworkers on Leave</span>
-                <span className={cn("text-xl font-black mt-1 block font-mono", (availability?.onLeaveCount ?? 0) > 0 ? "text-amber-400" : "text-emerald-400")}>
+                <button
+                  type="button"
+                  onClick={() => openMetricModal(
+                    "Coworkers on Leave",
+                    availability?.onLeaveCount ?? 0,
+                    (availability?.onLeaveStaffList && availability.onLeaveStaffList.length > 0)
+                      ? availability.onLeaveStaffList
+                      : (availability?.otherEmployeesOnLeave || []).map((e) => ({
+                          id: e.id,
+                          employeeId: e.employeeCode || `EMP-${e.employeeId}`,
+                          employeeCode: e.employeeCode || `EMP-${e.employeeId}`,
+                          employeeName: e.employeeName,
+                          department: e.department,
+                          designation: e.designation,
+                          leaveType: e.leaveType,
+                          startDate: e.startDate,
+                          endDate: e.endDate,
+                        })),
+                    "No employees are currently on leave."
+                  )}
+                  className={cn("text-xl font-black mt-1 block font-mono mx-auto cursor-pointer hover:underline active:scale-95 transition-all", (availability?.onLeaveCount ?? 0) > 0 ? "text-amber-400" : "text-emerald-400")}
+                  title="Click to view Coworkers on Leave list"
+                >
                   {availability?.onLeaveCount}
-                </span>
+                </button>
               </div>
               <div className="bg-surface/70 border border-border/60 p-3 rounded text-center">
                 <span className="text-[9px] font-black uppercase tracking-wider text-text-secondary block">Remaining Available</span>
-                <span className={cn("text-xl font-black mt-1 block font-mono", isCritical ? "text-rose-400" : isModerate ? "text-amber-400" : "text-emerald-400")}>
+                <button
+                  type="button"
+                  onClick={() => openMetricModal(
+                    "Remaining Available",
+                    availability?.availableStaffCount ?? 0,
+                    availability?.availableStaffList ?? [],
+                    "No available employees found."
+                  )}
+                  className={cn("text-xl font-black mt-1 block font-mono mx-auto cursor-pointer hover:underline active:scale-95 transition-all", isCritical ? "text-rose-400" : isModerate ? "text-amber-400" : "text-emerald-400")}
+                  title="Click to view Remaining Available Staff list"
+                >
                   {availability?.availableStaffCount}
-                </span>
+                </button>
               </div>
             </div>
           </div>
@@ -383,6 +459,79 @@ export default function StaffAvailabilityModal({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Metric Breakdown Employee List Modal */}
+      {metricModal && (
+        <Modal
+          isOpen={metricModal.isOpen}
+          onClose={() => setMetricModal(null)}
+          title={`${metricModal.title} (${metricModal.count})`}
+        >
+          <div className="space-y-4 max-h-[65vh] flex flex-col">
+            <div className="flex items-center justify-between text-xs text-text-secondary pb-2 border-b border-border">
+              <span className="font-bold uppercase tracking-wider text-[10px]">
+                Target: <strong className="text-text-primary font-mono">{employee?.store}</strong>
+              </span>
+              <span className="font-bold text-[10px] uppercase tracking-wider text-primary">
+                {metricModal.count} {metricModal.count === 1 ? 'Employee' : 'Employees'}
+              </span>
+            </div>
+
+            {metricModal.employees && metricModal.employees.length > 0 ? (
+              <div className="overflow-y-auto border border-border rounded divide-y divide-border/50 max-h-80">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="bg-surface-variant/50 sticky top-0 border-b border-border">
+                    <tr>
+                      <th className="py-2.5 px-3 text-[10px] font-black uppercase text-text-secondary">Employee Name</th>
+                      <th className="py-2.5 px-3 text-[10px] font-black uppercase text-text-secondary">Employee Code</th>
+                      <th className="py-2.5 px-3 text-[10px] font-black uppercase text-text-secondary">Department</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40 font-medium">
+                    {metricModal.employees.map((emp, idx) => (
+                      <tr key={emp.id || idx} className="hover:bg-surface-variant/20 transition-colors">
+                        <td className="py-2.5 px-3 font-bold text-text-primary">
+                          {emp.employeeName}
+                          {emp.designation && (
+                            <span className="block text-[10px] font-normal text-text-secondary">
+                              {emp.designation}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono font-bold text-primary text-xs">
+                          {emp.employeeCode || emp.employeeId || '—'}
+                        </td>
+                        <td className="py-2.5 px-3 text-text-secondary text-xs">
+                          {emp.department || '—'}
+                          {emp.leaveType && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              {emp.leaveType}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-xs font-semibold text-text-secondary bg-surface-variant/20 border border-dashed border-border rounded">
+                {metricModal.emptyMessage || "No employees found."}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-3 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setMetricModal(null)}
+                className="px-4 py-2 bg-surface-variant text-text-secondary hover:text-text-primary rounded text-xs font-bold transition-all cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </Modal>
   );

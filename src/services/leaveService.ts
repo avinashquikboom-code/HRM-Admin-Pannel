@@ -133,6 +133,19 @@ export async function updateLeaveStatus(
   }
 }
 
+export interface StaffMemberItem {
+  id?: number | string;
+  employeeId?: string;
+  employeeCode?: string;
+  employeeName: string;
+  designation?: string;
+  department?: string;
+  store?: string;
+  leaveType?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface StaffAvailabilityCheckResponse {
   success: boolean;
   data: {
@@ -182,6 +195,10 @@ export interface StaffAvailabilityCheckResponse {
       availabilityPercentage: number;
       warningLevel: 'OPTIMAL' | 'MODERATE' | 'CRITICAL';
       warningMessage: string;
+      storeStaffList?: StaffMemberItem[];
+      deptStaffList?: StaffMemberItem[];
+      onLeaveStaffList?: StaffMemberItem[];
+      availableStaffList?: StaffMemberItem[];
     };
   };
 }
