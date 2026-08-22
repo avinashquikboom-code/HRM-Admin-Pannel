@@ -29,7 +29,20 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
   const travel = earnings.travel ?? 1000;
   const special = earnings.special ?? 0;
   const commission = earnings.commission ?? selectedSlip.commissionEarned ?? selectedSlip.commission ?? 0;
-  const grossTotal = earnings.grossTotal ?? (baseSalary + hra + medical + travel + special + commission);
+  const expenseReimbursement = earnings.expenseReimbursement ?? earnings.approvedExpenses ?? selectedSlip.expenseReimbursement ?? selectedSlip.approvedExpenses ?? slipData?.expenseReimbursement ?? 0;
+  const expensesByCategory: Array<{ category: string; amount: number }> =
+    earnings.expenses ||
+    earnings.expensesByCategory ||
+    selectedSlip.expenses ||
+    selectedSlip.expensesByCategory ||
+    slipData?.expenses ||
+    slipData?.expensesByCategory ||
+    (earnings.expenseCategories
+      ? Object.entries(earnings.expenseCategories).map(([category, amount]) => ({ category, amount: Number(amount) }))
+      : expenseReimbursement > 0
+      ? [{ category: 'Approved Expenses', amount: expenseReimbursement }]
+      : []);
+  const grossTotal = earnings.grossTotal ?? selectedSlip.grossSalary ?? (baseSalary + hra + medical + travel + special + commission + expenseReimbursement);
 
   // Extract or fallback deductions
   const deductions = selectedSlip.deductions || slipData?.deductions || {};
@@ -54,6 +67,13 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
   const salaryAdvanceLimit = details.salaryAdvanceLimit ?? 25000;
   const salaryAdvanceUsed = details.salaryAdvanceUsed ?? 0;
 
+  // Metadata helpers
+  const employeeName = selectedSlip.name || selectedSlip.employeeName;
+  const employeeCode = selectedSlip.employeeCode;
+  const designation = selectedSlip.designation || 'Staff';
+  const departmentName = selectedSlip.departmentName || 'General';
+  const officeName = selectedSlip.officeName || 'HQ';
+
   return (
     <div className="border border-white/10 rounded-2xl overflow-hidden bg-slate-950/80 shadow-2xl print-bg-white print-border font-sans">
       <style>{`
@@ -73,7 +93,7 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
             color: #475569 !important;
           }
           .print-border {
-            border-color: #cbd5e1 !important;
+            border-color: #e2e8f0 !important;
           }
           .print-divide > * + * {
             border-color: #cbd5e1 !important;
@@ -172,6 +192,26 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                   <span>₹{commission.toLocaleString('en-IN')}</span>
                 </div>
               )}
+              {expensesByCategory.length > 0 ? (
+                <div className="pt-2 border-t border-emerald-500/10 space-y-2">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">EXPENSES</span>
+                  {expensesByCategory.map((exp, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-slate-300 print-text-dark">
+                      <span>{exp.category} Expense</span>
+                      <span className="font-bold text-white">₹{exp.amount.toLocaleString('en-IN')}</span>
+                    </div>
+                  ))}
+                  <div className="pt-1 border-t border-emerald-500/10 flex justify-between items-center text-emerald-400 font-bold text-xs">
+                    <span>Total Approved Expenses</span>
+                    <span>₹{expenseReimbursement.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              ) : expenseReimbursement > 0 ? (
+                <div className="flex justify-between items-center text-emerald-400 font-bold">
+                  <span>Approved Expenses ({monthLabel})</span>
+                  <span>₹{expenseReimbursement.toLocaleString('en-IN')}</span>
+                </div>
+              ) : null}
               <div className="pt-3 border-t border-emerald-500/20 flex justify-between items-center text-sm font-black text-emerald-400">
                 <span className="uppercase tracking-wider">GROSS TOTAL</span>
                 <span>₹{grossTotal.toLocaleString('en-IN')}</span>
@@ -209,10 +249,6 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                   <span className="font-bold text-rose-400">₹({otherDeductions.toLocaleString('en-IN')})</span>
                 </div>
               )}
-              <div className="pt-8 border-t border-rose-500/20 flex justify-between items-center text-sm font-black text-rose-400">
-                <span className="uppercase tracking-wider">TOTAL DEDUCTIONS</span>
-                <span>₹({totalDeductions.toLocaleString('en-IN')})</span>
-              </div>
             </div>
           </div>
 
