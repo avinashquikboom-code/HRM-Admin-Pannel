@@ -202,7 +202,7 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                     </div>
                   ))}
                   <div className="pt-1 border-t border-emerald-500/10 flex justify-between items-center text-emerald-400 font-bold text-xs">
-                    <span>Total Approved Expenses</span>
+                    <span>TOTAL EXPENSES</span>
                     <span>₹{expenseReimbursement.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
@@ -237,18 +237,20 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                 <span>Leave ({leaveDays} × ₹{Math.round(baseSalary / workingDays)})</span>
                 <span className="font-bold text-rose-400">₹({leaveDeduction.toLocaleString('en-IN')})</span>
               </div>
-              {advanceDeduction > 0 && (
-                <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                  <span>Advance Deduction</span>
-                  <span className="font-bold text-rose-400">₹({advanceDeduction.toLocaleString('en-IN')})</span>
-                </div>
-              )}
+              <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                <span>Advance Salary</span>
+                <span className="font-bold text-rose-400">₹({advanceDeduction.toLocaleString('en-IN')})</span>
+              </div>
               {otherDeductions > 0 && (
                 <div className="flex justify-between items-center text-slate-300 print-text-dark">
                   <span>Other Deductions</span>
                   <span className="font-bold text-rose-400">₹({otherDeductions.toLocaleString('en-IN')})</span>
                 </div>
               )}
+              <div className="pt-3 border-t border-rose-500/20 flex justify-between items-center text-sm font-black text-rose-400">
+                <span className="uppercase tracking-wider">TOTAL DEDUCTIONS</span>
+                <span>₹({totalDeductions.toLocaleString('en-IN')})</span>
+              </div>
             </div>
           </div>
 
