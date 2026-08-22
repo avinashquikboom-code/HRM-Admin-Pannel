@@ -16,12 +16,13 @@ import {
 import Modal from '@/components/Modal';
 import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
-import { formatTime, calculateWorkingHours } from '@/utils/timeFormatter';
+import { formatTime, calculateWorkingHours, formatBreakDuration } from '@/utils/timeFormatter';
 
 export interface BreakSession {
   id?: number | string;
   startTime: string;
   endTime?: string | null;
+  durationSeconds?: number | null;
   durationMinutes?: number | null;
   type?: string;
 }
@@ -36,6 +37,7 @@ export interface StoreAttendanceEmployee {
   checkOutTime: string;
   workingHours: string;
   breakSessions?: BreakSession[];
+  totalBreakSeconds?: number;
   totalBreakMinutes?: number;
   isCurrentlyOnBreak?: boolean;
   startBreak?: string;
@@ -122,9 +124,11 @@ export function StoreAttendanceModal({
 
         const totalBreakStr = emp.isCurrentlyOnBreak
           ? 'Running'
-          : (emp.totalBreakMinutes !== undefined && emp.totalBreakMinutes > 0
-            ? `${emp.totalBreakMinutes} min`
-            : (emp.totalBreak || '-'));
+          : (emp.totalBreakSeconds !== undefined && emp.totalBreakSeconds > 0
+            ? formatBreakDuration(emp.totalBreakSeconds)
+            : (emp.totalBreakMinutes !== undefined && emp.totalBreakMinutes > 0
+              ? formatBreakDuration(emp.totalBreakMinutes * 60)
+              : (emp.totalBreak || '-')));
 
         return {
           'Employee Code': emp.employeeCode || '-',
@@ -241,21 +245,28 @@ export function StoreAttendanceModal({
         </span>
       );
     }
-    if (emp.totalBreakMinutes !== undefined && emp.totalBreakMinutes > 0) {
+    if (emp.totalBreakSeconds !== undefined && emp.totalBreakSeconds > 0) {
       return (
         <div>
-          <span className="font-bold text-amber-600">{emp.totalBreakMinutes} min</span>
+          <span className="font-bold text-amber-600">{formatBreakDuration(emp.totalBreakSeconds)}</span>
           {emp.breakSessions && emp.breakSessions.length > 1 && (
             <div className="text-[10px] text-text-secondary font-normal whitespace-nowrap">
-              {emp.breakSessions.map(s => s.durationMinutes !== null && s.durationMinutes !== undefined ? `${s.durationMinutes}m` : '-').join(' + ')}
+              {emp.breakSessions
+                .map(s => s.durationSeconds !== null && s.durationSeconds !== undefined
+                  ? formatBreakDuration(s.durationSeconds)
+                  : (s.durationMinutes !== null && s.durationMinutes !== undefined ? formatBreakDuration(s.durationMinutes * 60) : '-'))
+                .join(' + ')}
             </div>
           )}
         </div>
       );
     }
     if (emp.breakSessions && emp.breakSessions.length > 0) {
-      const total = emp.breakSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
-      return total > 0 ? `${total} min` : '-';
+      const totalSec = emp.breakSessions.reduce(
+        (acc, s) => acc + (s.durationSeconds ?? (s.durationMinutes ? s.durationMinutes * 60 : 0)),
+        0
+      );
+      return totalSec > 0 ? formatBreakDuration(totalSec) : '-';
     }
     return emp.totalBreak || '-';
   };

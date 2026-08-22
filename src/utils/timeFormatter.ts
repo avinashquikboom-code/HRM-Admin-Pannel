@@ -96,3 +96,28 @@ export function calculateLateness(checkInTime: string | Date | null | undefined)
     return 0;
   }
 }
+
+/**
+ * Standard Break Duration Formatter
+ * - < 60s -> "44 sec"
+ * - 60–3599s -> "1m 14s"
+ * - >= 3600s -> "1h 5m 20s"
+ */
+export function formatBreakDuration(totalSeconds: number | null | undefined): string {
+  if (totalSeconds === null || totalSeconds === undefined || totalSeconds < 0) return '-';
+  const sec = Math.floor(totalSeconds);
+  if (sec === 0) return '0 sec';
+  if (sec < 60) {
+    return `${sec} sec`;
+  } else if (sec < 3600) {
+    const mins = Math.floor(sec / 60);
+    const remainderSecs = sec % 60;
+    return `${mins}m ${remainderSecs}s`;
+  } else {
+    const hours = Math.floor(sec / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    const remainderSecs = sec % 60;
+    return `${hours}h ${mins}m ${remainderSecs}s`;
+  }
+}
+
