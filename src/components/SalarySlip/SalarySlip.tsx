@@ -33,9 +33,10 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
 
   // Extract or fallback deductions
   const deductions = selectedSlip.deductions || slipData?.deductions || {};
-  const halfDayDeduction = deductions.halfDayDeduction ?? 154;
-  const leaveDeduction = deductions.leaveDeduction ?? 1155;
-  const totalDeductions = deductions.totalDeductions ?? (halfDayDeduction + leaveDeduction);
+  const halfDayDeduction = deductions.halfDayDeduction ?? selectedSlip.halfDayDeduction ?? 154;
+  const leaveDeduction = deductions.leaveDeduction ?? selectedSlip.leaveDeduction ?? 1155;
+  const advanceDeduction = deductions.advanceDeduction ?? selectedSlip.advanceDeduction ?? slipData?.advanceDeduction ?? 0;
+  const totalDeductions = deductions.totalDeductions ?? selectedSlip.deductionsTotal ?? selectedSlip.deductions ?? (halfDayDeduction + leaveDeduction + advanceDeduction);
 
   // Net salary calculation
   const netSalary = selectedSlip.netSalary ?? (grossTotal - totalDeductions);
@@ -193,6 +194,12 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                 <span>Leave ({leaveDays} × ₹{Math.round(baseSalary / workingDays)})</span>
                 <span className="font-bold text-rose-400">₹({leaveDeduction.toLocaleString('en-IN')})</span>
               </div>
+              {advanceDeduction > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Advance Deduction</span>
+                  <span className="font-bold text-rose-400">₹({advanceDeduction.toLocaleString('en-IN')})</span>
+                </div>
+              )}
               <div className="pt-8 border-t border-rose-500/20 flex justify-between items-center text-sm font-black text-rose-400">
                 <span className="uppercase tracking-wider">TOTAL DEDUCTIONS</span>
                 <span>₹({totalDeductions.toLocaleString('en-IN')})</span>
