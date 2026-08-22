@@ -18,16 +18,30 @@ import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
 import { formatTime, calculateWorkingHours } from '@/utils/timeFormatter';
 
+export interface BreakSession {
+  id?: number | string;
+  startTime: string;
+  endTime?: string | null;
+  durationMinutes?: number | null;
+  type?: string;
+}
+
 export interface StoreAttendanceEmployee {
   id: number;
   employeeName: string;
   employeeCode: string;
   designation: string;
-  status: 'PRESENT' | 'ABSENT' | 'ON LEAVE' | 'LATE' | string;
+  status: 'PRESENT' | 'ABSENT' | 'ON LEAVE' | 'LATE' | 'ON BREAK' | string;
   checkInTime: string;
   checkOutTime: string;
   workingHours: string;
-  breakDetails: string;
+  breakSessions?: BreakSession[];
+  totalBreakMinutes?: number;
+  isCurrentlyOnBreak?: boolean;
+  startBreak?: string;
+  endBreak?: string;
+  totalBreak?: string;
+  breakDetails?: string;
   notes: string;
 }
 
@@ -97,17 +111,35 @@ export function StoreAttendanceModal({
   const handleExportExcel = () => {
     if (filteredEmployees.length === 0) return;
     try {
-      const dataToExport = filteredEmployees.map((emp) => ({
-        'Employee Code': emp.employeeCode || '-',
-        'Employee Name': emp.employeeName,
-        'Designation': emp.designation,
-        'Status': emp.status,
-        'Check-In Time': formatTime(emp.checkInTime),
-        'Check-Out Time': formatTime(emp.checkOutTime),
-        'Working Hours': emp.workingHours && emp.workingHours !== '-' ? emp.workingHours : calculateWorkingHours(emp.checkInTime, emp.checkOutTime),
-        'Break Details': emp.breakDetails,
-        'Notes': emp.notes || '-'
-      }));
+      const dataToExport = filteredEmployees.map((emp) => {
+        const startBreakStr = emp.breakSessions && emp.breakSessions.length > 0
+          ? emp.breakSessions.map((s) => formatTime(s.startTime)).join(', ')
+          : (emp.startBreak || '-');
+
+        const endBreakStr = emp.breakSessions && emp.breakSessions.length > 0
+          ? emp.breakSessions.map((s) => (s.endTime ? formatTime(s.endTime) : '-')).join(', ')
+          : (emp.endBreak || '-');
+
+        const totalBreakStr = emp.isCurrentlyOnBreak
+          ? 'Running'
+          : (emp.totalBreakMinutes !== undefined && emp.totalBreakMinutes > 0
+            ? `${emp.totalBreakMinutes} min`
+            : (emp.totalBreak || '-'));
+
+        return {
+          'Employee Code': emp.employeeCode || '-',
+          'Employee Name': emp.employeeName,
+          'Designation': emp.designation,
+          'Status': emp.isCurrentlyOnBreak ? 'ON BREAK' : emp.status,
+          'Check-In Time': formatTime(emp.checkInTime),
+          'Check-Out Time': formatTime(emp.checkOutTime),
+          'Working Hours': emp.workingHours && emp.workingHours !== '-' ? emp.workingHours : calculateWorkingHours(emp.checkInTime, emp.checkOutTime),
+          'Start Break': startBreakStr,
+          'End Break': endBreakStr,
+          'Total Break': totalBreakStr,
+          'Notes': emp.notes || '-'
+        };
+      });
 
       const XLSX = require('xlsx');
       const wb = XLSX.utils.book_new();
@@ -121,8 +153,16 @@ export function StoreAttendanceModal({
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const upperStatus = status.toUpperCase();
+  const getStatusBadge = (emp: StoreAttendanceEmployee) => {
+    const upperStatus = emp.status?.toUpperCase() || '';
+    if (emp.isCurrentlyOnBreak || upperStatus === 'ON BREAK') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 border border-amber-500/20">
+          <Coffee size={12} className="animate-pulse" />
+          On Break
+        </span>
+      );
+    }
     if (upperStatus === 'PRESENT') {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
@@ -157,9 +197,67 @@ export function StoreAttendanceModal({
     }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider bg-surface-variant text-text-secondary border border-border">
-        {status}
+        {emp.status}
       </span>
     );
+  };
+
+  const renderStartBreak = (emp: StoreAttendanceEmployee) => {
+    if (emp.breakSessions && emp.breakSessions.length > 0) {
+      return (
+        <div className="space-y-0.5">
+          {emp.breakSessions.map((s, idx) => (
+            <div key={idx} className="whitespace-nowrap font-medium text-text-primary">
+              {formatTime(s.startTime)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return emp.startBreak || '-';
+  };
+
+  const renderEndBreak = (emp: StoreAttendanceEmployee) => {
+    if (emp.breakSessions && emp.breakSessions.length > 0) {
+      return (
+        <div className="space-y-0.5">
+          {emp.breakSessions.map((s, idx) => (
+            <div key={idx} className="whitespace-nowrap font-medium text-text-primary">
+              {s.endTime ? formatTime(s.endTime) : '-'}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return emp.endBreak || '-';
+  };
+
+  const renderTotalBreak = (emp: StoreAttendanceEmployee) => {
+    if (emp.isCurrentlyOnBreak) {
+      return (
+        <span className="inline-flex items-center gap-1 text-amber-600 font-bold whitespace-nowrap">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Running
+        </span>
+      );
+    }
+    if (emp.totalBreakMinutes !== undefined && emp.totalBreakMinutes > 0) {
+      return (
+        <div>
+          <span className="font-bold text-amber-600">{emp.totalBreakMinutes} min</span>
+          {emp.breakSessions && emp.breakSessions.length > 1 && (
+            <div className="text-[10px] text-text-secondary font-normal whitespace-nowrap">
+              {emp.breakSessions.map(s => s.durationMinutes !== null && s.durationMinutes !== undefined ? `${s.durationMinutes}m` : '-').join(' + ')}
+            </div>
+          )}
+        </div>
+      );
+    }
+    if (emp.breakSessions && emp.breakSessions.length > 0) {
+      const total = emp.breakSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+      return total > 0 ? `${total} min` : '-';
+    }
+    return emp.totalBreak || '-';
   };
 
   // Quick summary counts
@@ -235,7 +333,7 @@ export function StoreAttendanceModal({
         )}
 
         {/* Attendance Table */}
-        <div className="border border-border rounded-sm max-h-[480px] overflow-y-auto">
+        <div className="border border-border rounded-sm max-h-[480px] overflow-y-auto overflow-x-auto">
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3">
               <RefreshCw className="animate-spin text-primary" size={28} />
@@ -244,7 +342,7 @@ export function StoreAttendanceModal({
               </p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[850px] text-left border-collapse">
               <thead>
                 <tr className="bg-surface-variant/40 border-b border-border sticky top-0 z-10">
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Employee</th>
@@ -252,7 +350,9 @@ export function StoreAttendanceModal({
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Check-In</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Check-Out</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Working Hours</th>
-                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Break Details</th>
+                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Start Break</th>
+                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">End Break</th>
+                  <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Total Break</th>
                   <th className="px-4 py-3.5 text-[9px] font-black text-text-secondary uppercase tracking-widest">Notes</th>
                 </tr>
               </thead>
@@ -265,7 +365,7 @@ export function StoreAttendanceModal({
                         <div className="text-[10px] text-text-secondary font-semibold">{emp.designation}</div>
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        {getStatusBadge(emp.status)}
+                        {getStatusBadge(emp)}
                       </td>
                       <td className="px-4 py-3 text-xs font-bold text-text-primary">
                         {formatTime(emp.checkInTime)}
@@ -276,8 +376,14 @@ export function StoreAttendanceModal({
                       <td className="px-4 py-3 text-xs font-semibold text-emerald-600">
                         {emp.workingHours && emp.workingHours !== '-' ? emp.workingHours : calculateWorkingHours(emp.checkInTime, emp.checkOutTime)}
                       </td>
-                      <td className="px-4 py-3 text-xs font-medium text-text-secondary">
-                        {emp.breakDetails}
+                      <td className="px-4 py-3 text-xs font-semibold text-text-primary">
+                        {renderStartBreak(emp)}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-semibold text-text-primary">
+                        {renderEndBreak(emp)}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-bold text-amber-600">
+                        {renderTotalBreak(emp)}
                       </td>
                       <td className="px-4 py-3 text-xs font-normal text-text-secondary max-w-[150px] truncate" title={emp.notes}>
                         {emp.notes || '-'}
@@ -286,7 +392,7 @@ export function StoreAttendanceModal({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
+                    <td colSpan={9} className="px-4 py-10 text-center text-xs font-bold text-text-secondary uppercase tracking-widest">
                       {searchQuery ? 'No matching employee records found.' : 'No active employees in this store.'}
                     </td>
                   </tr>
@@ -299,3 +405,4 @@ export function StoreAttendanceModal({
     </Modal>
   );
 }
+
