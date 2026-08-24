@@ -35,6 +35,7 @@ export interface AdminEmployee {
   employeeCode: string;
   firstName: string;
   lastName: string;
+  email?: string | null;
   mobileNumber?: string;
   phone?: string;
   designation: string | null;

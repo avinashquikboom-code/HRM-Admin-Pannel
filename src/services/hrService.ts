@@ -80,6 +80,7 @@ export interface HREmployee {
   currentAddress?: string;
   permanentAddress?: string;
   role?: string;
+  user?: { email?: string; role?: string; id?: number } | null;
   commissionPercentage?: number;
   storeId?: number | null;
   branchId?: number | null;
