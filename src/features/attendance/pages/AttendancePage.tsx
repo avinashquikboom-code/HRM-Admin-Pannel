@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import TableSkeleton from '@/components/TableSkeleton';
+import { getInitials } from '@/lib/avatarHelper';
 import { 
   XAxis, 
   YAxis, 
@@ -555,8 +556,8 @@ const AttendancePage = () => {
               <tbody className="divide-y divide-border">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record) => {
-                    const employeeName = `${record.employee.firstName} ${record.employee.lastName}`;
-                    const avatar = `${record.employee.firstName[0] ?? ''}${record.employee.lastName[0] ?? ''}`.toUpperCase();
+                    const employeeName = `${record.employee.firstName} ${record.employee.lastName}`.trim();
+                    const avatar = getInitials({ firstName: record.employee.firstName, lastName: record.employee.lastName, name: employeeName }) || 'EM';
 
                     return (
                       <motion.tr

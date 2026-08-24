@@ -21,6 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { PortalType, getLoginPathForPortal, SUPER_ADMIN_PREFIX, EMPLOYEE_PREFIX } from '@/lib/portals';
 import { PORTAL_AUTH_KEYS } from '@/lib/authStorage';
+import { UserAvatar } from './UserAvatar';
 
 interface HeaderProps {
   portal?: PortalType;
@@ -108,10 +109,13 @@ const Header = ({ portal = 'platform_admin' }: HeaderProps) => {
               </div>
               <div className="relative">
                 <div className="p-0.5 rounded-full bg-gradient-to-tr from-primary to-secondary group-hover:scale-105 transition-transform duration-300">
-                  <img 
-                    src={user?.avatar || '/favicon.svg'} 
-                    alt="Avatar" 
-                    className="w-10 h-10 rounded-full bg-surface object-cover border-2 border-surface"
+                  <UserAvatar
+                    src={user?.avatar}
+                    name={user?.name}
+                    className="w-10 h-10 rounded-full bg-surface border-2 border-surface"
+                    imageClassName="w-full h-full rounded-full object-cover"
+                    initialsClassName="text-xs font-black text-primary"
+                    fallbackIconSize={18}
                   />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success border-2 border-surface rounded-full"></div>

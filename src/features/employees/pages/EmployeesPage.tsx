@@ -28,6 +28,7 @@ import TableSkeleton from '@/components/TableSkeleton';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { useEmployees } from '@/hooks/useEmployees';
 import ResetPasswordModal from '../components/ResetPasswordModal';
+import { getInitials } from '@/lib/avatarHelper';
 import EditEmployeeModal from '../components/EditEmployeeModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
@@ -343,8 +344,8 @@ const EmployeesPage = () => {
 
           {paginatedEmployees.length > 0 ? (
             paginatedEmployees.map((employee) => {
-              const fullName = `${employee.firstName} ${employee.lastName}`;
-              const initials = `${employee.firstName[0] ?? ''}${employee.lastName[0] ?? ''}`.toUpperCase();
+              const fullName = `${employee.firstName} ${employee.lastName}`.trim();
+              const initials = getInitials({ firstName: employee.firstName, lastName: employee.lastName, name: fullName }) || 'EM';
               const statusLabel = formatStatus(employee.status);
 
               return (
@@ -559,8 +560,8 @@ const EmployeesPage = () => {
               <tbody className="divide-y divide-border">
                 {paginatedEmployees.length > 0 ? (
                   paginatedEmployees.map((employee) => {
-                    const fullName = `${employee.firstName} ${employee.lastName}`;
-                    const initials = `${employee.firstName[0] ?? ''}${employee.lastName[0] ?? ''}`.toUpperCase();
+                    const fullName = `${employee.firstName} ${employee.lastName}`.trim();
+                    const initials = getInitials({ firstName: employee.firstName, lastName: employee.lastName, name: fullName }) || 'EM';
                     const statusLabel = formatStatus(employee.status);
 
                     return (

@@ -21,8 +21,10 @@ import {
   Cpu,
   Pencil,
   Fingerprint,
-  ShieldAlert
+  ShieldAlert,
 } from 'lucide-react';
+import { UserAvatar } from '@/components/UserAvatar';
+import { getInitials } from '@/lib/avatarHelper';
 import { motion, Variants } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import SignOutModal from '@/components/SignOutModal';
@@ -163,11 +165,14 @@ const ProfilePage = () => {
             <div className="relative inline-block mb-6">
               <div className="w-32 h-32 rounded-full p-1.5 bg-gradient-to-br from-primary/20 to-transparent shadow-2xl border border-white/10 relative overflow-hidden">
                 <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                  {user?.avatar && user.avatar !== '/favicon.svg' ? (
-                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  ) : (
-                    <UserIcon size={60} className="text-slate-400" />
-                  )}
+                  <UserAvatar
+                    src={user?.avatar}
+                    name={user?.name || profile?.fullName}
+                    className="w-full h-full rounded-full bg-slate-900"
+                    imageClassName="w-full h-full rounded-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    initialsClassName="text-3xl font-black text-primary"
+                    fallbackIconSize={60}
+                  />
                 </div>
               </div>
               <button

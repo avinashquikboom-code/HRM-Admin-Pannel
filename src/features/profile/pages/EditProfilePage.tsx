@@ -32,6 +32,7 @@ import { updateAdminProfile, uploadAdminAvatar, removeAdminAvatar, fileToDataUrl
 import { useOffices } from '@/hooks/useOffices';
 import { getProfileBasePath, isSuperAdminPath } from '@/lib/portals';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
+import { UserAvatar } from '@/components/UserAvatar';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -266,11 +267,14 @@ const EditProfilePage = () => {
                   />
                   <div className="w-36 h-36 rounded-full p-1.5 bg-gradient-to-br from-primary/20 to-transparent shadow-2xl border border-white/10 relative overflow-hidden">
                     <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden relative">
-                      {resolvedAvatarSrc ? (
-                        <img src={resolvedAvatarSrc} alt={user?.name || 'Admin'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                      ) : (
-                        <User size={60} className="text-slate-400" />
-                      )}
+                      <UserAvatar
+                        src={resolvedAvatarSrc}
+                        name={user?.name || 'Admin'}
+                        className="w-full h-full rounded-full bg-slate-900"
+                        imageClassName="w-full h-full rounded-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        initialsClassName="text-3xl font-black text-primary"
+                        fallbackIconSize={60}
+                      />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                         {isAvatarLoading ? (
                           <Loader2 size={28} className="text-white animate-spin" />
