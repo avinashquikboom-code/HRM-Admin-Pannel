@@ -33,6 +33,7 @@ const WHITELISTED_TABLES = [
   { id: 'ShiftRequests', label: 'Shift Requests', desc: 'Pending & processed shift change requests' },
   { id: 'Tasks', label: 'Tasks & Updates', desc: 'Assigned tasks & execution status logs' },
   { id: 'Notifications', label: 'Notifications', desc: 'In-app & push alert logs' },
+  { id: 'WebhookLogs', label: 'Webhook Logs & Audit', desc: 'Raw & processed webhook event logs' },
 ];
 
 export default function DataManagementPanel() {
