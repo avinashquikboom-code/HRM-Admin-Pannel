@@ -426,6 +426,7 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                       const initials = userItem.name.split(' ').map((n) => n[0]).join('').toUpperCase();
                       const itemSource = userItem.source || userItem.employee?.source || 'MANUAL';
                       const isHopkid = itemSource === 'HOPKID';
+                      const isProtected = ['admin@hrm.com', 'hr@hrm.com'].includes(String(userItem.email || '').toLowerCase());
 
                       return (
                         <tr 
@@ -442,6 +443,11 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                                   <span className="font-bold text-white truncate group-hover:text-primary transition-colors">
                                     {userItem.name}
                                   </span>
+                                  {isProtected && (
+                                    <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                      <Lock size={10} /> Protected
+                                    </span>
+                                  )}
                                   {isHopkid && (
                                     <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                       HopKid
@@ -521,18 +527,27 @@ export default function UserRightsPage({ variant }: UserRightsPageProps) {
                               >
                                 <Edit size={14} />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setUserToDelete(userItem);
-                                  setDeleteConfirmOpen(true);
-                                }}
-                                disabled={isDeleting}
-                                className="p-1.5 bg-slate-900 hover:bg-rose-500/10 text-slate-300 hover:text-rose-500 rounded-sm border border-white/5 transition-all cursor-pointer"
-                                title="Delete user"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              {!isProtected ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setUserToDelete(userItem);
+                                    setDeleteConfirmOpen(true);
+                                  }}
+                                  disabled={isDeleting}
+                                  className="p-1.5 bg-slate-900 hover:bg-rose-500/10 text-slate-300 hover:text-rose-500 rounded-sm border border-white/5 transition-all cursor-pointer"
+                                  title="Delete user"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              ) : (
+                                <span 
+                                  className="p-1.5 text-slate-600 cursor-not-allowed" 
+                                  title="Protected system account cannot be deleted"
+                                >
+                                  <Lock size={14} />
+                                </span>
+                              )}
                             </div>
                           </td>
                         </tr>

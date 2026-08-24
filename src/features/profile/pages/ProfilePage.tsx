@@ -279,20 +279,54 @@ const ProfilePage = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Update Password Tile */}
-                <div
-                  onClick={() => setIsUpdatePasswordModalOpen(true)}
-                  className="group/tile p-5 rounded-sm bg-surface-variant/30 border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 cursor-pointer flex gap-4 items-start"
-                >
-                  <div className="p-3 rounded-sm bg-primary/10 text-primary border border-primary/20 group-hover/tile:bg-primary group-hover/tile:text-always-white transition-all duration-300 shadow-sm shrink-0">
-                    <Key size={18} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-text-primary group-hover/tile:text-primary transition-colors">Update Password</h4>
-                    <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                      Modify your account login credentials and security protocols.
-                    </p>
-                  </div>
-                </div>
+                {(() => {
+                  const isProtected = ['admin@hrm.com', 'hr@hrm.com'].includes(String(user?.email || '').toLowerCase());
+                  return (
+                    <div
+                      onClick={() => {
+                        if (!isProtected) {
+                          setIsUpdatePasswordModalOpen(true);
+                        }
+                      }}
+                      className={cn(
+                        "group/tile p-5 rounded-sm bg-surface-variant/30 border border-border/30 transition-all duration-300 flex gap-4 items-start",
+                        isProtected 
+                          ? "opacity-60 cursor-not-allowed border-dashed" 
+                          : "hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
+                      )}
+                      title={isProtected ? "Protected System Account: Password can only be changed from HR management panel" : undefined}
+                    >
+                      <div className={cn(
+                        "p-3 rounded-sm border transition-all duration-300 shadow-sm shrink-0",
+                        isProtected
+                          ? "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                          : "bg-primary/10 text-primary border-primary/20 group-hover/tile:bg-primary group-hover/tile:text-always-white"
+                      )}>
+                        <Key size={18} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className={cn(
+                            "text-sm font-bold text-text-primary transition-colors",
+                            !isProtected && "group-hover/tile:text-primary"
+                          )}>
+                            Update Password
+                          </h4>
+                          {isProtected && (
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              Managed by HR
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                          {isProtected 
+                            ? "Protected account password can only be updated from the HR management panel." 
+                            : "Modify your account login credentials and security protocols."}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Sign Out Tile */}
                 <div

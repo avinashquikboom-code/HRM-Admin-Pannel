@@ -406,14 +406,16 @@ const EmployeesPage = () => {
                       >
                         <Lock size={18} />
                       </button>
-                      <button
-                        onClick={() => handleDeleteEmployee(employee)}
-                        disabled={isDeleting === employee.id}
-                        className="p-2.5 hover:bg-rose-500/10 rounded-sm text-text-secondary hover:text-rose-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Delete Employee"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {!['admin@hrm.com', 'hr@hrm.com'].includes(String(employee.user?.email || employee.email || '').toLowerCase()) && (
+                        <button
+                          onClick={() => handleDeleteEmployee(employee)}
+                          disabled={isDeleting === employee.id}
+                          className="p-2.5 hover:bg-rose-500/10 rounded-sm text-text-secondary hover:text-rose-500 border border-border shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete Employee"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-xs">
@@ -672,14 +674,16 @@ const EmployeesPage = () => {
                             >
                               <Lock size={18} />
                             </button>
-                            <button
-                              onClick={() => handleDeleteEmployee(employee)}
-                              disabled={isDeleting === employee.id}
-                              className="p-2.5 hover:bg-rose-500/10 rounded-sm text-text-secondary hover:text-rose-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Delete Employee"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            {!['admin@hrm.com', 'hr@hrm.com'].includes(String(employee.user?.email || employee.email || '').toLowerCase()) && (
+                              <button
+                                onClick={() => handleDeleteEmployee(employee)}
+                                disabled={isDeleting === employee.id}
+                                className="p-2.5 hover:bg-rose-500/10 rounded-sm text-text-secondary hover:text-rose-500 transition-all duration-300 border border-border active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Delete Employee"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </motion.tr>

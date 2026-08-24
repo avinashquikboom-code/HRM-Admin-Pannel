@@ -720,18 +720,20 @@ const HREmployeeManagement: React.FC<HREmployeeManagementProps> = ({ className, 
                         >
                           <Edit size={14} />
                         </button>
-                        <button
-                          onClick={() => handleDeleteEmployee(employee)}
-                          disabled={isDeleting === employee.id}
-                          className="p-1.5 bg-surface-variant hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 rounded-sm transition-colors disabled:opacity-50 border border-border/50"
-                          title="Delete employee"
-                        >
-                          {isDeleting === employee.id ? (
-                            <RefreshCw size={14} className="animate-spin" />
-                          ) : (
-                            <Trash2 size={14} />
-                          )}
-                        </button>
+                        {!['admin@hrm.com', 'hr@hrm.com'].includes(String(employee.user?.email || employee.email || '').toLowerCase()) && (
+                          <button
+                            onClick={() => handleDeleteEmployee(employee)}
+                            disabled={isDeleting === employee.id}
+                            className="p-1.5 bg-surface-variant hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 rounded-sm transition-colors disabled:opacity-50 border border-border/50"
+                            title="Delete employee"
+                          >
+                            {isDeleting === employee.id ? (
+                              <RefreshCw size={14} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
