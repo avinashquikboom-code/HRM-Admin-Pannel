@@ -618,11 +618,25 @@ export default function CommissionDashboard() {
                     <td className="px-6 py-4 text-xs font-semibold text-text-secondary">
                       {transaction.store?.name || 'Main Branch'}
                     </td>
-                    <td className="px-6 py-4 text-right font-mono text-xs font-black text-text-primary">
-                      {formatCurrency(transaction.saleAmount)}
+                    <td className="px-6 py-4 text-right font-mono text-xs">
+                      <span className="font-black text-text-primary block">
+                        {formatCurrency(transaction.newAmount || transaction.saleAmount)}
+                      </span>
+                      {Boolean(transaction.oldAmount && transaction.oldAmount > 0 && transaction.oldAmount !== (transaction.newAmount || transaction.saleAmount)) && (
+                        <span className="text-[10px] text-muted-foreground block font-medium">
+                          Old: {formatCurrency(transaction.oldAmount || 0)}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-right font-mono text-xs font-black text-primary">
-                      {formatCurrency(transaction.commissionAmount)}
+                    <td className="px-6 py-4 text-right font-mono text-xs">
+                      <span className="font-black text-primary block">
+                        {formatCurrency(transaction.newCommission !== undefined && transaction.newCommission !== null ? transaction.newCommission : transaction.commissionAmount)}
+                      </span>
+                      {Boolean(transaction.oldCommission && transaction.oldCommission > 0 && transaction.oldCommission !== (transaction.newCommission || transaction.commissionAmount)) && (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-bold">
+                          Old: {formatCurrency(transaction.oldCommission || 0)} ({transaction.commissionDifference && transaction.commissionDifference >= 0 ? '+' : ''}{formatCurrency(transaction.commissionDifference || 0)})
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(transaction.status)}
@@ -785,11 +799,25 @@ export default function CommissionDashboard() {
                             <td className="px-4 py-3 text-xs text-text-secondary">
                               {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
                             </td>
-                            <td className="px-4 py-3 text-right font-mono text-xs font-bold text-text-primary">
-                              {formatCurrency(t.saleAmount)}
+                            <td className="px-4 py-3 text-right font-mono text-xs">
+                              <span className="font-bold text-text-primary block">
+                                {formatCurrency(t.newAmount || t.saleAmount)}
+                              </span>
+                              {Boolean(t.oldAmount && t.oldAmount > 0 && t.oldAmount !== (t.newAmount || t.saleAmount)) && (
+                                <span className="text-[10px] text-muted-foreground block">
+                                  Old: {formatCurrency(t.oldAmount || 0)}
+                                </span>
+                              )}
                             </td>
-                            <td className="px-4 py-3 text-right font-mono text-xs font-black text-primary">
-                              {formatCurrency(t.commissionAmount)}
+                            <td className="px-4 py-3 text-right font-mono text-xs">
+                              <span className="font-black text-primary block">
+                                {formatCurrency(t.newCommission !== undefined && t.newCommission !== null ? t.newCommission : t.commissionAmount)}
+                              </span>
+                              {Boolean(t.oldCommission && t.oldCommission > 0 && t.oldCommission !== (t.newCommission || t.commissionAmount)) && (
+                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-bold">
+                                  Old: {formatCurrency(t.oldCommission || 0)} ({t.commissionDifference && t.commissionDifference >= 0 ? '+' : ''}{formatCurrency(t.commissionDifference || 0)})
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               {getStatusBadge(t.status)}

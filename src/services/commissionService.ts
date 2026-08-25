@@ -44,6 +44,12 @@ export interface CommissionTransaction {
   commissionType: string;
   commissionPercent?: number;
   commissionAmount: number;
+  oldAmount?: number;
+  newAmount?: number;
+  oldCommission?: number;
+  newCommission?: number;
+  commissionDifference?: number;
+  eventType?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID';
   approvedBy?: number;
   approvedAt?: string;
