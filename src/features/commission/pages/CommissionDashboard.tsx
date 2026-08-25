@@ -231,7 +231,7 @@ export default function CommissionDashboard() {
         return [];
       });
       const list = Array.isArray(storesRes) ? storesRes : [];
-      setStores(list.filter((s: any) => String(s.name || '').toUpperCase().startsWith('HOPKID')));
+      setStores(list);
     } catch (error) {
       console.error('Failed to load dropdown data:', error);
     }
