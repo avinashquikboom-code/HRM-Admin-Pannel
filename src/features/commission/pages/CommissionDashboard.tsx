@@ -795,21 +795,11 @@ export default function CommissionDashboard() {
                               <span className="font-bold text-text-primary block">
                                 {formatCurrency(t.newAmount || t.saleAmount)}
                               </span>
-                              {Boolean(t.oldAmount && t.oldAmount > 0 && t.oldAmount !== (t.newAmount || t.saleAmount)) && (
-                                <span className="text-[10px] text-muted-foreground block">
-                                  Old: {formatCurrency(t.oldAmount || 0)}
-                                </span>
-                              )}
                             </td>
                             <td className="px-4 py-3 text-right font-mono text-xs">
                               <span className="font-black text-primary block">
-                                {formatCurrency(t.newCommission !== undefined && t.newCommission !== null ? t.newCommission : t.commissionAmount)}
+                                {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
                               </span>
-                              {Boolean(t.oldCommission && t.oldCommission > 0 && t.oldCommission !== (t.newCommission || t.commissionAmount)) && (
-                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-bold">
-                                  Old: {formatCurrency(t.oldCommission || 0)} ({t.commissionDifference && t.commissionDifference >= 0 ? '+' : ''}{formatCurrency(t.commissionDifference || 0)})
-                                </span>
-                              )}
                             </td>
                             <td className="px-4 py-3">
                               {getStatusBadge(t.status)}

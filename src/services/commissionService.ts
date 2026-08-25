@@ -389,6 +389,43 @@ export async function calculateCommission(
   }
 }
 
+/**
+ * Calculates the total contribution of a commission transaction according to business rules:
+ * 1. For an INVOICE_UPDATED transaction: BOTH old commission and new commission are counted (Total = oldCommission + newCommission).
+ * 2. For a CREATED / regular invoice: only the current/new commission is counted.
+ */
+export function getTransactionNetContribution(t: {
+  eventType?: string | null;
+  saleAmount: number | string;
+  commissionAmount: number | string;
+  oldAmount?: number | string | null;
+  newAmount?: number | string | null;
+  oldCommission?: number | string | null;
+  newCommission?: number | string | null;
+  commissionDifference?: number | string | null;
+}): { netSales: number; netCommission: number } {
+  const isUpdated = t.eventType === 'INVOICE_UPDATED' ||
+    (t.oldCommission !== null && t.oldCommission !== undefined && Number(t.oldCommission) > 0) ||
+    (t.oldAmount !== null && t.oldAmount !== undefined && Number(t.oldAmount) > 0 && Number(t.oldAmount) !== Number(t.newAmount || t.saleAmount));
+
+  if (isUpdated) {
+    const oldAmt = Number(t.oldAmount || 0);
+    const newAmt = Number(t.newAmount !== null && t.newAmount !== undefined && Number(t.newAmount) !== 0 ? t.newAmount : t.saleAmount);
+    const oldComm = Number(t.oldCommission || 0);
+    const newComm = Number(t.newCommission !== null && t.newCommission !== undefined && Number(t.newCommission) !== 0 ? t.newCommission : t.commissionAmount);
+
+    return {
+      netSales: (oldAmt > 0 ? oldAmt : 0) + newAmt,
+      netCommission: (oldComm > 0 ? oldComm : 0) + newComm,
+    };
+  }
+
+  return {
+    netSales: Number(t.saleAmount || 0),
+    netCommission: Number(t.commissionAmount || 0),
+  };
+}
+
 // Commission Dashboard
 
 export async function getCommissionDashboard(
@@ -417,26 +454,27 @@ export async function getCommissionDashboard(
     const txnsRes = await getCommissionTransactions(params);
     const txns = txnsRes.transactions || [];
 
-    const todayComm = txns.reduce((acc, t) => acc + (t.commissionAmount || 0), 0);
-    const todaySales = txns.reduce((acc, t) => acc + (t.saleAmount || 0), 0);
+    const todayComm = txns.reduce((acc, t) => acc + getTransactionNetContribution(t).netCommission, 0);
+    const todaySales = txns.reduce((acc, t) => acc + getTransactionNetContribution(t).netSales, 0);
 
     const pendingTxns = txns.filter(t => t.status === 'PENDING');
-    const pendingComm = pendingTxns.reduce((acc, t) => acc + (t.commissionAmount || 0), 0);
+    const pendingComm = pendingTxns.reduce((acc, t) => acc + getTransactionNetContribution(t).netCommission, 0);
 
     const paidTxns = txns.filter(t => t.status === 'PAID');
-    const paidComm = paidTxns.reduce((acc, t) => acc + (t.commissionAmount || 0), 0);
+    const paidComm = paidTxns.reduce((acc, t) => acc + getTransactionNetContribution(t).netCommission, 0);
 
     // Group by employee for top performers
     const performerMap = new Map<string, { employee: any; totalCommission: number; totalSales: number }>();
     txns.forEach(t => {
       const empId = String(t.employeeId || t.employee?.id || 'emp');
+      const { netSales, netCommission } = getTransactionNetContribution(t);
       const existing = performerMap.get(empId) || {
         employee: t.employee || { firstName: 'Employee', lastName: String(empId) },
         totalCommission: 0,
         totalSales: 0,
       };
-      existing.totalCommission += t.commissionAmount || 0;
-      existing.totalSales += t.saleAmount || 0;
+      existing.totalCommission += netCommission;
+      existing.totalSales += netSales;
       performerMap.set(empId, existing);
     });
 

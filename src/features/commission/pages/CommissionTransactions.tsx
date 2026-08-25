@@ -23,6 +23,7 @@ import {
   getCommissionTransactions,
   approveCommissionTransaction,
   rejectCommissionTransaction,
+  getTransactionNetContribution,
   type CommissionTransaction 
 } from '@/services/commissionService';
 import { fetchStores } from '@/services/storeService';
@@ -349,7 +350,7 @@ export default function CommissionTransactions() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(filteredTransactions.reduce((sum, t) => sum + t.commissionAmount, 0))}
+              {formatCurrency(filteredTransactions.reduce((sum, t) => sum + getTransactionNetContribution(t).netCommission, 0))}
             </div>
           </CardContent>
         </Card>
