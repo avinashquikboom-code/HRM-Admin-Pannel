@@ -388,10 +388,10 @@ export default function CommissionTransactions() {
                   </TableCell>
                   <TableCell>{transaction.store?.name || '-'}</TableCell>
                   <TableCell className="text-right">
-                    {formatCurrency(transaction.saleAmount)}
+                    {formatCurrency(transaction.newAmount || transaction.saleAmount)}
                   </TableCell>
                   <TableCell className="text-right font-semibold">
-                    {formatCurrency(transaction.commissionAmount)}
+                    {formatCurrency(transaction.newCommission !== undefined && transaction.newCommission !== null && transaction.newCommission !== 0 ? transaction.newCommission : transaction.commissionAmount)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{transaction.commissionType}</Badge>
@@ -610,10 +610,10 @@ export default function CommissionTransactions() {
                               {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs font-bold">
-                              {formatCurrency(t.saleAmount)}
+                              {formatCurrency(t.newAmount || t.saleAmount)}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs font-black text-primary">
-                              {formatCurrency(t.commissionAmount)}
+                              {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
                             </TableCell>
                             <TableCell>{getStatusBadge(t.status)}</TableCell>
                           </TableRow>
