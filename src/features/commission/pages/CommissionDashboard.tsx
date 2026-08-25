@@ -238,12 +238,15 @@ export default function CommissionDashboard() {
   };
 
   const formatCurrency = (amount: number) => {
+    const num = Number(amount || 0);
+    const hasFractions = num % 1 !== 0;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 0,
+      minimumFractionDigits: hasFractions ? 2 : 0,
+      maximumFractionDigits: 2,
       currencyDisplay: 'symbol',
-    }).format(amount);
+    }).format(num);
   };
 
   const getStatusBadge = (status: string) => {
@@ -624,11 +627,23 @@ export default function CommissionDashboard() {
                       <span className="font-black text-text-primary block">
                         {formatCurrency(transaction.newAmount || transaction.saleAmount)}
                       </span>
+                      {transaction.oldAmount && Number(transaction.oldAmount) > 0 && Number(transaction.oldAmount) !== Number(transaction.newAmount || transaction.saleAmount) ? (
+                        <span className="text-[10px] text-text-secondary font-normal block">
+                          Old: {formatCurrency(transaction.oldAmount)}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-xs">
                       <span className="font-black text-primary block">
                         {formatCurrency(transaction.newCommission !== undefined && transaction.newCommission !== null && transaction.newCommission !== 0 ? transaction.newCommission : transaction.commissionAmount)}
                       </span>
+                      {transaction.oldCommission && Number(transaction.oldCommission) > 0 && Number(transaction.oldCommission) !== Number(transaction.newCommission || transaction.commissionAmount) ? (
+                        <span className="text-[10px] text-text-secondary font-normal block">
+                          Old: {formatCurrency(transaction.oldCommission)} (
+                          {Number(transaction.newCommission || transaction.commissionAmount) - Number(transaction.oldCommission) >= 0 ? '+' : ''}
+                          {formatCurrency(Number(transaction.newCommission || transaction.commissionAmount) - Number(transaction.oldCommission))})
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(transaction.status)}
@@ -795,11 +810,23 @@ export default function CommissionDashboard() {
                               <span className="font-bold text-text-primary block">
                                 {formatCurrency(t.newAmount || t.saleAmount)}
                               </span>
+                              {t.oldAmount && Number(t.oldAmount) > 0 && Number(t.oldAmount) !== Number(t.newAmount || t.saleAmount) ? (
+                                <span className="text-[10px] text-text-secondary font-normal block">
+                                  Old: {formatCurrency(t.oldAmount)}
+                                </span>
+                              ) : null}
                             </td>
                             <td className="px-4 py-3 text-right font-mono text-xs">
                               <span className="font-black text-primary block">
                                 {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
                               </span>
+                              {t.oldCommission && Number(t.oldCommission) > 0 && Number(t.oldCommission) !== Number(t.newCommission || t.commissionAmount) ? (
+                                <span className="text-[10px] text-text-secondary font-normal block">
+                                  Old: {formatCurrency(t.oldCommission)} (
+                                  {Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission) >= 0 ? '+' : ''}
+                                  {formatCurrency(Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission))})
+                                </span>
+                              ) : null}
                             </td>
                             <td className="px-4 py-3">
                               {getStatusBadge(t.status)}
