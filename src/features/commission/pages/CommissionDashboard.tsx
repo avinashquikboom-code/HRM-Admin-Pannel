@@ -624,31 +624,11 @@ export default function CommissionDashboard() {
                       <span className="font-black text-text-primary block">
                         {formatCurrency(transaction.newAmount || transaction.saleAmount)}
                       </span>
-                      {Boolean(transaction.oldAmount && transaction.oldAmount > 0 && transaction.oldAmount !== (transaction.newAmount || transaction.saleAmount)) && (
-                        <div className="mt-0.5 space-y-0.5">
-                          <span className="text-[10px] text-muted-foreground block font-medium">
-                            Old: {formatCurrency(transaction.oldAmount || 0)}
-                          </span>
-                          <span className={cn("text-[10px] block font-bold", ((transaction.newAmount || transaction.saleAmount) - transaction.oldAmount) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
-                            Change: {((transaction.newAmount || transaction.saleAmount) - transaction.oldAmount) >= 0 ? '+' : ''}{formatCurrency((transaction.newAmount || transaction.saleAmount) - transaction.oldAmount)}
-                          </span>
-                        </div>
-                      )}
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-xs">
                       <span className="font-black text-primary block">
                         {formatCurrency(transaction.newCommission !== undefined && transaction.newCommission !== null && transaction.newCommission !== 0 ? transaction.newCommission : transaction.commissionAmount)}
                       </span>
-                      {Boolean(transaction.oldCommission && transaction.oldCommission > 0 && transaction.oldCommission !== (transaction.newCommission || transaction.commissionAmount)) && (
-                        <div className="mt-0.5 space-y-0.5">
-                          <span className="text-[10px] text-muted-foreground block font-medium">
-                            Old: {formatCurrency(transaction.oldCommission || 0)}
-                          </span>
-                          <span className={cn("text-[10px] block font-bold", (transaction.commissionDifference ?? ((transaction.newCommission || transaction.commissionAmount) - transaction.oldCommission)) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
-                            Change: {(transaction.commissionDifference ?? ((transaction.newCommission || transaction.commissionAmount) - transaction.oldCommission)) >= 0 ? '+' : ''}{formatCurrency(transaction.commissionDifference ?? ((transaction.newCommission || transaction.commissionAmount) - transaction.oldCommission))}
-                          </span>
-                        </div>
-                      )}
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(transaction.status)}
