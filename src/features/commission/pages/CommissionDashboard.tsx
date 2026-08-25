@@ -187,22 +187,24 @@ export default function CommissionDashboard() {
     setIsLoading(true);
     try {
       const params: any = { _t: Date.now() };
-      if (selectedStore) params.storeId = selectedStore;
+      if (selectedStore && selectedStore !== 'all') params.storeId = selectedStore;
       
+      const now = new Date();
       if (dateRange === 'today') {
-        const today = new Date();
-        params.startDate = today.toISOString().split('T')[0];
-        params.endDate = today.toISOString().split('T')[0];
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        params.startDate = dateStr;
+        params.endDate = dateStr;
       } else if (dateRange === 'week') {
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        params.startDate = weekAgo.toISOString().split('T')[0];
-        params.endDate = new Date().toISOString().split('T')[0];
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        params.startDate = `${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}-${String(weekAgo.getDate()).padStart(2, '0')}`;
+        params.endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       } else if (dateRange === 'month') {
-        const monthStart = new Date();
-        monthStart.setDate(1);
-        params.startDate = monthStart.toISOString().split('T')[0];
-        params.endDate = new Date().toISOString().split('T')[0];
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const monthEnd = new Date(year, month + 1, 0);
+        params.startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        params.endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`;
       }
 
       const [statsRes, transactionsRes] = await Promise.allSettled([
@@ -406,12 +408,12 @@ export default function CommissionDashboard() {
               )}
             </div>
 
-            <Select value={selectedStore} onValueChange={handleStoreChange}>
+            <Select value={selectedStore || 'all'} onValueChange={(val) => setSelectedStore(val === 'all' ? '' : val)}>
               <SelectTrigger className="w-52 bg-surface-variant/60 dark:bg-white/[0.05] border border-border/50 dark:border-white/10 rounded-xl text-xs font-bold outline-none h-9">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Stores</SelectItem>
+                <SelectItem value="all">All Stores</SelectItem>
                 {filteredStores.map((store) => (
                   <SelectItem key={store.id} value={store.id.toString()}>
                     {store.name}

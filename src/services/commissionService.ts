@@ -232,12 +232,12 @@ export async function getCommissionTransactions(
       '/api/admin/commission/transactions',
       { params }
     );
-    const list = data?.transactions || data?.data || data?.records || (Array.isArray(data) ? data : []);
-    if (Array.isArray(list) && list.length > 0) {
+    const list = data?.transactions ?? data?.data ?? data?.records ?? (Array.isArray(data) ? data : null);
+    if (Array.isArray(list)) {
       return { success: true, transactions: list };
     }
   } catch (error) {
-    // Primary endpoint offline, silent fallback
+    // Primary endpoint error, try fallback
   }
 
   // Fallback 1: Try /api/commission/transactions
@@ -246,8 +246,8 @@ export async function getCommissionTransactions(
       '/api/commission/transactions',
       { params }
     );
-    const list = data?.transactions || data?.data || data?.records || (Array.isArray(data) ? data : []);
-    if (Array.isArray(list) && list.length > 0) {
+    const list = data?.transactions ?? data?.data ?? data?.records ?? (Array.isArray(data) ? data : null);
+    if (Array.isArray(list)) {
       return { success: true, transactions: list };
     }
   } catch (error) {
