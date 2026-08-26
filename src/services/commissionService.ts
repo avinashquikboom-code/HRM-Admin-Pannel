@@ -607,8 +607,9 @@ export function formatBillIdDisplay(t?: {
     }
   }
 
-  const idNum = typeof t.id === 'number' ? t.id : parseInt(String(t.id || '1').replace(/\D/g, '') || '1', 10);
-  return String(1000 + (idNum > 0 ? idNum : 1));
+  const idNum = typeof t.id === 'number' ? t.id : parseInt(String(t.id || '').replace(/\D/g, '') || '', 10);
+  if (!isNaN(idNum) && idNum > 0) return String(idNum);
+  return '-';
 }
 
 /**
