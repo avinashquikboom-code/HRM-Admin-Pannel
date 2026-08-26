@@ -30,6 +30,7 @@ import {
   getCommissionDashboard, 
   getCommissionTransactions,
   syncHopkidSalesNow,
+  formatInvoiceDisplay,
   type CommissionDashboardStats,
   type CommissionTransaction 
 } from '@/services/commissionService';
@@ -80,7 +81,7 @@ export default function CommissionDashboard() {
     const name = emp ? `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase() : '';
     const code = emp ? String(emp.employeeCode || '').toLowerCase() : '';
     const storeName = String(t.store?.name || emp?.store?.name || '').toLowerCase();
-    const inv = (t.invoiceNumber || t.billId || '').toLowerCase();
+    const inv = String(t.invoiceNumber || t.billId || '').toLowerCase();
     return (
       name.includes(queryLower) ||
       code.includes(queryLower) ||
@@ -607,7 +608,7 @@ export default function CommissionDashboard() {
                   >
                     <td className="px-6 py-4 font-mono text-xs font-bold text-text-primary">
                       <span className="bg-surface-variant/80 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-border/50 dark:border-white/10">
-                        {transaction.invoiceNumber || transaction.billId || `TXN-${transaction.id}`}
+                        {formatInvoiceDisplay(transaction)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -801,7 +802,7 @@ export default function CommissionDashboard() {
                         {empCommissionTxns.map((t) => (
                           <tr key={t.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02]">
                             <td className="px-4 py-3 font-mono text-xs font-bold text-text-primary">
-                              {t.invoiceNumber || t.billId || `TXN-${t.id}`}
+                              {formatInvoiceDisplay(t)}
                             </td>
                             <td className="px-4 py-3 text-xs text-text-secondary">
                               {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}

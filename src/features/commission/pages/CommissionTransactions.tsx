@@ -24,6 +24,7 @@ import {
   approveCommissionTransaction,
   rejectCommissionTransaction,
   getTransactionNetContribution,
+  formatInvoiceDisplay,
   type CommissionTransaction 
 } from '@/services/commissionService';
 import { fetchStores } from '@/services/storeService';
@@ -224,7 +225,7 @@ export default function CommissionTransactions() {
 
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = 
-      (transaction.invoiceNumber && transaction.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (transaction.invoiceNumber && String(transaction.invoiceNumber).toLowerCase().includes(searchTerm.toLowerCase())) ||
       (transaction.billId && transaction.billId.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (transaction.employee?.firstName && transaction.employee.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (transaction.employee?.lastName && transaction.employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -380,8 +381,8 @@ export default function CommissionTransactions() {
             <TableBody>
               {filteredTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">
-                    {transaction.invoiceNumber || transaction.billId || '-'}
+                  <TableCell className="font-medium font-mono">
+                    {formatInvoiceDisplay(transaction)}
                   </TableCell>
                   <TableCell 
                     className="cursor-pointer hover:text-primary transition-colors font-medium"
@@ -624,7 +625,7 @@ export default function CommissionTransactions() {
                         {empCommissionTxns.map((t) => (
                           <TableRow key={t.id}>
                             <TableCell className="font-mono text-xs font-bold">
-                              {t.invoiceNumber || t.billId || `TXN-${t.id}`}
+                              {formatInvoiceDisplay(t)}
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground">
                               {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}

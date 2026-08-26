@@ -37,7 +37,9 @@ export interface CommissionPolicy {
 export interface CommissionTransaction {
   id: number;
   billId?: string;
-  invoiceNumber?: string;
+  invoiceNumber?: string | number;
+  billNumber?: number;
+  invoiceNo?: string | number;
   employeeId: number;
   storeId?: number;
   saleAmount: number;
@@ -558,5 +560,55 @@ export async function syncHopkidSalesNow(params?: {
     console.warn('Sync HopKid sales error:', error);
     throw new Error(backendMessage || 'Failed to sync HopKid sales. Please try again.');
   }
+}
+
+/**
+ * Resolves a human-readable numeric integer-style invoice / bill number for UI display.
+ * Strips internal database UUIDs and ensures clean numeric integers (e.g. 103182, 1001).
+ */
+export function formatInvoiceDisplay(t?: {
+  invoiceNumber?: string | number | null;
+  billNumber?: number | null;
+  invoiceNo?: string | number | null;
+  billId?: string | null;
+  id?: number | string | null;
+} | null): string {
+  if (!t) return '-';
+
+  if (t.billNumber && typeof t.billNumber === 'number' && t.billNumber > 0) {
+    return String(t.billNumber);
+  }
+
+  const rawInv = t.invoiceNumber ?? t.invoiceNo;
+  if (rawInv !== null && rawInv !== undefined) {
+    if (typeof rawInv === 'number' && rawInv > 0) {
+      return String(rawInv);
+    }
+    const str = String(rawInv).trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+    if (!isUuid && str.length > 0) {
+      const digits = str.replace(/\D/g, '');
+      if (digits.length > 0 && digits.length <= 9) {
+        return digits;
+      }
+      return str;
+    }
+  }
+
+  if (t.billId) {
+    const str = String(t.billId).trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+    if (!isUuid && str.length > 0) {
+      const digits = str.replace(/\D/g, '');
+      if (digits.length > 0 && digits.length <= 9) {
+        return digits;
+      }
+      return str;
+    }
+  }
+
+  // Fallback to sequential integer based on autoincrement ID (starts at 1000 + id)
+  const idNum = typeof t.id === 'number' ? t.id : parseInt(String(t.id || '1').replace(/\D/g, '') || '1', 10);
+  return String(1000 + (idNum > 0 ? idNum : 1));
 }
 
