@@ -23,18 +23,25 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
   // Extract or fallback earnings
   const earnings = selectedSlip.earnings || slipData?.earnings || {};
   const baseSalary = earnings.baseSalary ?? selectedSlip.baseSalary ?? 10000;
-  const basicSalary = earnings.basicSalary ?? 10000;
+  const basicSalary = earnings.basicSalary ?? baseSalary;
   const hra = earnings.hra ?? 2000;
   const medical = earnings.medical ?? 500;
   const travel = earnings.travel ?? 1000;
   const special = earnings.special ?? 0;
+  const bonus = earnings.bonus ?? 0;
+  const incentive = earnings.incentive ?? 0;
   const commission = earnings.commission ?? selectedSlip.commissionEarned ?? selectedSlip.commission ?? 0;
-  const expenseReimbursement = earnings.expenseReimbursement ?? earnings.approvedExpenses ?? selectedSlip.expenseReimbursement ?? selectedSlip.approvedExpenses ?? slipData?.expenseReimbursement ?? 0;
+
+  // Gross Earnings (excluding reimbursements)
+  const grossTotal = earnings.grossSalary ?? (basicSalary + hra + medical + travel + special + bonus + incentive + commission);
+
+  // Extract or fallback reimbursements / expenses
+  const expenseReimbursement = selectedSlip.expenseReimbursement ?? selectedSlip.approvedExpenses ?? earnings.expenseReimbursement ?? slipData?.expenseReimbursement ?? 0;
   const expensesByCategory: Array<{ category: string; amount: number }> =
-    earnings.expenses ||
-    earnings.expensesByCategory ||
     selectedSlip.expenses ||
     selectedSlip.expensesByCategory ||
+    earnings.expenses ||
+    earnings.expensesByCategory ||
     slipData?.expenses ||
     slipData?.expensesByCategory ||
     (earnings.expenseCategories
@@ -42,30 +49,33 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
       : expenseReimbursement > 0
       ? [{ category: 'Approved Expenses', amount: expenseReimbursement }]
       : []);
-  const grossTotal = earnings.grossTotal ?? selectedSlip.grossSalary ?? (baseSalary + hra + medical + travel + special + commission + expenseReimbursement);
+  const totalReimbursements = expensesByCategory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) || expenseReimbursement;
 
   // Extract or fallback deductions
   const deductions = selectedSlip.deductions || slipData?.deductions || {};
-  const halfDayDeduction = deductions.halfDayDeduction ?? selectedSlip.halfDayDeduction ?? 154;
-  const leaveDeduction = deductions.leaveDeduction ?? selectedSlip.leaveDeduction ?? 1155;
-  const advanceDeduction = deductions.advanceDeduction ?? selectedSlip.advanceDeduction ?? slipData?.advanceDeduction ?? 0;
-  const itemizedDeductions = halfDayDeduction + leaveDeduction + advanceDeduction;
-  const rawTotal = selectedSlip.deductionsTotal ?? selectedSlip.deductions ?? deductions.totalDeductions;
+  const pf = deductions.pf ?? selectedSlip.pf ?? 0;
+  const esic = deductions.esic ?? selectedSlip.esic ?? 0;
+  const halfDayDeduction = deductions.halfDayDeduction ?? selectedSlip.halfDayDeduction ?? 0;
+  const leaveDeduction = deductions.leaveDeduction ?? selectedSlip.leaveDeduction ?? 0;
+  const advanceDeduction = selectedSlip.advanceDeduction ?? deductions.advanceDeduction ?? selectedSlip.advanceSalary ?? slipData?.advanceDeduction ?? 0;
+  const itemizedDeductions = pf + esic + halfDayDeduction + leaveDeduction + advanceDeduction;
+  const rawTotal = typeof deductions === 'number' ? deductions : (selectedSlip.deductionsTotal ?? selectedSlip.deductions ?? deductions.totalDeductions);
   const otherDeductions = deductions.otherDeductions ?? (rawTotal !== undefined ? Math.max(0, rawTotal - itemizedDeductions) : 0);
-  const totalDeductions = deductions.totalDeductions ?? selectedSlip.deductionsTotal ?? selectedSlip.deductions ?? (itemizedDeductions + otherDeductions);
+  const totalDeductions = typeof deductions === 'number' ? deductions : (deductions.totalDeductions ?? selectedSlip.deductionsTotal ?? selectedSlip.deductions ?? (itemizedDeductions + otherDeductions));
 
-  // Net salary calculation
-  const netSalary = selectedSlip.netSalary ?? (grossTotal - totalDeductions);
+  // Net salary and Take-Home pay calculation
+  const netSalary = Math.max(0, grossTotal - totalDeductions);
+  const totalTakeHomePay = Math.round((netSalary + totalReimbursements) * 100) / 100;
 
   // Extract or fallback attendance details
   const details = selectedSlip.details || slipData?.details || {};
-  const presentDays = details.presentDays ?? slipAttendance?.present ?? 20;
-  const halfDays = details.halfDays ?? slipAttendance?.halfDay ?? 2;
-  const leaveDays = details.leaveDays ?? slipAttendance?.leave ?? 3;
-  const workingDays = details.workingDays ?? slipAttendance?.workingDays ?? 25;
+  const presentDays = details.presentDays ?? slipAttendance?.present ?? selectedSlip.presentDays ?? 20;
+  const halfDays = details.halfDays ?? slipAttendance?.halfDay ?? selectedSlip.halfDays ?? 0;
+  const leaveDays = details.leaveDays ?? slipAttendance?.leave ?? selectedSlip.leaveDays ?? 0;
+  const workingDays = details.workingDays ?? slipAttendance?.workingDays ?? selectedSlip.workingDays ?? 26;
   const commissionRate = details.commissionRate ?? selectedSlip.commissionPercentage ?? 1.0;
   const salaryAdvanceLimit = details.salaryAdvanceLimit ?? 25000;
-  const salaryAdvanceUsed = details.salaryAdvanceUsed ?? 0;
+  const salaryAdvanceUsed = details.salaryAdvanceUsed ?? selectedSlip.salaryAdvanceUsed ?? 0;
 
   // Metadata helpers
   const employeeName = selectedSlip.name || selectedSlip.employeeName;
@@ -174,46 +184,38 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
                 <span>HRA</span>
                 <span className="font-bold text-white">₹{hra.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                <span>Medical</span>
-                <span className="font-bold text-white">₹{medical.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                <span>Travel</span>
-                <span className="font-bold text-white">₹{travel.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                <span>Special</span>
-                <span className="font-bold text-white">₹{special.toLocaleString('en-IN')}</span>
-              </div>
+              {medical > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Medical Allowance</span>
+                  <span className="font-bold text-white">₹{medical.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              {travel > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Travel Allowance</span>
+                  <span className="font-bold text-white">₹{travel.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              {special > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Special Allowance</span>
+                  <span className="font-bold text-white">₹{special.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              {bonus > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Bonus</span>
+                  <span className="font-bold text-white">₹{bonus.toLocaleString('en-IN')}</span>
+                </div>
+              )}
               {commission > 0 && (
                 <div className="flex justify-between items-center text-emerald-400 font-bold">
                   <span>Commission ({monthLabel} sales)</span>
                   <span>₹{commission.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              {expensesByCategory.length > 0 ? (
-                <div className="pt-2 border-t border-emerald-500/10 space-y-2">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">EXPENSES</span>
-                  {expensesByCategory.map((exp, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-slate-300 print-text-dark">
-                      <span>{exp.category} Expense</span>
-                      <span className="font-bold text-white">₹{exp.amount.toLocaleString('en-IN')}</span>
-                    </div>
-                  ))}
-                  <div className="pt-1 border-t border-emerald-500/10 flex justify-between items-center text-emerald-400 font-bold text-xs">
-                    <span>TOTAL EXPENSES</span>
-                    <span>₹{expenseReimbursement.toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              ) : expenseReimbursement > 0 ? (
-                <div className="flex justify-between items-center text-emerald-400 font-bold">
-                  <span>Approved Expenses ({monthLabel})</span>
-                  <span>₹{expenseReimbursement.toLocaleString('en-IN')}</span>
-                </div>
-              ) : null}
               <div className="pt-3 border-t border-emerald-500/20 flex justify-between items-center text-sm font-black text-emerald-400">
-                <span className="uppercase tracking-wider">GROSS TOTAL</span>
+                <span className="uppercase tracking-wider">GROSS EARNINGS</span>
                 <span>₹{grossTotal.toLocaleString('en-IN')}</span>
               </div>
             </div>
@@ -229,18 +231,41 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
               <span className="text-[10px] font-bold text-rose-400/80 uppercase">Subtractions</span>
             </div>
             <div className="p-6 space-y-3 font-mono text-xs">
-              <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                <span>Half-day ({halfDays} × ₹{Math.round(baseSalary / workingDays / 2)})</span>
-                <span className="font-bold text-rose-400">₹({halfDayDeduction.toLocaleString('en-IN')})</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                <span>Leave ({leaveDays} × ₹{Math.round(baseSalary / workingDays)})</span>
-                <span className="font-bold text-rose-400">₹({leaveDeduction.toLocaleString('en-IN')})</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300 print-text-dark">
-                <span>Advance Salary</span>
-                <span className="font-bold text-rose-400">₹({advanceDeduction.toLocaleString('en-IN')})</span>
-              </div>
+              {pf > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Provident Fund (PF)</span>
+                  <span className="font-bold text-rose-400">₹({pf.toLocaleString('en-IN')})</span>
+                </div>
+              )}
+              {esic > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>ESIC / Professional Tax</span>
+                  <span className="font-bold text-rose-400">₹({esic.toLocaleString('en-IN')})</span>
+                </div>
+              )}
+              {halfDayDeduction > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Half-day ({halfDays} half days)</span>
+                  <span className="font-bold text-rose-400">₹({halfDayDeduction.toLocaleString('en-IN')})</span>
+                </div>
+              )}
+              {leaveDeduction > 0 && (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Leave ({leaveDays} unpaid leaves)</span>
+                  <span className="font-bold text-rose-400">₹({leaveDeduction.toLocaleString('en-IN')})</span>
+                </div>
+              )}
+              {advanceDeduction > 0 ? (
+                <div className="flex justify-between items-center text-rose-300 font-bold print-text-dark">
+                  <span>Advance Salary</span>
+                  <span className="font-bold text-rose-400">₹({advanceDeduction.toLocaleString('en-IN')})</span>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center text-slate-400 print-text-muted">
+                  <span>Advance Salary</span>
+                  <span>₹0</span>
+                </div>
+              )}
               {otherDeductions > 0 && (
                 <div className="flex justify-between items-center text-slate-300 print-text-dark">
                   <span>Other Deductions</span>
@@ -255,6 +280,38 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
           </div>
 
         </div>
+
+        {/* REIMBURSEMENTS / EXPENSES Section */}
+        {totalReimbursements > 0 && (
+          <div className="bg-teal-500/5 border border-teal-500/20 rounded-2xl overflow-hidden print-border">
+            <div className="bg-teal-500/10 px-6 py-4 border-b border-teal-500/20 flex items-center justify-between">
+              <h4 className="text-xs font-black text-teal-400 uppercase tracking-widest flex items-center gap-2">
+                <ArrowUpRight className="w-4 h-4 text-teal-400" />
+                REIMBURSEMENTS / EXPENSES
+              </h4>
+              <span className="text-[10px] font-bold text-teal-400/80 uppercase">Eligible Claims</span>
+            </div>
+            <div className="p-6 space-y-3 font-mono text-xs">
+              {expensesByCategory.length > 0 ? (
+                expensesByCategory.map((exp, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-slate-300 print-text-dark">
+                    <span>{exp.category} Expense</span>
+                    <span className="font-bold text-white">₹{exp.amount.toLocaleString('en-IN')}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="flex justify-between items-center text-slate-300 print-text-dark">
+                  <span>Approved Expenses ({monthLabel})</span>
+                  <span className="font-bold text-white">₹{totalReimbursements.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div className="pt-3 border-t border-teal-500/20 flex justify-between items-center text-sm font-black text-teal-400">
+                <span className="uppercase tracking-wider">TOTAL REIMBURSEMENTS</span>
+                <span>₹{totalReimbursements.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ATTENDANCE & DETAILS Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -332,18 +389,19 @@ export const SalarySlip: React.FC<SalarySlipProps> = ({
 
         </div>
 
-        {/* NET SALARY Banner */}
-        <div className="p-6 bg-gradient-to-r from-primary/30 via-teal-500/20 to-emerald-500/20 border border-primary/40 rounded-2xl flex items-center justify-between">
+        {/* NET SALARY & TAKE-HOME Banner */}
+        <div className="p-6 bg-gradient-to-r from-primary/30 via-teal-500/20 to-emerald-500/20 border border-primary/40 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-black uppercase tracking-widest text-primary block">
-              NET SALARY PAYABLE
+              FINAL TAKE-HOME PAY
             </span>
             <span className="text-xs text-slate-400 font-medium mt-0.5 block">
-              Gross Total (₹{grossTotal.toLocaleString('en-IN')}) - Deductions (₹{totalDeductions.toLocaleString('en-IN')})
+              Gross (₹{grossTotal.toLocaleString('en-IN')}) - Deductions (₹{totalDeductions.toLocaleString('en-IN')}) = Net (₹{netSalary.toLocaleString('en-IN')})
+              {totalReimbursements > 0 && ` + Reimbursements (+₹${totalReimbursements.toLocaleString('en-IN')})`}
             </span>
           </div>
-          <div className="text-right font-mono font-black text-3xl text-primary">
-            ₹{netSalary.toLocaleString('en-IN')}
+          <div className="text-right font-mono font-black text-3xl text-emerald-400">
+            ₹{totalTakeHomePay.toLocaleString('en-IN')}
           </div>
         </div>
 
