@@ -60,8 +60,10 @@ import {
   Braces,
   LayoutList,
   ArrowLeftRight,
+  Receipt,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatBillIdDisplay, formatInvoiceDisplay } from '@/services/commissionService';
 
 /* ─── helpers ─── */
 const statusConfig: Record<string, { color: string; dot: string }> = {
@@ -213,8 +215,12 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
     },
   ];
 
+  const billIdDisplay = formatBillIdDisplay(log);
+  const invDisplay = formatInvoiceDisplay(log);
+
   const overviewFields = [
-    { icon: <Hash className="h-4 w-4 text-primary" />, label: 'Bill / Invoice ID', value: log.billId || '—', mono: true, copyId: 'modal-bill', copyText: log.billId },
+    { icon: <Hash className="h-4 w-4 text-primary" />, label: 'Bill ID', value: `#${billIdDisplay}`, mono: true, copyId: 'modal-bill', copyText: billIdDisplay },
+    { icon: <Receipt className="h-4 w-4 text-sky-500" />, label: 'Invoice No', value: invDisplay, mono: true, copyId: 'modal-inv', copyText: invDisplay },
     { icon: <User className="h-4 w-4 text-blue-500" />, label: 'Customer', value: log.customerName || '—', mono: false },
     { icon: <UserCheck className="h-4 w-4 text-indigo-500" />, label: 'Employee', value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—', mono: false },
     { icon: <Building2 className="h-4 w-4 text-amber-500" />, label: 'Store / Branch', value: (log.storeName && log.storeName !== 'N/A') ? log.storeName : '—', mono: false },
@@ -240,10 +246,9 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
               <div>
                 <p className="text-[11px] text-slate-400 uppercase tracking-widest font-black">Sales Webhook Payload</p>
                 <p className="text-white font-extrabold text-xl leading-tight mt-0.5 flex items-center gap-2">
-                  {log.billId ? (
-                    <span className="font-mono text-primary-foreground select-all">{log.billId}</span>
-                  ) : (
-                    <span className="text-slate-400 italic">No Bill ID</span>
+                  <span className="font-mono text-primary-foreground select-all">Bill #{billIdDisplay}</span>
+                  {invDisplay && invDisplay !== billIdDisplay && (
+                    <span className="text-sm font-normal text-slate-400 font-mono">({invDisplay})</span>
                   )}
                 </p>
               </div>
@@ -943,31 +948,27 @@ export default function WebhookLogsPage() {
 
                         {/* Bill ID */}
                         <TableCell className="py-3.5">
-                          {log.billId ? (
-                            <div className="flex flex-col gap-0.5">
-                              <div className="inline-flex items-center gap-1.5">
-                                <code className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted border text-foreground tracking-wide">
-                                  {log.billId}
-                                </code>
-                                <button
-                                  onClick={() => copyToClipboard(log.billId, log.id)}
-                                  className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                                  title="Copy Bill ID"
-                                >
-                                  {copiedId === log.id
-                                    ? <Check className="h-3 w-3 text-emerald-500" />
-                                    : <Copy className="h-3 w-3" />}
-                                </button>
-                              </div>
-                              {log.invoiceNo && log.invoiceNo !== log.billId && (
-                                <span className="text-[10px] text-muted-foreground font-mono pl-0.5" title="Original Invoice No">
-                                  Inv: <span className="font-semibold text-foreground/80">{log.invoiceNo}</span>
-                                </span>
-                              )}
+                          <div className="flex flex-col gap-0.5">
+                            <div className="inline-flex items-center gap-1.5">
+                              <code className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted border text-foreground tracking-wide">
+                                #{formatBillIdDisplay(log)}
+                              </code>
+                              <button
+                                onClick={() => copyToClipboard(formatBillIdDisplay(log), log.id)}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                                title="Copy Bill ID"
+                              >
+                                {copiedId === log.id
+                                  ? <Check className="h-3 w-3 text-emerald-500" />
+                                  : <Copy className="h-3 w-3" />}
+                              </button>
                             </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/40 font-mono">—</span>
-                          )}
+                            {formatInvoiceDisplay(log) && formatInvoiceDisplay(log) !== formatBillIdDisplay(log) && (
+                              <span className="text-[10px] text-muted-foreground font-mono pl-0.5" title="Original Invoice No">
+                                Inv: <span className="font-semibold text-foreground/80">{formatInvoiceDisplay(log)}</span>
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
 
                         {/* Customer */}
