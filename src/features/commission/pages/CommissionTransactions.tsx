@@ -24,6 +24,7 @@ import {
   approveCommissionTransaction,
   rejectCommissionTransaction,
   getTransactionNetContribution,
+  formatBillIdDisplay,
   formatInvoiceDisplay,
   type CommissionTransaction 
 } from '@/services/commissionService';
@@ -367,6 +368,7 @@ export default function CommissionTransactions() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Bill ID</TableHead>
                 <TableHead>Invoice</TableHead>
                 <TableHead>Employee</TableHead>
                 <TableHead>Store</TableHead>
@@ -381,7 +383,10 @@ export default function CommissionTransactions() {
             <TableBody>
               {filteredTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
-                  <TableCell className="font-medium font-mono">
+                  <TableCell className="font-bold font-mono text-primary">
+                    #{formatBillIdDisplay(transaction)}
+                  </TableCell>
+                  <TableCell className="font-medium font-mono text-xs text-muted-foreground">
                     {formatInvoiceDisplay(transaction)}
                   </TableCell>
                   <TableCell 
@@ -455,7 +460,7 @@ export default function CommissionTransactions() {
               ))}
               {filteredTransactions.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center text-muted-foreground">
                     No transactions found
                   </TableCell>
                 </TableRow>

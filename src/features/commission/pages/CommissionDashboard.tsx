@@ -30,6 +30,7 @@ import {
   getCommissionDashboard, 
   getCommissionTransactions,
   syncHopkidSalesNow,
+  formatBillIdDisplay,
   formatInvoiceDisplay,
   type CommissionDashboardStats,
   type CommissionTransaction 
@@ -607,9 +608,14 @@ export default function CommissionDashboard() {
                     title="Click to view employee monthly commission details"
                   >
                     <td className="px-6 py-4 font-mono text-xs font-bold text-text-primary">
-                      <span className="bg-surface-variant/80 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-border/50 dark:border-white/10">
-                        {formatInvoiceDisplay(transaction)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-primary/10 text-primary dark:text-primary-foreground px-2 py-0.5 rounded-md border border-primary/20 font-bold">
+                          #{formatBillIdDisplay(transaction)}
+                        </span>
+                        <span className="text-[11px] text-text-secondary font-medium">
+                          {formatInvoiceDisplay(transaction)}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2.5">
