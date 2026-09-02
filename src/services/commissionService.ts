@@ -46,11 +46,16 @@ export interface CommissionTransaction {
   commissionType: string;
   commissionPercent?: number;
   commissionAmount: number;
-  oldAmount?: number;
-  newAmount?: number;
-  oldCommission?: number;
-  newCommission?: number;
-  commissionDifference?: number;
+  oldAmount?: number | null;
+  oldBillAmount?: number | null;
+  newAmount?: number | null;
+  newBillAmount?: number | null;
+  differenceAmount?: number | null;
+  oldCommission?: number | null;
+  oldBillCommission?: number | null;
+  newCommission?: number | null;
+  newBillCommission?: number | null;
+  commissionDifference?: number | null;
   eventType?: string;
   isActive?: boolean | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID';
@@ -432,108 +437,118 @@ export function getTransactionNetContribution(t: {
  *     Difference Amount = +New Bill Amount (or - if isActive === true)
  *     Commission Difference = +New Bill Commission (or - if isActive === true)
  */
+/**
+ * Calculates Difference Amount and Commission Difference:
+ * - IMPORTANT BUSINESS RULE:
+ *     Difference Amount is ONLY calculated for:
+ *       1. Invoice Exchange (oldBillAmount - newBillAmount)
+ *       2. Invoice Credit Note (oldBillAmount - creditNoteAmount)
+ * - For normal Invoice Created:
+ *     oldBillAmount = null (displayed as '—')
+ *     differenceAmount = null (displayed as '—')
+ *     newBillAmount = actual invoice amount
+ *     oldBillCommission = null (displayed as '—')
+ *     commissionDifference = null (displayed as '—')
+ *     newBillCommission = calculated commission
+ */
 export function getTransactionDifferences(t: {
   eventType?: string | null;
   saleAmount?: number | string | null;
   commissionAmount?: number | string | null;
   oldAmount?: number | string | null;
+  oldBillAmount?: number | string | null;
   newAmount?: number | string | null;
+  newBillAmount?: number | string | null;
   oldCommission?: number | string | null;
+  oldBillCommission?: number | string | null;
   newCommission?: number | string | null;
+  newBillCommission?: number | string | null;
+  differenceAmount?: number | string | null;
   commissionDifference?: number | string | null;
   commissionPercent?: number | string | null;
   isActive?: boolean | null;
   notes?: string | null;
+  description?: string | null;
   cnAmount?: number | string | null;
-  billId?: string | null;
+  billId?: string | number | null;
+  invoiceNumber?: string | number | null;
 }): {
   saleAmt: number;
   oldBillAmt: number | null;
   newBillAmt: number;
-  diffAmt: number;
+  diffAmt: number | null;
   oldBillComm: number | null;
   newBillComm: number;
-  commDiff: number;
+  commDiff: number | null;
 } {
   const isCreditNote =
     String(t.eventType || '').toUpperCase().includes('CREDIT_NOTE') ||
     String(t.billId || '').startsWith('CN-') ||
     String(t.billId || '').startsWith('HKACN') ||
+    String(t.notes || '').toUpperCase().includes('CREDIT NOTE') ||
+    String(t.notes || '').toUpperCase().includes('CREDIT_NOTE') ||
     (t.cnAmount !== undefined && t.cnAmount !== null && Number(t.cnAmount) > 0);
 
-  const isUpdated =
-    isCreditNote ||
-    t.eventType === 'INVOICE_UPDATED' ||
-    (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0) ||
-    (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0 && t.newAmount !== undefined);
+  const isExchange =
+    String(t.eventType || '').toUpperCase().includes('EXCHANGE') ||
+    String(t.billId || '').startsWith('EX-') ||
+    String(t.billId || '').startsWith('INV-EX-') ||
+    String(t.notes || '').toUpperCase().includes('EXCHANGE') ||
+    String(t.description || '').toUpperCase().includes('EXCHANGE');
+
+  const isAdjustment = isCreditNote || isExchange;
 
   const saleAmt = Number(t.saleAmount || 0);
+  const commRate = t.commissionPercent !== undefined && t.commissionPercent !== null ? Number(t.commissionPercent) : 1;
 
-  // Parse old/original bill amount
-  const oldBillAmt: number | null =
-    t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0
-      ? Number(t.oldAmount)
-      : (isUpdated && t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) >= 0
-          ? Number(t.oldAmount)
-          : null);
+  if (!isAdjustment) {
+    const finalNewAmt = Number(t.newBillAmount ?? t.newAmount ?? t.saleAmount ?? 0);
+    const finalNewComm = Number(t.newBillCommission ?? t.newCommission ?? t.commissionAmount ?? (finalNewAmt * commRate) / 100);
 
-  // Parse new/CN amount
+    return {
+      saleAmt,
+      oldBillAmt: null,
+      newBillAmt: finalNewAmt,
+      diffAmt: null,
+      oldBillComm: null,
+      newBillComm: finalNewComm,
+      commDiff: null,
+    };
+  }
+
+  // For Invoice Exchange & Invoice Credit Note
+  const rawOldAmount = t.oldBillAmount ?? t.oldAmount;
+  const hasOldAmount = rawOldAmount !== undefined && rawOldAmount !== null && Number(rawOldAmount) > 0;
+  const oldBillAmt: number | null = hasOldAmount ? Number(rawOldAmount) : null;
+
   const rawCnAmount = t.cnAmount !== undefined && t.cnAmount !== null ? Number(t.cnAmount) : null;
   const newBillAmt: number =
     rawCnAmount !== null && rawCnAmount > 0
       ? rawCnAmount
-      : (t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0
-          ? Number(t.newAmount)
-          : (isUpdated && t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) >= 0
-              ? Number(t.newAmount)
-              : saleAmt));
+      : Number(t.newBillAmount ?? t.newAmount ?? t.saleAmount ?? 0);
 
-  const commRate = t.commissionPercent !== undefined && t.commissionPercent !== null ? Number(t.commissionPercent) : 1;
+  const oldBillComm: number | null = oldBillAmt !== null
+    ? (t.oldBillCommission !== undefined && t.oldBillCommission !== null && Number(t.oldBillCommission) > 0
+        ? Number(t.oldBillCommission)
+        : (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0
+            ? Number(t.oldCommission)
+            : Math.round(((oldBillAmt * commRate) / 100) * 100) / 100))
+    : null;
 
-  // Parse old/original commission
-  const oldBillComm: number | null =
-    t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0
-      ? Number(t.oldCommission)
-      : (oldBillAmt !== null ? Math.round(((oldBillAmt * commRate) / 100) * 100) / 100 : null);
-
-  // Parse new/CN commission
   const newBillComm: number =
-    t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
-      ? Number(t.newCommission)
-      : (rawCnAmount !== null && rawCnAmount > 0
-          ? Math.round(((rawCnAmount * commRate) / 100) * 100) / 100
-          : Number(t.commissionAmount || 0));
+    t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) >= 0
+      ? Number(t.newBillCommission)
+      : (t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
+          ? Number(t.newCommission)
+          : (rawCnAmount !== null && rawCnAmount > 0
+              ? Math.round(((rawCnAmount * commRate) / 100) * 100) / 100
+              : Number(t.commissionAmount || (newBillAmt * commRate) / 100)));
 
-  let diffAmt: number;
-  let commDiff: number;
+  // differenceAmount = oldBillAmount - newBillAmount (e.g. 848 - 1398 = -550)
+  const diffAmt: number | null = oldBillAmt !== null ? Math.round((oldBillAmt - newBillAmt) * 100) / 100 : null;
+  const commDiff: number | null = oldBillComm !== null ? Math.round((oldBillComm - newBillComm) * 100) / 100 : null;
 
-  if (oldBillAmt !== null) {
-    // Exact mathematical difference: Difference Amount = CN Amount (or New Bill Amount) - Original Bill Amount
-    diffAmt = Math.round((newBillAmt - oldBillAmt) * 100) / 100;
-    commDiff = Math.round((newBillComm - (oldBillComm ?? 0)) * 100) / 100;
-  } else {
-    // Brand new invoice
-    let rawIsActive = t.isActive;
-    if (rawIsActive === undefined || rawIsActive === null) {
-      if (typeof t.notes === 'string') {
-        const match = t.notes.match(/isActive:\s*(true|false)/i);
-        if (match) {
-          rawIsActive = match[1].toLowerCase() === 'true';
-        }
-      }
-    }
-
-    if (rawIsActive === true) {
-      diffAmt = -Math.abs(newBillAmt);
-      commDiff = -Math.abs(newBillComm);
-    } else {
-      diffAmt = +Math.abs(newBillAmt);
-      commDiff = +Math.abs(newBillComm);
-    }
-  }
-
-  // Effective net sale amount for updated/reconciled transactions is the difference amount
-  const resolvedSaleAmt = (oldBillAmt !== null && diffAmt !== 0) ? Math.abs(diffAmt) : saleAmt;
+  const resolvedSaleAmt = (oldBillAmt !== null && diffAmt !== null && diffAmt !== 0) ? Math.abs(diffAmt) : saleAmt;
 
   return {
     saleAmt: resolvedSaleAmt,

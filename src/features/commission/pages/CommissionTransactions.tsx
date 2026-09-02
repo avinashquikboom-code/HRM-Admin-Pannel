@@ -674,13 +674,17 @@ export default function CommissionTransactions() {
 
                               {/* 5. DIFFERENCE AMOUNT */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-bold whitespace-nowrap">
-                                <span className={cn(
-                                  diffAmt > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
-                                  diffAmt < 0 && "text-rose-600 dark:text-rose-400 font-extrabold",
-                                  diffAmt === 0 && "text-muted-foreground"
-                                )}>
-                                  {diffAmt > 0 ? `+${formatCurrency(diffAmt)}` : diffAmt < 0 ? `-${formatCurrency(Math.abs(diffAmt))}` : formatCurrency(0)}
-                                </span>
+                                {diffAmt !== null ? (
+                                  <span className={cn(
+                                    diffAmt > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
+                                    diffAmt < 0 && "text-rose-600 dark:text-rose-400 font-extrabold",
+                                    diffAmt === 0 && "text-muted-foreground"
+                                  )}>
+                                    {diffAmt > 0 ? `+${formatCurrency(diffAmt)}` : diffAmt < 0 ? `-${formatCurrency(Math.abs(diffAmt))}` : formatCurrency(0)}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground/50 font-normal">—</span>
+                                )}
                               </td>
 
                               {/* 6. NEW BILL AMOUNT */}
@@ -699,13 +703,17 @@ export default function CommissionTransactions() {
 
                               {/* 8. COMMISSION DIFFERENCE */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-bold whitespace-nowrap">
-                                <span className={cn(
-                                  commDiff > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
-                                  commDiff < 0 && "text-rose-600 dark:text-rose-400 font-extrabold",
-                                  commDiff === 0 && "text-muted-foreground"
-                                )}>
-                                  {commDiff > 0 ? `+${formatCurrency(commDiff)}` : commDiff < 0 ? `-${formatCurrency(Math.abs(commDiff))}` : formatCurrency(0)}
-                                </span>
+                                {commDiff !== null ? (
+                                  <span className={cn(
+                                    commDiff > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
+                                    commDiff < 0 && "text-rose-600 dark:text-rose-400 font-extrabold",
+                                    commDiff === 0 && "text-muted-foreground"
+                                  )}>
+                                    {commDiff > 0 ? `+${formatCurrency(commDiff)}` : commDiff < 0 ? `-${formatCurrency(Math.abs(commDiff))}` : formatCurrency(0)}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground/50 font-normal">—</span>
+                                )}
                               </td>
 
                               {/* 9. NEW BILL COMMISSION */}
@@ -736,17 +744,31 @@ export default function CommissionTransactions() {
                             {/* OLD BILL AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-semibold text-muted-foreground whitespace-nowrap">
                               {(() => {
-                                const sumOld = empCommissionTxns.reduce((acc, t) => acc + (t.oldAmount ? Number(t.oldAmount) : 0), 0);
-                                return sumOld > 0 ? formatCurrency(sumOld) : '—';
+                                let hasAnyOld = false;
+                                const sumOld = empCommissionTxns.reduce((acc, t) => {
+                                  const { oldBillAmt } = getTransactionDifferences(t);
+                                  if (oldBillAmt !== null) {
+                                    hasAnyOld = true;
+                                    return acc + oldBillAmt;
+                                  }
+                                  return acc;
+                                }, 0);
+                                return hasAnyOld ? formatCurrency(sumOld) : '—';
                               })()}
                             </td>
                             {/* DIFFERENCE AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-black whitespace-nowrap">
                               {(() => {
+                                let hasAnyDiff = false;
                                 const totalDiff = empCommissionTxns.reduce((acc, t) => {
                                   const { diffAmt } = getTransactionDifferences(t);
-                                  return acc + diffAmt;
+                                  if (diffAmt !== null) {
+                                    hasAnyDiff = true;
+                                    return acc + diffAmt;
+                                  }
+                                  return acc;
                                 }, 0);
+                                if (!hasAnyDiff) return <span className="text-muted-foreground/50 font-normal">—</span>;
                                 return (
                                   <span className={cn(
                                     totalDiff > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
@@ -768,17 +790,31 @@ export default function CommissionTransactions() {
                             {/* OLD BILL COMMISSION total */}
                             <td className="px-3 py-2.5 text-right font-semibold text-muted-foreground whitespace-nowrap">
                               {(() => {
-                                const sumOldComm = empCommissionTxns.reduce((acc, t) => acc + (t.oldCommission ? Number(t.oldCommission) : 0), 0);
-                                return sumOldComm > 0 ? formatCurrency(sumOldComm) : '—';
+                                let hasAnyOldComm = false;
+                                const sumOldComm = empCommissionTxns.reduce((acc, t) => {
+                                  const { oldBillComm } = getTransactionDifferences(t);
+                                  if (oldBillComm !== null) {
+                                    hasAnyOldComm = true;
+                                    return acc + oldBillComm;
+                                  }
+                                  return acc;
+                                }, 0);
+                                return hasAnyOldComm ? formatCurrency(sumOldComm) : '—';
                               })()}
                             </td>
                             {/* COMMISSION DIFFERENCE total */}
                             <td className="px-3 py-2.5 text-right font-black whitespace-nowrap">
                               {(() => {
+                                let hasAnyCommDiff = false;
                                 const totalCommDiff = empCommissionTxns.reduce((acc, t) => {
                                   const { commDiff } = getTransactionDifferences(t);
-                                  return acc + commDiff;
+                                  if (commDiff !== null) {
+                                    hasAnyCommDiff = true;
+                                    return acc + commDiff;
+                                  }
+                                  return acc;
                                 }, 0);
+                                if (!hasAnyCommDiff) return <span className="text-muted-foreground/50 font-normal">—</span>;
                                 return (
                                   <span className={cn(
                                     totalCommDiff > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
