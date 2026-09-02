@@ -162,8 +162,10 @@ export default function CommissionReports() {
             commissionAmount: 0,
           };
 
-          existing.netSales += t.saleAmount || 0;
-          existing.commissionAmount += t.commissionAmount || 0;
+          const effectiveSale = Number(t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? t.newAmount : (t.saleAmount || 0));
+          const effectiveComm = Number(t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) > 0 ? t.newCommission : (t.commissionAmount || 0));
+          existing.netSales += effectiveSale;
+          existing.commissionAmount += effectiveComm;
           reportMap.set(key, existing);
         });
 
