@@ -189,10 +189,11 @@ const PayrollPage = () => {
     setAdvancesPage(1);
   }, [searchTerm, advanceFilter]);
 
-  const loadAdvancesData = useCallback(async () => {
+  const loadAdvancesData = useCallback(async (monthToLoad?: string) => {
     setIsAdvancesLoading(true);
     try {
-      const res = await api.get<any>('/api/payroll/admin/advances');
+      const targetM = monthToLoad || slipMonth;
+      const res = await api.get<any>(`/api/payroll/admin/advances?month=${targetM}`);
       const list = res.data?.advances || res.data?.data || res.data?.records || (Array.isArray(res.data) ? res.data : []);
       setAdvancesList(Array.isArray(list) ? list : []);
     } catch (err) {
@@ -201,7 +202,7 @@ const PayrollPage = () => {
     } finally {
       setIsAdvancesLoading(false);
     }
-  }, []);
+  }, [slipMonth]);
 
   const handleReviewAdvance = async (action: 'APPROVE' | 'REJECT') => {
     if (!selectedAdvance) return;
@@ -243,27 +244,28 @@ const PayrollPage = () => {
     setExpensesList(list);
   }, []);
 
-  const loadExpensesData = useCallback(async () => {
+  const loadExpensesData = useCallback(async (monthToLoad?: string) => {
     try {
-      const res = await api.get<any>('/api/hr/expenses');
+      const targetM = monthToLoad || slipMonth;
+      const res = await api.get<any>(`/api/hr/expenses?month=${targetM}`);
       const list = res.data?.expenses || (Array.isArray(res.data) ? res.data : []);
       setExpensesList(Array.isArray(list) ? list : []);
     } catch (err) {
       console.warn('Failed to load expense claims:', err);
       setExpensesList([]);
     }
-  }, []);
+  }, [slipMonth]);
 
   const loadPayrollData = useCallback(async () => {
     setIsPageLoading(true);
     setIsSlipsLoading(true);
     try {
       const [statsRes, runsRes, slipsRes] = await Promise.allSettled([
-        api.get<any>('/api/payroll/admin/stats'),
+        api.get<any>(`/api/payroll/admin/stats?month=${slipMonth}`),
         api.get<any>('/api/payroll/admin/runs'),
         api.get<any>(`/api/payroll/admin/slips?month=${slipMonth}`),
-        loadAdvancesData(),
-        loadExpensesData()
+        loadAdvancesData(slipMonth),
+        loadExpensesData(slipMonth)
       ]);
 
       if (statsRes.status === 'fulfilled' && statsRes.value.data) {
