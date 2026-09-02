@@ -812,7 +812,6 @@ export default function CommissionDashboard() {
                           <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Old Amount</th>
                           <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">New Amount</th>
                           <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Commission</th>
-                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-center">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40 dark:divide-white/10">
@@ -881,17 +880,12 @@ export default function CommissionDashboard() {
                                   </span>
                                 ) : null}
                               </td>
-
-                              {/* 7. STATUS */}
-                              <td className="px-3.5 py-3 text-center">
-                                {getStatusBadge(t.status)}
-                              </td>
                             </tr>
                           );
                         })}
                         {empCommissionTxns.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="text-center py-8 text-xs text-text-secondary font-medium">
+                            <td colSpan={6} className="text-center py-8 text-xs text-text-secondary font-medium">
                               No commission transactions found for this employee.
                             </td>
                           </tr>

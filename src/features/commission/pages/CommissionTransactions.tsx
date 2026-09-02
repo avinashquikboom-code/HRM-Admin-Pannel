@@ -626,7 +626,6 @@ export default function CommissionTransactions() {
                           <TableHead className="text-right">Old Amount</TableHead>
                           <TableHead className="text-right">New Amount</TableHead>
                           <TableHead className="text-right">Commission</TableHead>
-                          <TableHead className="text-center">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -695,15 +694,12 @@ export default function CommissionTransactions() {
                                   </span>
                                 ) : null}
                               </TableCell>
-
-                              {/* 7. STATUS */}
-                              <TableCell className="text-center">{getStatusBadge(t.status)}</TableCell>
                             </TableRow>
                           );
                         })}
                         {empCommissionTxns.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8 text-sm text-muted-foreground">
+                            <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
                               No commission transactions found for this employee.
                             </TableCell>
                           </TableRow>
