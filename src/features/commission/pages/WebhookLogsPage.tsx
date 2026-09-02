@@ -190,80 +190,77 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
 
   const cfg = getStatusCfg(log.status || 'PROCESSING');
   const statusIcon =
-    log.status === 'SUCCESS' ? <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> :
-    log.status === 'FAILED'  ? <ShieldX className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> :
-                               <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
-
-  const statChips = [
-    {
-      label: 'Sale Amount',
-      value: `₹${(log.amount || 0).toLocaleString('en-IN')}`,
-      icon: <IndianRupee className="h-3.5 w-3.5" />,
-      color: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400 font-bold',
-    },
-    {
-      label: 'Event Type',
-      value: formatEventType(log.eventType),
-      icon: <Zap className="h-3.5 w-3.5" />,
-      color: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 dark:text-indigo-400',
-    },
-    {
-      label: 'Timestamp',
-      value: new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-      icon: <Calendar className="h-3.5 w-3.5" />,
-      color: 'bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400',
-    },
-  ];
+    log.status === 'SUCCESS' ? <CheckCircle2 className="h-4 w-4" /> :
+    log.status === 'FAILED'  ? <XCircle className="h-4 w-4" /> :
+                               <Timer className="h-4 w-4" />;
 
   const billIdDisplay = formatBillIdDisplay(log);
   const invDisplay = formatInvoiceDisplay(log);
 
+  const formattedSaleAmount = `₹${(log.amount || 0).toLocaleString('en-IN')}`;
+  const formattedEventType = formatEventType(log.eventType);
+  const formattedTime = new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+
   const overviewFields = [
     {
-      icon: <Hash className="h-4 w-4 text-primary" />,
-      label: 'Bill ID',
+      icon: <Hash className="h-4 w-4 text-teal-600 dark:text-teal-400" />,
+      label: 'BILL ID',
       value: `#${billIdDisplay}`,
       mono: true,
       copyId: 'modal-bill',
       copyText: billIdDisplay,
     },
     {
-      icon: <Receipt className="h-4 w-4 text-sky-500" />,
-      label: 'Invoice No',
+      icon: <Receipt className="h-4 w-4 text-sky-600 dark:text-sky-400" />,
+      label: 'INVOICE NO',
       value: invDisplay,
       mono: true,
       copyId: 'modal-inv',
       copyText: invDisplay,
     },
     {
-      icon: <User className="h-4 w-4 text-blue-500" />,
-      label: 'Customer',
+      icon: <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />,
+      label: 'CUSTOMER',
       value: log.customerName && log.customerName !== 'N/A' ? log.customerName : 'N/A',
       mono: false,
     },
     {
-      icon: <UserCheck className="h-4 w-4 text-indigo-500" />,
-      label: 'Employee',
+      icon: <UserCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />,
+      label: 'EMPLOYEE',
       value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—',
       mono: false,
     },
     {
-      icon: <Building2 className="h-4 w-4 text-amber-500" />,
-      label: 'Store / Branch',
+      icon: <Building2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />,
+      label: 'STORE / BRANCH',
       value: (log.storeName && log.storeName !== 'N/A') ? log.storeName : '—',
       mono: false,
     },
     {
-      icon: <IndianRupee className="h-4 w-4 text-emerald-500" />,
-      label: 'Total Sale Amount',
-      value: `₹${(log.amount || 0).toLocaleString('en-IN')}`,
+      icon: <IndianRupee className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
+      label: 'SALE AMOUNT',
+      value: formattedSaleAmount,
       mono: true,
       green: true,
     },
     {
-      icon: <Zap className="h-4 w-4 text-purple-500" />,
-      label: 'Event Type',
-      value: formatEventType(log.eventType),
+      icon: <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
+      label: 'EVENT TYPE',
+      value: formattedEventType,
+      mono: false,
+    },
+    {
+      icon: <Code2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+      label: 'EVENT ID',
+      value: log.eventId || log.externalEventId || (log.id ? String(log.id) : 'N/A'),
+      mono: true,
+      copyId: 'modal-event-id',
+      copyText: log.eventId || log.externalEventId || (log.id ? String(log.id) : ''),
+    },
+    {
+      icon: <Clock className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
+      label: 'EVENT TIMESTAMP',
+      value: new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
       mono: true,
     },
   ];
@@ -272,124 +269,137 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
     <Dialog open={!!log} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="w-[calc(100%-1rem)] sm:w-[94vw] sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl max-h-[92vh] sm:max-h-[88vh] p-0 overflow-hidden gap-0 rounded-2xl sm:rounded-3xl border border-border/80 shadow-2xl bg-background flex flex-col my-auto"
+        className="w-[calc(100%-1rem)] sm:w-[92vw] max-w-[1100px] max-h-[90vh] p-0 overflow-hidden gap-0 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900 flex flex-col my-auto transition-all outline-none"
       >
-        {/* High-tech Dark Header Band */}
-        <div className="bg-slate-950 px-3.5 py-3.5 sm:px-6 sm:py-5 md:px-7 md:pt-6 md:pb-5 relative overflow-hidden shrink-0 border-b border-slate-800/80">
-          {/* Subtle Ambient Glow */}
-          <div className="absolute top-0 right-0 w-80 h-80 sm:w-96 sm:h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Close & Title Region */}
-          <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 relative z-10">
-            <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-              <div className="h-9 w-9 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-teal-500/30 to-indigo-500/20 border border-teal-500/40 flex items-center justify-center shrink-0 shadow-inner mt-0.5 sm:mt-0">
-                <Braces className="h-4.5 w-4.5 sm:h-5 sm:w-5 md:h-6 md:w-6 text-teal-300" />
+        {/* Enterprise Header Section */}
+        <div className="bg-slate-50/80 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:pt-6 md:pb-5 shrink-0">
+          {/* Top Title & Close Button Row */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              {/* Bracket Icon Box */}
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-teal-500/10 border border-teal-500/20 dark:bg-teal-500/15 dark:border-teal-500/30 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
+                <Braces className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
+
+              {/* Title & Identity Hierarchy */}
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-widest font-black leading-tight">
+                <p className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                   Sales Webhook Payload
                 </p>
-                <div className="mt-0.5 flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2 min-w-0">
-                  <span className="text-white font-extrabold text-base sm:text-lg md:text-xl font-mono select-all break-normal truncate sm:overflow-visible">
+                <div className="mt-0.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 min-w-0">
+                  <h2 className="text-base sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight select-all truncate">
                     Bill #{billIdDisplay}
-                  </span>
+                  </h2>
                   {invDisplay && invDisplay !== billIdDisplay && (
-                    <span className="text-xs sm:text-sm font-normal text-slate-400 font-mono break-all sm:break-normal">
+                    <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-mono select-all truncate">
                       ({invDisplay})
                     </span>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Accessible Top-Right Close Button */}
             <button
               onClick={onClose}
               aria-label="Close dialog"
-              className="text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 p-2 sm:p-2.5 rounded-xl border border-slate-800 transition-colors cursor-pointer shrink-0 ml-1"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-slate-200/70 hover:bg-slate-300/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300/60 dark:border-slate-700/80 transition-all flex items-center justify-center shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
 
-          {/* Status badge + stat chips */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 relative z-10">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black tracking-wide border shadow-xs ${cfg.color}`}>
+          {/* Status Summary Row */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-3.5 sm:mt-4">
+            {/* Status Badge */}
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-black tracking-wide border shadow-xs ${cfg.color}`}>
               {statusIcon}
               <span>{log.status || 'PROCESSING'}</span>
             </span>
-            {statChips.map((chip) => (
-              <span
-                key={chip.label}
-                className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold border ${chip.color}`}
-              >
-                {chip.icon}
-                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider opacity-70 font-bold hidden sm:inline">{chip.label}:</span>
-                <span className="font-mono font-bold">{chip.value}</span>
-              </span>
-            ))}
+
+            {/* Sale Amount Badge */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-extrabold border bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25 shadow-xs">
+              <IndianRupee className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-[10px] uppercase font-bold tracking-wider opacity-80 hidden sm:inline">SALE AMOUNT:</span>
+              <span className="font-mono">{formattedSaleAmount}</span>
+            </span>
+
+            {/* Event Type Badge */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-bold border bg-teal-500/10 text-teal-800 dark:text-teal-300 border-teal-500/25">
+              <Zap className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+              <span>{formattedEventType}</span>
+            </span>
+
+            {/* Timestamp Badge */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-semibold border bg-sky-500/10 text-sky-800 dark:text-sky-300 border-sky-500/25">
+              <Clock className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+              <span className="font-mono">{formattedTime}</span>
+            </span>
           </div>
 
-          {/* Tab navigation */}
-          <div className="flex items-center gap-1.5 sm:gap-2 mt-3.5 sm:mt-5 border-b border-slate-800/80 -mb-px relative z-10">
+          {/* Segmented Tab Navigation */}
+          <div className="flex items-center gap-2 mt-4 sm:mt-5 border-b border-slate-200 dark:border-slate-800 -mb-px">
             {[
-              { id: 'overview' as const, label: 'Overview & Metadata', icon: <LayoutList className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-              { id: 'raw' as const, label: 'Raw Payload JSON', icon: <Braces className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+              { id: 'overview' as const, label: 'Overview & Metadata', icon: <LayoutList className="h-4 w-4" /> },
+              { id: 'raw' as const, label: 'Raw Payload JSON', icon: <Braces className="h-4 w-4" /> },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 text-xs font-bold sm:font-extrabold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-primary text-teal-300 bg-primary/10 rounded-t-xl'
-                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                    ? 'border-teal-600 dark:border-teal-400 text-teal-700 dark:text-teal-300 bg-teal-500/10 dark:bg-teal-500/15 rounded-t-xl'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 {tab.icon}
-                <span className="text-[11px] sm:text-xs">{tab.label}</span>
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Content Body */}
-        <div className="p-3.5 sm:p-6 md:p-8 bg-background flex-1 overflow-y-auto">
-
-          {/* Overview tab */}
+        {/* Modal Scrollable Content */}
+        <div className="p-4 sm:p-6 md:p-8 bg-white dark:bg-slate-900 flex-1 overflow-y-auto">
+          {/* 1. Overview & Metadata Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-4 sm:space-y-6">
-              {/* Error banner if applicable */}
+              {/* Error Alert Banner if present */}
               {log.errorMessage && (
-                <div className="p-3.5 sm:p-4 bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-xl sm:rounded-2xl text-xs flex items-start gap-3 shadow-xs">
-                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-rose-500 mt-0.5" />
+                <div className="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-300 rounded-xl sm:rounded-2xl text-xs flex items-start gap-3 shadow-xs">
+                  <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <span className="font-extrabold block text-[11px] sm:text-xs uppercase tracking-wider mb-0.5">Processing Exception</span>
+                    <span className="font-extrabold block text-xs uppercase tracking-wider mb-0.5">Processing Exception</span>
                     <span className="font-medium leading-relaxed break-words">{log.errorMessage}</span>
                   </div>
                 </div>
               )}
 
-              {/* Grid of overview fields — 1 col on mobile, 2 cols on tablet, 3 cols on desktop */}
+              {/* Information Grid: 1-col mobile, 2-col tablet, 3-col desktop */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {overviewFields.map((field) => (
                   <div
                     key={field.label}
-                    className="flex flex-col justify-between gap-2.5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/35 dark:bg-muted/20 border border-border/70 hover:bg-muted/60 hover:border-primary/30 transition-all group relative"
+                    className="flex flex-col justify-between gap-2.5 p-4 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 hover:border-teal-500/40 transition-all min-h-[92px]"
                   >
+                    {/* Card Top: Icon + Label + Copy Button */}
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg sm:rounded-xl bg-background border border-border/80 flex items-center justify-center shrink-0 shadow-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-xs">
                           {field.icon}
                         </div>
-                        <p className="text-[10px] sm:text-[11px] uppercase font-black text-muted-foreground tracking-wider truncate">
+                        <p className="text-[11px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">
                           {field.label}
                         </p>
                       </div>
+
                       {field.copyText && (
                         <button
                           onClick={() => onCopy(field.copyText!, field.copyId!)}
-                          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                             copiedId === field.copyId
-                              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                              : 'text-muted-foreground hover:text-foreground bg-background/80 hover:bg-background border-border/60'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-xs'
                           }`}
                           title={`Copy ${field.label}`}
                           aria-label={`Copy ${field.label}`}
@@ -402,19 +412,20 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
                           ) : (
                             <>
                               <Copy className="h-3 w-3" />
-                              <span className="text-[10px] hidden sm:inline">Copy</span>
+                              <span className="text-[10px]">Copy</span>
                             </>
                           )}
                         </button>
                       )}
                     </div>
 
+                    {/* Card Value */}
                     <div className="min-w-0 pt-0.5">
                       <p
                         className={`text-sm sm:text-base font-bold select-all break-words [word-break:break-word] [overflow-wrap:anywhere] leading-snug ${
                           field.mono ? 'font-mono' : ''
                         } ${
-                          field.green ? 'text-emerald-600 dark:text-emerald-400 font-extrabold text-base sm:text-lg' : 'text-foreground'
+                          field.green ? 'text-emerald-600 dark:text-emerald-400 font-extrabold text-base sm:text-lg' : 'text-slate-900 dark:text-white'
                         }`}
                       >
                         {field.value}
@@ -424,46 +435,57 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
                 ))}
               </div>
 
-              {/* Received time ribbon */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/30 border border-border/60 text-xs text-muted-foreground">
-                <span className="flex items-center gap-2 font-medium">
-                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+              {/* Received Date & Time Ribbon */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-4 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-300">
+                  <Clock className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
                   <span>Received Date &amp; Time:</span>
                 </span>
-                <span className="font-bold text-foreground font-mono text-xs sm:text-sm break-words">
+                <span className="font-bold text-slate-900 dark:text-white font-mono text-xs sm:text-sm break-words select-all">
                   {new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'medium' })}
                 </span>
               </div>
             </div>
           )}
 
-          {/* Raw JSON tab — spacious full-height editor */}
+          {/* 2. Raw Payload JSON Tab */}
           {activeTab === 'raw' && (
-            <div className="rounded-xl sm:rounded-2xl border border-slate-800 overflow-hidden shadow-inner bg-slate-950 flex flex-col h-full min-h-[350px] sm:min-h-[440px]">
-              {/* Code window bar */}
-              <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-5 sm:py-3 bg-slate-900 border-b border-slate-800 shrink-0 gap-2">
-                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-rose-500 shrink-0" />
-                  <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-amber-500 shrink-0" />
-                  <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500 shrink-0" />
-                  <span className="text-[11px] sm:text-xs text-slate-400 font-mono font-bold ml-1.5 sm:ml-2 truncate">
+            <div className="rounded-xl sm:rounded-2xl border border-slate-800 overflow-hidden shadow-2xl bg-slate-950 flex flex-col min-h-[360px] sm:min-h-[440px]">
+              {/* Code Window Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 shrink-0 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="h-3 w-3 rounded-full bg-rose-500 shrink-0" />
+                  <span className="h-3 w-3 rounded-full bg-amber-500 shrink-0" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-xs text-slate-400 font-mono font-bold ml-2 truncate">
                     webhook_payload.json
                   </span>
                 </div>
+
                 <button
                   onClick={() => onCopy(formatPayload(log.payload), 'modal-json')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-lg sm:rounded-xl border transition-all cursor-pointer shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-lg sm:rounded-xl border transition-all cursor-pointer shrink-0 ${
                     copiedId === 'modal-json'
                       ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
                       : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-white'
                   }`}
                 >
-                  {copiedId === 'modal-json'
-                    ? <><Check className="h-3.5 w-3.5" /> Copied!</>
-                    : <><Copy className="h-3.5 w-3.5" /> Copy JSON</>}
+                  {copiedId === 'modal-json' ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy JSON</span>
+                    </>
+                  )}
                 </button>
               </div>
-              <pre className="p-4 sm:p-6 text-slate-200 text-xs sm:text-sm font-mono flex-1 overflow-x-auto overflow-y-auto max-h-[50vh] sm:max-h-[55vh] leading-relaxed scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700 selection:bg-primary selection:text-white">
+
+              {/* Monospace JSON Code Container */}
+              <pre className="p-4 sm:p-6 text-slate-200 text-xs sm:text-sm font-mono flex-1 overflow-x-auto overflow-y-auto max-h-[52vh] sm:max-h-[58vh] leading-relaxed scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700 selection:bg-teal-600 selection:text-white">
                 {formatPayload(log.payload)}
               </pre>
             </div>
@@ -510,7 +532,7 @@ export default function WebhookLogsPage() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const params: any = { _t: Date.now() };
+      const params: any = { _t: Date.now(), limit: 5000 };
       if (statusFilter !== 'ALL') params.status = statusFilter;
       const res = await api.get('/api/webhook/logs', { params });
       if (res.data?.data) setLogs(res.data.data || []);
@@ -522,7 +544,7 @@ export default function WebhookLogsPage() {
   };
 
   const storeOptions = useMemo(() => {
-    const names = logs.map((l) => l.storeName).filter((n): n is string => !!n && n !== 'N/A');
+    const names = logs.map((l) => l.storeName).filter((n): n is string => !!n && n !== 'N/A' && n !== '—');
     return ['ALL', ...Array.from(new Set(names)).sort()];
   }, [logs]);
 
@@ -611,9 +633,11 @@ export default function WebhookLogsPage() {
         }
       }
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+        const q = searchQuery.toLowerCase().trim();
         return (
           String(log.billId || '').toLowerCase().includes(q) ||
+          String(log.invoiceNo || '').toLowerCase().includes(q) ||
+          String(log.invoiceNumber || '').toLowerCase().includes(q) ||
           String(log.customerName || '').toLowerCase().includes(q) ||
           String(log.employeeName || '').toLowerCase().includes(q) ||
           String(log.storeName || '').toLowerCase().includes(q) ||
