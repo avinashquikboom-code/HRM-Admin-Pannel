@@ -814,8 +814,8 @@ export default function CommissionDashboard() {
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-text-secondary text-right whitespace-nowrap">DIFFERENCE AMOUNT</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-text-secondary text-right whitespace-nowrap">NEW BILL AMOUNT</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-text-secondary text-right whitespace-nowrap">OLD BILL COMMISSION</th>
-                          <th className="px-3 py-3 text-[10px] font-black uppercase text-text-secondary text-right whitespace-nowrap">NEW BILL COMMISSION</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-text-secondary text-right whitespace-nowrap">COMMISSION DIFFERENCE</th>
+                          <th className="px-3 py-3 text-[10px] font-black uppercase text-text-secondary text-right whitespace-nowrap">NEW BILL COMMISSION</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40 dark:divide-white/10">
@@ -873,12 +873,7 @@ export default function CommissionDashboard() {
                                 )}
                               </td>
 
-                              {/* 8. NEW BILL COMMISSION */}
-                              <td className="px-3 py-3 text-right font-mono text-xs font-black text-primary whitespace-nowrap">
-                                {formatCurrency(newBillComm)}
-                              </td>
-
-                              {/* 9. COMMISSION DIFFERENCE */}
+                              {/* 8. COMMISSION DIFFERENCE */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-bold whitespace-nowrap">
                                 <span className={cn(
                                   commDiff > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
@@ -887,6 +882,11 @@ export default function CommissionDashboard() {
                                 )}>
                                   {commDiff > 0 ? `+${formatCurrency(commDiff)}` : commDiff < 0 ? `-${formatCurrency(Math.abs(commDiff))}` : formatCurrency(0)}
                                 </span>
+                              </td>
+
+                              {/* 9. NEW BILL COMMISSION */}
+                              <td className="px-3 py-3 text-right font-mono text-xs font-black text-primary whitespace-nowrap">
+                                {formatCurrency(newBillComm)}
                               </td>
                             </tr>
                           );
@@ -948,13 +948,6 @@ export default function CommissionDashboard() {
                                 return sumOldComm > 0 ? formatCurrency(sumOldComm) : '—';
                               })()}
                             </td>
-                            {/* NEW BILL COMMISSION total */}
-                            <td className="px-3 py-2.5 text-right font-black text-primary whitespace-nowrap">
-                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
-                                const { newBillComm } = getTransactionDifferences(t);
-                                return acc + newBillComm;
-                              }, 0))}
-                            </td>
                             {/* COMMISSION DIFFERENCE total */}
                             <td className="px-3 py-2.5 text-right font-black whitespace-nowrap">
                               {(() => {
@@ -972,6 +965,13 @@ export default function CommissionDashboard() {
                                   </span>
                                 );
                               })()}
+                            </td>
+                            {/* NEW BILL COMMISSION total */}
+                            <td className="px-3 py-2.5 text-right font-black text-primary whitespace-nowrap">
+                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
+                                const { newBillComm } = getTransactionDifferences(t);
+                                return acc + newBillComm;
+                              }, 0))}
                             </td>
                           </tr>
                         </tfoot>
