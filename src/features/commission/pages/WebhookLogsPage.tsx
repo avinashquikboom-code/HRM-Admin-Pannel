@@ -111,6 +111,12 @@ function formatEventType(rawType?: string | null): string {
   }
 }
 
+function isCreditNoteEvent(rawType?: string | null): boolean {
+  if (!rawType) return false;
+  const lower = rawType.toLowerCase();
+  return lower.includes('creditnote') || lower.includes('credit_note');
+}
+
 function getEventBadgeStyle(rawType?: string | null): { className: string; dotColor: string } {
   if (!rawType || rawType === '—') {
     return {
@@ -197,73 +203,199 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
   const billIdDisplay = formatBillIdDisplay(log);
   const invDisplay = formatInvoiceDisplay(log);
 
-  const formattedSaleAmount = `₹${(log.amount || 0).toLocaleString('en-IN')}`;
+  const parsedPayload = (() => {
+    if (!log.payload) return {};
+    if (typeof log.payload === 'object') return log.payload;
+    try { return JSON.parse(log.payload); } catch { return {}; }
+  })();
+
+  const isCreditNote =
+    log.eventType === 'creditnote.created' ||
+    log.eventType === 'CREDIT_NOTE_CREATED' ||
+    log.eventType === 'credit_note.created' ||
+    log.eventType === 'creditnote.updated' ||
+    log.eventType === 'CREDIT_NOTE_UPDATED' ||
+    Boolean(parsedPayload?.data?.creditNote || parsedPayload?.creditNote);
+
+  const cnAmountVal =
+    parsedPayload?.data?.creditNote?.cnAmount ??
+    parsedPayload?.data?.creditNote?.CNAmount ??
+    parsedPayload?.creditNote?.cnAmount ??
+    parsedPayload?.creditNote?.CNAmount ??
+    log.cnAmount ??
+    (isCreditNote ? log.amount : 0);
+
+  const refundAmountVal =
+    parsedPayload?.data?.creditNote?.refundAmount ??
+    parsedPayload?.data?.creditNote?.RefundAmount ??
+    parsedPayload?.creditNote?.refundAmount ??
+    parsedPayload?.creditNote?.RefundAmount ??
+    log.refundAmount ??
+    0;
+
+  const cnNumber =
+    parsedPayload?.data?.creditNote?.cnNo ??
+    parsedPayload?.data?.creditNote?.CNNo ??
+    parsedPayload?.creditNote?.cnNo ??
+    parsedPayload?.creditNote?.CNNo ??
+    parsedPayload?.data?.creditNote?.creditNoteNo ??
+    log.cnNo ??
+    (isCreditNote ? (log.invoiceNo || invDisplay) : null);
+
+  const cnCustomer =
+    parsedPayload?.data?.creditNote?.customerName ??
+    parsedPayload?.creditNote?.customerName ??
+    log.customerName ??
+    'N/A';
+
+  const cnBranch =
+    parsedPayload?.data?.creditNote?.branchName ??
+    parsedPayload?.creditNote?.branchName ??
+    log.storeName ??
+    'N/A';
+
+  const formattedSaleAmount = `₹${(log.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedCnAmount = `₹${Number(cnAmountVal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedRefundAmount = `₹${Number(refundAmountVal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const formattedEventType = formatEventType(log.eventType);
   const formattedTime = new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-  const overviewFields = [
-    {
-      icon: <Hash className="h-4 w-4 text-teal-600 dark:text-teal-400" />,
-      label: 'BILL ID',
-      value: `#${billIdDisplay}`,
-      mono: true,
-      copyId: 'modal-bill',
-      copyText: billIdDisplay,
-    },
-    {
-      icon: <Receipt className="h-4 w-4 text-sky-600 dark:text-sky-400" />,
-      label: 'INVOICE NO',
-      value: invDisplay,
-      mono: true,
-      copyId: 'modal-inv',
-      copyText: invDisplay,
-    },
-    {
-      icon: <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />,
-      label: 'CUSTOMER',
-      value: log.customerName && log.customerName !== 'N/A' ? log.customerName : 'N/A',
-      mono: false,
-    },
-    {
-      icon: <UserCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />,
-      label: 'EMPLOYEE',
-      value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—',
-      mono: false,
-    },
-    {
-      icon: <Building2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />,
-      label: 'STORE / BRANCH',
-      value: (log.storeName && log.storeName !== 'N/A') ? log.storeName : '—',
-      mono: false,
-    },
-    {
-      icon: <IndianRupee className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
-      label: 'SALE AMOUNT',
-      value: formattedSaleAmount,
-      mono: true,
-      green: true,
-    },
-    {
-      icon: <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
-      label: 'EVENT TYPE',
-      value: formattedEventType,
-      mono: false,
-    },
-    {
-      icon: <Code2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
-      label: 'EVENT ID',
-      value: log.eventId || log.externalEventId || (log.id ? String(log.id) : 'N/A'),
-      mono: true,
-      copyId: 'modal-event-id',
-      copyText: log.eventId || log.externalEventId || (log.id ? String(log.id) : ''),
-    },
-    {
-      icon: <Clock className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
-      label: 'EVENT TIMESTAMP',
-      value: new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
-      mono: true,
-    },
-  ];
+  interface OverviewFieldItem {
+    icon: React.ReactNode;
+    label: string;
+    value: any;
+    mono?: boolean;
+    green?: boolean;
+    rose?: boolean;
+    copyId?: string;
+    copyText?: string;
+  }
+
+  const overviewFields: OverviewFieldItem[] = isCreditNote
+    ? [
+        {
+          icon: <Receipt className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
+          label: 'CN NUMBER',
+          value: cnNumber || invDisplay || '—',
+          mono: true,
+          copyId: 'modal-cn',
+          copyText: cnNumber || invDisplay || '',
+        },
+        {
+          icon: <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />,
+          label: 'CUSTOMER',
+          value: cnCustomer && cnCustomer !== 'N/A' ? cnCustomer : 'N/A',
+          mono: false,
+        },
+        {
+          icon: <UserCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />,
+          label: 'EMPLOYEE',
+          value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—',
+          mono: false,
+        },
+        {
+          icon: <Building2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />,
+          label: 'STORE / BRANCH',
+          value: (cnBranch && cnBranch !== 'N/A') ? cnBranch : '—',
+          mono: false,
+        },
+        {
+          icon: <IndianRupee className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
+          label: 'CREDIT NOTE AMOUNT',
+          value: formattedCnAmount,
+          mono: true,
+          rose: true,
+        },
+        {
+          icon: <IndianRupee className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+          label: 'REFUND AMOUNT',
+          value: formattedRefundAmount,
+          mono: true,
+        },
+        {
+          icon: <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
+          label: 'EVENT TYPE',
+          value: formattedEventType,
+          mono: false,
+        },
+        {
+          icon: <Code2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+          label: 'EVENT ID',
+          value: log.eventId || log.externalEventId || (log.id ? String(log.id) : 'N/A'),
+          mono: true,
+          copyId: 'modal-event-id',
+          copyText: log.eventId || log.externalEventId || (log.id ? String(log.id) : ''),
+        },
+        {
+          icon: <Clock className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
+          label: 'EVENT TIMESTAMP',
+          value: new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+          mono: true,
+        },
+      ]
+    : [
+        {
+          icon: <Hash className="h-4 w-4 text-teal-600 dark:text-teal-400" />,
+          label: 'BILL ID',
+          value: `#${billIdDisplay}`,
+          mono: true,
+          copyId: 'modal-bill',
+          copyText: billIdDisplay,
+        },
+        {
+          icon: <Receipt className="h-4 w-4 text-sky-600 dark:text-sky-400" />,
+          label: 'INVOICE NO',
+          value: invDisplay,
+          mono: true,
+          copyId: 'modal-inv',
+          copyText: invDisplay,
+        },
+        {
+          icon: <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />,
+          label: 'CUSTOMER',
+          value: log.customerName && log.customerName !== 'N/A' ? log.customerName : 'N/A',
+          mono: false,
+        },
+        {
+          icon: <UserCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />,
+          label: 'EMPLOYEE',
+          value: (log.employeeName && log.employeeName !== 'N/A') ? log.employeeName : '—',
+          mono: false,
+        },
+        {
+          icon: <Building2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />,
+          label: 'STORE / BRANCH',
+          value: (log.storeName && log.storeName !== 'N/A') ? log.storeName : '—',
+          mono: false,
+        },
+        {
+          icon: <IndianRupee className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
+          label: 'SALE AMOUNT',
+          value: formattedSaleAmount,
+          mono: true,
+          green: true,
+        },
+        {
+          icon: <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
+          label: 'EVENT TYPE',
+          value: formattedEventType,
+          mono: false,
+        },
+        {
+          icon: <Code2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+          label: 'EVENT ID',
+          value: log.eventId || log.externalEventId || (log.id ? String(log.id) : 'N/A'),
+          mono: true,
+          copyId: 'modal-event-id',
+          copyText: log.eventId || log.externalEventId || (log.id ? String(log.id) : ''),
+        },
+        {
+          icon: <Clock className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
+          label: 'EVENT TIMESTAMP',
+          value: new Date(log.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+          mono: true,
+        },
+      ];
 
   return (
     <Dialog open={!!log} onOpenChange={(open) => !open && onClose()}>
@@ -277,20 +409,26 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
           <div className="flex items-start justify-between gap-3 min-w-0 w-full">
             <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
               {/* Bracket Icon Box */}
-              <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-teal-500/10 border border-teal-500/20 dark:bg-teal-500/15 dark:border-teal-500/30 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
+              <div className={`h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0 ${
+                isCreditNote
+                  ? 'bg-rose-500/10 border border-rose-500/20 dark:bg-rose-500/15 dark:border-rose-500/30 text-rose-600 dark:text-rose-400'
+                  : 'bg-teal-500/10 border border-teal-500/20 dark:bg-teal-500/15 dark:border-teal-500/30 text-teal-600 dark:text-teal-400'
+              }`}>
                 <Braces className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               </div>
 
               {/* Title & Identity Hierarchy */}
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-teal-700 dark:text-teal-400 truncate">
-                  Sales Webhook Payload
+                <p className={`text-[10px] sm:text-xs font-extrabold uppercase tracking-wider truncate ${
+                  isCreditNote ? 'text-rose-700 dark:text-rose-400' : 'text-teal-700 dark:text-teal-400'
+                }`}>
+                  {isCreditNote ? 'Credit Note Webhook Payload' : 'Sales Webhook Payload'}
                 </p>
                 <div className="mt-0.5 flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2.5 min-w-0">
                   <h2 className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white font-mono tracking-tight select-all truncate">
-                    Bill #{billIdDisplay}
+                    {isCreditNote ? `CN #${cnNumber || billIdDisplay}` : `Bill #${billIdDisplay}`}
                   </h2>
-                  {invDisplay && invDisplay !== billIdDisplay && (
+                  {invDisplay && invDisplay !== billIdDisplay && !isCreditNote && (
                     <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-mono select-all truncate">
                       ({invDisplay})
                     </span>
@@ -317,16 +455,26 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
               <span>{log.status || 'PROCESSING'}</span>
             </span>
 
-            {/* Sale Amount Badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold border bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25 shadow-xs shrink-0">
-              <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider opacity-80 hidden sm:inline">SALE AMOUNT:</span>
-              <span className="font-mono">{formattedSaleAmount}</span>
-            </span>
+            {/* Amount Badge */}
+            {isCreditNote ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold border bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-500/25 shadow-xs shrink-0">
+                <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-rose-600 dark:text-rose-400" />
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider opacity-80 hidden sm:inline">CN AMOUNT:</span>
+                <span className="font-mono">{formattedCnAmount}</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold border bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25 shadow-xs shrink-0">
+                <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider opacity-80 hidden sm:inline">SALE AMOUNT:</span>
+                <span className="font-mono">{formattedSaleAmount}</span>
+              </span>
+            )}
 
             {/* Event Type Badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold border bg-teal-500/10 text-teal-800 dark:text-teal-300 border-teal-500/25 shrink-0">
-              <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-teal-600 dark:text-teal-400" />
+            <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold border shrink-0 ${
+              isCreditNote ? 'bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-500/25' : 'bg-teal-500/10 text-teal-800 dark:text-teal-300 border-teal-500/25'
+            }`}>
+              <Zap className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${isCreditNote ? 'text-rose-600 dark:text-rose-400' : 'text-teal-600 dark:text-teal-400'}`} />
               <span>{formattedEventType}</span>
             </span>
 
@@ -427,7 +575,9 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
                         className={`text-sm sm:text-base font-bold select-all leading-snug truncate ${
                           field.mono ? 'font-mono' : ''
                         } ${
-                          field.green ? 'text-emerald-600 dark:text-emerald-400 font-extrabold text-base sm:text-lg' : 'text-slate-900 dark:text-white'
+                          field.rose ? 'text-rose-600 dark:text-rose-400 font-extrabold text-base sm:text-lg' :
+                          field.green ? 'text-emerald-600 dark:text-emerald-400 font-extrabold text-base sm:text-lg' :
+                          'text-slate-900 dark:text-white'
                         }`}
                       >
                         {field.value}
@@ -1108,9 +1258,20 @@ export default function WebhookLogsPage() {
 
                         {/* Amount */}
                         <TableCell className="text-right py-3.5">
-                          <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
-                            ₹{(log.amount || 0).toLocaleString('en-IN')}
-                          </span>
+                          {isCreditNoteEvent(log.eventType) ? (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="font-bold text-sm text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap">
+                                ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <span className="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80">
+                                CN Amount: ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
+                              ₹{(Number(log.amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          )}
                         </TableCell>
 
                         {/* Received At */}
