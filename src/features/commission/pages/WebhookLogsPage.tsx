@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api';
+import { cn } from '@/utils/cn';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1327,26 +1328,72 @@ export default function WebhookLogsPage() {
 
                         {/* Amount */}
                         <TableCell className="text-right py-3.5">
-                          {isCreditNoteEvent(log.eventType) ? (
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="font-bold text-sm text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap">
-                                ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {(() => {
+                            const isCn = isCreditNoteEvent(log.eventType);
+                            let rowOldAmt = log.oldAmount !== undefined && log.oldAmount !== null ? Number(log.oldAmount) : null;
+                            let rowDiffAmt = log.differenceAmount !== undefined && log.differenceAmount !== null ? Number(log.differenceAmount) : null;
+                            const rowCnAmt = log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0);
+
+                            if (isCn && (rowOldAmt === null || rowDiffAmt === null) && Array.isArray(logs)) {
+                              const norm = (s: any) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                              const matchedInv = logs.find(l => {
+                                if (isCreditNoteEvent(l.eventType)) return false;
+                                if (log.invoiceNo && (l.invoiceNo === log.invoiceNo || l.invoiceNumber === log.invoiceNo || norm(l.invoiceNo) === norm(log.invoiceNo))) return true;
+                                if (log.customerName && log.customerName !== 'N/A' && norm(l.customerName) === norm(log.customerName)) return true;
+                                return false;
+                              });
+                              if (matchedInv) {
+                                let invSum = 0;
+                                try {
+                                  const p = typeof matchedInv.payload === 'object' ? matchedInv.payload : JSON.parse(matchedInv.payload);
+                                  const lines = p?.data?.lineItems || p?.lineItems || [];
+                                  if (Array.isArray(lines) && lines.length > 0) {
+                                    for (const it of lines) {
+                                      const val = Number(it.productNetAmount ?? it.netAmount ?? it.amount ?? 0);
+                                      if (!isNaN(val) && val > 0) invSum += val;
+                                    }
+                                  }
+                                } catch {}
+                                rowOldAmt = invSum > 0 ? invSum : Number(matchedInv.amount || 0);
+                                rowDiffAmt = Math.round((rowCnAmt - rowOldAmt) * 100) / 100;
+                              }
+                            }
+
+                            if (isCn) {
+                              return (
+                                <div className="flex flex-col items-end gap-0.5">
+                                  <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
+                                    ₹{rowCnAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  {rowDiffAmt !== null && rowOldAmt !== null ? (
+                                    <div className="flex flex-col items-end text-[10px] font-mono leading-tight">
+                                      <span className={cn(
+                                        "font-extrabold",
+                                        rowDiffAmt > 0 && "text-emerald-600 dark:text-emerald-400",
+                                        rowDiffAmt < 0 && "text-rose-600 dark:text-rose-400",
+                                        rowDiffAmt === 0 && "text-muted-foreground"
+                                      )}>
+                                        Difference: {rowDiffAmt > 0 ? `+₹${rowDiffAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : rowDiffAmt < 0 ? `-₹${Math.abs(rowDiffAmt).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `₹0.00`}
+                                      </span>
+                                      <span className="text-muted-foreground/60 text-[9px]">
+                                        (Old: ₹{rowOldAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80 font-mono">
+                                      CN Amount: ₹{rowCnAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
+                                ₹{(Number(log.amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
-                              {log.differenceAmount !== undefined && log.differenceAmount !== null && log.oldAmount ? (
-                                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
-                                  Old: ₹{Number(log.oldAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} • Diff: {Number(log.differenceAmount) >= 0 ? '+' : ''}₹{Number(log.differenceAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80">
-                                  CN Amount: ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
-                              ₹{(Number(log.amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          )}
+                            );
+                          })()}
                         </TableCell>
 
                         {/* Received At */}
