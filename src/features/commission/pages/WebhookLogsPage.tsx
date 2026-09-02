@@ -61,6 +61,7 @@ import {
   LayoutList,
   ArrowLeftRight,
   Receipt,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatBillIdDisplay, formatInvoiceDisplay } from '@/services/commissionService';
@@ -287,7 +288,13 @@ function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayl
     });
 
     if (matchedInvLog) {
-      const parsedInv = parseRawPayload(matchedInvLog.payload);
+      let parsedInv: any = {};
+      if (matchedInvLog.payload) {
+        if (typeof matchedInvLog.payload === 'object') parsedInv = matchedInvLog.payload;
+        else {
+          try { parsedInv = JSON.parse(matchedInvLog.payload); } catch {}
+        }
+      }
       const invLines = parsedInv?.data?.lineItems || parsedInv?.lineItems || [];
       let sum = 0;
       if (Array.isArray(invLines) && invLines.length > 0) {
@@ -1325,9 +1332,15 @@ export default function WebhookLogsPage() {
                               <span className="font-bold text-sm text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap">
                                 ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
-                              <span className="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80">
-                                CN Amount: ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
+                              {log.differenceAmount !== undefined && log.differenceAmount !== null && log.oldAmount ? (
+                                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
+                                  Old: ₹{Number(log.oldAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} • Diff: {Number(log.differenceAmount) >= 0 ? '+' : ''}₹{Number(log.differenceAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80">
+                                  CN Amount: ₹{(log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
@@ -1354,10 +1367,10 @@ export default function WebhookLogsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setSelectedPayload(log)}
-                            className="h-7 w-7 p-0 rounded-lg opacity-40 group-hover:opacity-100 hover:bg-indigo-500/10 hover:text-indigo-600 transition-all"
-                            title="View Payload"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg cursor-pointer"
+                            title="Inspect Payload"
                           >
-                            <Code2 className="h-3.5 w-3.5" />
+                            <Eye className="h-3.5 w-3.5" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -1440,6 +1453,7 @@ export default function WebhookLogsPage() {
       {/* Payload Inspector Modal */}
       <PayloadModal
         log={selectedPayload}
+        allLogs={logs}
         onClose={() => setSelectedPayload(null)}
         copiedId={copiedId}
         onCopy={copyToClipboard}

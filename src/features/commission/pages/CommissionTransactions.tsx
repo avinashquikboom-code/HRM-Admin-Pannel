@@ -633,8 +633,8 @@ export default function CommissionTransactions() {
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground whitespace-nowrap">DATE</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">SALE AMOUNT</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">OLD BILL AMOUNT</th>
-                          <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">NEW BILL AMOUNT</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">DIFFERENCE AMOUNT</th>
+                          <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">NEW BILL AMOUNT</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">OLD BILL COMMISSION</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">NEW BILL COMMISSION</th>
                           <th className="px-3 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">COMMISSION DIFFERENCE</th>
@@ -670,12 +670,7 @@ export default function CommissionTransactions() {
                                 )}
                               </td>
 
-                              {/* 5. NEW BILL AMOUNT */}
-                              <td className="px-3 py-3 text-right font-mono text-xs font-bold text-foreground whitespace-nowrap">
-                                {formatCurrency(newBillAmt)}
-                              </td>
-
-                              {/* 6. DIFFERENCE AMOUNT */}
+                              {/* 5. DIFFERENCE AMOUNT */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-bold whitespace-nowrap">
                                 <span className={cn(
                                   diffAmt > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
@@ -684,6 +679,11 @@ export default function CommissionTransactions() {
                                 )}>
                                   {diffAmt > 0 ? `+${formatCurrency(diffAmt)}` : diffAmt < 0 ? `-${formatCurrency(Math.abs(diffAmt))}` : formatCurrency(0)}
                                 </span>
+                              </td>
+
+                              {/* 6. NEW BILL AMOUNT */}
+                              <td className="px-3 py-3 text-right font-mono text-xs font-bold text-foreground whitespace-nowrap">
+                                {formatCurrency(newBillAmt)}
                               </td>
 
                               {/* 7. OLD BILL COMMISSION */}
@@ -738,13 +738,6 @@ export default function CommissionTransactions() {
                                 return sumOld > 0 ? formatCurrency(sumOld) : '—';
                               })()}
                             </td>
-                            {/* NEW BILL AMOUNT total */}
-                            <td className="px-3 py-2.5 text-right font-black text-foreground whitespace-nowrap">
-                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
-                                const { newBillAmt } = getTransactionDifferences(t);
-                                return acc + newBillAmt;
-                              }, 0))}
-                            </td>
                             {/* DIFFERENCE AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-black whitespace-nowrap">
                               {(() => {
@@ -762,6 +755,13 @@ export default function CommissionTransactions() {
                                   </span>
                                 );
                               })()}
+                            </td>
+                            {/* NEW BILL AMOUNT total */}
+                            <td className="px-3 py-2.5 text-right font-black text-foreground whitespace-nowrap">
+                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
+                                const { newBillAmt } = getTransactionDifferences(t);
+                                return acc + newBillAmt;
+                              }, 0))}
                             </td>
                             {/* OLD BILL COMMISSION total */}
                             <td className="px-3 py-2.5 text-right font-semibold text-muted-foreground whitespace-nowrap">
