@@ -200,22 +200,27 @@ export default function CommissionDashboard() {
       const params: any = { _t: Date.now() };
       if (selectedStore && selectedStore !== 'all') params.storeId = selectedStore;
       
-      const now = new Date();
+      // Precise IST (UTC+5:30) date computation
+      const istNow = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+      const year = istNow.getUTCFullYear();
+      const month = String(istNow.getUTCMonth() + 1).padStart(2, '0');
+      const date = String(istNow.getUTCDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${date}`;
+
       if (dateRange === 'today') {
-        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        params.startDate = dateStr;
-        params.endDate = dateStr;
+        params.startDate = todayStr;
+        params.endDate = todayStr;
       } else if (dateRange === 'week') {
-        const weekAgo = new Date(now);
-        weekAgo.setDate(now.getDate() - 7);
-        params.startDate = `${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}-${String(weekAgo.getDate()).padStart(2, '0')}`;
-        params.endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const weekAgo = new Date(istNow.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const wYear = weekAgo.getUTCFullYear();
+        const wMonth = String(weekAgo.getUTCMonth() + 1).padStart(2, '0');
+        const wDate = String(weekAgo.getUTCDate()).padStart(2, '0');
+        params.startDate = `${wYear}-${wMonth}-${wDate}`;
+        params.endDate = todayStr;
       } else if (dateRange === 'month') {
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const monthEnd = new Date(year, month + 1, 0);
-        params.startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        params.endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`;
+        const monthEnd = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth() + 1, 0));
+        params.startDate = `${year}-${month}-01`;
+        params.endDate = `${year}-${month}-${String(monthEnd.getUTCDate()).padStart(2, '0')}`;
       }
 
       const [statsRes, transactionsRes] = await Promise.allSettled([
@@ -480,23 +485,23 @@ export default function CommissionDashboard() {
         </div>
 
         {/* Active Filter Chips */}
-        {(selectedStore || dateRange !== 'month') && (
+        {(selectedStore || dateRange !== 'all') && (
           <div className="mt-4 pt-3 border-t border-border/40 dark:border-white/10 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-text-secondary mr-1">Active:</span>
             {selectedStore && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-bold text-primary">
                 <Building2 className="h-3 w-3" />
-                {stores.find(s => s.id.toString() === selectedStore)?.name}
+                {stores.find(s => s.id.toString() === selectedStore)?.name || 'Selected Store'}
                 <button onClick={() => setSelectedStore('')} className="hover:text-primary/70">
                   <X className="h-3 w-3 ml-0.5" />
                 </button>
               </span>
             )}
-            {dateRange !== 'month' && (
+            {dateRange !== 'all' && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-bold text-primary">
                 <Calendar className="h-3 w-3" />
-                {dateRange === 'today' ? 'Today' : 'This Week'}
-                <button onClick={() => setDateRange('month')} className="hover:text-primary/70">
+                {dateRange === 'today' ? 'Today' : dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : dateRange}
+                <button onClick={() => setDateRange('all')} className="hover:text-primary/70">
                   <X className="h-3 w-3 ml-0.5" />
                 </button>
               </span>
