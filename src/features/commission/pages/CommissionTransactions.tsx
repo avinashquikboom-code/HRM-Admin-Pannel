@@ -545,7 +545,7 @@ export default function CommissionTransactions() {
         isOpen={empCommissionModalOpen}
         onClose={() => setEmpCommissionModalOpen(false)}
         title="Employee Monthly Commission Intelligence"
-        maxWidth="max-w-4xl"
+        maxWidth="max-w-5xl"
       >
         {selectedEmpForCommission && (
           <div className="p-6 space-y-6">
@@ -616,96 +616,170 @@ export default function CommissionTransactions() {
                   <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3">
                     All Commission Transactions ({empCommissionTxns.length})
                   </h4>
-                  <div className="max-h-72 overflow-y-auto rounded-xl border border-border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Bill / Invoice</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead className="text-right">Sale Amount</TableHead>
-                          <TableHead className="text-right">Old Amount</TableHead>
-                          <TableHead className="text-right">New Amount</TableHead>
-                          <TableHead className="text-right">Commission</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                  <div className="max-h-80 overflow-y-auto overflow-x-auto rounded-xl border border-border w-full min-w-0 max-w-full box-border scrollbar-thin">
+                    <table className="w-full text-left border-collapse min-w-[860px]">
+                      <thead>
+                        <tr className="bg-muted/40 border-b border-border sticky top-0 backdrop-blur-md">
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground whitespace-nowrap">BILL / INVOICE</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground whitespace-nowrap">DATE</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">SALE AMOUNT</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">OLD BILL AMOUNT</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">NEW BILL AMOUNT</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">DIFFERENCE AMOUNT</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">OLD BILL COMMISSION</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-muted-foreground text-right whitespace-nowrap">NEW BILL COMMISSION</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
                         {empCommissionTxns.map((t) => {
-                          const hasOldAmount = t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0;
-                          const currentNewAmount = Number(t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? t.newAmount : t.saleAmount);
-                          const diff = hasOldAmount ? currentNewAmount - Number(t.oldAmount) : 0;
+                          const isUpdated = t.eventType === 'INVOICE_UPDATED' ||
+                            (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0) ||
+                            (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0 && t.newAmount !== undefined);
+
+                          const saleAmt = Number(t.saleAmount || 0);
+                          const oldBillAmt: number | null = isUpdated && t.oldAmount !== undefined && t.oldAmount !== null ? Number(t.oldAmount) : null;
+                          const newBillAmt: number = isUpdated && t.newAmount !== undefined && t.newAmount !== null
+                            ? Number(t.newAmount)
+                            : (t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? Number(t.newAmount) : saleAmt);
+
+                          const diffAmt: number | null = isUpdated && oldBillAmt !== null ? newBillAmt - oldBillAmt : null;
+                          const oldBillComm: number | null = isUpdated
+                            ? (t.oldCommission !== undefined && t.oldCommission !== null ? Number(t.oldCommission) : (oldBillAmt !== null ? (oldBillAmt * (t.commissionPercent ?? 1)) / 100 : null))
+                            : null;
+                          const newBillComm: number = t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
+                            ? Number(t.newCommission)
+                            : Number(t.commissionAmount || 0);
 
                           return (
-                            <TableRow key={t.id}>
+                            <tr key={t.id} className="hover:bg-muted/30">
                               {/* 1. BILL / INVOICE */}
-                              <TableCell className="font-mono text-xs font-bold">
+                              <td className="px-3.5 py-3 font-mono text-xs font-bold whitespace-nowrap">
                                 {formatInvoiceDisplay(t)}
-                              </TableCell>
+                              </td>
 
                               {/* 2. DATE */}
-                              <TableCell className="text-xs text-muted-foreground">
+                              <td className="px-3.5 py-3 text-xs text-muted-foreground whitespace-nowrap">
                                 {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
-                              </TableCell>
+                              </td>
 
                               {/* 3. SALE AMOUNT */}
-                              <TableCell className="text-right font-mono text-xs font-bold">
-                                <span className="font-bold block">
-                                  {formatCurrency(t.saleAmount)}
-                                </span>
-                              </TableCell>
+                              <td className="px-3.5 py-3 text-right font-mono text-xs font-bold whitespace-nowrap">
+                                {formatCurrency(saleAmt)}
+                              </td>
 
-                              {/* 4. OLD AMOUNT */}
-                              <TableCell className="text-right font-mono text-xs font-medium">
-                                {hasOldAmount ? (
-                                  <span className="font-semibold text-muted-foreground block">
-                                    {formatCurrency(Number(t.oldAmount))}
+                              {/* 4. OLD BILL AMOUNT */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                {oldBillAmt !== null ? (
+                                  formatCurrency(oldBillAmt)
+                                ) : (
+                                  <span className="text-muted-foreground/50 font-normal">—</span>
+                                )}
+                              </td>
+
+                              {/* 5. NEW BILL AMOUNT */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs font-bold text-foreground whitespace-nowrap">
+                                {formatCurrency(newBillAmt)}
+                              </td>
+
+                              {/* 6. DIFFERENCE AMOUNT */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs font-bold whitespace-nowrap">
+                                {diffAmt !== null ? (
+                                  <span className={cn(
+                                    diffAmt > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
+                                    diffAmt < 0 && "text-rose-600 dark:text-rose-400 font-extrabold",
+                                    diffAmt === 0 && "text-muted-foreground"
+                                  )}>
+                                    {diffAmt > 0 ? `+${formatCurrency(diffAmt)}` : diffAmt < 0 ? `-${formatCurrency(Math.abs(diffAmt))}` : formatCurrency(0)}
                                   </span>
                                 ) : (
-                                  <span className="text-muted-foreground/50">—</span>
+                                  <span className="text-muted-foreground/50 font-normal">—</span>
                                 )}
-                              </TableCell>
+                              </td>
 
-                              {/* 5. NEW AMOUNT */}
-                              <TableCell className="text-right font-mono text-xs">
-                                <span className="font-black text-foreground block">
-                                  {formatCurrency(currentNewAmount)}
-                                </span>
-                                {hasOldAmount && (
-                                  <span className={cn(
-                                    "text-[10.5px] font-bold block",
-                                    diff > 0 && "text-emerald-600 dark:text-emerald-400",
-                                    diff < 0 && "text-rose-600 dark:text-rose-400",
-                                    diff === 0 && "text-muted-foreground"
-                                  )}>
-                                    {diff > 0 ? `+${formatCurrency(diff)}` : diff < 0 ? `-${formatCurrency(Math.abs(diff))}` : '₹0'}
-                                  </span>
+                              {/* 7. OLD BILL COMMISSION */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                {oldBillComm !== null ? (
+                                  formatCurrency(oldBillComm)
+                                ) : (
+                                  <span className="text-muted-foreground/50 font-normal">—</span>
                                 )}
-                              </TableCell>
+                              </td>
 
-                              {/* 6. COMMISSION */}
-                              <TableCell className="text-right font-mono text-xs font-black text-primary">
-                                <span className="font-black text-primary block">
-                                  {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
-                                </span>
-                                {t.oldCommission && Number(t.oldCommission) > 0 && Number(t.oldCommission) !== Number(t.newCommission || t.commissionAmount) ? (
-                                  <span className="text-[10px] text-muted-foreground font-normal block">
-                                    Old: {formatCurrency(t.oldCommission)} (
-                                    {Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission) >= 0 ? '+' : ''}
-                                    {formatCurrency(Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission))})
-                                  </span>
-                                ) : null}
-                              </TableCell>
-                            </TableRow>
+                              {/* 8. NEW BILL COMMISSION */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs font-black text-primary whitespace-nowrap">
+                                {formatCurrency(newBillComm)}
+                              </td>
+                            </tr>
                           );
                         })}
                         {empCommissionTxns.length === 0 && (
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
+                          <tr>
+                            <td colSpan={8} className="text-center py-8 text-sm text-muted-foreground">
                               No commission transactions found for this employee.
-                            </TableCell>
-                          </TableRow>
+                            </td>
+                          </tr>
                         )}
-                      </TableBody>
-                    </Table>
+                      </tbody>
+                      {empCommissionTxns.length > 0 && (
+                        <tfoot className="bg-muted/60 border-t-2 border-border sticky bottom-0 backdrop-blur-md font-mono text-xs font-bold">
+                          <tr>
+                            <td colSpan={2} className="px-3.5 py-2.5 uppercase text-[11px] font-black text-foreground">
+                              Total ({empCommissionTxns.length})
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right font-black text-foreground whitespace-nowrap">
+                              {formatCurrency(empCommissionTxns.reduce((acc, t) => acc + Number(t.saleAmount || 0), 0))}
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right font-semibold text-muted-foreground whitespace-nowrap">
+                              {(() => {
+                                const sumOld = empCommissionTxns.reduce((acc, t) => acc + (t.oldAmount ? Number(t.oldAmount) : 0), 0);
+                                return sumOld > 0 ? formatCurrency(sumOld) : '—';
+                              })()}
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right font-black text-foreground whitespace-nowrap">
+                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
+                                const newAmt = t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? Number(t.newAmount) : Number(t.saleAmount || 0);
+                                return acc + newAmt;
+                              }, 0))}
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right font-black whitespace-nowrap">
+                              {(() => {
+                                const totalDiff = empCommissionTxns.reduce((acc, t) => {
+                                  const isUpd = t.eventType === 'INVOICE_UPDATED' || (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0);
+                                  if (!isUpd || t.oldAmount === undefined || t.oldAmount === null) return acc;
+                                  const newAmt = t.newAmount !== undefined && t.newAmount !== null ? Number(t.newAmount) : Number(t.saleAmount || 0);
+                                  return acc + (newAmt - Number(t.oldAmount));
+                                }, 0);
+                                const hasAnyDiff = empCommissionTxns.some(t => t.eventType === 'INVOICE_UPDATED' || (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0));
+                                if (!hasAnyDiff) return '—';
+                                return (
+                                  <span className={cn(
+                                    totalDiff > 0 && "text-emerald-600 dark:text-emerald-400 font-extrabold",
+                                    totalDiff < 0 && "text-rose-600 dark:text-rose-400 font-extrabold",
+                                    totalDiff === 0 && "text-muted-foreground"
+                                  )}>
+                                    {totalDiff > 0 ? `+${formatCurrency(totalDiff)}` : totalDiff < 0 ? `-${formatCurrency(Math.abs(totalDiff))}` : formatCurrency(0)}
+                                  </span>
+                                );
+                              })()}
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right font-semibold text-muted-foreground whitespace-nowrap">
+                              {(() => {
+                                const sumOldComm = empCommissionTxns.reduce((acc, t) => acc + (t.oldCommission ? Number(t.oldCommission) : 0), 0);
+                                return sumOldComm > 0 ? formatCurrency(sumOldComm) : '—';
+                              })()}
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right font-black text-primary whitespace-nowrap">
+                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
+                                const newComm = t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
+                                  ? Number(t.newCommission)
+                                  : Number(t.commissionAmount || 0);
+                                return acc + newComm;
+                              }, 0))}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
                   </div>
                 </div>
               </>
