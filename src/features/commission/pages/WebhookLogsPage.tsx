@@ -921,7 +921,6 @@ export default function WebhookLogsPage() {
                   <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Employee</TableHead>
                   <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Store / Branch</TableHead>
                   <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-right">Amount</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-center">Status</TableHead>
                   <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Received At</TableHead>
                   <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-center pr-5">Payload</TableHead>
                 </TableRow>
@@ -930,7 +929,6 @@ export default function WebhookLogsPage() {
               <TableBody>
                 {paginatedLogs.length > 0 ? (
                   paginatedLogs.map((log) => {
-                    const cfg = getStatusCfg(log.status || 'PROCESSING');
                     const empInit = initials(log.employeeName);
                     const custInit = initials(log.customerName);
                     const eventBadge = getEventBadgeStyle(log.eventType);
@@ -1016,14 +1014,6 @@ export default function WebhookLogsPage() {
                           </span>
                         </TableCell>
 
-                        {/* Status */}
-                        <TableCell className="text-center py-3.5">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border whitespace-nowrap ${cfg.color}`}>
-                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${cfg.dot}`} />
-                            {log.status || 'PROCESSING'}
-                          </span>
-                        </TableCell>
-
                         {/* Received At */}
                         <TableCell className="py-3.5">
                           <div className="text-[11px] leading-tight">
@@ -1053,7 +1043,7 @@ export default function WebhookLogsPage() {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-16 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-16 text-muted-foreground">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <div className="h-14 w-14 rounded-2xl bg-muted/60 border flex items-center justify-center">
                           <Code2 className="h-7 w-7 opacity-30" />
