@@ -179,9 +179,9 @@ function getEventBadgeStyle(rawType?: string | null): { className: string; dotCo
   }
 }
 
-/* ─── PayloadModal ─── */
 interface PayloadModalProps {
   log: any;
+  allLogs?: any[];
   onClose: () => void;
   copiedId: string | null;
   onCopy: (text: string, id: string) => void;
@@ -189,7 +189,7 @@ interface PayloadModalProps {
   getStatusCfg: (s: string) => { color: string; dot: string };
 }
 
-function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatusCfg }: PayloadModalProps) {
+function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayload, getStatusCfg }: PayloadModalProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'raw'>('overview');
 
   if (!log) return null;
@@ -260,6 +260,54 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
   const formattedEventType = formatEventType(log.eventType);
   const formattedTime = new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
+  // Resolve related invoice and difference amount
+  let oldBillAmountVal: number | null = log?.oldAmount !== undefined && log?.oldAmount !== null ? Number(log.oldAmount) : null;
+  const cnAmountNum = Number(cnAmountVal || 0);
+
+  if (isCreditNote && oldBillAmountVal === null && Array.isArray(allLogs) && allLogs.length > 0) {
+    const refInv =
+      parsedPayload?.data?.creditNote?.invoiceNo ||
+      parsedPayload?.creditNote?.invoiceNo ||
+      parsedPayload?.data?.creditNote?.salesID ||
+      parsedPayload?.creditNote?.salesID ||
+      parsedPayload?.data?.creditNote?.salesExchangeID ||
+      parsedPayload?.creditNote?.salesExchangeID ||
+      invDisplay;
+
+    const matchedInvLog = allLogs.find((l) => {
+      const isCn = isCreditNoteEvent(l.eventType);
+      if (isCn) return false;
+      if (refInv && (l.invoiceNo === refInv || l.invoiceNumber === refInv || l.billId === refInv || `HWM-${l.billId}` === refInv)) {
+        return true;
+      }
+      if (cnCustomer && cnCustomer !== 'N/A' && l.customerName === cnCustomer) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matchedInvLog) {
+      const parsedInv = parseRawPayload(matchedInvLog.payload);
+      const invLines = parsedInv?.data?.lineItems || parsedInv?.lineItems || [];
+      let sum = 0;
+      if (Array.isArray(invLines) && invLines.length > 0) {
+        for (const it of invLines) {
+          const itNet = Number(it.productNetAmount ?? it.netAmount ?? it.amount ?? 0);
+          if (!isNaN(itNet) && itNet > 0) sum += itNet;
+        }
+      }
+      oldBillAmountVal = sum > 0 ? sum : Number(matchedInvLog.amount || 0);
+    }
+  }
+
+  let differenceAmountVal: number | null = log?.differenceAmount !== undefined && log?.differenceAmount !== null ? Number(log.differenceAmount) : null;
+  if (isCreditNote && differenceAmountVal === null && oldBillAmountVal !== null && oldBillAmountVal > 0 && cnAmountNum > 0) {
+    differenceAmountVal = Math.round((cnAmountNum - oldBillAmountVal) * 100) / 100;
+  }
+
+  const formattedOldBillAmount = oldBillAmountVal !== null && oldBillAmountVal > 0 ? `₹${oldBillAmountVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
+  const formattedDiffAmount = differenceAmountVal !== null ? `${differenceAmountVal >= 0 ? '+' : '-'}₹${Math.abs(differenceAmountVal).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
+
   interface OverviewFieldItem {
     icon: React.ReactNode;
     label: string;
@@ -299,6 +347,12 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
           value: (cnBranch && cnBranch !== 'N/A') ? cnBranch : '—',
           mono: false,
         },
+        ...(formattedOldBillAmount ? [{
+          icon: <Receipt className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+          label: 'OLD BILL AMOUNT',
+          value: formattedOldBillAmount,
+          mono: true,
+        }] : []),
         {
           icon: <IndianRupee className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
           label: 'CREDIT NOTE AMOUNT',
@@ -306,6 +360,14 @@ function PayloadModal({ log, onClose, copiedId, onCopy, formatPayload, getStatus
           mono: true,
           rose: true,
         },
+        ...(formattedDiffAmount ? [{
+          icon: <IndianRupee className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
+          label: 'DIFFERENCE AMOUNT',
+          value: formattedDiffAmount,
+          mono: true,
+          green: (differenceAmountVal ?? 0) >= 0,
+          rose: (differenceAmountVal ?? 0) < 0,
+        }] : []),
         {
           icon: <IndianRupee className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
           label: 'REFUND AMOUNT',
