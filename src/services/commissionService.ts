@@ -613,7 +613,7 @@ export function formatBillIdDisplay(t?: {
 }
 
 /**
- * Resolves standard formatted invoice string (e.g. "HWM-93", "HWM-89").
+ * Resolves standard formatted invoice string (e.g. "BF-I-23270", "HWM-93", "INV-89").
  */
 export function formatInvoiceDisplay(t?: {
   invoiceNumber?: string | number | null;
@@ -629,12 +629,15 @@ export function formatInvoiceDisplay(t?: {
     const str = String(rawInv).trim();
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
     if (!isUuid && str.length > 0) {
-      if (str.startsWith('HWM-') || str.startsWith('INV-')) return str;
-      return `HWM-${str}`;
+      return str;
     }
   }
 
   const billIdNum = formatBillIdDisplay(t);
-  return `HWM-${billIdNum}`;
+  if (billIdNum && billIdNum !== '-') {
+    return /^\d+$/.test(billIdNum) ? `HWM-${billIdNum}` : billIdNum;
+  }
+  return '-';
 }
+
 
