@@ -32,6 +32,7 @@ import { fetchStores } from '@/services/storeService';
 import { fetchEmployees } from '@/services/employeeService';
 import Modal from '@/components/Modal';
 import { toast } from 'sonner';
+import { cn } from '@/utils/cn';
 
 export default function CommissionTransactions() {
   const [transactions, setTransactions] = useState<CommissionTransaction[]>([]);
@@ -622,47 +623,87 @@ export default function CommissionTransactions() {
                           <TableHead>Bill / Invoice</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead className="text-right">Sale Amount</TableHead>
+                          <TableHead className="text-right">Old Amount</TableHead>
+                          <TableHead className="text-right">New Amount</TableHead>
                           <TableHead className="text-right">Commission</TableHead>
-                          <TableHead>Status</TableHead>
+                          <TableHead className="text-center">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {empCommissionTxns.map((t) => (
-                          <TableRow key={t.id}>
-                            <TableCell className="font-mono text-xs font-bold">
-                              {formatInvoiceDisplay(t)}
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
-                              {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
-                            </TableCell>
-                            <TableCell className="text-right font-mono text-xs font-bold">
-                              <span className="font-bold block">
-                                {formatCurrency(t.newAmount || t.saleAmount)}
-                              </span>
-                              {t.oldAmount && Number(t.oldAmount) > 0 && Number(t.oldAmount) !== Number(t.newAmount || t.saleAmount) ? (
-                                <span className="text-[10px] text-muted-foreground font-normal block">
-                                  Old: {formatCurrency(t.oldAmount)}
+                        {empCommissionTxns.map((t) => {
+                          const hasOldAmount = t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0;
+                          const currentNewAmount = Number(t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? t.newAmount : t.saleAmount);
+                          const diff = hasOldAmount ? currentNewAmount - Number(t.oldAmount) : 0;
+
+                          return (
+                            <TableRow key={t.id}>
+                              {/* 1. BILL / INVOICE */}
+                              <TableCell className="font-mono text-xs font-bold">
+                                {formatInvoiceDisplay(t)}
+                              </TableCell>
+
+                              {/* 2. DATE */}
+                              <TableCell className="text-xs text-muted-foreground">
+                                {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
+                              </TableCell>
+
+                              {/* 3. SALE AMOUNT */}
+                              <TableCell className="text-right font-mono text-xs font-bold">
+                                <span className="font-bold block">
+                                  {formatCurrency(t.saleAmount)}
                                 </span>
-                              ) : null}
-                            </TableCell>
-                            <TableCell className="text-right font-mono text-xs font-black text-primary">
-                              <span className="font-black text-primary block">
-                                {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
-                              </span>
-                              {t.oldCommission && Number(t.oldCommission) > 0 && Number(t.oldCommission) !== Number(t.newCommission || t.commissionAmount) ? (
-                                <span className="text-[10px] text-muted-foreground font-normal block">
-                                  Old: {formatCurrency(t.oldCommission)} (
-                                  {Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission) >= 0 ? '+' : ''}
-                                  {formatCurrency(Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission))})
+                              </TableCell>
+
+                              {/* 4. OLD AMOUNT */}
+                              <TableCell className="text-right font-mono text-xs font-medium">
+                                {hasOldAmount ? (
+                                  <span className="font-semibold text-muted-foreground block">
+                                    {formatCurrency(Number(t.oldAmount))}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground/50">—</span>
+                                )}
+                              </TableCell>
+
+                              {/* 5. NEW AMOUNT */}
+                              <TableCell className="text-right font-mono text-xs">
+                                <span className="font-black text-foreground block">
+                                  {formatCurrency(currentNewAmount)}
                                 </span>
-                              ) : null}
-                            </TableCell>
-                            <TableCell>{getStatusBadge(t.status)}</TableCell>
-                          </TableRow>
-                        ))}
+                                {hasOldAmount && (
+                                  <span className={cn(
+                                    "text-[10.5px] font-bold block",
+                                    diff > 0 && "text-emerald-600 dark:text-emerald-400",
+                                    diff < 0 && "text-rose-600 dark:text-rose-400",
+                                    diff === 0 && "text-muted-foreground"
+                                  )}>
+                                    {diff > 0 ? `+${formatCurrency(diff)}` : diff < 0 ? `-${formatCurrency(Math.abs(diff))}` : '₹0'}
+                                  </span>
+                                )}
+                              </TableCell>
+
+                              {/* 6. COMMISSION */}
+                              <TableCell className="text-right font-mono text-xs font-black text-primary">
+                                <span className="font-black text-primary block">
+                                  {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
+                                </span>
+                                {t.oldCommission && Number(t.oldCommission) > 0 && Number(t.oldCommission) !== Number(t.newCommission || t.commissionAmount) ? (
+                                  <span className="text-[10px] text-muted-foreground font-normal block">
+                                    Old: {formatCurrency(t.oldCommission)} (
+                                    {Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission) >= 0 ? '+' : ''}
+                                    {formatCurrency(Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission))})
+                                  </span>
+                                ) : null}
+                              </TableCell>
+
+                              {/* 7. STATUS */}
+                              <TableCell className="text-center">{getStatusBadge(t.status)}</TableCell>
+                            </TableRow>
+                          );
+                        })}
                         {empCommissionTxns.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center py-8 text-sm text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center py-8 text-sm text-muted-foreground">
                               No commission transactions found for this employee.
                             </TableCell>
                           </TableRow>

@@ -803,55 +803,95 @@ export default function CommissionDashboard() {
                     </span>
                   </div>
                   <div className="max-h-72 overflow-y-auto rounded-xl border border-border/50 dark:border-white/10">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[700px]">
                       <thead>
                         <tr className="bg-surface-variant/40 dark:bg-slate-950/40 border-b border-border/50 dark:border-white/10 sticky top-0 backdrop-blur-md">
-                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary">Bill / Invoice</th>
-                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary">Date</th>
-                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Sale Amount</th>
-                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Commission</th>
-                          <th className="px-4 py-3 text-[10px] font-black uppercase text-text-secondary">Status</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary">Bill / Invoice</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary">Date</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Sale Amount</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Old Amount</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">New Amount</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-right">Commission</th>
+                          <th className="px-3.5 py-3 text-[10px] font-black uppercase text-text-secondary text-center">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40 dark:divide-white/10">
-                        {empCommissionTxns.map((t) => (
-                          <tr key={t.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02]">
-                            <td className="px-4 py-3 font-mono text-xs font-bold text-text-primary">
-                              {formatInvoiceDisplay(t)}
-                            </td>
-                            <td className="px-4 py-3 text-xs text-text-secondary">
-                              {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
-                            </td>
-                            <td className="px-4 py-3 text-right font-mono text-xs">
-                              <span className="font-bold text-text-primary block">
-                                {formatCurrency(t.newAmount || t.saleAmount)}
-                              </span>
-                              {t.oldAmount && Number(t.oldAmount) > 0 && Number(t.oldAmount) !== Number(t.newAmount || t.saleAmount) ? (
-                                <span className="text-[10px] text-text-secondary font-normal block">
-                                  Old: {formatCurrency(t.oldAmount)}
+                        {empCommissionTxns.map((t) => {
+                          const hasOldAmount = t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0;
+                          const currentNewAmount = Number(t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? t.newAmount : t.saleAmount);
+                          const diff = hasOldAmount ? currentNewAmount - Number(t.oldAmount) : 0;
+
+                          return (
+                            <tr key={t.id} className="hover:bg-surface-variant/30 dark:hover:bg-white/[0.02]">
+                              {/* 1. BILL / INVOICE */}
+                              <td className="px-3.5 py-3 font-mono text-xs font-bold text-text-primary">
+                                {formatInvoiceDisplay(t)}
+                              </td>
+
+                              {/* 2. DATE */}
+                              <td className="px-3.5 py-3 text-xs text-text-secondary">
+                                {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN') : '-'}
+                              </td>
+
+                              {/* 3. SALE AMOUNT */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs">
+                                <span className="font-bold text-text-primary block">
+                                  {formatCurrency(t.saleAmount)}
                                 </span>
-                              ) : null}
-                            </td>
-                            <td className="px-4 py-3 text-right font-mono text-xs">
-                              <span className="font-black text-primary block">
-                                {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
-                              </span>
-                              {t.oldCommission && Number(t.oldCommission) > 0 && Number(t.oldCommission) !== Number(t.newCommission || t.commissionAmount) ? (
-                                <span className="text-[10px] text-text-secondary font-normal block">
-                                  Old: {formatCurrency(t.oldCommission)} (
-                                  {Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission) >= 0 ? '+' : ''}
-                                  {formatCurrency(Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission))})
+                              </td>
+
+                              {/* 4. OLD AMOUNT */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs">
+                                {hasOldAmount ? (
+                                  <span className="font-semibold text-text-secondary block">
+                                    {formatCurrency(Number(t.oldAmount))}
+                                  </span>
+                                ) : (
+                                  <span className="text-text-secondary/50 font-medium">—</span>
+                                )}
+                              </td>
+
+                              {/* 5. NEW AMOUNT */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs">
+                                <span className="font-black text-text-primary block">
+                                  {formatCurrency(currentNewAmount)}
                                 </span>
-                              ) : null}
-                            </td>
-                            <td className="px-4 py-3">
-                              {getStatusBadge(t.status)}
-                            </td>
-                          </tr>
-                        ))}
+                                {hasOldAmount && (
+                                  <span className={cn(
+                                    "text-[10.5px] font-bold block",
+                                    diff > 0 && "text-emerald-600 dark:text-emerald-400",
+                                    diff < 0 && "text-rose-600 dark:text-rose-400",
+                                    diff === 0 && "text-text-secondary"
+                                  )}>
+                                    {diff > 0 ? `+${formatCurrency(diff)}` : diff < 0 ? `-${formatCurrency(Math.abs(diff))}` : '₹0'}
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* 6. COMMISSION */}
+                              <td className="px-3.5 py-3 text-right font-mono text-xs">
+                                <span className="font-black text-primary block">
+                                  {formatCurrency(t.newCommission !== undefined && t.newCommission !== null && t.newCommission !== 0 ? t.newCommission : t.commissionAmount)}
+                                </span>
+                                {t.oldCommission && Number(t.oldCommission) > 0 && Number(t.oldCommission) !== Number(t.newCommission || t.commissionAmount) ? (
+                                  <span className="text-[10px] text-text-secondary font-normal block">
+                                    Old: {formatCurrency(t.oldCommission)} (
+                                    {Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission) >= 0 ? '+' : ''}
+                                    {formatCurrency(Number(t.newCommission || t.commissionAmount) - Number(t.oldCommission))})
+                                  </span>
+                                ) : null}
+                              </td>
+
+                              {/* 7. STATUS */}
+                              <td className="px-3.5 py-3 text-center">
+                                {getStatusBadge(t.status)}
+                              </td>
+                            </tr>
+                          );
+                        })}
                         {empCommissionTxns.length === 0 && (
                           <tr>
-                            <td colSpan={5} className="text-center py-8 text-xs text-text-secondary font-medium">
+                            <td colSpan={7} className="text-center py-8 text-xs text-text-secondary font-medium">
                               No commission transactions found for this employee.
                             </td>
                           </tr>
