@@ -532,8 +532,11 @@ export function getTransactionDifferences(t: {
     }
   }
 
+  // Effective net sale amount for updated/reconciled transactions is the difference amount
+  const resolvedSaleAmt = (oldBillAmt !== null && diffAmt !== 0) ? Math.abs(diffAmt) : saleAmt;
+
   return {
-    saleAmt,
+    saleAmt: resolvedSaleAmt,
     oldBillAmt,
     newBillAmt,
     diffAmt,

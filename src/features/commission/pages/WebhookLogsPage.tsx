@@ -1388,10 +1388,20 @@ export default function WebhookLogsPage() {
                               );
                             }
 
+                            const isReconciledInvoice = !isCn && rowDiffAmt !== null && rowDiffAmt !== 0;
+                            const displayAmt = isReconciledInvoice ? Math.abs(rowDiffAmt ?? 0) : (Number(log.amount) || 0);
+
                             return (
-                              <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
-                                ₹{(Number(log.amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
+                                  ₹{displayAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                                {isReconciledInvoice && (
+                                  <span className="text-[9px] font-mono text-muted-foreground/70">
+                                    Net Difference Sale
+                                  </span>
+                                )}
+                              </div>
                             );
                           })()}
                         </TableCell>
