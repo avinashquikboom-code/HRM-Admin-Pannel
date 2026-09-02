@@ -22,6 +22,7 @@ import {
 import { 
   getCommissionDashboard,
   getCommissionTransactions,
+  getTransactionDifferences,
   approveCommissionTransaction,
   rejectCommissionTransaction,
   getTransactionNetContribution,
@@ -641,26 +642,7 @@ export default function CommissionTransactions() {
                       </thead>
                       <tbody className="divide-y divide-border/60">
                         {empCommissionTxns.map((t) => {
-                          const isUpdated = t.eventType === 'INVOICE_UPDATED' ||
-                            (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0) ||
-                            (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0 && t.newAmount !== undefined);
-
-                          const saleAmt = Number(t.saleAmount || 0);
-                          const oldBillAmt: number | null = isUpdated && t.oldAmount !== undefined && t.oldAmount !== null ? Number(t.oldAmount) : null;
-                          const newBillAmt: number = isUpdated && t.newAmount !== undefined && t.newAmount !== null
-                            ? Number(t.newAmount)
-                            : (t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? Number(t.newAmount) : saleAmt);
-
-                          const diffAmt: number = isUpdated && oldBillAmt !== null ? (newBillAmt - oldBillAmt) : newBillAmt;
-
-                          const oldBillComm: number | null = isUpdated
-                            ? (t.oldCommission !== undefined && t.oldCommission !== null ? Number(t.oldCommission) : (oldBillAmt !== null ? (oldBillAmt * (t.commissionPercent ?? 1)) / 100 : null))
-                            : null;
-                          const newBillComm: number = t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
-                            ? Number(t.newCommission)
-                            : Number(t.commissionAmount || 0);
-
-                          const commDiff: number = isUpdated && oldBillComm !== null ? (newBillComm - oldBillComm) : newBillComm;
+                          const { saleAmt, oldBillAmt, newBillAmt, diffAmt, oldBillComm, newBillComm, commDiff } = getTransactionDifferences(t);
 
                           return (
                             <tr key={t.id} className="hover:bg-muted/30">
@@ -759,19 +741,16 @@ export default function CommissionTransactions() {
                             {/* NEW BILL AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-black text-foreground whitespace-nowrap">
                               {formatCurrency(empCommissionTxns.reduce((acc, t) => {
-                                const newAmt = t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? Number(t.newAmount) : Number(t.saleAmount || 0);
-                                return acc + newAmt;
+                                const { newBillAmt } = getTransactionDifferences(t);
+                                return acc + newBillAmt;
                               }, 0))}
                             </td>
                             {/* DIFFERENCE AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-black whitespace-nowrap">
                               {(() => {
                                 const totalDiff = empCommissionTxns.reduce((acc, t) => {
-                                  const isUpd = t.eventType === 'INVOICE_UPDATED' || (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0);
-                                  const oldAmt = isUpd && t.oldAmount !== undefined && t.oldAmount !== null ? Number(t.oldAmount) : null;
-                                  const newAmt = isUpd && t.newAmount !== undefined && t.newAmount !== null ? Number(t.newAmount) : (t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? Number(t.newAmount) : Number(t.saleAmount || 0));
-                                  const rowDiff = isUpd && oldAmt !== null ? (newAmt - oldAmt) : newAmt;
-                                  return acc + rowDiff;
+                                  const { diffAmt } = getTransactionDifferences(t);
+                                  return acc + diffAmt;
                                 }, 0);
                                 return (
                                   <span className={cn(
@@ -794,21 +773,16 @@ export default function CommissionTransactions() {
                             {/* NEW BILL COMMISSION total */}
                             <td className="px-3 py-2.5 text-right font-black text-primary whitespace-nowrap">
                               {formatCurrency(empCommissionTxns.reduce((acc, t) => {
-                                const newComm = t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
-                                  ? Number(t.newCommission)
-                                  : Number(t.commissionAmount || 0);
-                                return acc + newComm;
+                                const { newBillComm } = getTransactionDifferences(t);
+                                return acc + newBillComm;
                               }, 0))}
                             </td>
                             {/* COMMISSION DIFFERENCE total */}
                             <td className="px-3 py-2.5 text-right font-black whitespace-nowrap">
                               {(() => {
                                 const totalCommDiff = empCommissionTxns.reduce((acc, t) => {
-                                  const isUpd = t.eventType === 'INVOICE_UPDATED' || (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0) || (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0);
-                                  const oldComm = isUpd && t.oldCommission !== undefined && t.oldCommission !== null ? Number(t.oldCommission) : null;
-                                  const newComm = t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0 ? Number(t.newCommission) : Number(t.commissionAmount || 0);
-                                  const rowCommDiff = isUpd && oldComm !== null ? (newComm - oldComm) : newComm;
-                                  return acc + rowCommDiff;
+                                  const { commDiff } = getTransactionDifferences(t);
+                                  return acc + commDiff;
                                 }, 0);
                                 return (
                                   <span className={cn(

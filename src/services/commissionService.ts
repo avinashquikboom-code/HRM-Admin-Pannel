@@ -52,6 +52,7 @@ export interface CommissionTransaction {
   newCommission?: number;
   commissionDifference?: number;
   eventType?: string;
+  isActive?: boolean | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID';
   approvedBy?: number;
   approvedAt?: string;
@@ -417,6 +418,95 @@ export function getTransactionNetContribution(t: {
   return {
     netSales: currentSales,
     netCommission: currentCommission,
+  };
+}
+
+/**
+ * Calculates Difference Amount and Commission Difference with sign logic based on isActive:
+ * - isActive === true  -> MINUS transaction -> difference displayed with '-' sign
+ * - isActive === false -> PLUS transaction  -> difference displayed with '+' sign
+ * - isActive == null   -> arithmetic fallback (new - old for updated, +new for created)
+ */
+export function getTransactionDifferences(t: {
+  eventType?: string | null;
+  saleAmount?: number | string | null;
+  commissionAmount?: number | string | null;
+  oldAmount?: number | string | null;
+  newAmount?: number | string | null;
+  oldCommission?: number | string | null;
+  newCommission?: number | string | null;
+  commissionDifference?: number | string | null;
+  commissionPercent?: number | string | null;
+  isActive?: boolean | null;
+  notes?: string | null;
+}): {
+  saleAmt: number;
+  oldBillAmt: number | null;
+  newBillAmt: number;
+  diffAmt: number;
+  oldBillComm: number | null;
+  newBillComm: number;
+  commDiff: number;
+} {
+  const isUpdated =
+    t.eventType === 'INVOICE_UPDATED' ||
+    (t.oldAmount !== undefined && t.oldAmount !== null && Number(t.oldAmount) > 0) ||
+    (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0 && t.newAmount !== undefined);
+
+  const saleAmt = Number(t.saleAmount || 0);
+  const oldBillAmt: number | null = isUpdated && t.oldAmount !== undefined && t.oldAmount !== null ? Number(t.oldAmount) : null;
+  const newBillAmt: number = isUpdated && t.newAmount !== undefined && t.newAmount !== null
+    ? Number(t.newAmount)
+    : (t.newAmount !== undefined && t.newAmount !== null && Number(t.newAmount) > 0 ? Number(t.newAmount) : saleAmt);
+
+  const commRate = t.commissionPercent !== undefined && t.commissionPercent !== null ? Number(t.commissionPercent) : 1;
+  const oldBillComm: number | null = isUpdated
+    ? (t.oldCommission !== undefined && t.oldCommission !== null ? Number(t.oldCommission) : (oldBillAmt !== null ? (oldBillAmt * commRate) / 100 : null))
+    : null;
+  const newBillComm: number = t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
+    ? Number(t.newCommission)
+    : Number(t.commissionAmount || 0);
+
+  // Check isActive
+  let rawIsActive = t.isActive;
+  if (rawIsActive === undefined || rawIsActive === null) {
+    if (typeof t.notes === 'string') {
+      const match = t.notes.match(/isActive:\s*(true|false)/i);
+      if (match) {
+        rawIsActive = match[1].toLowerCase() === 'true';
+      }
+    }
+  }
+
+  let diffAmt: number;
+  let commDiff: number;
+
+  if (rawIsActive === true) {
+    // isActive === true -> MINUS transaction -> display difference with '-' sign
+    const absDiff = isUpdated && oldBillAmt !== null ? Math.abs(newBillAmt - oldBillAmt) : Math.abs(newBillAmt);
+    const absCommDiff = isUpdated && oldBillComm !== null ? Math.abs(newBillComm - oldBillComm) : Math.abs(newBillComm);
+    diffAmt = -absDiff;
+    commDiff = -absCommDiff;
+  } else if (rawIsActive === false) {
+    // isActive === false -> PLUS transaction -> display difference with '+' sign
+    const absDiff = isUpdated && oldBillAmt !== null ? Math.abs(newBillAmt - oldBillAmt) : Math.abs(newBillAmt);
+    const absCommDiff = isUpdated && oldBillComm !== null ? Math.abs(newBillComm - oldBillComm) : Math.abs(newBillComm);
+    diffAmt = +absDiff;
+    commDiff = +absCommDiff;
+  } else {
+    // Fallback if isActive not provided
+    diffAmt = isUpdated && oldBillAmt !== null ? (newBillAmt - oldBillAmt) : newBillAmt;
+    commDiff = isUpdated && oldBillComm !== null ? (newBillComm - oldBillComm) : newBillComm;
+  }
+
+  return {
+    saleAmt,
+    oldBillAmt,
+    newBillAmt,
+    diffAmt,
+    oldBillComm,
+    newBillComm,
+    commDiff,
   };
 }
 
