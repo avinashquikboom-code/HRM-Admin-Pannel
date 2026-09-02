@@ -69,6 +69,7 @@ export default function CommissionDashboard() {
   const [transactions, setTransactions] = useState<CommissionTransaction[]>([]);
   const [stores, setStores] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [dateRange, setDateRange] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,8 +157,8 @@ export default function CommissionDashboard() {
     try {
       const res = await syncHopkidSalesNow();
       toast.success(`✅ ${res.message}`);
-      // Reload dashboard with fresh data
-      loadDashboardData();
+      // Reload dashboard with fresh data in background
+      loadDashboardData(true);
     } catch (err: any) {
       toast.error(err?.message || 'HopKid sales sync failed.');
     } finally {
@@ -173,11 +174,14 @@ export default function CommissionDashboard() {
   };
 
   useEffect(() => {
-    loadDashboardData();
-    // Auto-refresh every 15s to capture incoming webhooks real-time
+    // Initial fetch on mount or when explicit filters (store/date range) change
+    loadDashboardData(false);
+
+    // Auto-refresh every 30 seconds (30,000ms) in the background without UI flicker
     const interval = setInterval(() => {
-      loadDashboardData();
-    }, 15000);
+      loadDashboardData(true);
+    }, 30000);
+
     return () => clearInterval(interval);
   }, [selectedStore, dateRange]);
 
@@ -185,8 +189,12 @@ export default function CommissionDashboard() {
     loadDropdownData();
   }, []);
 
-  const loadDashboardData = async () => {
-    setIsLoading(true);
+  const loadDashboardData = async (isBackground = false) => {
+    if (!isBackground) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     try {
       const params: any = { _t: Date.now() };
       if (selectedStore && selectedStore !== 'all') params.storeId = selectedStore;
@@ -217,12 +225,17 @@ export default function CommissionDashboard() {
       const statsData = statsRes.status === 'fulfilled' ? statsRes.value.stats : null;
       const txnsData = transactionsRes.status === 'fulfilled' ? transactionsRes.value.transactions : [];
 
-      setStats(statsData);
-      setTransactions(txnsData || []);
+      if (statsData) {
+        setStats(statsData);
+      }
+      if (txnsData) {
+        setTransactions(txnsData || []);
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -354,14 +367,14 @@ export default function CommissionDashboard() {
         </button>
         <button
           onClick={async () => {
-            await loadDashboardData();
+            await loadDashboardData(true);
             toast.success('Commission data refreshed');
           }}
-          disabled={isLoading}
+          disabled={isLoading || isRefreshing}
           className="btn-secondary group relative overflow-hidden px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider justify-center flex items-center gap-2.5 transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed border border-border/60 cursor-pointer"
         >
           <span className="p-1 rounded-lg bg-muted/60 group-hover:rotate-180 transition-transform duration-500">
-            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <RefreshCw size={14} className={isLoading || isRefreshing ? 'animate-spin' : ''} />
           </span>
           <span>Refresh Data</span>
         </button>
@@ -596,7 +609,6 @@ export default function CommissionDashboard() {
                   <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Store</th>
                   <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary text-right">Sale Amount</th>
                   <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary text-right">Commission</th>
-                  <th className="px-6 py-4 text-[10.5px] font-black uppercase tracking-widest text-text-secondary">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40 dark:divide-white/10">
@@ -652,15 +664,12 @@ export default function CommissionDashboard() {
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(transaction.status)}
-                    </td>
                   </tr>
                 ))}
 
                 {filteredTransactions.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="text-center text-text-secondary py-12 font-medium text-xs">
+                    <td colSpan={5} className="text-center text-text-secondary py-12 font-medium text-xs">
                       No recent commission transactions found for the active filter criteria.
                     </td>
                   </tr>
