@@ -228,12 +228,14 @@ export default function CommissionTransactions() {
   };
 
   const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = 
-      (transaction.invoiceNumber && String(transaction.invoiceNumber).toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (transaction.billId && transaction.billId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (transaction.employee?.firstName && transaction.employee.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (transaction.employee?.lastName && transaction.employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesSearch;
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const emp = transaction.employee;
+    const empName = emp ? `${emp.firstName || ''} ${emp.lastName || ''}`.trim().toLowerCase() : '';
+    const empCode = emp ? String(emp.employeeCode || '').toLowerCase() : '';
+    const storeName = String(transaction.store?.name || emp?.store?.name || '').toLowerCase();
+    const inv = String(transaction.invoiceNumber || transaction.billId || transaction.billNumber || '').toLowerCase();
+    return empName.includes(term) || empCode.includes(term) || storeName.includes(term) || inv.includes(term);
   });
 
   if (isLoading) {

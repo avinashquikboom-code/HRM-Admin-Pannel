@@ -211,17 +211,27 @@ export default function CommissionDashboard() {
         params.startDate = todayStr;
         params.endDate = todayStr;
       } else if (dateRange === 'week') {
-        const weekAgo = new Date(istNow.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const wYear = weekAgo.getUTCFullYear();
-        const wMonth = String(weekAgo.getUTCMonth() + 1).padStart(2, '0');
-        const wDate = String(weekAgo.getUTCDate()).padStart(2, '0');
-        params.startDate = `${wYear}-${wMonth}-${wDate}`;
-        params.endDate = todayStr;
+        // Current calendar week in IST (Monday to Sunday)
+        const dayOfWeek = istNow.getUTCDay(); // 0 is Sunday, 1 is Monday...
+        const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const monday = new Date(istNow.getTime() - diffToMonday * 24 * 60 * 60 * 1000);
+        const mYear = monday.getUTCFullYear();
+        const mMonth = String(monday.getUTCMonth() + 1).padStart(2, '0');
+        const mDate = String(monday.getUTCDate()).padStart(2, '0');
+
+        const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+        const sYear = sunday.getUTCFullYear();
+        const sMonth = String(sunday.getUTCMonth() + 1).padStart(2, '0');
+        const sDate = String(sunday.getUTCDate()).padStart(2, '0');
+
+        params.startDate = `${mYear}-${mMonth}-${mDate}`;
+        params.endDate = `${sYear}-${sMonth}-${sDate}`;
       } else if (dateRange === 'month') {
         const monthEnd = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth() + 1, 0));
         params.startDate = `${year}-${month}-01`;
         params.endDate = `${year}-${month}-${String(monthEnd.getUTCDate()).padStart(2, '0')}`;
       }
+      // When dateRange is 'all', no startDate or endDate is sent, querying all available records
 
       const [statsRes, transactionsRes] = await Promise.allSettled([
         getCommissionDashboard(params),
@@ -485,7 +495,7 @@ export default function CommissionDashboard() {
         </div>
 
         {/* Active Filter Chips */}
-        {(selectedStore || dateRange !== 'all') && (
+        {(selectedStore || dateRange !== 'all' || searchQuery.trim()) && (
           <div className="mt-4 pt-3 border-t border-border/40 dark:border-white/10 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-text-secondary mr-1">Active:</span>
             {selectedStore && (
@@ -502,6 +512,15 @@ export default function CommissionDashboard() {
                 <Calendar className="h-3 w-3" />
                 {dateRange === 'today' ? 'Today' : dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : dateRange}
                 <button onClick={() => setDateRange('all')} className="hover:text-primary/70">
+                  <X className="h-3 w-3 ml-0.5" />
+                </button>
+              </span>
+            )}
+            {searchQuery.trim() && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-bold text-primary">
+                <Search className="h-3 w-3" />
+                "{searchQuery.trim()}"
+                <button onClick={() => setSearchQuery('')} className="hover:text-primary/70">
                   <X className="h-3 w-3 ml-0.5" />
                 </button>
               </span>
