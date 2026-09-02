@@ -310,7 +310,7 @@ function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayl
 
   let differenceAmountVal: number | null = log?.differenceAmount !== undefined && log?.differenceAmount !== null ? Number(log.differenceAmount) : null;
   if (isCreditNote && differenceAmountVal === null && oldBillAmountVal !== null && oldBillAmountVal > 0 && cnAmountNum > 0) {
-    differenceAmountVal = Math.round((cnAmountNum - oldBillAmountVal) * 100) / 100;
+    differenceAmountVal = Math.round((oldBillAmountVal - cnAmountNum) * 100) / 100;
   }
 
   const formattedOldBillAmount = oldBillAmountVal !== null && oldBillAmountVal > 0 ? `₹${oldBillAmountVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
@@ -1234,14 +1234,17 @@ export default function WebhookLogsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 pl-5">Event Type</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Bill / Invoice ID</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Customer</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Employee</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Store / Branch</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-right">Amount</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3">Received At</TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-center pr-5">Payload</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 pl-5 whitespace-nowrap">EVENT TYPE</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 whitespace-nowrap">BILL / INVOICE ID</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 whitespace-nowrap">CUSTOMER</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 whitespace-nowrap">EMPLOYEE</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 whitespace-nowrap">STORE / BRANCH</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-right whitespace-nowrap">AMOUNT</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-right whitespace-nowrap">OLD BILL AMOUNT</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-right whitespace-nowrap">DIFFERENCE AMOUNT</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-right whitespace-nowrap">NEW BILL AMOUNT</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 whitespace-nowrap">RECEIVED AT</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground py-3 text-center pr-5 whitespace-nowrap">PAYLOAD</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -1326,88 +1329,107 @@ export default function WebhookLogsPage() {
                           )}
                         </TableCell>
 
-                        {/* Amount */}
-                        <TableCell className="text-right py-3.5">
+                        {/* Amount - Raw Webhook Amount */}
+                        <TableCell className="text-right py-3.5 whitespace-nowrap">
                           {(() => {
-                            const isCn = isCreditNoteEvent(log.eventType);
-                            let rowOldAmt = log.oldAmount !== undefined && log.oldAmount !== null ? Number(log.oldAmount) : null;
-                            let rowDiffAmt = log.differenceAmount !== undefined && log.differenceAmount !== null ? Number(log.differenceAmount) : null;
-                            const rowCnAmt = log.cnAmount !== undefined && log.cnAmount !== null && Number(log.cnAmount) > 0 ? Number(log.cnAmount) : (Number(log.amount) || 0);
-
-                            if (isCn && (rowOldAmt === null || rowDiffAmt === null) && Array.isArray(logs)) {
-                              const norm = (s: any) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-                              const matchedInv = logs.find(l => {
-                                if (isCreditNoteEvent(l.eventType)) return false;
-                                if (log.invoiceNo && (l.invoiceNo === log.invoiceNo || l.invoiceNumber === log.invoiceNo || norm(l.invoiceNo) === norm(log.invoiceNo))) return true;
-                                if (log.customerName && log.customerName !== 'N/A' && norm(l.customerName) === norm(log.customerName)) return true;
-                                return false;
-                              });
-                              if (matchedInv) {
-                                let invSum = 0;
-                                try {
-                                  const p = typeof matchedInv.payload === 'object' ? matchedInv.payload : JSON.parse(matchedInv.payload);
-                                  const lines = p?.data?.lineItems || p?.lineItems || [];
-                                  if (Array.isArray(lines) && lines.length > 0) {
-                                    for (const it of lines) {
-                                      const val = Number(it.productNetAmount ?? it.netAmount ?? it.amount ?? 0);
-                                      if (!isNaN(val) && val > 0) invSum += val;
-                                    }
-                                  }
-                                } catch {}
-                                rowOldAmt = invSum > 0 ? invSum : Number(matchedInv.amount || 0);
-                                rowDiffAmt = Math.round((rowCnAmt - rowOldAmt) * 100) / 100;
-                              }
-                            }
-
-                            if (isCn) {
-                              return (
-                                <div className="flex flex-col items-end gap-0.5">
-                                  <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
-                                    ₹{rowCnAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </span>
-                                  {rowDiffAmt !== null && rowOldAmt !== null ? (
-                                    <div className="flex flex-col items-end text-[10px] font-mono leading-tight">
-                                      <span className={cn(
-                                        "font-extrabold",
-                                        rowDiffAmt > 0 && "text-emerald-600 dark:text-emerald-400",
-                                        rowDiffAmt < 0 && "text-rose-600 dark:text-rose-400",
-                                        rowDiffAmt === 0 && "text-muted-foreground"
-                                      )}>
-                                        Difference: {rowDiffAmt > 0 ? `+₹${rowDiffAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : rowDiffAmt < 0 ? `-₹${Math.abs(rowDiffAmt).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `₹0.00`}
-                                      </span>
-                                      <span className="text-muted-foreground/60 text-[9px]">
-                                        (Old: ₹{rowOldAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80 font-mono">
-                                      CN Amount: ₹{rowCnAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            }
-
-                            const isReconciledInvoice = !isCn && rowDiffAmt !== null && rowDiffAmt !== 0;
-                            const displayAmt = isReconciledInvoice ? Math.abs(rowDiffAmt ?? 0) : (Number(log.amount) || 0);
-
+                            const rawAmt = Number(log.amount) || 0;
                             return (
-                              <div className="flex flex-col items-end gap-0.5">
-                                <span className="font-bold text-sm text-foreground tabular-nums whitespace-nowrap">
-                                  ₹{displayAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </span>
-                                {isReconciledInvoice && (
-                                  <span className="text-[9px] font-mono text-muted-foreground/70">
-                                    Net Difference Sale
-                                  </span>
-                                )}
-                              </div>
+                              <span className="font-bold text-sm text-foreground tabular-nums">
+                                ₹{rawAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
                             );
                           })()}
                         </TableCell>
 
+                        {/* Old Bill Amount, Difference Amount, New Bill Amount */}
+                        {(() => {
+                          const isCn = isCreditNoteEvent(log.eventType);
+                          const rawAmt = Number(log.amount) || 0;
+                          let rowOldAmt = log.oldAmount !== undefined && log.oldAmount !== null ? Number(log.oldAmount) : null;
+                          let rowNewAmt = log.newAmount !== undefined && log.newAmount !== null ? Number(log.newAmount) : (isCn ? (Number(log.cnAmount) || rawAmt) : null);
+                          let rowDiffAmt = log.differenceAmount !== undefined && log.differenceAmount !== null ? Number(log.differenceAmount) : null;
+
+                          if (isCn && (rowOldAmt === null || rowDiffAmt === null) && Array.isArray(logs)) {
+                            const norm = (s: any) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                            const matchedInv = logs.find(l => {
+                              if (isCreditNoteEvent(l.eventType)) return false;
+                              if (log.invoiceNo && (l.invoiceNo === log.invoiceNo || l.invoiceNumber === log.invoiceNo || norm(l.invoiceNo) === norm(log.invoiceNo))) return true;
+                              if (log.customerName && log.customerName !== 'N/A' && norm(l.customerName) === norm(log.customerName)) return true;
+                              return false;
+                            });
+                            if (matchedInv) {
+                              let invSum = 0;
+                              try {
+                                const p = typeof matchedInv.payload === 'object' ? matchedInv.payload : JSON.parse(matchedInv.payload);
+                                const lines = p?.data?.lineItems || p?.lineItems || [];
+                                if (Array.isArray(lines) && lines.length > 0) {
+                                  for (const it of lines) {
+                                    const val = Number(it.productNetAmount ?? it.netAmount ?? it.amount ?? 0);
+                                    if (!isNaN(val) && val > 0) invSum += val;
+                                  }
+                                }
+                              } catch {}
+                              rowOldAmt = invSum > 0 ? invSum : Number(matchedInv.amount || 0);
+                              const cnAmount = Number(log.cnAmount) || rawAmt;
+                              rowNewAmt = cnAmount;
+                              // Rule: OLD BILL AMOUNT - NEW BILL AMOUNT (848 - 1398 = -550)
+                              rowDiffAmt = Math.round((rowOldAmt - cnAmount) * 100) / 100;
+                            }
+                          }
+
+                          if (rowOldAmt !== null && rowNewAmt !== null && rowDiffAmt === null) {
+                            rowDiffAmt = Math.round((rowOldAmt - rowNewAmt) * 100) / 100;
+                          }
+
+                          return (
+                            <>
+                              {/* OLD BILL AMOUNT */}
+                              <TableCell className="text-right py-3.5 whitespace-nowrap">
+                                {rowOldAmt !== null && rowOldAmt > 0 ? (
+                                  <span className="font-mono text-xs font-semibold text-foreground/90 tabular-nums">
+                                    ₹{rowOldAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground/40 font-mono">—</span>
+                                )}
+                              </TableCell>
+
+                              {/* DIFFERENCE AMOUNT */}
+                              <TableCell className="text-right py-3.5 whitespace-nowrap">
+                                {rowDiffAmt !== null ? (
+                                  <span className={cn(
+                                    "font-mono text-xs font-black tabular-nums",
+                                    rowDiffAmt > 0 && "text-emerald-600 dark:text-emerald-400",
+                                    rowDiffAmt < 0 && "text-rose-600 dark:text-rose-400",
+                                    rowDiffAmt === 0 && "text-muted-foreground"
+                                  )}>
+                                    {rowDiffAmt > 0
+                                      ? `+₹${rowDiffAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                      : rowDiffAmt < 0
+                                        ? `-₹${Math.abs(rowDiffAmt).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                        : `₹0.00`}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground/40 font-mono">—</span>
+                                )}
+                              </TableCell>
+
+                              {/* NEW BILL AMOUNT */}
+                              <TableCell className="text-right py-3.5 whitespace-nowrap">
+                                {rowNewAmt !== null && rowNewAmt > 0 ? (
+                                  <span className="font-mono text-xs font-bold text-foreground tabular-nums">
+                                    ₹{rowNewAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground/40 font-mono">—</span>
+                                )}
+                              </TableCell>
+                            </>
+                          );
+                        })()}
+
                         {/* Received At */}
-                        <TableCell className="py-3.5">
+                        <TableCell className="py-3.5 whitespace-nowrap">
                           <div className="text-[11px] leading-tight">
                             <div className="font-semibold text-foreground whitespace-nowrap">
                               {new Date(log.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -1419,7 +1441,7 @@ export default function WebhookLogsPage() {
                         </TableCell>
 
                         {/* Action */}
-                        <TableCell className="text-center pr-5 py-3.5">
+                        <TableCell className="text-center pr-5 py-3.5 whitespace-nowrap">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1435,7 +1457,7 @@ export default function WebhookLogsPage() {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-16 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-16 text-muted-foreground">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <div className="h-14 w-14 rounded-2xl bg-muted/60 border flex items-center justify-center">
                           <Code2 className="h-7 w-7 opacity-30" />
