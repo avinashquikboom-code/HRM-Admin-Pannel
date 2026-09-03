@@ -528,7 +528,8 @@ export function getTransactionDifferences(t: {
   }
 
   // 2. Adjustments (Credit Note & Exchange)
-  const rawOldAmount = t.oldBillAmount ?? t.oldAmount ?? notesOld;
+  // For Invoice Exchange: SALE AMOUNT of previous/original bill -> OLD BILL AMOUNT
+  const rawOldAmount = t.oldBillAmount ?? t.oldAmount ?? (isExchange && saleAmt > 0 ? saleAmt : notesOld);
   const hasOldAmount = rawOldAmount !== undefined && rawOldAmount !== null && Number(rawOldAmount) > 0;
   const oldBillAmt: number | null = hasOldAmount ? Number(rawOldAmount) : null;
 
@@ -538,7 +539,7 @@ export function getTransactionDifferences(t: {
   const newBillAmt: number | null =
     rawCnAmount !== null && rawCnAmount > 0
       ? rawCnAmount
-      : (hasNewAmount ? Number(rawNewAmount) : (isAdjustment && saleAmt > 0 ? saleAmt : null));
+      : (hasNewAmount ? Number(rawNewAmount) : null);
 
   const oldBillComm: number | null = oldBillAmt !== null
     ? (t.oldBillCommission !== undefined && t.oldBillCommission !== null && Number(t.oldBillCommission) > 0
@@ -561,14 +562,15 @@ export function getTransactionDifferences(t: {
                       : Math.round(((newBillAmt * commRate) / 100) * 100) / 100))))
       : null;
 
-  // differenceAmount = oldBillAmount - newBillAmount (e.g. 848 - 1398 = -550)
+  // differenceAmount = oldBillAmount - newBillAmount (e.g. 2300 - 2998 = -698)
   const diffAmt: number | null = (oldBillAmt !== null && newBillAmt !== null) ? Math.round((oldBillAmt - newBillAmt) * 100) / 100 : null;
   const commDiff: number | null = (oldBillComm !== null && newBillComm !== null) ? Math.round((oldBillComm - newBillComm) * 100) / 100 : null;
 
-  const resolvedSaleAmt = (oldBillAmt !== null && diffAmt !== null && diffAmt !== 0) ? Math.abs(diffAmt) : saleAmt;
+  // Do NOT change SALE AMOUNT itself (keep as original saleAmt / oldBillAmt)
+  const displaySaleAmt = isExchange && oldBillAmt !== null && oldBillAmt > 0 ? oldBillAmt : (saleAmt > 0 ? saleAmt : (oldBillAmt || 0));
 
   return {
-    saleAmt: resolvedSaleAmt,
+    saleAmt: displaySaleAmt,
     oldBillAmt,
     newBillAmt,
     diffAmt,
