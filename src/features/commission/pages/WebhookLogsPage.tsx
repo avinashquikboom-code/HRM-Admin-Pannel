@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
 import SuperAdminHeader from '@/components/SuperAdminHeader';
+import { getTransactionDifferences } from '@/services/commissionService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -262,69 +263,17 @@ function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayl
   const formattedEventType = formatEventType(log.eventType);
   const formattedTime = new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-  // Resolve related invoice and difference amount
-  let oldBillAmountVal: number | null = log?.oldBillAmount !== undefined && log?.oldBillAmount !== null
-    ? Number(log.oldBillAmount)
-    : (log?.oldAmount !== undefined && log?.oldAmount !== null ? Number(log.oldAmount) : null);
-  const cnAmountNum = Number(cnAmountVal || 0);
-
-  if (isCreditNote && oldBillAmountVal === null && Array.isArray(allLogs) && allLogs.length > 0) {
-    const refInv =
-      parsedPayload?.data?.creditNote?.invoiceNo ||
-      parsedPayload?.creditNote?.invoiceNo ||
-      parsedPayload?.data?.creditNote?.salesID ||
-      parsedPayload?.creditNote?.salesID ||
-      parsedPayload?.data?.creditNote?.salesExchangeID ||
-      parsedPayload?.creditNote?.salesExchangeID ||
-      invDisplay;
-
-    const matchedInvLog = allLogs.find((l) => {
-      const isCn = isCreditNoteEvent(l.eventType);
-      if (isCn) return false;
-      if (refInv && (l.invoiceNo === refInv || l.invoiceNumber === refInv || l.billId === refInv || `HWM-${l.billId}` === refInv)) {
-        return true;
-      }
-      if (cnCustomer && cnCustomer !== 'N/A' && l.customerName === cnCustomer) {
-        return true;
-      }
-      return false;
-    });
-
-    if (matchedInvLog) {
-      let parsedInv: any = {};
-      if (matchedInvLog.payload) {
-        if (typeof matchedInvLog.payload === 'object') parsedInv = matchedInvLog.payload;
-        else {
-          try { parsedInv = JSON.parse(matchedInvLog.payload); } catch {}
-        }
-      }
-      const invLines = parsedInv?.data?.lineItems || parsedInv?.lineItems || [];
-      let sum = 0;
-      if (Array.isArray(invLines) && invLines.length > 0) {
-        for (const it of invLines) {
-          const itNet = Number(it.productNetAmount ?? it.netAmount ?? it.amount ?? 0);
-          if (!isNaN(itNet) && itNet > 0) sum += itNet;
-        }
-      }
-      oldBillAmountVal = sum > 0 ? sum : Number(matchedInvLog.amount || 0);
-    }
-  }
-
-  let differenceAmountVal: number | null = log?.differenceAmount !== undefined && log?.differenceAmount !== null ? Number(log.differenceAmount) : null;
-  if (isCreditNote && differenceAmountVal === null && oldBillAmountVal !== null && oldBillAmountVal > 0 && cnAmountNum > 0) {
-    differenceAmountVal = Math.round((oldBillAmountVal - cnAmountNum) * 100) / 100;
-  }
+  // Resolve related invoice and difference amount using unified helper
+  const diffs = getTransactionDifferences(log);
+  const oldBillAmountVal = diffs.oldBillAmt;
+  const differenceAmountVal = diffs.diffAmt;
+  const newBillAmountVal = diffs.newBillAmt;
 
   const formattedOldBillAmount = oldBillAmountVal !== null && oldBillAmountVal > 0 ? `₹${oldBillAmountVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
   const formattedDiffAmount = differenceAmountVal !== null ? `${differenceAmountVal >= 0 ? '+' : '-'}₹${Math.abs(differenceAmountVal).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
-  const newBillAmountVal = log?.newBillAmount !== undefined && log?.newBillAmount !== null
-    ? Number(log.newBillAmount)
-    : (log?.newAmount !== undefined && log?.newAmount !== null
-      ? Number(log.newAmount)
-      : (isCreditNote ? Number(cnAmountVal || 0) : Number(log.amount || 0)));
-  const formattedNewBillAmount = newBillAmountVal > 0
+  const formattedNewBillAmount = newBillAmountVal !== null && newBillAmountVal > 0
     ? `₹${newBillAmountVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : formattedSaleAmount;
+    : null;
 
   interface OverviewFieldItem {
     icon: React.ReactNode;
@@ -1374,50 +1323,10 @@ export default function WebhookLogsPage() {
 
                         {/* Old Bill Amount, Difference Amount, New Bill Amount */}
                         {(() => {
-                          const isCn = isCreditNoteEvent(log.eventType);
-                          const isEx = String(log.eventType || '').toUpperCase().includes('EXCHANGE');
-                          const rawAmt = Number(log.amount) || 0;
-                          let rowOldAmt = log.oldBillAmount !== undefined && log.oldBillAmount !== null
-                            ? Number(log.oldBillAmount)
-                            : (log.oldAmount !== undefined && log.oldAmount !== null ? Number(log.oldAmount) : null);
-                          let rowNewAmt = log.newBillAmount !== undefined && log.newBillAmount !== null
-                            ? Number(log.newBillAmount)
-                            : (log.newAmount !== undefined && log.newAmount !== null
-                              ? Number(log.newAmount)
-                              : (isCn ? (Number(log.cnAmount) || rawAmt) : (isEx ? rawAmt : null)));
-                          let rowDiffAmt = log.differenceAmount !== undefined && log.differenceAmount !== null ? Number(log.differenceAmount) : null;
-
-                          if (isCn && (rowOldAmt === null || rowDiffAmt === null) && Array.isArray(logs)) {
-                            const norm = (s: any) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-                            const matchedInv = logs.find(l => {
-                              if (isCreditNoteEvent(l.eventType)) return false;
-                              if (log.invoiceNo && (l.invoiceNo === log.invoiceNo || l.invoiceNumber === log.invoiceNo || norm(l.invoiceNo) === norm(log.invoiceNo))) return true;
-                              if (log.customerName && log.customerName !== 'N/A' && norm(l.customerName) === norm(log.customerName)) return true;
-                              return false;
-                            });
-                            if (matchedInv) {
-                              let invSum = 0;
-                              try {
-                                const p = typeof matchedInv.payload === 'object' ? matchedInv.payload : JSON.parse(matchedInv.payload);
-                                const lines = p?.data?.lineItems || p?.lineItems || [];
-                                if (Array.isArray(lines) && lines.length > 0) {
-                                  for (const it of lines) {
-                                    const val = Number(it.productNetAmount ?? it.netAmount ?? it.amount ?? 0);
-                                    if (!isNaN(val) && val > 0) invSum += val;
-                                  }
-                                }
-                              } catch {}
-                              rowOldAmt = invSum > 0 ? invSum : Number(matchedInv.amount || 0);
-                              const cnAmount = Number(log.cnAmount) || rawAmt;
-                              rowNewAmt = cnAmount;
-                              // Rule: OLD BILL AMOUNT - NEW BILL AMOUNT (848 - 1398 = -550)
-                              rowDiffAmt = Math.round((rowOldAmt - cnAmount) * 100) / 100;
-                            }
-                          }
-
-                          if ((isCn || isEx) && rowOldAmt !== null && rowNewAmt !== null && rowDiffAmt === null) {
-                            rowDiffAmt = Math.round((rowOldAmt - rowNewAmt) * 100) / 100;
-                          }
+                          const rowDiffs = getTransactionDifferences(log);
+                          const rowOldAmt = rowDiffs.oldBillAmt;
+                          const rowDiffAmt = rowDiffs.diffAmt;
+                          const rowNewAmt = rowDiffs.newBillAmt;
 
                           return (
                             <>

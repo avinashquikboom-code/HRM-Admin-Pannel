@@ -481,45 +481,59 @@ export function getTransactionDifferences(t: {
   newBillComm: number | null;
   commDiff: number | null;
 } {
+  const notesStr = String(t.notes || t.description || '');
   const isCreditNote =
     String(t.eventType || '').toUpperCase().includes('CREDIT_NOTE') ||
     String(t.billId || '').startsWith('CN-') ||
     String(t.billId || '').startsWith('HKACN') ||
-    String(t.notes || '').toUpperCase().includes('CREDIT NOTE') ||
-    String(t.notes || '').toUpperCase().includes('CREDIT_NOTE') ||
+    notesStr.toUpperCase().includes('CREDIT NOTE') ||
+    notesStr.toUpperCase().includes('CREDIT_NOTE') ||
     (t.cnAmount !== undefined && t.cnAmount !== null && Number(t.cnAmount) > 0);
 
   const isExchange =
     String(t.eventType || '').toUpperCase().includes('EXCHANGE') ||
     String(t.billId || '').startsWith('EX-') ||
     String(t.billId || '').startsWith('INV-EX-') ||
-    String(t.notes || '').toUpperCase().includes('EXCHANGE') ||
-    String(t.description || '').toUpperCase().includes('EXCHANGE');
+    notesStr.toUpperCase().includes('EXCHANGE');
 
   const isAdjustment = isCreditNote || isExchange;
 
   const saleAmt = Number(t.saleAmount || 0);
   const commRate = t.commissionPercent !== undefined && t.commissionPercent !== null ? Number(t.commissionPercent) : 1;
 
-  if (!isAdjustment) {
+  const oldNotesMatch = notesStr.match(/(?:Original Bill|Old Amount|Old Bill|Original Amount):\s*[₹$]?([0-9.]+)/i);
+  const newNotesMatch = notesStr.match(/(?:CN Amount|New Amount|Replacement Amount|New Bill):\s*[₹$]?([0-9.]+)/i);
+  const notesOld = oldNotesMatch ? Number(oldNotesMatch[1]) : null;
+  const notesNew = newNotesMatch ? Number(newNotesMatch[1]) : null;
+
+  // 1. Normal Sales (No CN / Exchange adjustment)
+  if (!isAdjustment && (!notesOld || notesOld <= 0) && (!t.oldBillAmount || Number(t.oldBillAmount) <= 0) && (!t.oldAmount || Number(t.oldAmount) <= 0)) {
+    const directComm = t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) > 0
+      ? Number(t.newBillCommission)
+      : (t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) > 0
+          ? Number(t.newCommission)
+          : (t.commissionAmount !== undefined && t.commissionAmount !== null && Number(t.commissionAmount) > 0
+              ? Number(t.commissionAmount)
+              : Math.round(((saleAmt * commRate) / 100) * 100) / 100));
+
     return {
       saleAmt,
       oldBillAmt: null,
       newBillAmt: null,
       diffAmt: null,
       oldBillComm: null,
-      newBillComm: null,
+      newBillComm: directComm,
       commDiff: null,
     };
   }
 
-  // For Invoice Exchange & Invoice Credit Note
-  const rawOldAmount = t.oldBillAmount ?? t.oldAmount;
+  // 2. Adjustments (Credit Note & Exchange)
+  const rawOldAmount = t.oldBillAmount ?? t.oldAmount ?? notesOld;
   const hasOldAmount = rawOldAmount !== undefined && rawOldAmount !== null && Number(rawOldAmount) > 0;
   const oldBillAmt: number | null = hasOldAmount ? Number(rawOldAmount) : null;
 
   const rawCnAmount = t.cnAmount !== undefined && t.cnAmount !== null ? Number(t.cnAmount) : null;
-  const rawNewAmount = t.newBillAmount ?? t.newAmount;
+  const rawNewAmount = t.newBillAmount ?? t.newAmount ?? notesNew;
   const hasNewAmount = rawNewAmount !== undefined && rawNewAmount !== null && Number(rawNewAmount) > 0;
   const newBillAmt: number | null =
     rawCnAmount !== null && rawCnAmount > 0
@@ -542,7 +556,9 @@ export function getTransactionDifferences(t: {
               ? Number(t.newCommission)
               : (rawCnAmount !== null && rawCnAmount > 0
                   ? Math.round(((rawCnAmount * commRate) / 100) * 100) / 100
-                  : Number(t.commissionAmount || (newBillAmt * commRate) / 100))))
+                  : (t.commissionAmount !== undefined && t.commissionAmount !== null && Number(t.commissionAmount) > 0
+                      ? Number(t.commissionAmount)
+                      : Math.round(((newBillAmt * commRate) / 100) * 100) / 100))))
       : null;
 
   // differenceAmount = oldBillAmount - newBillAmount (e.g. 848 - 1398 = -550)
