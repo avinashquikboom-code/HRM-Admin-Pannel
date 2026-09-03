@@ -263,7 +263,9 @@ function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayl
   const formattedTime = new Date(log.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   // Resolve related invoice and difference amount
-  let oldBillAmountVal: number | null = log?.oldAmount !== undefined && log?.oldAmount !== null ? Number(log.oldAmount) : null;
+  let oldBillAmountVal: number | null = log?.oldBillAmount !== undefined && log?.oldBillAmount !== null
+    ? Number(log.oldBillAmount)
+    : (log?.oldAmount !== undefined && log?.oldAmount !== null ? Number(log.oldAmount) : null);
   const cnAmountNum = Number(cnAmountVal || 0);
 
   if (isCreditNote && oldBillAmountVal === null && Array.isArray(allLogs) && allLogs.length > 0) {
@@ -315,6 +317,14 @@ function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayl
 
   const formattedOldBillAmount = oldBillAmountVal !== null && oldBillAmountVal > 0 ? `₹${oldBillAmountVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
   const formattedDiffAmount = differenceAmountVal !== null ? `${differenceAmountVal >= 0 ? '+' : '-'}₹${Math.abs(differenceAmountVal).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null;
+  const newBillAmountVal = log?.newBillAmount !== undefined && log?.newBillAmount !== null
+    ? Number(log.newBillAmount)
+    : (log?.newAmount !== undefined && log?.newAmount !== null
+      ? Number(log.newAmount)
+      : (isCreditNote ? Number(cnAmountVal || 0) : Number(log.amount || 0)));
+  const formattedNewBillAmount = newBillAmountVal > 0
+    ? `₹${newBillAmountVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : formattedSaleAmount;
 
   interface OverviewFieldItem {
     icon: React.ReactNode;
@@ -445,6 +455,27 @@ function PayloadModal({ log, allLogs = [], onClose, copiedId, onCopy, formatPayl
           mono: true,
           green: true,
         },
+        ...(formattedOldBillAmount ? [{
+          icon: <Receipt className="h-4 w-4 text-slate-600 dark:text-slate-400" />,
+          label: 'OLD BILL AMOUNT',
+          value: formattedOldBillAmount,
+          mono: true,
+        }] : []),
+        ...(formattedDiffAmount ? [{
+          icon: <IndianRupee className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />,
+          label: 'DIFFERENCE AMOUNT',
+          value: formattedDiffAmount,
+          mono: true,
+          green: (differenceAmountVal ?? 0) >= 0,
+          rose: (differenceAmountVal ?? 0) < 0,
+        }] : []),
+        ...(formattedOldBillAmount && formattedNewBillAmount ? [{
+          icon: <IndianRupee className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />,
+          label: 'NEW BILL AMOUNT',
+          value: formattedNewBillAmount,
+          mono: true,
+          green: true,
+        }] : []),
         {
           icon: <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
           label: 'EVENT TYPE',
@@ -1344,9 +1375,16 @@ export default function WebhookLogsPage() {
                         {/* Old Bill Amount, Difference Amount, New Bill Amount */}
                         {(() => {
                           const isCn = isCreditNoteEvent(log.eventType);
+                          const isEx = String(log.eventType || '').toUpperCase().includes('EXCHANGE');
                           const rawAmt = Number(log.amount) || 0;
-                          let rowOldAmt = log.oldAmount !== undefined && log.oldAmount !== null ? Number(log.oldAmount) : null;
-                          let rowNewAmt = log.newAmount !== undefined && log.newAmount !== null ? Number(log.newAmount) : (isCn ? (Number(log.cnAmount) || rawAmt) : null);
+                          let rowOldAmt = log.oldBillAmount !== undefined && log.oldBillAmount !== null
+                            ? Number(log.oldBillAmount)
+                            : (log.oldAmount !== undefined && log.oldAmount !== null ? Number(log.oldAmount) : null);
+                          let rowNewAmt = log.newBillAmount !== undefined && log.newBillAmount !== null
+                            ? Number(log.newBillAmount)
+                            : (log.newAmount !== undefined && log.newAmount !== null
+                              ? Number(log.newAmount)
+                              : (isCn ? (Number(log.cnAmount) || rawAmt) : (isEx ? rawAmt : null)));
                           let rowDiffAmt = log.differenceAmount !== undefined && log.differenceAmount !== null ? Number(log.differenceAmount) : null;
 
                           if (isCn && (rowOldAmt === null || rowDiffAmt === null) && Array.isArray(logs)) {
@@ -1377,7 +1415,7 @@ export default function WebhookLogsPage() {
                             }
                           }
 
-                          if (rowOldAmt !== null && rowNewAmt !== null && rowDiffAmt === null) {
+                          if ((isCn || isEx) && rowOldAmt !== null && rowNewAmt !== null && rowDiffAmt === null) {
                             rowDiffAmt = Math.round((rowOldAmt - rowNewAmt) * 100) / 100;
                           }
 

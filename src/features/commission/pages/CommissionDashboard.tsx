@@ -889,7 +889,11 @@ export default function CommissionDashboard() {
 
                               {/* 6. NEW BILL AMOUNT */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-bold text-text-primary whitespace-nowrap">
-                                {formatCurrency(newBillAmt)}
+                                {newBillAmt !== null ? (
+                                  formatCurrency(newBillAmt)
+                                ) : (
+                                  <span className="text-text-secondary/50 font-normal">—</span>
+                                )}
                               </td>
 
                               {/* 7. OLD BILL COMMISSION */}
@@ -918,7 +922,11 @@ export default function CommissionDashboard() {
 
                               {/* 9. NEW BILL COMMISSION */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-black text-primary whitespace-nowrap">
-                                {formatCurrency(newBillComm)}
+                                {newBillComm !== null ? (
+                                  formatCurrency(newBillComm)
+                                ) : (
+                                  <span className="text-text-secondary/50 font-normal">—</span>
+                                )}
                               </td>
                             </tr>
                           );
@@ -982,10 +990,18 @@ export default function CommissionDashboard() {
                             </td>
                             {/* NEW BILL AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-black text-text-primary whitespace-nowrap">
-                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
-                                const { newBillAmt } = getTransactionDifferences(t);
-                                return acc + newBillAmt;
-                              }, 0))}
+                              {(() => {
+                                let hasAnyNew = false;
+                                const sumNew = empCommissionTxns.reduce((acc, t) => {
+                                  const { newBillAmt } = getTransactionDifferences(t);
+                                  if (newBillAmt !== null) {
+                                    hasAnyNew = true;
+                                    return acc + newBillAmt;
+                                  }
+                                  return acc;
+                                }, 0);
+                                return hasAnyNew ? formatCurrency(sumNew) : '—';
+                              })()}
                             </td>
                             {/* OLD BILL COMMISSION total */}
                             <td className="px-3 py-2.5 text-right font-semibold text-text-secondary whitespace-nowrap">
@@ -1028,10 +1044,18 @@ export default function CommissionDashboard() {
                             </td>
                             {/* NEW BILL COMMISSION total */}
                             <td className="px-3 py-2.5 text-right font-black text-primary whitespace-nowrap">
-                              {formatCurrency(empCommissionTxns.reduce((acc, t) => {
-                                const { newBillComm } = getTransactionDifferences(t);
-                                return acc + newBillComm;
-                              }, 0))}
+                              {(() => {
+                                let hasAnyNewComm = false;
+                                const sumNewComm = empCommissionTxns.reduce((acc, t) => {
+                                  const { newBillComm } = getTransactionDifferences(t);
+                                  if (newBillComm !== null) {
+                                    hasAnyNewComm = true;
+                                    return acc + newBillComm;
+                                  }
+                                  return acc;
+                                }, 0);
+                                return hasAnyNewComm ? formatCurrency(sumNewComm) : '—';
+                              })()}
                             </td>
                           </tr>
                         </tfoot>

@@ -475,10 +475,10 @@ export function getTransactionDifferences(t: {
 }): {
   saleAmt: number;
   oldBillAmt: number | null;
-  newBillAmt: number;
+  newBillAmt: number | null;
   diffAmt: number | null;
   oldBillComm: number | null;
-  newBillComm: number;
+  newBillComm: number | null;
   commDiff: number | null;
 } {
   const isCreditNote =
@@ -502,16 +502,13 @@ export function getTransactionDifferences(t: {
   const commRate = t.commissionPercent !== undefined && t.commissionPercent !== null ? Number(t.commissionPercent) : 1;
 
   if (!isAdjustment) {
-    const finalNewAmt = Number(t.newBillAmount ?? t.newAmount ?? t.saleAmount ?? 0);
-    const finalNewComm = Number(t.newBillCommission ?? t.newCommission ?? t.commissionAmount ?? (finalNewAmt * commRate) / 100);
-
     return {
       saleAmt,
       oldBillAmt: null,
-      newBillAmt: finalNewAmt,
+      newBillAmt: null,
       diffAmt: null,
       oldBillComm: null,
-      newBillComm: finalNewComm,
+      newBillComm: null,
       commDiff: null,
     };
   }
@@ -522,10 +519,12 @@ export function getTransactionDifferences(t: {
   const oldBillAmt: number | null = hasOldAmount ? Number(rawOldAmount) : null;
 
   const rawCnAmount = t.cnAmount !== undefined && t.cnAmount !== null ? Number(t.cnAmount) : null;
-  const newBillAmt: number =
+  const rawNewAmount = t.newBillAmount ?? t.newAmount;
+  const hasNewAmount = rawNewAmount !== undefined && rawNewAmount !== null && Number(rawNewAmount) > 0;
+  const newBillAmt: number | null =
     rawCnAmount !== null && rawCnAmount > 0
       ? rawCnAmount
-      : Number(t.newBillAmount ?? t.newAmount ?? t.saleAmount ?? 0);
+      : (hasNewAmount ? Number(rawNewAmount) : (isAdjustment && saleAmt > 0 ? saleAmt : null));
 
   const oldBillComm: number | null = oldBillAmt !== null
     ? (t.oldBillCommission !== undefined && t.oldBillCommission !== null && Number(t.oldBillCommission) > 0
@@ -535,18 +534,20 @@ export function getTransactionDifferences(t: {
             : Math.round(((oldBillAmt * commRate) / 100) * 100) / 100))
     : null;
 
-  const newBillComm: number =
-    t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) >= 0
-      ? Number(t.newBillCommission)
-      : (t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
-          ? Number(t.newCommission)
-          : (rawCnAmount !== null && rawCnAmount > 0
-              ? Math.round(((rawCnAmount * commRate) / 100) * 100) / 100
-              : Number(t.commissionAmount || (newBillAmt * commRate) / 100)));
+  const newBillComm: number | null =
+    newBillAmt !== null
+      ? (t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) >= 0
+          ? Number(t.newBillCommission)
+          : (t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) >= 0
+              ? Number(t.newCommission)
+              : (rawCnAmount !== null && rawCnAmount > 0
+                  ? Math.round(((rawCnAmount * commRate) / 100) * 100) / 100
+                  : Number(t.commissionAmount || (newBillAmt * commRate) / 100))))
+      : null;
 
   // differenceAmount = oldBillAmount - newBillAmount (e.g. 848 - 1398 = -550)
-  const diffAmt: number | null = oldBillAmt !== null ? Math.round((oldBillAmt - newBillAmt) * 100) / 100 : null;
-  const commDiff: number | null = oldBillComm !== null ? Math.round((oldBillComm - newBillComm) * 100) / 100 : null;
+  const diffAmt: number | null = (oldBillAmt !== null && newBillAmt !== null) ? Math.round((oldBillAmt - newBillAmt) * 100) / 100 : null;
+  const commDiff: number | null = (oldBillComm !== null && newBillComm !== null) ? Math.round((oldBillComm - newBillComm) * 100) / 100 : null;
 
   const resolvedSaleAmt = (oldBillAmt !== null && diffAmt !== null && diffAmt !== 0) ? Math.abs(diffAmt) : saleAmt;
 
