@@ -455,23 +455,23 @@ export function getTransactionDifferences(t: {
   eventType?: string | null;
   saleAmount?: number | string | null;
   commissionAmount?: number | string | null;
+  commissionPercent?: number | string | null;
   oldAmount?: number | string | null;
   oldBillAmount?: number | string | null;
   newAmount?: number | string | null;
   newBillAmount?: number | string | null;
+  differenceAmount?: number | string | null;
   oldCommission?: number | string | null;
   oldBillCommission?: number | string | null;
   newCommission?: number | string | null;
   newBillCommission?: number | string | null;
-  differenceAmount?: number | string | null;
   commissionDifference?: number | string | null;
-  commissionPercent?: number | string | null;
-  isActive?: boolean | null;
   notes?: string | null;
   description?: string | null;
   cnAmount?: number | string | null;
   billId?: string | number | null;
   invoiceNumber?: string | number | null;
+  amount?: number | string | null;
 }): {
   saleAmt: number;
   oldBillAmt: number | null;
@@ -496,9 +496,9 @@ export function getTransactionDifferences(t: {
     String(t.billId || '').startsWith('INV-EX-') ||
     notesStr.toUpperCase().includes('EXCHANGE');
 
-  const isAdjustment = isCreditNote || isExchange;
-
-  const saleAmt = Number(t.saleAmount || 0);
+  const rawSaleAmount = t.saleAmount !== undefined && t.saleAmount !== null
+    ? Number(t.saleAmount)
+    : (t.amount !== undefined && t.amount !== null ? Number(t.amount) : 0);
   const commRate = t.commissionPercent !== undefined && t.commissionPercent !== null ? Number(t.commissionPercent) : 1;
 
   const oldNotesMatch = notesStr.match(/(?:Original Bill|Old Amount|Old Bill|Original Amount):\s*[₹$]?([0-9.]+)/i);
@@ -506,41 +506,21 @@ export function getTransactionDifferences(t: {
   const notesOld = oldNotesMatch ? Number(oldNotesMatch[1]) : null;
   const notesNew = newNotesMatch ? Number(newNotesMatch[1]) : null;
 
-  // 1. Normal Sales (No CN / Exchange adjustment)
-  if (!isAdjustment && (!notesOld || notesOld <= 0) && (!t.oldBillAmount || Number(t.oldBillAmount) <= 0) && (!t.oldAmount || Number(t.oldAmount) <= 0)) {
-    const directComm = t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) > 0
-      ? Number(t.newBillCommission)
-      : (t.newCommission !== undefined && t.newCommission !== null && Number(t.newCommission) > 0
-          ? Number(t.newCommission)
-          : (t.commissionAmount !== undefined && t.commissionAmount !== null && Number(t.commissionAmount) > 0
-              ? Number(t.commissionAmount)
-              : Math.round(((saleAmt * commRate) / 100) * 100) / 100));
+  // 1. OLD BILL AMOUNT: SALE AMOUNT -> OLD BILL AMOUNT (Never leave as null when saleAmount exists)
+  const rawOldAmount = t.oldBillAmount ?? t.oldAmount ?? (notesOld && notesOld > 0 ? notesOld : null) ?? (rawSaleAmount > 0 ? rawSaleAmount : null);
+  const oldBillAmt: number | null = rawOldAmount !== null && rawOldAmount !== undefined && Number(rawOldAmount) > 0 ? Number(rawOldAmount) : (rawSaleAmount > 0 ? rawSaleAmount : null);
 
-    return {
-      saleAmt,
-      oldBillAmt: null,
-      newBillAmt: null,
-      diffAmt: null,
-      oldBillComm: null,
-      newBillComm: directComm,
-      commDiff: null,
-    };
-  }
-
-  // 2. Adjustments (Credit Note & Exchange)
-  // For Invoice Exchange: SALE AMOUNT of previous/original bill -> OLD BILL AMOUNT
-  const rawOldAmount = t.oldBillAmount ?? t.oldAmount ?? (isExchange && saleAmt > 0 ? saleAmt : notesOld);
-  const hasOldAmount = rawOldAmount !== undefined && rawOldAmount !== null && Number(rawOldAmount) > 0;
-  const oldBillAmt: number | null = hasOldAmount ? Number(rawOldAmount) : null;
-
+  // 2. NEW BILL AMOUNT
   const rawCnAmount = t.cnAmount !== undefined && t.cnAmount !== null ? Number(t.cnAmount) : null;
-  const rawNewAmount = t.newBillAmount ?? t.newAmount ?? notesNew;
-  const hasNewAmount = rawNewAmount !== undefined && rawNewAmount !== null && Number(rawNewAmount) > 0;
+  const rawNewAmount = t.newBillAmount ?? t.newAmount ?? (notesNew && notesNew > 0 ? notesNew : null);
   const newBillAmt: number | null =
     rawCnAmount !== null && rawCnAmount > 0
       ? rawCnAmount
-      : (hasNewAmount ? Number(rawNewAmount) : null);
+      : (rawNewAmount !== undefined && rawNewAmount !== null && Number(rawNewAmount) > 0
+          ? Number(rawNewAmount)
+          : (isExchange && rawSaleAmount > 0 && oldBillAmt !== rawSaleAmount ? rawSaleAmount : null));
 
+  // 3. OLD BILL COMMISSION: Commission calculated from SALE AMOUNT / OLD BILL AMOUNT
   const oldBillComm: number | null = oldBillAmt !== null
     ? (t.oldBillCommission !== undefined && t.oldBillCommission !== null && Number(t.oldBillCommission) > 0
         ? Number(t.oldBillCommission)
@@ -549,6 +529,7 @@ export function getTransactionDifferences(t: {
             : Math.round(((oldBillAmt * commRate) / 100) * 100) / 100))
     : null;
 
+  // 4. NEW BILL COMMISSION: Commission calculated from NEW BILL AMOUNT
   const newBillComm: number | null =
     newBillAmt !== null
       ? (t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) >= 0
@@ -560,14 +541,18 @@ export function getTransactionDifferences(t: {
                   : (t.commissionAmount !== undefined && t.commissionAmount !== null && Number(t.commissionAmount) > 0
                       ? Number(t.commissionAmount)
                       : Math.round(((newBillAmt * commRate) / 100) * 100) / 100))))
-      : null;
+      : (t.newBillCommission !== undefined && t.newBillCommission !== null && Number(t.newBillCommission) >= 0
+          ? Number(t.newBillCommission)
+          : (t.commissionAmount !== undefined && t.commissionAmount !== null && Number(t.commissionAmount) > 0
+              ? Number(t.commissionAmount)
+              : (rawSaleAmount > 0 ? Math.round(((rawSaleAmount * commRate) / 100) * 100) / 100 : null)));
 
-  // differenceAmount = oldBillAmount - newBillAmount (e.g. 2300 - 2998 = -698)
+  // 5. DIFFERENCE AMOUNT = OLD BILL AMOUNT - NEW BILL AMOUNT (e.g. 2300 - 2998 = -698)
   const diffAmt: number | null = (oldBillAmt !== null && newBillAmt !== null) ? Math.round((oldBillAmt - newBillAmt) * 100) / 100 : null;
   const commDiff: number | null = (oldBillComm !== null && newBillComm !== null) ? Math.round((oldBillComm - newBillComm) * 100) / 100 : null;
 
-  // Do NOT change SALE AMOUNT itself (keep as original saleAmt / oldBillAmt)
-  const displaySaleAmt = isExchange && oldBillAmt !== null && oldBillAmt > 0 ? oldBillAmt : (saleAmt > 0 ? saleAmt : (oldBillAmt || 0));
+  // 6. SALE AMOUNT: Preserve exact sale amount (do not change or overwrite)
+  const displaySaleAmt = rawSaleAmount > 0 ? rawSaleAmount : (oldBillAmt || 0);
 
   return {
     saleAmt: displaySaleAmt,
