@@ -689,11 +689,7 @@ export default function CommissionTransactions() {
 
                               {/* 6. NEW BILL AMOUNT */}
                               <td className="px-3 py-3 text-right font-mono text-xs font-bold text-foreground whitespace-nowrap">
-                                {newBillAmt !== null ? (
-                                  formatCurrency(newBillAmt)
-                                ) : (
-                                  <span className="text-muted-foreground/50 font-normal">—</span>
-                                )}
+                                {formatCurrency(0)}
                               </td>
 
                               {/* 7. OLD BILL COMMISSION */}
@@ -790,18 +786,7 @@ export default function CommissionTransactions() {
                             </td>
                             {/* NEW BILL AMOUNT total */}
                             <td className="px-3 py-2.5 text-right font-black text-foreground whitespace-nowrap">
-                              {(() => {
-                                let hasAnyNew = false;
-                                const sumNew = empCommissionTxns.reduce((acc, t) => {
-                                  const { newBillAmt } = getTransactionDifferences(t);
-                                  if (newBillAmt !== null) {
-                                    hasAnyNew = true;
-                                    return acc + newBillAmt;
-                                  }
-                                  return acc;
-                                }, 0);
-                                return hasAnyNew ? formatCurrency(sumNew) : '—';
-                              })()}
+                              {formatCurrency(0)}
                             </td>
                             {/* OLD BILL COMMISSION total */}
                             <td className="px-3 py-2.5 text-right font-semibold text-muted-foreground whitespace-nowrap">

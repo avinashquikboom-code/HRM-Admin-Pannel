@@ -520,14 +520,17 @@ export function getTransactionDifferences(t: {
           ? Number(rawNewAmount)
           : (isExchange && rawSaleAmount > 0 && oldBillAmt !== rawSaleAmount ? rawSaleAmount : null));
 
-  // 3. OLD BILL COMMISSION: Commission calculated from SALE AMOUNT / OLD BILL AMOUNT
-  const oldBillComm: number | null = oldBillAmt !== null
-    ? (t.oldBillCommission !== undefined && t.oldBillCommission !== null && Number(t.oldBillCommission) > 0
-        ? Number(t.oldBillCommission)
-        : (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0
-            ? Number(t.oldCommission)
-            : Math.round(((oldBillAmt * commRate) / 100) * 100) / 100))
-    : null;
+  // 3. OLD BILL COMMISSION: Commission corresponding to the SALE AMOUNT transaction
+  const oldBillComm: number | null =
+    t.commissionAmount !== undefined && t.commissionAmount !== null && Number(t.commissionAmount) > 0
+      ? Number(t.commissionAmount)
+      : (t.oldBillCommission !== undefined && t.oldBillCommission !== null && Number(t.oldBillCommission) > 0
+          ? Number(t.oldBillCommission)
+          : (t.oldCommission !== undefined && t.oldCommission !== null && Number(t.oldCommission) > 0
+              ? Number(t.oldCommission)
+              : (rawSaleAmount > 0
+                  ? Math.round(((rawSaleAmount * commRate) / 100) * 100) / 100
+                  : (oldBillAmt !== null ? Math.round(((oldBillAmt * commRate) / 100) * 100) / 100 : null))));
 
   // 4. NEW BILL COMMISSION: Commission calculated from NEW BILL AMOUNT
   const newBillComm: number | null =
